@@ -35,7 +35,7 @@ body.playing #menu{display:flex}
 #menu button:hover,.btn:hover:not(:disabled){background:#fff}
 #menu button:active,.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
 #menu button kbd{font-size:10px;margin-left:5px;border-width:1.5px;border-bottom-width:2px}
-#hint{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);padding:6px 14px;font-weight:700;font-size:15px;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis;display:none}
+#hint{position:fixed;left:50%;bottom:72px;transform:translateX(-50%);padding:6px 14px;font-weight:700;font-size:15px;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis;display:none}
 body.playing #hint.on{display:block}
 #hint.far{background:#e9e2d2;color:var(--dim)}
 #hint em{font-style:normal;font-size:12px;margin-right:8px;padding:0 7px;border:2px solid var(--dim);border-radius:999px}
@@ -46,7 +46,7 @@ body.playing #hint.on{display:block}
 .toast.good{background:#d8f2c9}.toast.bad{background:#ffd6cf}.toast.info{background:#dbeafc}
 .toast.out{opacity:0;transform:translateY(-8px)}
 @keyframes pop{from{transform:translateY(-10px) scale(.9);opacity:0}to{transform:none;opacity:1}}
-#banner{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);padding:10px 18px 14px;min-width:260px;text-align:center;z-index:55;display:none}
+#banner{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);padding:10px 18px 14px;min-width:260px;text-align:center;z-index:55;display:none}
 #banner.on{display:block}
 #b-label{font-weight:800;font-size:18px;margin-bottom:8px}
 #banner .bar{height:12px}
@@ -148,6 +148,47 @@ textarea{width:100%;height:56px;margin-top:10px;border:3px solid var(--ink);bord
 .dot.on{display:inline-block}
 body.cut #left,body.cut #menu,body.cut #hint{opacity:0;pointer-events:none}
 
+/* ---------- thanh đồ (góc dưới, kiểu Stardew) ---------- */
+#hotbar{position:fixed;left:0;right:0;bottom:10px;margin:0 auto;width:fit-content;display:none;gap:4px;padding:5px 6px;background:#c58c56;border:3px solid var(--ink);border-radius:12px;box-shadow:0 4px 0 var(--ink),inset 0 2px 0 #dba56e;z-index:30;max-width:96vw;flex-wrap:wrap;justify-content:center}
+body.playing #hotbar{display:flex}
+#hotbar:empty{display:none!important}
+body.cut #hotbar{opacity:0;pointer-events:none}
+.slot{position:relative;flex:none;width:42px;height:42px;padding:0;background:#f3e6c8;border:2px solid var(--ink);border-radius:7px;box-shadow:inset 0 -3px 0 #e0cfa6;cursor:pointer;font-family:inherit;color:var(--ink)}
+.slot:hover{background:#fff6e3}
+.slot img{display:block;width:36px;height:36px;margin:1px auto 0;image-rendering:pixelated}
+.slot b{position:absolute;right:2px;bottom:0;font-size:12px;font-weight:800;line-height:1;text-shadow:-1px 0 #fff,1px 0 #fff,0 -1px #fff,0 1px #fff}
+.slot i{position:absolute;left:0;right:0;bottom:0;font:800 9px/1 inherit;font-family:inherit;font-style:normal;text-align:center;text-shadow:-1px 0 #fff,1px 0 #fff,0 -1px #fff,0 1px #fff}
+.slot.txt{width:auto;padding:0 10px;font-weight:800;font-size:13px;background:#d8f2c9}
+.slot.txt kbd{font-size:10px}
+
+/* ---------- hội thoại với nhân vật: nằm dưới màn hình, có chân dung ---------- */
+#m-av{display:none}
+#modal-wrap.talk{align-items:flex-end;background:rgba(21,18,31,.2);padding-bottom:12px}
+#modal-wrap.talk #modal{width:min(860px,100%);max-height:62vh;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto 1fr}
+#modal-wrap.talk #m-av{display:flex;grid-row:1/3;align-items:flex-start;justify-content:center;padding:12px;border-right:3px solid var(--ink);background:var(--paper2);border-radius:11px 0 0 11px}
+#m-face{display:block;width:108px;height:114px;image-rendering:pixelated;background:#cfe6f2;border:3px solid var(--ink);border-radius:10px}
+#modal-wrap.talk #m-head{border-radius:0 11px 0 0}
+#modal-wrap.talk #m-body{min-height:0}
+
+/* ---------- lịch ---------- */
+.calhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.calhead b{font-size:17px;min-width:170px;text-align:center}
+.calhead span{margin-left:auto;font-weight:600}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cd{min-height:64px;padding:3px 4px;background:#fff;border:2px solid #d8caa8;border-radius:8px;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.cd.h{min-height:0;background:var(--paper2);border-color:var(--ink);font-weight:800;font-size:12px;text-align:center;display:block}
+.cd.x{background:none;border-color:transparent}
+.cd.we{background:#f3ead4}
+.cd.h.we{color:var(--red)}
+.cd.past{opacity:.55}
+.cd.today{border-color:var(--red);box-shadow:0 0 0 2px var(--red);opacity:1}
+.cd>b{font-size:13px;line-height:1}
+.ev{display:block;padding:0 4px;border-radius:5px;font-size:10.5px;font-weight:700;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;background:var(--dim)}
+.ev.ts{background:var(--c)}.ev.ts.done{opacity:.45;text-decoration:line-through}
+.ev.bd{background:#e06a9a}.ev.hol{background:var(--red)}.ev.fes{background:var(--orange);color:var(--ink)}.ev.mt{background:var(--green)}.ev.sem{background:var(--blue)}
+.callegend{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+.callegend .ev{display:inline-block}
+
 /* ---------- điện thoại ---------- */
 .crow{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:2px 10px;text-align:left;font:600 14px/1.25 inherit;font-family:inherit;color:var(--ink);background:#fff;border:3px solid var(--ink);border-radius:11px;box-shadow:0 3px 0 var(--ink);padding:6px 12px;cursor:pointer}
 .crow:hover{background:#eaf6e2}
@@ -191,6 +232,9 @@ body.cut #left,body.cut #menu,body.cut #hint{opacity:0;pointer-events:none}
 #title .btn{width:100%;font-size:17px;padding:9px;margin-top:8px}
 
 @media (max-width:720px){
+  .slot{width:34px;height:34px}.slot img{width:28px;height:28px}#hint{bottom:60px}
+  #m-face{width:72px;height:76px}#modal-wrap.talk #m-av{padding:8px}
+  .cd{min-height:50px}.ev{font-size:9px}
   html,body{font-size:13px}
   #left{width:190px;left:8px;top:8px;gap:6px}#hud{padding:6px 9px 8px}#h-time{font-size:19px}#h-date{font-size:13px}
   #todo{font-size:11px}

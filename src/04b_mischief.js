@@ -28,7 +28,7 @@ async function classFun() {
 function caughtInClass(ev) {
   const n = ++G.caughtCycle, L = [];
   if (ev.sev === 1 && n === 1) { L.push(li('Bị cô bắt gặp! Lỗi nhẹ, lần đầu nên cô chỉ nhắc nhở.', 'warn')); return L; }
-  L.push(li(`Bị cô bắt quả tang${ev.sev === 2 ? ' dùng điện thoại trong giờ' : ''}${n > 1 ? ` — lần thứ ${n} trong kỳ hạnh kiểm này` : ''}.`, 'bad'));
+  L.push(li(`Bị cô bắt quả tang${ev.id && ev.sev === 2 ? ' dùng điện thoại trong giờ' : ''}${n > 1 ? ` — lần thứ ${n} trong kỳ hạnh kiểm này` : ''}.`, 'bad'));
   addConduct(-(n >= 3 ? 1 : 0.5), 'làm việc riêng trong giờ học'); addTeacher(TEACHER.caughtFun);
   const pCall = ev.sev === 2 ? (n > 1 ? 0.5 : 0.25) : 0.15;
   if (Math.random() < pCall) { addParent(PARENT.teacherCall, 'cô giáo gọi điện báo phụ huynh'); L.push(li('Cô gọi điện báo về gia đình.', 'bad')); }
@@ -96,20 +96,28 @@ async function mischiefMenu(fid) {
   if (Math.random() >= inviteAccept(fid, id, free)) return UI.say(F.name, pick(REFUSE) + `<p class="dim">Khả năng ${F.name} nhận lời trò này: ${Math.round(inviteAccept(fid, id, free) * 100)}%. Thân hơn thì dễ rủ hơn.</p>`);
   doMischief(id, fid);
 }
+// Trốn học đi chơi: hoạt cảnh trèo tường → cảnh ở chỗ chơi (phố Hoa Phượng, núi…) → trèo tường về (có thể bị bắt quả tang).
+// Quậy trong trường (phòng hoá, nhà vệ sinh, căn tin): hoạt cảnh tại chỗ; bị giám thị bắt thì cả hai giật mình nhảy dựng lên.
+// Tan học / ngày nghỉ: chỉ là đi chơi — không trèo tường, không ai bắt, chơi xong ở lại chỗ chơi.
 async function doMischief(id, fid) {
   const M = MISCHIEF[id], F = FRIENDS[fid], L = [];
   if (M.cost && G.money < M.cost) return UI.toast('Không đủ tiền.', 'bad');
   if (M.stamCost && G.stamina < M.stamCost) return UI.toast('Không đủ thể lực.', 'bad');
-  const free = freeTime() && isOuting(M);          // tan học / ngày nghỉ: đi chơi đàng hoàng, không ai bắt
+  if (RT.lock) return;
+  const free = freeTime() && isOuting(M);
   RT.lock = true;
-  await UI.fade(true);
-  const wasAt = G.atSchool, tt = ttToday();
+  const wasAt = G.atSchool, tt = ttToday(), climb = !free && isOuting(M) && wasAt;
+  if (G.ride) dismount(true);
+  if (climb) await playCut(wallCut(fid, false, false));
   RT.skip = { missed: [] };
   if (M.leave) G.atSchool = false;                 // không có mặt trong lớp: tiết nào trôi qua là tiết bị bỏ
-  await UI.progress(`${M.verb} với ${F.name}…`, 1400);
   advanceTime(M.mins);
   const skipped = RT.skip.missed.slice(); RT.skip = null;
-  if (M.leave && wasAt) { G.atSchool = true; if (M.inside) setMap('school', 80, 118, 0); else setMap('school', 352, 372, 3); }
+  if (M.leave && wasAt && !free) G.atSchool = true;
+  const caught = !free && Math.random() < M.risk + 0.1 * skipped.length + 0.04 * G.caughtCycle;
+  await playCut(venueCut(id, fid, caught && !climb, free));       // free: ở lại luôn chỗ chơi
+  if (climb) await playCut(wallCut(fid, true, caught));
+  else if (M.inside && wasAt) setMap('school', 80, 118, 0);
   const gain = free ? outingGain(M) : M.friend;
   addFriend(fid, gain);
   L.push(li(`${M.verb} với ${F.name}: thân thiết +${gain}.`, 'good'));
@@ -120,10 +128,9 @@ async function doMischief(id, fid) {
   if (M.smoke) L.push(li('Ho sặc sụa, người mệt hẳn đi: −8 thể lực, −2 Thể thao.', 'bad'));
   if (skipped.length && tt) L.push(li('Bỏ lỡ ' + skipped.map(n => `tiết ${n} (${SUBJ[tt[n - 1]].short})`).join(', ') + ' — không được điểm bài học.', 'warn'));
   if (free) L.push(li(schoolToday() ? 'Tan học rồi nên đi đâu cũng được — không ai bắt, không bị trừ hạnh kiểm.' : 'Ngày nghỉ, đi chơi thoải mái.', 'dim'));
-  else if (Math.random() < M.risk + 0.1 * skipped.length + 0.04 * G.caughtCycle) L.push(...mischiefCaught(M, skipped, tt, fid));
+  else if (caught) L.push(...mischiefCaught(M, skipped, tt, fid));
   else L.push(li(skipped.length ? 'Bạn cùng bàn điểm danh hộ. Trót lọt, không ai biết!' : 'Trót lọt, không ai phát hiện!', 'good'));
   RT.snapNpcs = true;
-  await UI.fade(false);
   await UI.ask(free ? `${M.verb} với ${F.name}` : M.name, resWrap(L), ['OK']);
   RT.lock = false; UI.hud();
 }

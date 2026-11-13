@@ -1,7 +1,8 @@
 'use strict';
 /* ============================================================
  *  04c. BẠN BÈ & VUI CHƠI
- *  - Đi lại giữa khu phố · phố Hoa Sữa · núi sau trường
+ *  - Đi lại giữa các khu · xe đạp / xe máy · xe bus · tàu ra biển · câu cá
+ *  - Bộ máy hoạt cảnh (playCut): lau nhà, rửa xe, đấm lưng, trèo tường trốn học, bị giám thị bắt
  *  - Tương tác với bạn (trường, lớp, công viên, nhà bạn, chỗ hẹn) · tặng quà
  *  - Giải lao giữa 2 tiết: đi vệ sinh chung / yoyo, con quay, đánh bài (có cắt cảnh)
  *  - Mượn sách, mượn bút · sự kiện trong giờ học và giờ nghỉ trưa · thư viện
@@ -19,18 +20,156 @@ async function goPlace(map, x, y, dir, mins, label) {
   await UI.fade(false);
   RT.lock = false; UI.hud();
 }
-ACT.toPho = () => goPlace('pho', 16, 204, 2, TRAVEL.townPho, 'Đi bộ sang phố Hoa Sữa…');
-ACT.toTown = () => goPlace('town', 782, 204, 1, TRAVEL.townPho, 'Đi bộ về khu phố nhà mình…');
-ACT.toHill = from => {
-  if (RT.lock) return;
-  if (from === 'school' && schoolToday() && G.time < CFG.SCHOOL_END) return UI.say('Cổng sau', 'Cổng sau khoá trong giờ học.<p class="dim">Tan học (17:00) bác bảo vệ mới mở. Muốn lên núi trong giờ thì… phải rủ bạn cúp tiết.</p>');
-  if (!inWin(G.time, HILL_HOURS[0], HILL_HOURS[1])) return UI.say('Đường lên núi', `Trời tối rồi, đường núi nguy hiểm lắm.<p class="dim">Chỉ lên núi được từ ${fmtTime(HILL_HOURS[0])} đến ${fmtTime(HILL_HOURS[1])}.</p>`);
-  G.hillFrom = from;
-  goPlace('nui', 320, 456, 3, from === 'school' ? TRAVEL.schoolNui : TRAVEL.phoNui, 'Leo đường mòn lên núi sau trường…');
+// Ranh giới giữa các khu. hop: số phút mất thêm khi ĐI BỘ qua (đi xe thì không mất) · foot: phải xuống xe
+const LINKS = {
+  'town>pho': { at: ['pho', 16, 204, 2], hop: WALK_HOP, label: 'Đi sang phố Hoa Phượng…' },
+  'pho>town': { at: ['town', 782, 204, 1], hop: WALK_HOP, label: 'Đi về khu phố nhà mình…' },
+  'pho>school': { at: ['school', 14, 408, 2], hop: WALK_HOP, label: 'Đi sang trường…' },
+  'school>pho': { at: ['pho', 878, 204, 1], hop: WALK_HOP, label: 'Đi về phố Hoa Phượng…' },
+  'pho>ga': { at: ['ga', 288, 300, 3], hop: 0 }, 'ga>pho': { at: ['pho', 456, 22, 0], hop: 0 },
+  'pho>song': { at: ['song', 320, 24, 0], hop: 0 }, 'song>pho': { at: ['pho', 440, 396, 3], hop: 0 },
+  'school>nui': { at: ['nui', 320, 456, 3], hop: HILL_CLIMB, foot: true, hours: HILL_HOURS, label: 'Theo lối mòn sau trường lên núi…' },
+  'nui>school': { at: ['school', 736, 26, 0], hop: HILL_CLIMB, foot: true, label: 'Xuống núi…' },
 };
-ACT.leaveHill = () => (G.hillFrom === 'school' && G.atSchool
-  ? goPlace('school', 24, 32, 0, TRAVEL.schoolNui, 'Xuống núi về cổng sau trường…')
-  : goPlace('pho', 874, 204, 1, TRAVEL.phoNui, 'Xuống núi về phố Hoa Sữa…'));
+ACT.go = (from, to) => {
+  if (RT.lock) return;
+  const L = LINKS[from + '>' + to];
+  if (L.hours && !inWin(G.time, L.hours[0], L.hours[1])) return UI.say('Đường lên núi', `Trời tối rồi, đường núi nguy hiểm lắm.<p class="dim">Chỉ lên núi được từ ${fmtTime(L.hours[0])} đến ${fmtTime(L.hours[1])}.</p>`);
+  if (L.foot && G.ride) dismount(true);
+  goPlace(L.at[0], L.at[1], L.at[2], L.at[3], G.ride ? 0 : L.hop, L.label);
+};
+
+/* ---------- xe đạp / xe đạp điện / xe máy: bấm vào xe để lên, X để xuống ---------- */
+const vehAtHome = id => !!G && !!G.owned[VEHICLES[id].own] && G.ride !== id && !(G.park && G.park.id === id);
+ACT.mount = id => {
+  if (RT.lock) return;
+  if (G.park && G.park.id !== id) return UI.toast(`Bạn đang để ${VEHICLES[G.park.id].name.toLowerCase()} ở chỗ khác. Mang xe đó về đã.`);
+  if (G.ride) dismount(true);
+  G.ride = id; G.park = null;
+  UI.toast(`Lên ${VEHICLES[id].name.toLowerCase()} — chạy nhanh gấp ${String(VEHICLES[id].speed).replace('.', ',')} lần đi bộ. Bấm X để xuống xe.`, 'good'); UI.hud();
+};
+function dismount(quiet) {
+  if (!G.ride) return;
+  const id = G.ride, m = MAPS[G.map];
+  G.ride = null;
+  G.park = atHome() ? null : { id, map: G.map, x: clamp(G.x + (RT.faceL ? 14 : -14), 18, m.pw - 18), y: G.y };
+  if (!quiet) UI.toast(G.park ? `Dựng ${VEHICLES[id].name.toLowerCase()} ở đây. Bấm vào xe để đi tiếp.` : 'Dựng xe ở sân nhà.');
+  UI.hud();
+}
+const shedLabel = () => (G && G.park && G.park.shed ? `Nhà xe — lấy ${VEHICLES[G.park.id].name.toLowerCase()}` : 'Nhà xe học sinh');
+ACT.shed = () => {
+  if (!G.park || !G.park.shed) return UI.toast('Nhà xe học sinh. Đi xe đến trường thì xe gửi ở đây.');
+  G.ride = G.park.id; G.park = null; UI.toast(`Lấy ${VEHICLES[G.ride].name.toLowerCase()} ra khỏi nhà xe. Bấm X để xuống xe.`, 'good'); UI.hud();
+};
+
+/* ---------- hoạt cảnh đi xe: xe bus · bố mẹ chở · tàu hoả ---------- */
+// Xe chạy từ đầu này sang đầu kia cảnh đường; right = chạy sang phải. Sau hoạt cảnh màn hình vẫn tối để bên gọi đặt bản đồ mới.
+async function rideCut(kind, title, right, who) {
+  const rail = kind === 'train', map = rail ? 'rail' : 'ride', W = MAPS[map].pw, dur = UI._fast ? 40 : 3200;
+  await UI.fade(true);
+  setMap(map, 100, 150, 0);
+  const t0 = performance.now(), x0 = right ? 40 : W - 240, x1 = right ? W - 240 : 40;
+  RT.scene = {
+    type: 'cut', map, hideMe: true, cam: { x: x0, y: 96 }, title, actors: [], hide: [], tw: [], bubble: null,
+    props: [now => {
+      const k = clamp((now - t0) / dur, 0, 1), e = k * k * (3 - 2 * k), x = x0 + (x1 - x0) * e, bob = Math.floor(now / 110) % 2;
+      RT.scene.cam.x = x + (rail ? 84 : 36);
+      if (rail) drawSpr(SPR[right ? 'train' : 'trainL'], x, 104);
+      else if (kind === 'bus') drawSpr(SPR[right ? 'bus' : 'busL'], x, 128 + bob);
+      else {       // xe máy của bố / mẹ, mình ngồi sau
+        const cx0 = x + 16, cy0 = 162 + bob;
+        drawSpr(SHADOW, cx0 - 7, cy0 - 3); drawSpr(SPR[BIKE[who].spr], cx0 - 16, cy0 - 21);
+        drawSpr(charSheet(G.gender)[2][0], cx0 - 17, cy0 - 31);
+        drawSpr(charSheet(who, who === 'mom' ? 'noapron' : null)[2][0], cx0 - 8, cy0 - 32);
+      }
+    }],
+  };
+  UI.hint(null); document.body.classList.add('cut');
+  await UI.fade(false); await UI.wait(dur); await UI.fade(true);
+  RT.scene = null; document.body.classList.remove('cut');
+}
+// Xe bus: lên xe ở bến rồi chọn điểm đến. Vé đồng giá; càng xa càng lâu.
+ACT.bus = async from => {
+  if (RT.lock) return;
+  if (!busHere()) return UI.say('Trạm xe bus', `Hết chuyến rồi.<p class="dim">Xe bus chạy từ ${fmtTime(BUS_HOURS[0])} đến ${fmtTime(BUS_HOURS[1])}.</p>`);
+  const f = busFare(), stops = Object.keys(BUS_STOPS).filter(k => k !== from);
+  const c = await UI.ask('Xe bus', `<p>Bác tài: “Lên xe đi cháu. Về đâu nào?”</p><p class="dim">Vé đồng giá <b>${f.cost ? fmtMoney(f.cost) : 'miễn phí'}</b> (${f.note}) · đang ở bến ${BUS_STOPS[from].name} · bây giờ ${fmtTime(G.time)}</p>`, stops.map(k => `${BUS_STOPS[k].name} · ${busMins(from, k)} phút`).concat('Xuống xe'));
+  if (c < 0 || c >= stops.length) return;
+  if (G.money < f.cost) return UI.toast('Không đủ tiền vé.', 'bad');
+  const to = stops[c], A = BUS_STOPS[from], B = BUS_STOPS[to];
+  RT.lock = true;
+  if (G.ride) dismount(true);
+  if (f.cost) addMoney(-f.cost, true);
+  await rideCut('bus', `Xe bus · ${A.name} → ${B.name}`, B.pos + B.off * 0.5 >= A.pos + A.off * 0.5);
+  advanceTime(busMins(from, to)); setMap(B.map, B.x, B.y, 0); RT.snapNpcs = true;
+  await UI.fade(false);
+  RT.lock = false; UI.hud();
+  if (to === 'truong' && schoolToday() && G.time < CFG.SCHOOL_END) UI.toast('Xuống xe trước cổng trường. Đi qua cổng để vào trường.', 'info');
+};
+// Tàu hoả: chỉ có tàu mới ra được biển
+ACT.train = async from => {
+  if (RT.lock) return;
+  const out = from === 'ga', T = TRAIN;
+  if (out && !inWin(G.time, T.hours[0], T.hours[1])) return UI.say('Cô soát vé', `“Hết chuyến ra biển rồi cháu.”<p class="dim">Tàu ra biển chạy từ ${fmtTime(T.hours[0])} đến ${fmtTime(T.hours[1])}. Chuyến về thì có tới khuya.</p>`);
+  const c = await UI.ask('Cô soát vé', `<p>“${out ? 'Tàu ra biển' : 'Tàu về ga Hoa Phượng'}, vé ${fmtMoney(T.price)}, đi ${T.mins} phút. Cháu lên tàu chứ?”</p><p class="dim">Bây giờ ${fmtTime(G.time)}.${out && schoolToday() && G.time < CFG.SCHOOL_END ? ' Hôm nay là ngày đi học đấy…' : ''}</p>`, [`Mua vé lên tàu (${fmtMoney(T.price)})`, 'Thôi']);
+  if (c !== 0) return;
+  if (G.money < T.price) return UI.toast('Không đủ tiền vé.', 'bad');
+  RT.lock = true;
+  if (G.ride) dismount(true);
+  addMoney(-T.price, true);
+  await rideCut('train', out ? 'Tàu hoả · Ga Hoa Phượng → Biển' : 'Tàu hoả · Biển → Ga Hoa Phượng', out);
+  advanceTime(T.mins); if (out) setMap('bien', 330, 70, 0); else setMap('ga', 300, 70, 0); RT.snapNpcs = true;
+  await UI.fade(false);
+  RT.lock = false; UI.hud();
+  if (out) UI.toast('Tới biển rồi! Tắm biển, xây lâu đài cát, nhặt vỏ sò, ăn hải sản…', 'good');
+};
+ACT.beach = async kind => {
+  const B = BEACH, d = G.daily.beach, fid = meetHere('bien'), wf = fid ? ` cùng ${FRIENDS[fid].name}` : '';
+  if (kind === 'shell') {
+    if (G.daily.shells >= B.shell.perDay) return UI.toast('Hôm nay nhặt đủ vỏ sò đẹp rồi.');
+    await activity('Đang nhặt vỏ sò…', B.shell.mins, () => { G.daily.shells++; G.inv.voso++; UI.toast(`Nhặt được một vỏ sò đẹp. Đem tặng bạn (+${SHELL_FRIEND} thân thiết).`, 'good'); });
+  } else if (kind === 'rest') {
+    if (d.rest) return UI.toast('Hôm nay nằm nghỉ ở ghế dù rồi.');
+    await activity('Nằm ghế dù nghe sóng vỗ…', B.rest.mins, () => { d.rest = true; gainStam(B.rest.stam); });
+  } else if (kind === 'food') {
+    if (!inWin(G.time, 540, 1230)) return UI.say('Quán hải sản', 'Quán chưa mở.<p class="dim">Bán từ 09:00 đến 20:30.</p>');
+    const c = await UI.ask('Quán hải sản', `<p>“Mực nướng, nghêu hấp sả, bắp nướng mỡ hành đây!”</p>` + withLine(fid), [`Ăn hải sản nướng${wf} · ${fmtMoney(B.food.price)} · ${B.food.mins}' · +${B.food.stam} thể lực`, 'Thôi']);
+    if (c !== 0) return;
+    if (G.money < B.food.price) return UI.toast('Không đủ tiền.', 'bad');
+    await activity(`Đang ăn hải sản${wf}…`, B.food.mins, () => { addMoney(-B.food.price); gainStam(B.food.stam); meetGain('bien', B.food.friend); });
+  } else if (kind === 'castle') {
+    if (d.castle) return UI.toast('Lâu đài cát hôm nay xây xong rồi.');
+    await activity(`Đang xây lâu đài cát${wf}…`, B.castle.mins, () => { d.castle = true; useStam(B.castle.stam); addStat('kheotay', B.castle.pts); meetGain('bien', 6); });
+  } else if (kind === 'swim') {
+    if (d.swim) return UI.toast('Hôm nay tắm biển rồi, da nhăn hết cả.');
+    if (G.stamina < B.swim.stam) return UI.toast('Không đủ thể lực.', 'bad');
+    await activity(`Đang tắm biển${wf}…`, B.swim.mins, () => { d.swim = true; useStam(B.swim.stam, true); addStat('thethao', B.swim.pts); meetGain('bien', B.friend); });
+  }
+};
+
+/* ---------- câu cá ở bờ sông ---------- */
+const fishCount = () => Object.values(G.fish).reduce((a, b) => a + b, 0);
+const fishValue = () => FISH.reduce((a, f) => a + (G.fish[f.id] || 0) * f.price, 0);
+const fishLabel = () => (G && G.owned.cancau ? `Câu cá (${FISHING.mins}' mỗi lần thả câu)` : 'Chỗ câu cá — cần có cần câu (bán ở tạp hoá Cô Ba)');
+ACT.fish = async () => {
+  if (RT.lock) return;
+  if (!G.owned.cancau) return UI.say('Bờ sông', 'Sông rộng mênh mông, cá quẫy lách tách.<p class="dim">Muốn câu cá phải có cần câu — bán ở tạp hoá Cô Ba (80.000đ). Cá câu được bán lại cho Cô Ba hoặc mang về cho mẹ nấu.</p>');
+  if (G.stamina < FISHING.stam) return UI.toast('Mệt quá, không câu nổi.', 'bad');
+  RT.lock = true;
+  await UI.progress('Thả câu, chờ cá cắn…', 1300);
+  advanceTime(FISHING.mins); useStam(FISHING.stam);
+  if (Math.random() < FISHING.nothing) { RT.lock = false; UI.hud(); return UI.toast('Ngồi mãi chẳng con nào cắn câu.'); }
+  let r = Math.random() * FISH.reduce((a, f) => a + f.w, 0), f = FISH[0];
+  for (const q of FISH) { r -= q.w; if (r < 0) { f = q; break; } }
+  const res = await UI.minigame({ title: 'Cá cắn câu!', task: 'Giữ con cá trong vùng xanh cho tới khi kéo được lên bờ', icon: 'ca', diff: f.diff, level: lv('kheotay'), tired: G.stamina < 10 });
+  if (res.win) { G.fish[f.id] = (G.fish[f.id] || 0) + 1; addStat('kheotay', 2); UI.toast(`Câu được ${f.name.toLowerCase()} (bán được ${fmtMoney(f.price)})!`, 'good'); }
+  else { addStat('kheotay', 1); UI.toast(`Con ${f.name.toLowerCase()} giật đứt dây, sổng mất rồi…`, 'info'); }
+  RT.lock = false; UI.hud();
+};
+function sellFish() {
+  const v = fishValue(); if (!v) return UI.toast('Bạn không có con cá nào.');
+  G.fish = {}; addMoney(v, true); addStat('buonban', 2); UI.toast(`Bán hết cá cho Cô Ba: +${fmtMoney(v)}`, 'good'); UI.hud();
+}
 
 /* ---------- hẹn đi chơi ---------- */
 const meetOn = () => (G && G.meet && G.meet.day === G.day ? G.meet : null);
@@ -56,7 +195,7 @@ function placeOpen(P) {
 }
 
 /* ---------- tương tác với bạn bè ---------- */
-const MEET_VERB = { tea: 'Vào tiệm trà sữa cùng nhau', mall: 'Vào trung tâm thương mại cùng nhau', arcade: 'Vào khu game cùng nhau', park: "Chơi thể thao cùng nhau (60')", nui: 'Trải bạt picnic cùng nhau' };
+const MEET_VERB = { tea: 'Vào tiệm trà sữa cùng nhau', mall: 'Vào trung tâm thương mại cùng nhau', arcade: 'Vào khu game cùng nhau', park: "Chơi thể thao cùng nhau (60')", nui: 'Trải bạt picnic cùng nhau', bien: 'Tắm biển cùng nhau' };
 function breakFunFor(fid) {
   const F = FRIENDS[fid];
   if (!G.atSchool || !schoolToday() || G.time >= 1060 || F.g !== G.gender || grudge(fid)) return [];
@@ -74,6 +213,8 @@ ACT.mate = async sid => {
 ACT.friend = async (fid, where) => {
   const F = FRIENDS[fid], opts = [], ids = [], add = (id, text) => { ids.push(id); opts.push(text); };
   const free = freeTime(), atSch = (where === 'school' || where === 'class') && G.atSchool, hs = hearts(fid);
+  const bd = isDate(F.bday, G.day);
+  if (bd && !G.daily.bday[fid]) add('bday', `Chúc mừng sinh nhật ${F.name}! (thân thiết +${BDAY_FRIEND})`);
   add('chat', 'Trò chuyện');
   if (where === 'meet' && meetOn()) add('place', MEET_VERB[G.meet.place]);
   if (where === 'park') {
@@ -84,7 +225,8 @@ ACT.friend = async (fid, where) => {
   if (atSch && !free) add('mis', where === 'class' ? 'Rủ cúp tiết sau / đi quậy… (có thể bị phạt)' : 'Rủ cúp tiết / đi quậy… (có thể bị phạt)');
   if (atSch) for (const id of breakFunFor(fid)) add('brk:' + id, `${BREAK_FUN[id].name} (${BREAK_FUN_MINS}' · thân thiết +${BREAK_FUN[id].friend})`);
   if (cardCount()) add('duel', 'Đấu thẻ cầu thủ (thắng lấy thẻ, thua mất thẻ)');
-  if (G.inv.gaubong && !G.daily.gift[fid]) add('gift', `Tặng gấu bông gắp được (thân thiết +${GIFT_FRIEND})`);
+  if (G.inv.gaubong && !G.daily.gift[fid]) add('gift', `Tặng gấu bông gắp được (thân thiết +${GIFT_FRIEND * (bd ? 2 : 1)}${bd ? ' — quà sinh nhật' : ''})`);
+  if (G.inv.voso && !G.daily.gift['v_' + fid]) add('shell', `Tặng vỏ sò nhặt ở biển (thân thiết +${SHELL_FRIEND * (bd ? 2 : 1)})`);
   if (G.inv.banhtrang) add('sell', `Mời mua bánh tráng (${fmtMoney(sellPrice())})`);
   add('x', 'Thôi');
   let note = '';
@@ -96,10 +238,12 @@ ACT.friend = async (fid, where) => {
   else if (c === 'mis' || c === 'out') mischiefMenu(fid);
   else if (c === 'duel') cardDuel('f_' + fid, fid, F.name, F.duel);
   else if (c.startsWith('brk:')) doBreakFun(fid, c.slice(4));
-  else if (c === 'gift') { G.inv.gaubong--; G.daily.gift[fid] = true; addFriend(fid, GIFT_FRIEND); UI.toast(`${F.name} ôm con gấu bông cười tít mắt. Thân thiết +${GIFT_FRIEND}`, 'good'); }
+  else if (c === 'gift') { const g = GIFT_FRIEND * (bd ? 2 : 1); G.inv.gaubong--; G.daily.gift[fid] = true; addFriend(fid, g); UI.toast(`${F.name} ôm con gấu bông cười tít mắt. Thân thiết +${g}`, 'good'); }
+  else if (c === 'shell') { const g = SHELL_FRIEND * (bd ? 2 : 1); G.inv.voso--; G.daily.gift['v_' + fid] = true; addFriend(fid, g); UI.toast(`${F.name} áp vỏ sò lên tai nghe tiếng sóng. Thân thiết +${g}`, 'good'); }
+  else if (c === 'bday') { G.daily.bday[fid] = true; addFriend(fid, BDAY_FRIEND); UI.say(F.name, `“Cậu nhớ sinh nhật tớ á? Cảm ơn nhiều nha!”<p class="dim">Thân thiết +${BDAY_FRIEND}. Hôm nay tặng quà (gấu bông, vỏ sò) được cộng gấp đôi.</p>`); }
   else if (c === 'place') {
     const pl = G.meet.place;
-    if (pl === 'tea') ACT.tea(); else if (pl === 'mall') ACT.mall(); else if (pl === 'arcade') ACT.arcade(); else if (pl === 'nui') ACT.picnic();
+    if (pl === 'tea') ACT.tea(); else if (pl === 'mall') ACT.mall(); else if (pl === 'arcade') ACT.arcade(); else if (pl === 'nui') ACT.picnic(); else if (pl === 'bien') ACT.beach('swim');
     else {
       if (G.stamina < 15) return UI.toast('Không đủ thể lực.', 'bad');
       await activity(`Chơi thể thao với ${F.name}…`, 60, () => { useStam(15, true); addStat('thethao', 6); addStat('giaotiep', 3); meetGain('park', 10); });
@@ -115,7 +259,7 @@ ACT.friend = async (fid, where) => {
     await activity(`Chơi arcade với ${F.name}…`, 90, () => { addMoney(-30000); gainStam(6); addStat('giaotiep', 4); addFriend(fid, 10); });
   }
 };
-// Bấm chuông nhà bạn ở phố Hoa Sữa
+// Bấm chuông nhà bạn ở phố Hoa Phượng
 ACT.house = fid => {
   const F = FRIENDS[fid];
   if (friendHome(fid)) return ACT.friend(fid, 'house');
@@ -125,29 +269,128 @@ ACT.house = fid => {
   else if (parkTime()) where = `“${F.name} ra công viên bên khu nhà cháu chơi rồi.”`;
   else if (schoolToday() && G.time < 1040) where = `“Giờ này ${F.name} đang ở trường mà cháu?”`;
   else where = `“${F.name} vừa chạy đi đâu đó rồi cháu ạ.”`;
-  UI.say(`Nhà ${F.name}`, `Bấm chuông… Mẹ ${F.name} ló đầu ra: ${where}<p class="dim">${F.name} có nhà: ngày đi học 20:10–21:30 · ngày nghỉ 06:30–08:00 và 18:10–21:30. Muốn chắc ăn thì nhắn tin hẹn trước (Điện thoại).</p>`);
+  UI.say(`Nhà ${F.name}`, `Bấm chuông… Người nhà ${F.name} ló đầu ra: ${where}<p class="dim">${F.name} có nhà: ngày đi học 20:10–21:30 · ngày nghỉ 06:30–08:00 và 18:10–21:30. Muốn chắc ăn thì nhắn tin hẹn trước (Điện thoại).</p>`);
 };
 
-/* ---------- cắt cảnh ---------- */
-// o: { map, me:[x,y,dir], actors:[{look,x,y,dir}], cam, props:[fn(now)], hide:[sid], title, lines:[[who,text]] } — who: 'me' hoặc chỉ số actor
+/* ---------- hoạt cảnh ---------- */
+// o: { map, me:[x,y,dir], actors:[{look,x,y,dir,hidden}], cam, props:[fn(now)], hide:[sid], title, below,
+//      steps:[…] hoặc lines:[[who,text]] · inPlace: diễn ngay tại chỗ, không chuyển cảnh · bars:false: không có dải đen · stay: diễn xong ở lại chỗ mới }
+// Bước: {say:[who,text]} · {move:[who,x,y,ms,hop,keep]} · {hop:who} · {wait:ms} · {fn} · {par:[bước…]} — who: 'me' hoặc chỉ số actor
+function tween(who, x, y, ms, hop, keep) {
+  return new Promise(res => {
+    const sc = RT.scene, e = who === 'me' ? 'me' : sc.actors[who], cur = e === 'me' ? G : e;
+    sc.tw.push({ who: e, x0: cur.x, y0: cur.y, x1: x === null ? cur.x : x, y1: y === null ? cur.y : y, ms: UI._fast ? 1 : ms, t: 0, hop: hop || 0, keep: !!keep, res });
+  });
+}
+async function runStep(st, o) {
+  const sc = RT.scene;
+  if (st.say) {
+    const a = st.say[0] === 'me' ? G : sc.actors[st.say[0]], text = st.say[1];
+    sc.bubble = o.below ? { x: a.x, y: a.y + 4, text, below: true } : { x: a.x, y: a.y - 27, text };
+    await UI.wait(1500 + text.length * 30); sc.bubble = null;
+  } else if (st.move) await tween(...st.move);
+  else if (st.hop !== undefined) await tween(st.hop, null, null, 300, 9, true);
+  else if (st.wait) await UI.wait(st.wait);
+  else if (st.fn) st.fn(sc);
+  else if (st.par) await Promise.all(st.par.map(q => runStep(q, o)));
+}
 async function playCut(o) {
   const back = { map: G.map, x: G.x, y: G.y, dir: G.dir };
-  await UI.fade(true);
-  setMap(o.map, o.me[0], o.me[1], o.me[2]);
-  RT.scene = { type: 'cut', map: o.map, actors: o.actors || [], cam: o.cam, props: o.props || [], hide: o.hide || [], bubble: null, title: o.title || '' };
+  if (!o.inPlace) await UI.fade(true);
+  if (o.me) setMap(o.map, o.me[0], o.me[1], o.me[2]);
+  RT.scene = { type: 'cut', map: o.map || G.map, actors: o.actors || [], cam: o.cam, props: o.props || [], hide: o.hide || [], bubble: null, title: o.title || '', tw: [], bars: o.bars, hideMe: o.hideMe };
   UI.hint(null);
-  document.body.classList.add('cut');
-  await UI.fade(false);
-  for (const [who, text] of o.lines) {
-    const a = who === 'me' ? { x: G.x, y: G.y } : RT.scene.actors[who];
-    RT.scene.bubble = o.below ? { x: a.x, y: a.y + 4, text, below: true } : { x: a.x, y: a.y - 27, text };
-    await UI.wait(1500 + text.length * 30);
-  }
-  RT.scene.bubble = null;
-  await UI.fade(true);
+  if (o.bars !== false) document.body.classList.add('cut');
+  if (!o.inPlace) await UI.fade(false);
+  for (const st of (o.steps || (o.lines || []).map(l => ({ say: l })))) await runStep(st, o);
+  if (!o.inPlace) await UI.fade(true);
   RT.scene = null; document.body.classList.remove('cut');
-  setMap(back.map, back.x, back.y, back.dir);
-  await UI.fade(false);
+  if (!o.stay) setMap(back.map, back.x, back.y, back.dir);
+  if (!o.inPlace) await UI.fade(false);
+}
+// Việc có hoạt cảnh tại chỗ (lau nhà, rửa xe, đấm lưng): vừa diễn vừa hiện thanh tiến độ, xong mới tính thời gian + phần thưởng
+async function animActivity(label, mins, cutDef, fn) {
+  if (RT.lock) return;
+  RT.lock = true;
+  UI.progress(label, cutDef.est || 2600);
+  await playCut(cutDef);
+  advanceTime(mins);
+  if (fn) fn();
+  RT.lock = false; UI.hud();
+}
+// Lau nhà: cầm cây lau đi một vòng quanh phòng khách
+function mopCut() {
+  const pts = [[176, 150], [254, 150], [336, 150], [336, 192], [254, 192], [176, 192], [176, 96], [262, 82], [176, 62]];
+  return {
+    inPlace: true, bars: false, est: pts.length * 400,
+    steps: pts.map(p => ({ move: ['me', p[0], p[1], 400] })),
+    props: [now => drawSpr(SPR.mop, G.x + (G.dir === 1 || G.dir === 3 ? -13 : 5), G.y - 17 + (Math.floor(now / 130) % 2))],
+  };
+}
+// Rửa xe: đứng cạnh xe cọ qua cọ lại, bọt xà phòng bay lên
+function washCut(ax) {
+  const y = 139;
+  return {
+    inPlace: true, bars: false, est: 3300,
+    steps: [{ move: ['me', ax, y, 300] }, { fn: () => { G.dir = 3; } }, { move: ['me', ax - 11, y, 600, 0, true] }, { move: ['me', ax + 11, y, 800, 0, true] }, { move: ['me', ax - 9, y, 800, 0, true] }, { move: ['me', ax, y, 500, 0, true] }],
+    props: [now => {
+      drawSpr(SPR.sponge, G.x - 3 + Math.round(Math.sin(now / 90) * 3), G.y - 22);
+      for (let i = 0; i < 5; i++) { const ph = (now / 900 + i * 0.2) % 1; drawSpr(SPR[i % 2 ? 'bub0' : 'bub1'], ax - 16 + i * 7 + Math.round(Math.sin(now / 300 + i) * 2), 126 - ph * 22); }
+      for (let i = 0; i < 3; i++) wRect('#8fd0f0', ax - 10 + i * 9, 134 + ((now / 60 + i * 5) % 6), 1, 2);
+    }],
+  };
+}
+// Đấm lưng: đứng sát bên, nhún nhún đấm, bật tia "bụp bụp" sau lưng bố mẹ
+function massageCut(n) {
+  const x = n.cx + 11, y = n.cy + 1, steps = [{ move: ['me', x, y, 320] }, { fn: () => { G.dir = 1; } }];
+  for (let i = 0; i < 8; i++) steps.push({ move: ['me', x, y, 240, 2, true] });
+  return {
+    inPlace: true, bars: false, est: 320 + 8 * 240, steps,
+    props: [now => { const f = Math.floor(now / 240) % 2; if (f) drawSpr(SPR.hit, n.cx + 1, n.cy - 17); else drawSpr(SPR.hit, n.cx + 3, n.cy - 12); }],
+  };
+}
+// Trèo tường: trốn ra (backIn = false) hoặc trèo về lại trường (backIn = true; caught: giám thị đứng chờ sẵn)
+function wallCut(fid, backIn, caught) {
+  const A = [150, 358], B = [174, 358], A2 = [150, 402], B2 = [174, 402], gt = { look: 'giamthi', x: 262, y: 352, dir: 1, hidden: true };
+  const bang = sc => { sc.bang = true; if (sc.actors[1]) sc.actors[1].hidden = false; };
+  const steps = backIn
+    ? [{ say: ['me', 'Trèo vào lẹ lên, sắp hết giờ rồi!'] }, { move: ['me', A[0], A[1], 520, 26] }, { move: [0, B[0], B[1], 520, 26] }]
+        .concat(caught
+          ? [{ fn: bang }, { par: [{ hop: 'me' }, { hop: 0 }] }, { move: [1, 206, 356, 550] }, { say: [1, 'Đứng lại! Hai em trốn học phải không? Lên phòng giám thị ngay!'] }]
+          : [{ say: [0, 'Phù… không ai thấy. Về lớp thôi!'] }])
+    : [{ say: [0, 'Suỵt… bác bảo vệ đang quay lưng. Trèo lẹ!'] }, { move: ['me', A2[0], A2[1], 520, 26] }, { move: [0, B2[0], B2[1], 520, 26] }, { say: ['me', 'Thoát rồi! Chạy lẹ ra phố Hoa Phượng!'] }];
+  return {
+    map: 'school', me: backIn ? [A2[0], A2[1], 3] : [A[0], A[1], 0], actors: [{ look: fid, x: backIn ? B2[0] : B[0], y: backIn ? B2[1] : B[1], dir: backIn ? 3 : 0 }, gt],
+    cam: { x: 176, y: 372 }, title: backIn ? 'Trèo tường về lại trường' : 'Trèo tường trốn học', steps, props: [bangProp],
+  };
+}
+// Dấu "!" trên đầu khi bị bắt quả tang
+function bangProp(now) {
+  const sc = RT.scene; if (!sc.bang) return;
+  const b = Math.floor(now / 160) % 2;
+  drawSpr(SPR.emoBang, G.x - 3, G.y - 38 + (sc.meOy || 0) - b);
+  const a = sc.actors[0]; if (a) drawSpr(SPR.emoBang, a.x - 3, a.y - 38 + (a.oy || 0) - b);
+}
+function smokeProp(now, x0, y0) { for (let i = 0; i < 3; i++) { const ph = (now / 1300 + i / 3) % 1; drawSpr(SPR[ph > 0.5 ? 'smoke1' : 'smoke0'], x0 - 4 + Math.round(Math.sin(now / 400 + i * 2) * 3), y0 - ph * 26); } }
+// Cảnh ở chỗ đi chơi / chỗ quậy. gt: giám thị xuất hiện từ đâu, đi tới đâu (khi bị bắt trong trường)
+const VENUE = {
+  trasua: { map: 'pho', me: [500, 146, 2], fr: [524, 146, 1], title: 'Tiệm trà sữa Mây', lines: [[0, 'Trà sữa trân châu đường đen, full topping!'], ['me', 'Của tớ ít đá, nhiều trân châu nha.']], props: (a, b) => [() => { drawSpr(SPR.cup, a[0] + 6, a[1] - 13); drawSpr(SPR.cup, b[0] - 13, b[1] - 13); }] },
+  arcade: { map: 'pho', me: [794, 146, 3], fr: [816, 146, 3], title: 'Khu game Arcade', lines: [[0, 'Đua xe không? Thua bao nước!'], ['me', 'Chơi luôn! Tớ chấp cậu nửa vòng.']] },
+  tttm: { map: 'pho', me: [650, 140, 3], fr: [672, 140, 3], title: 'Rạp chiếu phim · Hoa Phượng Plaza', lines: [[0, 'Mua bắp rang chưa? Sắp chiếu rồi đó.'], ['me', 'Rồi nè. Ghế giữa hàng cuối, đẹp luôn!']] },
+  dabong: { map: 'pho', me: [100, 344, 2], fr: [176, 344, 1], title: 'Sân bóng mini', lines: [[0, 'Chuyền đây! Sút nèee!'], ['me', 'Vàooo! Đỉnh quá!']], props: () => [now => drawSpr(SPR.ball, 134 + Math.round(Math.sin(now / 260) * 30), 338 - Math.round(Math.abs(Math.sin(now / 130)) * 5))] },
+  nui: { map: 'nui', me: [230, 300, 2], fr: [258, 300, 1], title: 'Núi sau trường', lines: [[0, 'Trên này gió mát ghê. Nhìn kìa, trường mình bé tí!'], ['me', 'Ước gì ngày nào cũng được lên đây.']] },
+  cantin: { map: 'school', me: [66, 120, 3], fr: [90, 120, 3], title: 'Căn tin giữa giờ học', lines: [[0, 'Cô ơi cho hai ly nước mía với bịch bánh tráng!'], ['me', 'Ngồi khuất vào, giám thị hay đi ngang lắm.']], gt: [170, 150, 116, 124] },
+  thinghiem: { map: 'lab', me: [146, 156, 3], fr: [170, 156, 3], cam: { x: 160, y: 110 }, title: 'Phòng thí nghiệm Hoá', lines: [[0, 'Đổ lọ xanh vào lọ đỏ xem ra màu gì…'], ['me', 'Ối, bốc khói kìa! Mở cửa sổ lẹ!']], props: () => [now => smokeProp(now, 152, 120)], gt: [286, 200, 214, 166] },
+  hutthuoc: { map: 'wcm', me: [62, 78, 2], fr: [94, 78, 1], cam: { x: 96, y: 60 }, title: 'Nhà vệ sinh nam', lines: [[0, 'Làm một hơi đi. Canh cửa giùm tớ.'], ['me', 'Khụ… khụ… sặc quá!']], props: () => [now => smokeProp(now, 78, 62)], gt: [150, 122, 128, 84] },
+};
+function venueCut(id, fid, caught, stay) {
+  const V = VENUE[id], actors = [{ look: fid, x: V.fr[0], y: V.fr[1], dir: V.fr[2] }], steps = V.lines.map(l => ({ say: l }));
+  if (caught && V.gt) {
+    actors.push({ look: 'giamthi', x: V.gt[0], y: V.gt[1], dir: 3, hidden: true });
+    steps.push({ fn: sc => { sc.bang = true; sc.actors[1].hidden = false; } }, { par: [{ hop: 'me' }, { hop: 0 }] }, { move: [1, V.gt[2], V.gt[3], 500] },
+      { say: [1, id === 'hutthuoc' ? 'Hút thuốc trong trường à? Hai em theo tôi lên phòng giám thị!' : 'Giờ học mà làm gì ở đây? Lên phòng giám thị ngay!'] });
+  }
+  return { map: V.map, me: V.me, actors, cam: V.cam, title: V.title, steps, stay, props: (V.props ? V.props(V.me, V.fr) : []).concat(bangProp) };
 }
 // Gương nhà vệ sinh: phản chiếu khuôn mặt + thỏi son / bông phấn + lấp lánh
 function mirrorProp(now, mx, look, kind, k) {
@@ -183,8 +426,12 @@ function wcCut(fid, kind) {
     props: [now => mirrorProp(now, m1, G.gender, kind, 0), now => mirrorProp(now, m2, fid, kind, 1)],
   };
 }
-function yardCut(fid, kind) {
+function yardCut(fid, kind, inClass) {
   const yo = kind === 'yoyo';
+  if (inClass) return {       // trong giờ học: chọi con quay lén ở lối đi cuối lớp
+    map: 'class', me: [146, 164, 2], actors: [{ look: fid, x: 172, y: 164, dir: 1 }], cam: { x: 160, y: 140 }, hide: [fid], title: 'Trong giờ học · lén chọi con quay',
+    lines: [[0, 'Quay khẽ thôi, cô đang viết bảng…'], ['me', 'Của tớ quay lâu hơn nè!']], props: [now => topProp(now, 153, 170, 'top', 0), now => topProp(now, 162, 170, 'topB', 1)],
+  };
   return {
     map: 'school', me: [222, 250, 2], cam: { x: 243, y: 240 }, title: yo ? 'Giải lao · chơi yoyo' : 'Giải lao · chọi con quay',
     actors: [{ look: fid, x: 264, y: 250, dir: 1 }, { look: 'c5', x: 243, y: 224, dir: 0 }, { look: 'c1', x: 243, y: 280, dir: 3 }],
@@ -196,7 +443,7 @@ function yardCut(fid, kind) {
 }
 const CUTS = {
   son: fid => wcCut(fid, 'son'), phan: fid => wcCut(fid, 'phan'),
-  yoyo: fid => yardCut(fid, 'yoyo'), conquay: fid => yardCut(fid, 'conquay'),
+  yoyo: fid => yardCut(fid, 'yoyo'), conquay: (fid, inClass) => yardCut(fid, 'conquay', inClass),
   danhbai: fid => ({
     map: 'class', me: [146, 164, 2], actors: [{ look: fid, x: 172, y: 164, dir: 1 }, { look: 'c5', x: 159, y: 148, dir: 0 }], cam: { x: 160, y: 140 }, hide: [fid],
     title: 'Giải lao · ván tiến lên chớp nhoáng cuối lớp',
@@ -225,41 +472,76 @@ async function breakInvite(b) {
   const c = await UI.ask(`Giải lao · ${F.name} rủ`, `<p>${F.name} ${BREAK_ASK[b.id]}</p><p class="dim">${BREAK_FUN_MINS} phút · thân thiết +${B.friend}${B.risk ? ' · có chút rủi ro bị nhắc nhở' : ''}</p>`, ['Đi luôn!', 'Thôi, để lần khác']);
   if (c === 0) doBreakFun(b.fid, b.id);
 }
-async function doBreakFun(fid, id) {
-  if (RT.lock) return;
+// Lõi: diễn hoạt cảnh + cộng điểm + xét rủi ro. inClass = làm ngay trong giờ học (dễ bị cô bắt hơn)
+async function breakFunCore(fid, id, inClass) {
   const B = BREAK_FUN[id], F = FRIENDS[fid], kind = id === 'wc' ? pick(['son', 'phan']) : id, L = [];
-  RT.lock = true;
-  await playCut(CUTS[kind](fid));
+  await playCut(CUTS[kind](fid, inClass));
   G.daily.brk[fid] = (G.daily.brk[fid] || 0) + 1;
   addFriend(fid, B.friend);
   L.push(li(`${BREAK_DONE[kind]} cùng ${F.name}: thân thiết +${B.friend}.`, 'good'));
   if (B.giaotiep) addStat('giaotiep', B.giaotiep);
   if (B.kheotay) addStat('kheotay', B.kheotay);
-  if (B.risk) {
-    if (Math.random() < B.risk + 0.03 * G.caughtCycle) {
-      if (id === 'danhbai') { G.caughtCycle++; addConduct(-0.5, 'đánh bài trong trường'); addTeacher(TEACHER.caughtFun); L.push(li('Thầy giám thị đi ngang cửa sổ, tịch thu bộ bài: hạnh kiểm −0,5.', 'bad')); }
+  const risk = (B.risk || 0) + (inClass ? IN_CLASS.riskAdd : 0);
+  if (risk) {
+    if (Math.random() < risk + 0.03 * G.caughtCycle) {
+      if (inClass) L.push(...caughtInClass({ sev: id === 'danhbai' ? 2 : 1, what: id === 'wc' ? 'Hai đứa đi quá lâu, vào lớp cô hỏi tội' : 'Cô quay xuống đúng lúc' }));
+      else if (id === 'danhbai') { G.caughtCycle++; addConduct(-0.5, 'đánh bài trong trường'); addTeacher(TEACHER.caughtFun); L.push(li('Thầy giám thị đi ngang cửa sổ, tịch thu bộ bài: hạnh kiểm −0,5.', 'bad')); }
       else { addTeacher(-1); L.push(li('Vào lớp cô nhìn thấy vệt son: “Em kia, ra rửa mặt ngay!” — bị nhắc nhở trước lớp.', 'warn')); }
-    } else L.push(li(id === 'danhbai' ? 'Nghe tiếng dép giám thị là cất bài vội vào cặp. Không ai phát hiện!' : 'Kịp lau bớt son trước khi vào lớp. Không ai để ý!', 'dim'));
+    } else L.push(li(inClass ? 'Cô không để ý. Trót lọt!' : id === 'danhbai' ? 'Nghe tiếng dép giám thị là cất bài vội vào cặp. Không ai phát hiện!' : 'Kịp lau bớt son trước khi vào lớp. Không ai để ý!', 'dim'));
   }
+  return L;
+}
+async function doBreakFun(fid, id) {
+  if (RT.lock) return;
+  RT.lock = true;
+  const L = await breakFunCore(fid, id, false);
   advanceTime(BREAK_FUN_MINS);
   RT.lock = false; UI.hud();
-  await UI.ask(B.name.replace(/^Rủ /, '').replace(/^./, c => c.toUpperCase()), resWrap(L), ['OK']);
+  await UI.ask(BREAK_FUN[id].name.replace(/^Rủ /, '').replace(/^./, c => c.toUpperCase()), resWrap(L), ['OK']);
+}
+// TRONG GIỜ HỌC: chăm chú nghe giảng, hay chủ động quay sang bạn (tám chuyện, đấu thẻ, chơi bài, con quay; nữ: xin ra ngoài đi vệ sinh chung).
+// Trả về null nếu nghe giảng; ngược lại { delta, lines } (mất tập trung, có thể bị cô bắt).
+async function classAction(p, subj) {
+  const co = TEACHER_OF[subj] === 'teacherC' ? 'Thầy' : 'Cô';
+  const c = await UI.ask(`Tiết ${p.n} · ${SUBJ[subj].name}`, `<p>${co} đang giảng bài. Bạn làm gì?</p>`, ['Chăm chú nghe giảng', 'Quay sang bạn… (làm việc riêng, có thể bị bắt)'], { esc: 0 });
+  if (c !== 1) return null;
+  const fids = Object.keys(FRIENDS).filter(f => !grudge(f));
+  if (!fids.length) return { delta: 0, lines: [li('Mấy đứa bạn đang giận, chẳng ai thèm quay sang chơi với bạn.', 'dim')] };
+  const k = await UI.ask('Quay sang ai?', '<p class="dim">Bạn cùng giới và đủ thân (1 tim) mới rủ được trò riêng: nữ đi vệ sinh chung; nam chơi bài, chọi con quay.</p>', fids.map(f => `${FRIENDS[f].name} (${FRIENDS[f].seat}) · ${'♥'.repeat(hearts(f)) || 'chưa thân'}`).concat('Thôi, nghe giảng tiếp'));
+  if (k < 0 || k >= fids.length) return null;
+  const fid = fids[k], F = FRIENDS[fid], opts = [`Thì thầm tám chuyện (thân thiết +${IN_CLASS.chat.friend})`], ids = ['chat'];
+  if (cardCount() && !G.daily.duel['f_' + fid]) { opts.push('Đấu thẻ cầu thủ dưới gầm bàn'); ids.push('duel'); }
+  const same = F.g === G.gender && hearts(fid) >= BREAK_FUN_MIN_HEARTS && (G.daily.brk[fid] || 0) < BREAK_FUN_PER_DAY;
+  if (same && G.gender === 'girl') { opts.push(`Xin cô ra ngoài, rủ ${F.name} đi vệ sinh chung (thân thiết +${BREAK_FUN.wc.friend})`); ids.push('wc'); }
+  if (same && G.gender === 'boy') { opts.push(`Chơi bài dưới gầm bàn (thân thiết +${BREAK_FUN.danhbai.friend})`); ids.push('danhbai'); opts.push(`Lén chọi con quay (thân thiết +${BREAK_FUN.conquay.friend})`); ids.push('conquay'); }
+  opts.push('Thôi, nghe giảng tiếp'); ids.push('x');
+  const a = ids[await UI.ask(F.name, `<p>${F.name} liếc sang: “Gì đó? Cô đang nhìn kìa…”</p><p class="dim">Làm việc riêng: mất tập trung (−${-IN_CLASS.delta} điểm bài học) và dễ bị bắt hơn giờ giải lao.</p>`, opts)] || 'x';
+  if (a === 'x') return null;
+  let L = [];
+  if (a === 'chat') {
+    addFriend(fid, IN_CLASS.chat.friend); addStat('giaotiep', 1); L.push(li(`Thì thầm tám chuyện với ${F.name}: thân thiết +${IN_CLASS.chat.friend}.`, 'warn'));
+    if (Math.random() < IN_CLASS.chat.risk + 0.05 * G.caughtCycle) L.push(...caughtInClass({ sev: 1 })); else L.push(li('Cô không để ý. Trót lọt!', 'dim'));
+  } else if (a === 'duel') {
+    const r = await cardDuel('f_' + fid, fid, F.name, F.duel);
+    L.push(li(r === null ? 'Chưa kịp đấu thì thôi.' : `Đấu thẻ dưới gầm bàn với ${F.name}: ${r > 0 ? 'thắng' : r < 0 ? 'thua' : 'hoà'}.`, 'warn'));
+    if (Math.random() < IN_CLASS.duelRisk + 0.05 * G.caughtCycle) L.push(...caughtInClass({ sev: 1 })); else L.push(li('Cô không để ý. Trót lọt!', 'dim'));
+  } else L = await breakFunCore(fid, a, true);
+  return { delta: IN_CLASS.delta, lines: L };
 }
 
 /* ---------- quên sách / quên bút: quay sang hỏi mượn bạn ---------- */
 const borrowChance = fid => clamp((fid === 'khoa' ? BORROW.deskmate : BORROW.other) + BORROW.perHeart * hearts(fid) + BORROW.perTalk * lv('giaotiep') + (grudge(fid) ? BORROW.grudge : 0), 0.03, 0.95);
-async function askBorrow(subj, what) {
-  const book = what === 'sach', item = book ? `sách ${SUBJ[subj].short}` : 'bút', fids = Object.keys(FRIENDS), L = [];
-  const c = await UI.ask(`Quên ${item}!`, `<p>Vào tiết rồi mới phát hiện quên ${item}. Quay sang hỏi mượn ai?</p><p class="dim">Càng thân thì càng dễ được cho mượn. ${book ? 'Khoa ngồi cùng bàn: xem chung sách (+3 điểm bài học). Bạn bàn khác cho mượn hẳn cuốn sách (+4).' : 'Mượn được bút thì chép bài đầy đủ (+5 điểm bài học).'} Không mượn được: ${book ? '+1' : '+3'}.</p>`,
-    fids.map(f => `${FRIENDS[f].name} (${FRIENDS[f].seat}) · khả năng cho mượn ${Math.round(borrowChance(f) * 100)}%`).concat(book ? 'Thôi, ngồi nghe chay' : 'Thôi, chỉ theo dõi trong sách'));
-  const fail = book ? 1 : 3;
-  if (c < 0 || c >= fids.length) return { gain: fail, lines: [li(book ? 'Quên sách — không mượn ai, ngồi nghe chay.' : 'Có vở nhưng quên hộp bút — không chép được bài.', book ? 'bad' : 'warn')] };
+async function askBorrow(subj) {
+  const item = `sách ${SUBJ[subj].short}`, fids = Object.keys(FRIENDS), L = [];
+  const c = await UI.ask(`Quên ${item}!`, `<p>Vào tiết rồi mới phát hiện quên ${item}. Quay sang hỏi mượn ai?</p><p class="dim">Càng thân thì càng dễ được cho mượn. Khoa ngồi cùng bàn: xem chung sách (+3 điểm bài học). Bạn bàn khác cho mượn hẳn cuốn sách (+4). Không mượn được: +1.</p>`,
+    fids.map(f => `${FRIENDS[f].name} (${FRIENDS[f].seat}) · khả năng cho mượn ${Math.round(borrowChance(f) * 100)}%`).concat('Thôi, ngồi nghe chay'));
+  if (c < 0 || c >= fids.length) return { gain: 1, lines: [li('Quên sách — không mượn ai, ngồi nghe chay.', 'bad')] };
   const fid = fids[c], F = FRIENDS[fid];
-  let gain = fail;
+  let gain = 1;
   if (Math.random() < borrowChance(fid)) {
-    gain = book ? (fid === 'khoa' ? 3 : 4) : 5; addFriend(fid, 1);
-    L.push(li(book ? (fid === 'khoa' ? 'Quên sách — Khoa đẩy sách ra giữa bàn cho xem chung.' : `Quên sách — ${F.name} đưa sách cho mượn, bạn ấy xem chung với bạn cùng bàn.`) : `Quên hộp bút — ${F.name} cho mượn cây bút, chép bài đầy đủ.`, 'warn'));
-  } else L.push(li(grudge(fid) ? `${F.name} quay mặt đi: “Đi mà mượn giám thị ấy.”` : `${F.name} lắc đầu: “Tớ cũng ${book ? 'đang cần sách' : 'chỉ có một cây'}, cậu hỏi bạn khác đi.” — không mượn được.`, 'bad'));
+    gain = fid === 'khoa' ? 3 : 4; addFriend(fid, 1);
+    L.push(li(fid === 'khoa' ? 'Quên sách — Khoa đẩy sách ra giữa bàn cho xem chung.' : `Quên sách — ${F.name} đưa sách cho mượn, bạn ấy xem chung với bạn cùng bàn.`, 'warn'));
+  } else L.push(li(grudge(fid) ? `${F.name} quay mặt đi: “Đi mà mượn giám thị ấy.”` : `${F.name} lắc đầu: “Tớ cũng đang cần sách, cậu hỏi bạn khác đi.” — không mượn được.`, 'bad'));
   if (fid !== 'khoa' && Math.random() < BORROW.scold) L.push(li('Cô gõ thước: “Em kia, đừng quay ngang quay ngửa!”', 'dim'));
   return { gain, lines: L };
 }
@@ -305,8 +587,8 @@ async function classEvent(subj) {
     G.stamina = Math.min(maxStam(), G.stamina + 4);
     L.push(li(`${co} kể chuyện thời đi học của mình, cả lớp cười nghiêng ngả: +4 thể lực.`, 'good'));
   } else {
-    if (G.bag['vo_' + subj] && G.bag.hopbut) { addTeacher(TEACHER.notebook); L.push(li(`${co} kiểm tra vở đột xuất: vở bạn chép đầy đủ, được khen.`, 'good')); }
-    else { addTeacher(TEACHER.noNotebook); L.push(li(`${co} kiểm tra vở đột xuất: bạn không có vở ghi — bị ghi tên vào sổ.`, 'bad')); }
+    if (G.bag['sach_' + subj]) { addTeacher(TEACHER.notebook); L.push(li(`${co} đi một vòng kiểm tra xem ai quên sách: bạn mang đầy đủ, được khen.`, 'good')); }
+    else { addTeacher(TEACHER.noNotebook); L.push(li(`${co} đi một vòng kiểm tra: bạn không mang sách — bị ghi tên vào sổ.`, 'bad')); }
   }
   return { delta, lines: L };
 }
@@ -373,7 +655,7 @@ ACT.library = async () => {
   });
 };
 
-/* ---------- phố Hoa Sữa: trà sữa · TTTM · khu game · xiên que ---------- */
+/* ---------- phố Hoa Phượng: trà sữa · TTTM · khu game · xiên que ---------- */
 ACT.tea = async () => {
   const P = PLACES.tea; if (RT.lock || !placeOpen(P)) return;
   const fid = meetHere('tea'), wf = fid ? ` cùng ${FRIENDS[fid].name}` : '', T = TEA;
@@ -629,7 +911,7 @@ function friendPing(evening) {
   const tmr = G.tests.find(t => t.day === G.day + 1 && !t.done);
   if (evening && tmr && r < 0.45) return inbox(fid, `Mai có ${TEST_NAME[tmr.type]} môn ${SUBJ[tmr.subj].name} đó. Ôn chưa?`);
   if (!meetBusy() && !G.phone.pend && r < 0.8) {
-    const day = evening ? G.day + 1 : G.day, opts = PLACE_LIKES[fid].filter(p => !(p === 'nui' && isSchoolDay(day))), place = pick(opts);
+    const day = evening ? G.day + 1 : G.day, opts = PLACE_LIKES[fid].filter(p => !((p === 'nui' || p === 'bien') && isSchoolDay(day))), place = pick(opts);
     G.phone.pend = { fid, place, day };
     return inbox(fid, `${evening ? 'Mai' : 'Hôm nay'}${isSchoolDay(day) ? ' tan học' : ''} đi ${PLACES[place].short} không? Trả lời tớ nha!`);
   }

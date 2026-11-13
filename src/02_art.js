@@ -56,6 +56,9 @@ const LOOKS = {
   dat: { ...UNI, hair: '#1f1f29', style: 'buzz', skin: '#e3ae80' },
   ngan: { ...UNI, hair: '#5a3020', style: 'pony', skirt: true, band: '#e98fa5' },
   guard: { hair: '#5a5a66', style: 'short', cap: '#2f4a7a', shirt: '#9cc3e6', pants: '#2f3e63', mustache: true },
+  giamthi: { hair: '#3a3340', style: 'short', shirt: '#fbf7ee', pants: '#2f3550', tie: '#2a2136', mustache: true, skin: '#eab98c' },
+  driver: { hair: '#3a3340', style: 'short', cap: '#3f9a6b', shirt: '#dfe7ef', pants: '#3a3f55' },
+  clerk: { hair: '#3b2a22', style: 'bun', cap: '#b23b3b', shirt: '#3b6fb6', pants: '#2f3550' },
   vendor: { hair: '#4a3328', style: 'bun', shirt: '#f2a93b', pants: '#5b4a6b', apron: '#ffffff' },
   c1: { ...UNI, hair: '#3b2a22', style: 'short' },
   c2: { ...UNI, hair: '#2c2733', style: 'long', skirt: true },
@@ -497,6 +500,12 @@ const GROUND = {
     R(x, '#5fb0e0', px, py, 16, 16); const r = rng(tx * 211 + ty * 613 + 4);
     for (let i = 0; i < 3; i++) R(x, r() < .5 ? '#8fd0f0' : '#4f9bcb', px + (r() * 12 | 0), py + 2 + (r() * 12 | 0), 4, 1);
   },
+  sand(x, px, py, tx, ty) {
+    R(x, '#f1dfae', px, py, 16, 16); const r = rng(tx * 389 + ty * 571 + 6);
+    for (let i = 0; i < 5; i++) R(x, r() < .5 ? '#e6d096' : '#f8ecc6', px + (r() * 15 | 0), py + (r() * 15 | 0), 2, 1);
+  },
+  // ván gỗ cầu tàu / lối đi lót ván
+  plank(x, px, py) { R(x, '#c58c56', px, py, 16, 16); for (let k = 0; k < 4; k++) { R(x, '#a8713f', px, py + k * 4 + 3, 16, 1); R(x, '#dba56e', px, py + k * 4, 16, 1); } R(x, '#a8713f', px + 7, py, 1, 16); },
   // gạch nhà vệ sinh
   wtile(x, px, py) { for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) { R(x, (i + j) % 2 ? '#f7e9ee' : '#fdf6f8', px + i * 8, py + j * 8, 8, 8); R(x, '#e6cdd6', px + i * 8 + 7, py + j * 8, 1, 8); R(x, '#e6cdd6', px + i * 8, py + j * 8 + 7, 8, 1); } },
   ltile(x, px, py) { R(x, '#dfe9ee', px, py, 16, 16); R(x, '#c9d6dd', px + 15, py, 1, 16); R(x, '#c9d6dd', px, py + 15, 16, 1); R(x, '#eef4f7', px, py, 15, 1); },

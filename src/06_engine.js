@@ -67,6 +67,8 @@ function interactables() {
     const s = o.ir || o.sol || [0, 0, o.w, o.h];
     a.push({ x: o.x, y: o.y, w: o.w, h: o.h, rx: o.x + s[0], ry: o.y + s[1], rw: s[2], rh: s[3], base: o.base, label: o.label, act: o.act, range: 18 });
   }
+  // xe của mình đang dựng ở đâu đó: bấm vào để lên xe
+  if (G.park && !G.park.shed && G.park.map === G.map) { const P = G.park; a.push({ x: P.x - 14, y: P.y - 18, w: 28, h: 20, rx: P.x - 12, ry: P.y - 8, rw: 24, rh: 8, base: P.y, label: () => `${VEHICLES[P.id].name} — lên xe`, act: () => ACT.mount(P.id), range: 20 }); }
   for (const n of npcsHere()) if (n.act && !(n.fam && FAM[n.fam].riding)) a.push({ x: n.cx - 9, y: n.cy - 24, w: 18, h: 25, rx: n.cx - 4, ry: n.cy - 5, rw: 8, rh: 5, base: n.cy, label: n.label, act: n.act, range: 24, npc: n });
   return a;
 }
@@ -99,8 +101,10 @@ function movePlayer(dt) {
   if (KEYS.w || KEYS.arrowup) vy -= 1; if (KEYS.s || KEYS.arrowdown) vy += 1;
   if (JOY.id !== null) { const l = Math.hypot(JOY.dx, JOY.dy); if (l > 10) { vx = JOY.dx / l; vy = JOY.dy / l; } }
   if (!vx && !vy) { RT.walkT = -1; return; }
-  const l = Math.hypot(vx, vy), sp = (G.stamina <= 0 ? 48 : 76) * dt; vx = vx / l * sp; vy = vy / l * sp;
+  // đang đi xe thì chạy nhanh hơn đi bộ
+  const l = Math.hypot(vx, vy), sp = (G.stamina <= 0 ? 48 : 76) * (G.ride ? VEHICLES[G.ride].speed : 1) * dt; vx = vx / l * sp; vy = vy / l * sp;
   G.dir = Math.abs(vx) > Math.abs(vy) ? (vx < 0 ? 1 : 2) : (vy < 0 ? 3 : 0);
+  if (G.dir === 1) RT.faceL = true; else if (G.dir === 2) RT.faceL = false;
   const m = MAPS[G.map];
   if (vx && !blocked(m, G.x + vx, G.y)) G.x += vx;
   if (vy && !blocked(m, G.x, G.y + vy)) G.y += vy;
@@ -109,13 +113,30 @@ function movePlayer(dt) {
   for (const z of m.zones) if (G.x >= z.x && G.x < z.x + z.w && G.y >= z.y && G.y < z.y + z.h) { G.x += z.bx || 0; G.y += z.by || 0; for (const k in KEYS) KEYS[k] = false; z.fn(); return; }
 }
 async function doWarp(w) {
+  if (G.ride) { if (w.to.map === 'home') { G.ride = null; G.park = null; UI.toast('Dựng xe ngoài sân rồi vào nhà.'); } else dismount(true); }   // không đi xe vào trong nhà / lớp
   RT.lock = true; await UI.fade(true, 110);
   setMap(w.to.map, w.to.x, w.to.y, w.to.dir);
   await UI.fade(false, 110); RT.lock = false;
   if (w.to.map === 'home') onEnterHome();
 }
+// Chuyển động theo kịch bản của hoạt cảnh: nhân vật / diễn viên đi tới một điểm, hoặc nhảy lên (hop)
+function stepScene(dt) {
+  const sc = RT.scene; if (!sc || !sc.tw || !sc.tw.length) { if (sc) sc.meMove = false; return; }
+  let meMove = false;
+  for (const t of sc.tw) {
+    t.t += dt * 1000; const k = Math.min(1, t.t / t.ms), e = t.who;
+    const x = t.x0 + (t.x1 - t.x0) * k, y = t.y0 + (t.y1 - t.y0) * k, oy = t.hop ? -t.hop * Math.sin(Math.PI * k) : 0;
+    const dx = t.x1 - t.x0, dy = t.y1 - t.y0, moving = !!(dx || dy);
+    const dir = !moving || t.keep ? null : Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 1 : 2) : (dy < 0 ? 3 : 0);
+    if (e === 'me') { G.x = x; G.y = y; sc.meOy = oy; if (dir !== null) G.dir = dir; if (moving && !t.hop) { RT.walkT = (RT.walkT < 0 ? 0 : RT.walkT) + dt; meMove = true; } }
+    else { e.x = x; e.y = y; e.oy = oy; if (dir !== null) e.dir = dir; e.walk = moving && !t.hop ? (e.walk >= 0 ? e.walk : 0) + dt : -1; }
+    if (k >= 1) { t.done = true; if (e !== 'me') e.walk = -1; t.res(); }
+  }
+  sc.tw = sc.tw.filter(t => !t.done); sc.meMove = meMove;
+}
 function update(dt) {
   if (!G) return;
+  stepScene(dt);
   const busy = RT.lock || UI.isOpen();
   if (!busy) {
     if (RT.forceSleep) { goSleep(true); return; }
@@ -129,7 +150,7 @@ function update(dt) {
     scanTargets();
     const t = RT.hover || RT.near;
     if (t) UI.hint(t.label ? t.label() : '', inRange(t)); else UI.hint(null);
-  } else { RT.walkT = -1; UI.hint(null); }
+  } else { if (!(RT.scene && RT.scene.meMove)) RT.walkT = -1; UI.hint(null); }
   updateFamily(dt, busy);
   updateNpcs(dt, busy);
   for (const f of RT.floats) f.t += dt;
@@ -161,10 +182,15 @@ function drawBubble(b) {
   ctx.fillStyle = '#2a2136'; lines.forEach((l, i) => ctx.fillText(l, x + pad, y + pad + i * lh));
 }
 function drawSpr(spr, x, y) { const S = VIEW.S; ctx.drawImage(spr, VIEW.ox + Math.round(x) * S, VIEW.oy + Math.round(y) * S, spr.width * S, spr.height * S); }
-function drawChar(look, outfit, x, y, dir, walkT) {
+function drawChar(look, outfit, x, y, dir, walkT, oy) {
   const sh = charSheet(look, outfit), fr = charFrame(sh, dir, walkT);
   const bob = walkT >= 0 && (Math.floor(walkT * 8) % 2 === 1) ? -1 : 0;
-  drawSpr(SHADOW, x - 7, y - 3); drawSpr(fr, x - 9, y - 23 + bob);
+  drawSpr(SHADOW, x - 7, y - 3); drawSpr(fr, x - 9, y - 23 + bob + (oy || 0));
+}
+// Người ngồi trên xe (xe đạp, xe đạp điện, xe máy): vẽ xe rồi vẽ người lệch lên trên
+function drawRider(look, outfit, veh, x, y, left) {
+  drawSpr(SHADOW, x - 7, y - 3); drawSpr(SPR[veh + (left ? 'L' : '')], x - 15, y - 19);
+  drawSpr(charSheet(look, outfit)[left ? 1 : 2][0], x - 9 + (left ? 2 : -2), y - 31);
 }
 function render(now) {
   const S = VIEW.S, m = MAPS[G ? G.map : 'town'];
@@ -189,7 +215,8 @@ function render(now) {
   if (G) {
     for (const n of npcsHere()) if (n.cx !== undefined) list.push({ b: n.cy, n });
     if (RT.scene && RT.scene.actors && G.map === RT.scene.map) for (const a of RT.scene.actors) list.push({ b: a.y, a });
-    list.push({ b: G.y, p: 1 });
+    if (!(RT.scene && RT.scene.hideMe)) list.push({ b: G.y, p: 1 });
+    if (G.park && !G.park.shed && G.park.map === G.map) list.push({ b: G.park.y, v: G.park });
   }
   list.sort((p, q) => p.b - q.b);
   for (const e of list) {
@@ -200,8 +227,10 @@ function render(now) {
       drawSpr(charSheet(n.look, n.outfit ? n.outfit() : null)[left ? 1 : 2][0], n.cx - 9 + (left ? 2 : -2), n.cy - 32);
     }
     else if (e.n) drawChar(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cx, e.n.cy, e.n.cdir, e.n.walk);
-    else if (e.a) drawChar(e.a.look, e.a.outfit, e.a.x, e.a.y, e.a.dir, -1);
-    else drawChar(G.gender, RT.outfit || (schoolToday() ? null : 'casual'), G.x, G.y, G.dir, RT.walkT);
+    else if (e.a) { if (!e.a.hidden) drawChar(e.a.look, e.a.outfit, e.a.x, e.a.y, e.a.dir, e.a.walk === undefined ? -1 : e.a.walk, e.a.oy); }
+    else if (e.v) drawSpr(SPR[VEHICLES[e.v.id].spr], e.v.x - 15, e.v.y - 19);
+    else if (G.ride && !RT.scene) drawRider(G.gender, RT.outfit || (schoolToday() ? null : 'casual'), VEHICLES[G.ride].spr, G.x, G.y, !!RT.faceL);
+    else drawChar(G.gender, RT.outfit || (schoolToday() ? null : 'casual'), G.x, G.y, G.dir, RT.walkT, RT.scene && RT.scene.meOy);
   }
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
@@ -214,9 +243,9 @@ function render(now) {
   if (G && !m.indoor) { const a = nightAlpha(G.time); if (a > 0.05) { ctx.globalCompositeOperation = 'lighter'; for (const o of m.objs) { if (o.s !== 'lamp') continue; const X = VIEW.ox + (o.x + 6) * S, Y = VIEW.oy + (o.y + 8) * S, g = ctx.createRadialGradient(X, Y, 0, X, Y, 52 * S); g.addColorStop(0, `rgba(255,214,130,${0.55 * a * 2})`); g.addColorStop(1, 'rgba(255,214,130,0)'); ctx.fillStyle = g; ctx.fillRect(X - 52 * S, Y - 52 * S, 104 * S, 104 * S); } ctx.globalCompositeOperation = 'source-over'; } }
   // cắt cảnh: hai dải đen kiểu phim + tên cảnh + bong bóng thoại
   if (G && RT.scene && RT.scene.type === 'cut') {
-    const bh = Math.round(cv.height * 0.085);
-    ctx.fillStyle = '#15121f'; ctx.fillRect(0, 0, cv.width, bh); ctx.fillRect(0, cv.height - bh, cv.width, bh);
-    if (RT.scene.title) { ctx.font = `700 ${Math.max(12, Math.round(bh * 0.36))}px "Baloo 2", system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff6e3'; ctx.fillText(RT.scene.title, cv.width / 2, cv.height - bh / 2); }
+    const bh = RT.scene.bars === false ? 0 : Math.round(cv.height * 0.085);
+    if (bh) { ctx.fillStyle = '#15121f'; ctx.fillRect(0, 0, cv.width, bh); ctx.fillRect(0, cv.height - bh, cv.width, bh); }
+    if (bh && RT.scene.title) { ctx.font = `700 ${Math.max(12, Math.round(bh * 0.36))}px "Baloo 2", system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff6e3'; ctx.fillText(RT.scene.title, cv.width / 2, cv.height - bh / 2); }
     if (RT.scene.bubble) drawBubble(RT.scene.bubble);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   }
@@ -254,7 +283,7 @@ function bindInput() {
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
     if (e.repeat) return;
     if (k === 'e' || k === ' ' || k === 'enter') { scanTargets(); doInteract(RT.near || RT.hover); }
-    else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'p') openMenu('phone'); else if (k === 'escape') openMenu('set');
+    else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'p') openMenu('phone'); else if (k === 'l') openMenu('cal'); else if (k === 'x') { if (G.ride && !RT.lock) dismount(); } else if (k === 'escape') openMenu('set');
   });
   window.addEventListener('keyup', e => { KEYS[e.key.toLowerCase()] = false; });
   window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; });
@@ -288,12 +317,12 @@ function startGame(isNew) {
   if (isNew) {
     UI.ask('Ngày đầu tiên vào lớp 10', `<p>Chào <b>${G.name}</b>! Hôm nay là ${dateLabel(G.day)} — buổi học đầu tiên ở Trường THPT Hoa Phượng.</p>
       <ul class="res"><li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> để di chuyển, <kbd>Chuột phải</kbd> vào đồ vật để tương tác.</li>
-      <li>Buổi sáng: ăn sáng trong bếp, <b>soạn cặp ở bàn học</b> theo thời khoá biểu, rồi ra đường đến trường <b>trước 08:00</b>.</li>
-      <li>Bố mẹ đi làm lúc 07:30 — muốn nhờ chở phải hỏi trước 07:20. Đi bộ mất 1 tiếng, xe bus 20 phút.</li>
-      <li>Trò chuyện, đấm lưng, phụ việc nhà để bố mẹ vui: tiền tiêu vặt đầu tuần sẽ nhiều hơn. Tan học nhớ về nhà trước 20:00 — về rồi muốn đi chơi tiếp thì xin phép bố mẹ (được cho tiền đi chơi).</li>
-      <li>Ở trường bạn bè sẽ rủ rê đủ trò, và bạn cũng có thể chủ động rủ bạn cúp tiết. Vui thì có vui, nhưng bị bắt là bị phạt. Tan học rồi thì đi đâu cũng được.</li>
-      <li>Đi hết đường về bên phải khu phố là <b>phố Hoa Sữa</b>: nhà bạn bè, tiệm trà sữa, trung tâm thương mại, khu game, đường lên <b>núi sau trường</b>. Bấm <kbd>P</kbd> để nhắn tin hẹn bạn.</li>
-      <li>Mua bim bim Sao Vàng để sưu tầm <b>thẻ cầu thủ</b> rồi đem đấu với bạn.</li></ul>`, ['Bắt đầu']).then(() => morningBrief());
+<li>Buổi sáng: ăn sáng trong bếp, <b>soạn sách ở bàn học</b> theo thời khoá biểu, rồi đến trường <b>trước 08:00</b>.</li>
+      <li>Thành phố: <b>nhà mình</b> bên trái — <b>phố Hoa Phượng</b> ở giữa — <b>trường</b> bên phải. Đi bộ dọc đường sang phải (khoảng 1 tiếng), hoặc ra <b>trạm xe bus</b> bấm vào xe để lên xe rồi chọn điểm đến. Có xe đạp thì bấm vào xe ở sân nhà để đi (<kbd>X</kbd> để xuống xe).</li>
+      <li>Bố mẹ đi làm lúc 07:30 — muốn nhờ chở phải hỏi trước 07:20. Đến nơi nhớ <b>đi qua cổng trường</b> để vào lớp.</li>
+      <li>Trò chuyện, đấm lưng, phụ việc nhà để bố mẹ vui. Ngày đi học nhớ về nhà trước 20:00 (hoặc xin phép); thứ 7, chủ nhật thì thoải mái.</li>
+      <li>Phố Hoa Phượng có trà sữa, TTTM, khu game; đi xuống là <b>bờ sông</b> (câu cá), đi lên là <b>ga tàu</b> ra biển. <b>Núi</b> ở sau trường: theo lối mòn bên phải cổng trường.</li>
+      <li><kbd>L</kbd> xem lịch (sinh nhật, lễ hội, lịch kiểm tra) · <kbd>P</kbd> nhắn tin hẹn bạn · thanh đồ ở dưới cho biết bạn đang mang gì.</li></ul>`, ['Bắt đầu']).then(() => morningBrief());
   } else morningBrief();
 }
 const TITLE = { gender: 'boy' };

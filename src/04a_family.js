@@ -172,11 +172,12 @@ function updateFamily(dt, frozen) {
 /* ---------- tương tác với bố mẹ ---------- */
 const MOM_TIPS = [
   'Tối trước khi ngủ con soạn cặp sẵn đi, sáng đỡ cuống.',
-  'Mang đủ sách và vở thì mỗi tiết mới được cộng trọn 5 điểm đấy con.',
+  'Mang đủ sách thì mỗi tiết mới được cộng trọn 5 điểm đấy con.',
   'Muốn bố mẹ chở thì nhờ trước 7 giờ 20 nhé, muộn là trễ làm.',
   'Phụ mẹ việc nhà, mẹ vui thì đầu tuần mẹ cho thêm tiền tiêu vặt.',
   'Ôn bài tối hôm trước thì hôm sau kiểm tra dễ được điểm cao hơn.',
-  'Đi đâu thì đi, 8 giờ tối phải có mặt ở nhà nghe chưa.',
+  'Ngày đi học thì 8 giờ tối phải có mặt ở nhà nghe chưa. Thứ 7, chủ nhật mẹ cho thoải mái hơn.',
+  'Câu được cá ngoài sông thì mang về, mẹ nấu canh chua cho.',
   'Tan học về nhà đã rồi muốn đi chơi tiếp thì xin phép, mẹ cho ít tiền mà đi.',
   'Toán hoặc Văn phải từ 8,0 thì mới được học sinh Giỏi đó.',
 ];
@@ -198,6 +199,8 @@ ACT.parent = async who => {
   if (who === 'mom' && f.goal === 'stove' && !f.legs.length && !d.cook) { opts.push("Phụ mẹ nấu ăn (20' · +thiện cảm)"); ids.push('cook'); }
   if (who === 'dad' && dadWatching() && !d.football) { opts.push("Xem bóng đá cùng bố (30' · +thiện cảm)"); ids.push('football'); }
   if (freeTime() && !d.askOut && G.time < 1290) { opts.push('Xin phép đi chơi (xin tiền đi chơi)'); ids.push('out'); }
+  if (who === 'mom' && fishCount() && !d.fishMom) { opts.push(`Đưa cá cho mẹ nấu (+${FISHING.momGift} thiện cảm)`); ids.push('fish'); }
+  if (isDate(PARENT_BDAY[who], G.day) && !d.bday[who]) { opts.unshift(`Chúc mừng sinh nhật ${name.toLowerCase()}! (+${BDAY_PARENT} thiện cảm)`); ids.unshift('bday'); }
   opts.push('Thôi'); ids.push('x');
   const pi = parentInfo(G.parent);
   const c = ids[await UI.ask(name, `<p>${name} ${parentTxt(who)}. “${who === 'mom' ? 'Con cần gì không?' : 'Sao thế con?'}”</p><p class="dim">Thiện cảm của bố mẹ: ${Math.round(pi.pts)}/${PARENT_MAX} · tiền tiêu vặt cấp ${pi.lv} (${fmtMoney(pi.allowance)}/tuần)</p>`, opts)];
@@ -205,18 +208,30 @@ ACT.parent = async who => {
     if (G.time >= CFG.RIDE_DEADLINE) return UI.say(name, `“Muộn rồi con ơi, ${name.toLowerCase()} phải đi làm ngay. Con tự đi nhé!”<p class="dim">Chỉ nhờ chở được trước 07:20.</p>`);
     const miss = missingToday();
     const c2 = await UI.ask(name, `<p>“Soạn cặp xong chưa? Lên xe ${name.toLowerCase()} chở, 10 phút là tới, rồi ${name.toLowerCase()} đi làm luôn.”</p>` + (miss.length ? `<p class="warnbox">Cặp còn thiếu: ${miss.map(i => ITEMS[i].name).join(', ')}</p>` : ''), ['Đi luôn ạ', 'Con chưa xong']);
-    if (c2 === 0) { G.daily.drove = who; travel('mom', true); }
+    if (c2 === 0) { G.daily.drove = who; parentDrive(who); }
   } else if (c === 'talk') {
     if (!d.pchat[who]) { d.pchat[who] = true; addParent(PARENT.chat, `trò chuyện với ${name.toLowerCase()}`); }
     UI.say(name, '“' + pick(who === 'mom' ? MOM_TIPS : DAD_TIPS) + '”');
   } else if (c === 'massage') {
     if (G.stamina < 3) return UI.toast('Mệt quá, đấm không nổi.', 'bad');
-    await activity(`Đang đấm lưng cho ${name.toLowerCase()}…`, 20, () => { d.massage[who] = true; useStam(3); addParent(PARENT.massage, `đấm lưng cho ${name.toLowerCase()}`); });
+    await animActivity(`Đang đấm lưng cho ${name.toLowerCase()}…`, 20, massageCut(f.n), () => { d.massage[who] = true; useStam(3); addParent(PARENT.massage, `đấm lưng cho ${name.toLowerCase()}`); });
   } else if (c === 'cook') {
     await activity('Đang phụ mẹ nấu ăn…', 20, () => { d.cook = true; useStam(3); addStat('kheotay', 2); addParent(PARENT.cook, 'phụ mẹ nấu ăn'); });
   } else if (c === 'football') watchFootball();
   else if (c === 'out') askOuting(name);
+  else if (c === 'fish') { const id = Object.keys(G.fish).find(k => G.fish[k] > 0); G.fish[id]--; d.fishMom = true; addParent(FISHING.momGift, 'mang cá về cho mẹ nấu'); UI.say('Mẹ', `“Ôi, ${FISH.find(x => x.id === id).name.toLowerCase()} tươi thế! Tối nay mẹ nấu canh chua nhé.”`); }
+  else if (c === 'bday') { d.bday[who] = true; addParent(BDAY_PARENT, `chúc mừng sinh nhật ${name.toLowerCase()}`); UI.say(name, `“${name} cảm ơn con. Con nhớ sinh nhật ${name.toLowerCase()} là ${name.toLowerCase()} vui lắm rồi.”`); }
 };
+// Bố / mẹ chở đi học: hoạt cảnh xe máy chạy trên đường, thả mình trước cổng trường
+async function parentDrive(who) {
+  if (RT.lock) return;
+  RT.lock = true;
+  await rideCut('moto', `${PNAME[who]} chở đi học`, true, who);
+  advanceTime(PARENT_RIDE_MIN); setMap('school', 330, 404, 3); RT.snapNpcs = true;
+  await UI.fade(false);
+  RT.lock = false; UI.hud();
+  UI.toast(`${PNAME[who]} thả bạn trước cổng trường. Đi qua cổng để vào trường.`, 'info');
+}
 // Đã về nhà rồi muốn ra ngoài chơi tiếp: xin phép bố mẹ → được cho tiền đi chơi (tối đa OUTING.perWeek lần/tuần), mỗi ngày hỏi một lần
 function outingChance() {
   const d = G.daily;

@@ -13,8 +13,7 @@ const CFG = {
   PARENT_LEAVE: 7 * 60 + 30, // bố mẹ đi làm lúc 07:30
   RIDE_DEADLINE: 7 * 60 + 20,// nhờ bố/mẹ chở phải hỏi trước 07:20
   SCHOOL_END: 17 * 60,
-  LATE_HOME: 20 * 60,        // 20:00 chưa có mặt ở nhà thì bố mẹ phiền lòng (trừ khi đã về rồi mới đi chơi tiếp, hoặc đã xin phép)
-  HOME_CHECK_OFF: 12 * 60,   // ngày nghỉ: có mặt ở nhà từ 12:00 trở đi là tính "đã về nhà"; ngày đi học tính từ lúc tan học
+  LATE_HOME: 20 * 60,        // NGÀY ĐI HỌC: 20:00 chưa có mặt ở nhà thì bố mẹ phiền lòng (trừ khi đã về rồi mới đi chơi tiếp, hoặc đã xin phép). Thứ 7, Chủ nhật, ngày nghỉ: về muộn thoải mái.
   ORAL_AFTER_SCHOOLDAYS: 5,  // sau tuần học đầu tiên: có thể bị kiểm tra miệng
   P15_AFTER_SCHOOLDAYS: 10,  // sau tuần thứ 2: có thể bị kiểm tra 15' đột xuất
   START_MONEY: 50000,
@@ -139,16 +138,37 @@ const EXERCISES = [
 ];
 const EXERCISE_MIN = 20, EXERCISE_STAM = 12, EXERCISE_MAX_PER_DAY = 2;
 
-/* ---------- Phương tiện đến trường ---------- */
-const TRANSPORT = {
-  walk: { name: 'Đi bộ', mins: 60, cost: 0 },
-  bike: { name: 'Xe đạp', mins: 30, cost: 2000, own: 'xedap', fee: 'gửi xe' },
-  ebike: { name: 'Xe đạp điện', mins: 20, cost: 2000, own: 'xedapdien', fee: 'gửi xe' },
-  moto: { name: 'Xe máy', mins: 10, cost: 2000, own: 'xemay', fee: 'gửi xe' },
-  bus: { name: 'Xe bus', mins: 20, cost: 3000 },   // 3.000 có thẻ HS, 6.000 không thẻ, vé tháng 50.000
-  mom: { name: 'Bố mẹ chở', mins: 10, cost: 0 },
+/* ---------- Đi lại trong thành phố ---------- */
+// Bố cục: Khu phố nhà mình (trái) — Phố Hoa Phượng (giữa) — Trường (phải) · Bờ sông (dưới phố) · Ga tàu (trên phố) → tàu ra Biển · Núi (sau trường)
+// Đi bộ qua ranh giới hai khu mất WALK_HOP phút; đi xe thì không mất thêm, lại chạy nhanh hơn (speed).
+const WALK_HOP = 10, HILL_CLIMB = 10, PARK_FEE = 2000;
+const VEHICLES = {
+  bike: { name: 'Xe đạp', own: 'xedap', spr: 'bike', speed: 1.6, sol: [2, 10, 24, 8] },
+  ebike: { name: 'Xe đạp điện', own: 'xedapdien', spr: 'ebike', speed: 2.1, sol: [2, 10, 28, 10] },
+  moto: { name: 'Xe máy 50cc', own: 'xemay', spr: 'moto50', speed: 2.8, sol: [2, 10, 28, 10] },
 };
+// Xe bus: vé đồng giá, thời gian theo số chặng (pos: vị trí trên tuyến chính, off: chặng rẽ nhánh)
 const BUS_FARE_CARD = 3000, BUS_FARE_NOCARD = 6000, BUS_PASS_PRICE = 50000, BUS_PASS_DAYS = 30;
+const BUS_MIN_PER_HOP = 10, BUS_HOURS = [300, 1320];
+const BUS_STOPS = {
+  home: { name: 'Khu phố nhà mình', map: 'town', x: 684, y: 186, pos: 0, off: 0 },
+  pho: { name: 'Phố Hoa Phượng', map: 'pho', x: 256, y: 184, pos: 1, off: 0 },
+  truong: { name: 'Trường THPT Hoa Phượng', map: 'school', x: 182, y: 408, pos: 2, off: 0 },
+  ga: { name: 'Ga tàu', map: 'ga', x: 458, y: 200, pos: 1, off: 1 },
+};
+const busMins = (a, b) => BUS_MIN_PER_HOP * Math.max(1, Math.abs(BUS_STOPS[a].pos - BUS_STOPS[b].pos) + BUS_STOPS[a].off + BUS_STOPS[b].off);
+const PARENT_RIDE_MIN = 10;
+// Tàu hoả: chỉ có tàu mới ra được biển
+const TRAIN = { price: 15000, mins: 40, hours: [360, 1140], lastBack: 1260 };
+const BEACH = { swim: { mins: 40, stam: 12, pts: 6 }, castle: { mins: 30, pts: 3, stam: 4 }, food: { price: 30000, mins: 20, stam: 30, friend: 8 }, rest: { mins: 30, stam: 15 }, shell: { mins: 10, perDay: 3 }, friend: 12 };
+const SHELL_FRIEND = 6;
+// Câu cá ở bờ sông (minigame giữ cá trong vùng xanh). diff: độ khó 1–5 · w: tỉ lệ gặp
+const FISHING = { mins: 20, stam: 3, nothing: 0.15, momGift: 2 };
+const FISH = [
+  { id: 'ro', name: 'Cá rô', diff: 1, price: 6000, w: 34 }, { id: 'tre', name: 'Cá trê', diff: 2, price: 10000, w: 28 },
+  { id: 'chep', name: 'Cá chép', diff: 3, price: 16000, w: 20 }, { id: 'loc', name: 'Cá lóc', diff: 4, price: 26000, w: 13 },
+  { id: 'chinh', name: 'Cá chình', diff: 5, price: 48000, w: 5 },
+];
 
 /* ---------- Vật phẩm ---------- */
 const ITEMS = {
@@ -160,7 +180,6 @@ const ITEMS = {
 };
 for (const s of BOOK_SUBJ) {
   ITEMS['sach_' + s] = { name: 'Sách ' + SUBJ[s].short, subj: s, kind: 'sach' };
-  ITEMS['vo_' + s] = { name: 'Vở ' + SUBJ[s].short, subj: s, kind: 'vo' };
 }
 const FOODS = {
   comhop: { name: 'Cơm hộp mẹ nấu', stam: 30 },
@@ -178,9 +197,10 @@ const SHOP = [
   { id: 'daynhay', name: 'Dây nhảy', price: 60000, desc: 'Tập: +8 điểm Thể thao/buổi', own: 'daynhay' },
   { id: 'tatay', name: 'Tạ tay', price: 150000, desc: 'Tập: +12 điểm Thể thao/buổi', own: 'tatay' },
   { id: 'xadon', name: 'Xà đơn gắn cửa', price: 350000, desc: 'Tập: +16 điểm Thể thao/buổi', own: 'xadon' },
-  { id: 'xedap', name: 'Xe đạp', price: 400000, desc: 'Đến trường 30 phút', own: 'xedap' },
-  { id: 'xedapdien', name: 'Xe đạp điện', price: 2500000, desc: 'Đến trường 20 phút', own: 'xedapdien' },
-  { id: 'xemay', name: 'Xe máy 50cc', price: 6000000, desc: 'Đến trường 10 phút', own: 'xemay' },
+  { id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu cá ở bờ sông (dưới phố Hoa Phượng)', own: 'cancau' },
+  { id: 'xedap', name: 'Xe đạp', price: 400000, desc: 'Để ở sân nhà, bấm vào xe để đi · nhanh gấp 1,6 lần đi bộ', own: 'xedap' },
+  { id: 'xedapdien', name: 'Xe đạp điện', price: 2500000, desc: 'Nhanh gấp 2,1 lần đi bộ', own: 'xedapdien' },
+  { id: 'xemay', name: 'Xe máy 50cc', price: 6000000, desc: 'Nhanh gấp 2,8 lần đi bộ', own: 'xemay' },
 ];
 const CANTEEN = [
   { name: 'Cơm trưa', price: 20000, stam: 30, mins: 20 },
@@ -250,11 +270,17 @@ const TEST_DIFF = { mieng: 0.3, p15: 0, tiet: -0.3, thi: -0.5 };
 
 /* ---------- Bạn bè ---------- */
 const FRIENDS = {
-  khoa: { name: 'Khoa', note: 'Bạn cùng bàn', g: 'boy', seat: 'cùng bàn', duel: 'kha' },
-  vy: { name: 'Vy', note: 'Lớp phó học tập', g: 'girl', seat: 'bàn bên phải', duel: 'gà' },
-  dat: { name: 'Đạt', note: 'Cây văn nghệ của lớp', g: 'boy', seat: 'bàn dưới', duel: 'caothu' },
-  ngan: { name: 'Ngân', note: 'Bạn bàn bên, mê làm đẹp', g: 'girl', seat: 'bàn bên trái', duel: 'gà' },
+  khoa: { name: 'Khoa', note: 'Bạn cùng bàn', g: 'boy', seat: 'cùng bàn', duel: 'kha', bday: [0, 12] },
+  vy: { name: 'Vy', note: 'Lớp phó học tập', g: 'girl', seat: 'bàn bên phải', duel: 'gà', bday: [1, 8] },
+  dat: { name: 'Đạt', note: 'Cây văn nghệ của lớp', g: 'boy', seat: 'bàn dưới', duel: 'caothu', bday: [2, 20] },
+  ngan: { name: 'Ngân', note: 'Bạn bàn bên, mê làm đẹp', g: 'girl', seat: 'bàn bên trái', duel: 'gà', bday: [0, 25] },
 };
+// Sinh nhật: [chỉ số mùa (0 Thu, 1 Đông, 2 Xuân, 3 Hè), ngày]. Hiện trên Lịch; hôm đó chúc mừng / tặng quà được cộng nhiều hơn.
+const PARENT_BDAY = { mom: [1, 20], dad: [2, 12] };
+const BDAY_FRIEND = 8, BDAY_PARENT = 4;
+// Lễ hội — ĐỂ SẴN, sẽ định nghĩa sau: { season, day, name }. Lịch tự hiển thị.
+const FESTIVALS = [];
+const isDate = (d, day) => { const c = cal(day); return !!d && c.season === d[0] && c.dos === d[1]; };
 
 /* ---------- Thiện cảm của thầy cô ---------- */
 // 0–100 điểm, 20 điểm một cấp (0–5). Cấp 1 là bình thường.
@@ -271,8 +297,10 @@ const teacherLvOf = pts => Math.max(0, Math.min(5, Math.floor((pts || 0) / TEACH
 const CHEAT = { min: 1.5, max: 2.5, vyBonus: 0.5, conduct: -1, parentCall: 0.5 };
 // Tố cáo bạn rủ rê: được lòng thầy cô nhưng mất lòng bạn bè
 const SNITCH = { friend: -15, others: -2, grudgeDays: 7, friendClass: -10 };
+// Chủ động quay sang bạn TRONG GIỜ HỌC (chơi bài, con quay, đấu thẻ, xin ra ngoài đi vệ sinh…): mất tập trung và dễ bị cô bắt hơn giờ giải lao
+const IN_CLASS = { delta: -2, riskAdd: 0.18, chat: { friend: 3, risk: 0.15 }, duelRisk: 0.2 };
 
-/* ---------- Mượn đồ khi quên (quay sang hỏi bạn) ---------- */
+/* ---------- Mượn sách khi quên (quay sang hỏi bạn) ---------- */
 const BORROW = { deskmate: 0.35, other: 0.22, perHeart: 0.12, perTalk: 0.03, grudge: -0.5, scold: 0.15 };
 
 /* ---------- Xin tiền bố mẹ đi chơi (sau khi đã về nhà) ---------- */
@@ -297,15 +325,15 @@ const NAP = { mins: 40, stam: 18 };
 /* ---------- Địa điểm vui chơi ---------- */
 // x, y: chỗ bạn bè đứng đợi khi đã hẹn · open: giờ mở cửa (phút)
 const PLACES = {
-  tea: { name: 'Tiệm trà sữa Mây', short: 'tiệm trà sữa', map: 'pho', x: 470, y: 140, open: [540, 1290] },
-  mall: { name: 'TTTM Hoa Phượng Plaza', short: 'trung tâm thương mại', map: 'pho', x: 612, y: 140, open: [540, 1290] },
-  arcade: { name: 'Khu game Arcade', short: 'khu game', map: 'pho', x: 770, y: 140, open: [540, 1320] },
+  tea: { name: 'Tiệm trà sữa Mây', short: 'tiệm trà sữa', map: 'pho', x: 506, y: 140, open: [540, 1290] },
+  mall: { name: 'TTTM Hoa Phượng Plaza', short: 'trung tâm thương mại', map: 'pho', x: 644, y: 140, open: [540, 1290] },
+  arcade: { name: 'Khu game Arcade', short: 'khu game', map: 'pho', x: 800, y: 140, open: [540, 1320] },
   park: { name: 'Công viên', short: 'công viên', map: 'town', x: 380, y: 318, open: [360, 1290] },
   nui: { name: 'Núi sau trường', short: 'núi sau trường (picnic)', map: 'nui', x: 200, y: 298, open: [360, 1110] },
+  bien: { name: 'Bãi biển', short: 'biển (đi tàu)', map: 'bien', x: 300, y: 160, open: [420, 1200] },
 };
-const PLACE_LIKES = { khoa: ['arcade', 'park', 'nui'], vy: ['tea', 'mall', 'nui'], dat: ['arcade', 'park', 'tea'], ngan: ['mall', 'tea', 'arcade'] };
+const PLACE_LIKES = { khoa: ['arcade', 'park', 'nui'], vy: ['tea', 'mall', 'nui'], dat: ['arcade', 'park', 'bien'], ngan: ['mall', 'tea', 'bien'] };
 const MEET_END = 1290;            // bạn đợi tới 21:30
-const TRAVEL = { townPho: 10, phoNui: 20, schoolNui: 10 };
 const HILL_HOURS = [360, 1110];   // 06:00–18:30: trời tối thì không lên núi
 const MALL = { movie: { price: 45000, mins: 100, stam: 20, friend: 12 }, book: { price: 60000, pts: 10 }, box: { price: 30000, n: 5 }, chicken: { price: 35000, mins: 30, stam: 35, friend: 6 } };
 const ARCADE = { claw: { price: 10000 }, cab: { price: 30000, mins: 60, stam: 8, friend: 10 }, dance: { price: 15000, mins: 20, stam: 6, pts: 3, friend: 5 } };

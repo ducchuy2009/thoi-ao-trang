@@ -1,6 +1,6 @@
 'use strict';
 /* ============================================================
- *  02b. ĐỒ HOẠ BỔ SUNG — phố Hoa Sữa (TTTM, khu game, trà sữa), núi sau trường,
+ *  02b. ĐỒ HOẠ BỔ SUNG — phố Hoa Phượng (TTTM, khu game, trà sữa), núi sau trường,
  *  nhà vệ sinh, đạo cụ cho các đoạn cắt cảnh (yoyo, con quay, bài, son phấn), chân dung thẻ cầu thủ
  * ============================================================ */
 function tri(x, col, cxm, top, h, halfW) { for (let j = 0; j < h; j++) { const w = Math.max(1, Math.round(halfW * (j + 1) / h)); R(x, col, Math.round(cxm - w), top + j, w * 2, 1); } }
@@ -135,6 +135,103 @@ function buildSprites2() {
   def('puff', 6, 5, x => { ell(x, '#f7c9b8', 2.5, 2, 2.5, 2); R(x, '#fff', 1, 1, 2, 1); }, true);
   def('sparkle0', 5, 5, x => { R(x, '#fff7c2', 2, 0, 1, 5); R(x, '#fff7c2', 0, 2, 5, 1); R(x, '#ffffff', 2, 2, 1, 1); }, true);
   def('sparkle1', 5, 5, x => { R(x, '#fff7c2', 2, 1, 1, 3); R(x, '#fff7c2', 1, 2, 3, 1); }, true);
+
+  /* ---------- xe bus, tàu hoả, ga tàu ---------- */
+  def('bus', 72, 32, x => {
+    R(x, '#d9d3c4', 2, 0, 68, 2); R(x, '#fbf7ee', 0, 2, 72, 13); R(x, '#e2574c', 0, 14, 72, 2); R(x, '#3f9a6b', 0, 16, 72, 10); R(x, '#2f7d5b', 0, 24, 72, 2);
+    for (let i = 0; i < 5; i++) { R(x, '#5c6f7c', 3 + i * 10, 4, 9, 9); R(x, '#8fc1e3', 4 + i * 10, 5, 7, 7); R(x, '#b9dcf2', 4 + i * 10, 5, 7, 2); }
+    R(x, '#5c6f7c', 53, 4, 9, 21); R(x, '#9cc7dd', 54, 5, 7, 11); R(x, '#7ba9c2', 54, 17, 7, 7); R(x, '#5c6f7c', 57, 5, 1, 19);
+    R(x, '#8fc1e3', 64, 4, 7, 10); R(x, '#b9dcf2', 64, 4, 7, 2); R(x, '#ffe9a0', 70, 18, 2, 3); R(x, '#e2574c', 0, 18, 1, 3);
+    R(x, '#fffaf0', 6, 18, 30, 5); R(x, '#3f9a6b', 8, 20, 6, 1); R(x, '#3f9a6b', 16, 20, 10, 1); R(x, '#3f9a6b', 28, 20, 6, 1);
+    for (const a of [14, 46]) { ell(x, '#2f2a3a', a, 27, 5, 5); ell(x, '#8b8f9c', a, 27, 2, 2); }
+  });
+  SPR.busL = flipH(SPR.bus);
+  def('train', 168, 34, x => {
+    const car = (a, col) => {
+      R(x, '#fbf7ee', a, 4, 52, 3); R(x, col, a, 7, 52, 17); R(x, shade(col, -22), a, 21, 52, 4); R(x, '#ffe066', a, 17, 52, 1);
+      for (let i = 0; i < 4; i++) { R(x, '#8fc1e3', a + 4 + i * 12, 9, 9, 7); R(x, '#b9dcf2', a + 4 + i * 12, 9, 9, 2); }
+      for (const w of [10, 42]) { ell(x, '#2f2a3a', a + w, 29, 4, 4); ell(x, '#8b8f9c', a + w, 29, 1.5, 1.5); }
+      R(x, '#5f656f', a + 52, 19, 4, 3);
+    };
+    car(0, '#3b82c4'); car(56, '#3b82c4');
+    R(x, '#fbf7ee', 112, 3, 44, 3); R(x, '#d9534f', 112, 6, 50, 18); R(x, '#b23b3b', 112, 21, 52, 4); R(x, '#ffe066', 112, 17, 52, 1);
+    R(x, '#d9534f', 160, 10, 6, 14); R(x, '#d9534f', 164, 14, 3, 10); R(x, '#8fc1e3', 148, 8, 11, 8); R(x, '#b9dcf2', 148, 8, 11, 2); R(x, '#8fc1e3', 116, 9, 9, 7); R(x, '#8fc1e3', 130, 9, 9, 7);
+    R(x, '#ffe9a0', 165, 18, 2, 4); R(x, '#2a2136', 118, 0, 6, 3);
+    for (const w of [122, 138, 154]) { ell(x, '#2f2a3a', w, 29, 4, 4); ell(x, '#8b8f9c', w, 29, 1.5, 1.5); }
+  });
+  SPR.trainL = flipH(SPR.train);
+  def('station', 128, 84, x => {
+    R(x, '#a84530', 0, 4, 128, 20); R(x, '#c8583f', 0, 4, 128, 3); R(x, '#8a3625', 0, 22, 128, 2);
+    for (let i = 0; i < 128; i += 8) { R(x, '#8a3625', i, 9, 1, 5); R(x, '#8a3625', i + 4, 15, 1, 5); }
+    R(x, '#c8583f', 48, 0, 32, 8); R(x, '#fff6d8', 56, 2, 16, 16); ell(x, '#2a2136', 63.5, 10, 6, 6); ell(x, '#fffaf0', 63.5, 10, 5, 5); R(x, '#2a2136', 63, 6, 1, 5); R(x, '#2a2136', 63, 10, 4, 1);
+    R(x, '#f6e6c2', 4, 24, 120, 60); R(x, '#e0cfa6', 4, 24, 120, 2); R(x, '#cdbb92', 4, 78, 120, 6);
+    R(x, '#2a2136', 22, 28, 84, 14); R(x, '#2f5d8a', 23, 29, 82, 12); R(x, '#4a7fb5', 23, 29, 82, 2);
+    R(x, '#5b4636', 50, 50, 28, 34); R(x, '#7a5f48', 52, 52, 11, 32); R(x, '#7a5f48', 65, 52, 11, 32); R(x, '#9cc7dd', 54, 55, 7, 10); R(x, '#9cc7dd', 67, 55, 7, 10);
+    drawWin(x, 12, 50, 16, 16); R(x, '#8b5e3c', 10, 68, 20, 3); R(x, '#fffaf0', 12, 44, 16, 5); R(x, '#e2574c', 14, 46, 12, 1);
+    drawWin(x, 98, 50, 16, 16); R(x, '#fffaf0', 86, 52, 9, 12); R(x, '#5f656f', 87, 54, 7, 1); R(x, '#5f656f', 87, 57, 7, 1); R(x, '#5f656f', 87, 60, 5, 1);
+  });
+  /* ---------- biển, bờ sông ---------- */
+  def('palm', 34, 48, x => {
+    line(x, '#a37248', 17, 46, 15, 16); line(x, '#a37248', 18, 46, 16, 16); line(x, '#8b5e3c', 19, 46, 17, 16); R(x, '#6f472c', 14, 46, 8, 2);
+    for (const [dx, dy] of [[-14, 2], [-10, -8], [-3, -12], [6, -11], [13, -5], [15, 4], [-13, 8], [10, 10]]) { line(x, '#3f8a52', 16, 16, 16 + dx, 16 + dy); line(x, '#5fae4a', 16, 15, 16 + dx, 15 + dy); line(x, '#4c9a3c', 17, 17, 17 + dx, 17 + dy); }
+    ell(x, '#8b5e3c', 15, 18, 2, 2); ell(x, '#8b5e3c', 19, 19, 2, 2);
+  });
+  def('parasol', 34, 34, x => {
+    for (let j = 0; j < 9; j++) { const w = Math.round(16 * (j + 1) / 9); for (let i = -w; i < w; i++) R(x, Math.floor((i + 32) / 5) % 2 ? '#fffaf0' : '#e2574c', 17 + i, j, 1, 1); }
+    R(x, '#c2453b', 1, 9, 32, 1); R(x, '#8b8f9c', 16, 10, 2, 18);
+    R(x, '#5a8fd6', 4, 24, 22, 5); R(x, '#7fb0ea', 4, 24, 22, 1); R(x, '#3b6fb6', 4, 28, 22, 1); R(x, '#5a8fd6', 2, 19, 5, 6); R(x, '#8b8f9c', 5, 29, 2, 4); R(x, '#8b8f9c', 23, 29, 2, 4);
+  });
+  def('castle', 22, 18, x => { R(x, '#e6d096', 2, 8, 18, 10); R(x, '#f1dfae', 2, 8, 18, 2); for (const a of [2, 9, 16]) { R(x, '#e6d096', a, 3, 4, 6); R(x, '#f1dfae', a, 3, 4, 1); } R(x, '#c9b170', 9, 12, 4, 6); R(x, '#8b8f9c', 11, 0, 1, 4); R(x, '#e2574c', 12, 0, 4, 2); });
+  def('buoy', 14, 22, x => { R(x, '#8b8f9c', 6, 6, 2, 16); R(x, '#fffaf0', 0, 0, 14, 8); R(x, '#3b82c4', 1, 1, 12, 6); R(x, '#fff', 3, 3, 3, 1); R(x, '#fff', 8, 4, 3, 1); R(x, '#fff', 5, 5, 3, 1); });
+  def('shells', 16, 9, x => { ell(x, '#f7c9b8', 3, 5, 3, 3); R(x, '#e9a48e', 2, 4, 1, 3); R(x, '#e9a48e', 4, 4, 1, 3); ell(x, '#fffaf0', 11, 4, 3, 2.4); R(x, '#d9d0bd', 10, 3, 1, 3); R(x, '#d9d0bd', 12, 3, 1, 3); R(x, '#c9a0f0', 7, 7, 2, 2); });
+  def('fishspot', 18, 18, x => { R(x, '#8b8f9c', 2, 8, 9, 9); R(x, '#c9ccd4', 2, 8, 9, 2); R(x, '#5fb0e0', 3, 10, 7, 2); R(x, '#5f656f', 1, 6, 11, 1); line(x, '#8b5e3c', 12, 16, 17, 0); R(x, '#fffaf0', 17, 0, 1, 6); });
+  def('boat', 44, 18, x => { R(x, '#8a5a3a', 2, 6, 40, 8); R(x, '#a9703f', 2, 6, 40, 2); R(x, '#6f472c', 6, 14, 32, 3); R(x, '#6f472c', 0, 4, 4, 4); R(x, '#6f472c', 40, 4, 4, 4); R(x, '#c58c56', 12, 8, 3, 5); R(x, '#c58c56', 28, 8, 3, 5); line(x, '#c9a467', 20, 9, 34, 0); });
+  /* ---------- đạo cụ hoạt cảnh: lau nhà, rửa xe, đấm lưng, khói, bị bắt ---------- */
+  def('mop', 7, 18, x => { R(x, '#b98253', 3, 0, 1, 13); R(x, '#8a5a3a', 0, 12, 7, 2); R(x, '#eaf3fb', 0, 14, 7, 4); R(x, '#c9d8ea', 1, 15, 1, 3); R(x, '#c9d8ea', 3, 15, 1, 3); R(x, '#c9d8ea', 5, 15, 1, 3); });
+  def('sponge', 6, 4, x => { R(x, '#f4d35e', 0, 0, 6, 4); R(x, '#5fae4a', 0, 3, 6, 1); }, true);
+  def('bub0', 5, 5, x => { ring(x, '#eaf6fc', 2, 2, 2); R(x, '#ffffff', 1, 1, 1, 1); }, true);
+  def('bub1', 3, 3, x => { R(x, '#eaf6fc', 1, 0, 1, 3); R(x, '#eaf6fc', 0, 1, 3, 1); }, true);
+  def('smoke0', 8, 7, x => { ell(x, '#e6e6ea', 3, 4, 3, 2.4); ell(x, '#f4f4f6', 5, 2, 2, 2); }, true);
+  def('smoke1', 10, 8, x => { ell(x, '#e0e0e6', 4, 5, 4, 2.6); ell(x, '#f0f0f3', 6, 2, 3, 2); ell(x, '#f8f8fa', 2, 2, 1.6, 1.6); }, true);
+  def('hit', 7, 7, x => { R(x, '#ffe066', 3, 0, 1, 7); R(x, '#ffe066', 0, 3, 7, 1); R(x, '#fff', 2, 2, 3, 3); R(x, '#ffe066', 1, 1, 1, 1); R(x, '#ffe066', 5, 1, 1, 1); R(x, '#ffe066', 1, 5, 1, 1); R(x, '#ffe066', 5, 5, 1, 1); }, true);
+  def('emoBang', 5, 9, x => { R(x, '#e2574c', 1, 0, 3, 5); R(x, '#e2574c', 2, 5, 1, 1); R(x, '#e2574c', 1, 7, 3, 2); });
+  def('cup', 6, 8, x => { R(x, '#fffaf0', 0, 2, 6, 6); R(x, '#c98f5a', 1, 4, 4, 3); R(x, '#2a2136', 1, 6, 1, 1); R(x, '#2a2136', 3, 6, 1, 1); R(x, '#d9534f', 4, 0, 1, 3); });
+  for (const k of ['bike', 'ebike', 'moto50']) SPR[k + 'L'] = flipH(SPR[k]);
+}
+
+/* ---------- biểu tượng vật phẩm cho thanh đồ (16×16 → dataURL) ---------- */
+const _icons = {};
+function itemIcon(id) {
+  if (_icons[id]) return _icons[id];
+  const c = mk(16, 16), x = cx(c);
+  const shirt = (col, st) => { R(x, col, 4, 3, 8, 11); R(x, col, 1, 3, 3, 5); R(x, col, 12, 3, 3, 5); R(x, shade(col, -20), 4, 12, 8, 2); R(x, '#fffaf0', 7, 3, 2, 2); if (st) { R(x, st, 4, 3, 1, 9); R(x, st, 11, 3, 1, 9); } };
+  if (id.startsWith('sach_')) { const col = SUBJ[id.slice(5)].color; R(x, shade(col, -28), 2, 2, 12, 13); R(x, col, 4, 2, 10, 12); R(x, '#fffaf0', 4, 13, 10, 1); R(x, shade(col, 35), 6, 4, 6, 2); R(x, shade(col, 35), 6, 8, 4, 1); }
+  else if (id === 'hopbut') { R(x, '#3b82c4', 1, 5, 14, 7); R(x, '#5a8fd6', 1, 5, 14, 2); R(x, '#2f5a94', 1, 11, 14, 1); R(x, '#f4d35e', 3, 8, 7, 1); R(x, '#e2574c', 10, 8, 2, 1); R(x, '#fffaf0', 12, 8, 1, 1); }
+  else if (id === 'thehs') { R(x, '#fffaf0', 1, 3, 14, 10); R(x, '#3b6fb6', 1, 3, 14, 3); R(x, '#f8d0a8', 3, 7, 4, 4); R(x, '#2c2733', 3, 7, 4, 1); R(x, '#8fa0ab', 8, 8, 5, 1); R(x, '#8fa0ab', 8, 10, 4, 1); }
+  else if (id === 'vethang') { R(x, '#3f9a6b', 1, 4, 14, 8); R(x, '#fffaf0', 3, 6, 10, 4); R(x, '#3f9a6b', 4, 7, 5, 1); R(x, '#e2574c', 10, 7, 2, 2); }
+  else if (id === 'dp_td') shirt('#4d86de', '#ffffff');
+  else if (id === 'dp_qp') shirt('#6f8440', null);
+  else if (id === 'comhop') { R(x, '#e2574c', 2, 6, 12, 7); R(x, '#fbf7ee', 2, 4, 12, 3); R(x, '#c2453b', 2, 11, 12, 2); R(x, '#8b8f9c', 7, 3, 2, 1); }
+  else if (id === 'banhmi') { ell(x, '#e0a85a', 7.5, 8, 6.5, 3.6); ell(x, '#f2c27a', 7, 7, 5, 2); R(x, '#b47a48', 4, 7, 1, 2); R(x, '#b47a48', 7, 6, 1, 2); R(x, '#b47a48', 10, 7, 1, 2); }
+  else if (id === 'sua') { R(x, '#fffaf0', 4, 3, 8, 11); R(x, '#5a8fd6', 4, 7, 8, 4); R(x, '#d9d0bd', 4, 3, 8, 2); R(x, '#e2574c', 10, 0, 1, 4); }
+  else if (id === 'bimbim') { R(x, '#f2a93b', 3, 2, 10, 12); R(x, '#d9862b', 3, 2, 10, 1); R(x, '#d9862b', 3, 13, 10, 1); R(x, '#fffaf0', 7, 5, 2, 6); R(x, '#fffaf0', 5, 7, 6, 2); R(x, '#e2574c', 7, 7, 2, 2); }
+  else if (id === 'banhtrang') { R(x, '#eaf3fb', 3, 3, 10, 11); R(x, '#e98a3c', 4, 7, 8, 6); R(x, '#5fae4a', 5, 8, 2, 1); R(x, '#e2574c', 9, 10, 2, 1); R(x, '#8b8f9c', 6, 2, 4, 1); }
+  else if (id === 'gaubong') { ell(x, '#b9824f', 7.5, 9, 5, 4.5); ell(x, '#b9824f', 7.5, 4.5, 4, 3.5); ell(x, '#b9824f', 4, 2, 1.6, 1.6); ell(x, '#b9824f', 11, 2, 1.6, 1.6); ell(x, '#f0d09a', 7.5, 6, 2, 1.5); R(x, '#2a2136', 6, 4, 1, 1); R(x, '#2a2136', 9, 4, 1, 1); R(x, '#e2574c', 6, 8, 4, 1); }
+  else if (id === 'the') { R(x, '#fffaf0', 2, 3, 8, 11); R(x, '#d9534f', 3, 4, 6, 9); R(x, '#fffaf0', 6, 2, 8, 11); R(x, '#3b82c4', 7, 3, 6, 9); R(x, '#ffe066', 9, 6, 2, 3); }
+  else if (id === 'ca') { ell(x, '#6fa8dc', 7, 8, 5.5, 3.2); R(x, '#6fa8dc', 12, 5, 3, 7); R(x, '#4f86b8', 13, 7, 2, 3); ell(x, '#cfe6f7', 6, 9, 3, 1.4); R(x, '#2a2136', 3, 7, 1, 1); }
+  else if (id === 'cancau') { line(x, '#8b5e3c', 2, 14, 13, 1); line(x, '#8b5e3c', 3, 14, 14, 1); R(x, '#fffaf0', 14, 2, 1, 8); R(x, '#e2574c', 13, 10, 3, 2); R(x, '#5f656f', 4, 11, 3, 3); }
+  else if (id === 'voso') { ell(x, '#f7c9b8', 7.5, 8.5, 6, 5); for (const a of [4, 6, 8, 10]) R(x, '#e9a48e', a, 5, 1, 7); R(x, '#fffaf0', 6, 12, 4, 2); }
+  else { R(x, '#c9b58a', 3, 3, 10, 10); }
+  return (_icons[id] = outline(c).toDataURL());
+}
+// Chân dung nhân vật cho hộp thoại (đầu + vai, phóng to)
+const _faces = {};
+function faceOf(look, outfit) {
+  const k = look + ':' + (outfit || '');
+  if (_faces[k]) return _faces[k];
+  const f = charSheet(look, outfit)[0][0], c = mk(18, 19), x = cx(c);
+  x.drawImage(f, 0, 0, 18, 19, 0, 0, 18, 19);
+  return (_faces[k] = c.toDataURL());
 }
 
 /* ---------- chân dung cầu thủ trên thẻ (chibi mặc áo đấu) ---------- */

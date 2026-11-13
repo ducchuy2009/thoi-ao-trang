@@ -1,6 +1,6 @@
 'use strict';
 /* ============================================================
- *  03. BẢN ĐỒ — Nhà · Khu phố · Sân trường · Lớp học · Phòng thí nghiệm · Phố Hoa Sữa · Núi sau trường
+ *  03. BẢN ĐỒ — Nhà · Khu phố · Phố Hoa Phượng · Trường · Lớp học · Phòng thí nghiệm · Núi · Bờ sông · Ga tàu · Bãi biển
  *  Toạ độ tính bằng pixel game (1 ô = 16px).
  * ============================================================ */
 const MAPS = {};
@@ -46,7 +46,7 @@ function buildHome() {
   paint(m, 'wood', 13, 14, 2, 1, 0); R(m.x, '#8a5a3a', 208, 236, 32, 4); R(m.x, '#3f354c', 206, 224, 2, 16); R(m.x, '#3f354c', 240, 224, 2, 16);
   m.x.drawImage(SPR.doormat, 210, 212);
   drawWin(m.x, 70, 9, 18, 13); drawWin(m.x, 322, 9, 18, 13); drawWin(m.x, 404, 8, 18, 11);
-  m.x.drawImage(SPR.calendar, 53, 9);
+  addObj(m, { s: 'calendar', x: 52, y: 8, base: 0, ir: [-3, 0, 20, 36], label: () => 'Lịch treo tường — xem ngày tháng, sinh nhật, lịch kiểm tra', act: () => UI.calendar() });
   drawDoor(m.x, 250, 7, 16, 25, '#a9703f');                       // cửa phòng bố mẹ
   R(m.x, '#8a5a3a', 173, 9, 14, 11); R(m.x, '#fff3c8', 174, 10, 12, 9); R(m.x, '#e98fa5', 176, 13, 3, 4); R(m.x, '#6f8fb8', 181, 13, 3, 4);   // ảnh gia đình
   // phòng ngủ
@@ -107,13 +107,15 @@ function buildTown() {
   addObj(m, { s: 'tree', x: 228, y: 14, sol: [13, 38, 10, 9] });
   addObj(m, { s: 'mailbox', x: 50, y: 118, sol: [1, 10, 10, 9] });
   // xe của mẹ và bố: chỉ có ở sân khi bố mẹ ở nhà
-  addObj(m, { s: 'motoMom', x: 118, y: 112, sol: [2, 10, 28, 10], vis: () => !G || !FAM.mom.bikeAway, label: () => choreLabel('ruaxe'), act: () => ACT.chore('ruaxe') });
-  addObj(m, { s: 'moto', x: 152, y: 112, sol: [2, 10, 28, 10], vis: () => !G || !FAM.dad.bikeAway, label: () => choreLabel('ruaxe'), act: () => ACT.chore('ruaxe') });
+  addObj(m, { s: 'motoMom', x: 118, y: 112, sol: [2, 10, 28, 10], vis: () => !G || !FAM.mom.bikeAway, label: () => choreLabel('ruaxe'), act: () => ACT.chore('ruaxe', 133) });
+  addObj(m, { s: 'moto', x: 152, y: 112, sol: [2, 10, 28, 10], vis: () => !G || !FAM.dad.bikeAway, label: () => choreLabel('ruaxe'), act: () => ACT.chore('ruaxe', 167) });
   addObj(m, { s: 'weeds', x: 186, y: 84, vis: () => !G || !G.daily.chores.nhoco, label: () => choreLabel('nhoco'), act: () => ACT.chore('nhoco') });
   addObj(m, { s: 'weeds', x: 22, y: 96, vis: () => !G || !G.daily.chores.nhoco });
-  addObj(m, { s: 'bike', x: 192, y: 120, sol: [2, 10, 24, 8], vis: () => G && G.owned.xedap && !(G.atSchool && G.cameBy === 'bike') });
-  addObj(m, { s: 'ebike', x: 222, y: 116, sol: [2, 10, 28, 10], vis: () => G && G.owned.xedapdien });
-  addObj(m, { s: 'moto50', x: 232, y: 90, sol: [2, 10, 28, 10], vis: () => G && G.owned.xemay });
+  // xe của mình để ở sân: bấm vào xe để lên xe đi (chạy nhanh hơn đi bộ)
+  for (const [id, a, b] of [['bike', 192, 120], ['ebike', 222, 116], ['moto', 232, 90]]) {
+    const V = VEHICLES[id];
+    addObj(m, { s: V.spr, x: a, y: b, sol: V.sol, vis: () => vehAtHome(id), label: () => `${V.name} — lên xe`, act: () => ACT.mount(id) });
+  }
   // dãy phố
   addObj(m, { s: 'shop', x: 303, y: 51, sol: [1, 24, 96, 53], label: () => 'Tạp hoá Cô Ba — mua đồ, phụ bán hàng', act: () => ACT.shop() });
   addObj(m, { s: 'center', x: 431, y: 51, sol: [1, 24, 96, 53], label: () => 'Trung tâm Sao Mai — đăng ký học thêm', act: () => ACT.center() });
@@ -123,12 +125,9 @@ function buildTown() {
   m.labels.push({ x: 352, y: 66.5, text: 'TẠP HOÁ CÔ BA', size: 8.5, col: '#2a2136', maxw: 78 });
   m.labels.push({ x: 480, y: 67.5, text: 'HỌC THÊM SAO MAI', size: 7.5, col: '#ffffff', maxw: 78 });
   for (const lx of [286, 520, 742]) addObj(m, { s: 'lamp', x: lx, y: 112, sol: [3, 38, 6, 6] });
-  addObj(m, { s: 'busshelter', x: 608, y: 146, sol: [1, 26, 44, 10], label: () => 'Trạm xe bus — đi học', act: () => ACT.goSchool() });
-  addObj(m, { s: 'bussign', x: 660, y: 150, sol: [4, 24, 6, 8] });
-  addObj(m, { s: 'signpost', x: 766, y: 148, sol: [10, 22, 8, 8], label: () => "Phố Hoa Sữa — nhà bạn bè, trung tâm thương mại, khu game (đi bộ 10')", act: () => ACT.toPho() });
-  m.zones.push({ x: 792, y: 160, w: 8, h: 112, fn: () => ACT.toPho(), bx: -6 });
-  addObj(m, { s: 'signpostL', x: 22, y: 148, sol: [10, 22, 8, 8], label: () => 'Đường đến trường', act: () => ACT.goSchool() });
-  m.zones.push({ x: 0, y: 160, w: 8, h: 112, fn: () => ACT.goSchool(), bx: 6 });
+  addBusStop(m, 'home', 608, 146, 590, 188);
+  addObj(m, { s: 'signpost', x: 766, y: 148, sol: [10, 22, 8, 8], label: () => 'Phố Hoa Phượng → (đi tiếp nữa là tới trường)', act: () => ACT.go('town', 'pho') });
+  m.zones.push({ x: 792, y: 160, w: 8, h: 112, fn: () => ACT.go('town', 'pho'), bx: -6 });
   // công viên
   for (let i = 0; i < 50; i++) { if (i >= 23 && i <= 25) continue; addObj(m, { s: 'hedge', x: i * 16, y: 270, sol: [0, 4, 18, 12] }); }
   for (const [s, a, b] of [['tree', 24, 290], ['treePink', 150, 282], ['tree2', 250, 286], ['treeOrange', 300, 356], ['treePink', 436, 282], ['tree', 480, 352], ['treePink', 506, 284], ['tree2', 190, 362]]) addObj(m, { s, x: a, y: b, sol: [13, 38, 10, 9] });
@@ -143,16 +142,25 @@ function buildTown() {
   }
 }
 const friendOutfit = fid => (schoolToday() ? null : 'cas_' + fid);
+const busHere = () => !G || inWin(G.time, BUS_HOURS[0], BUS_HOURS[1]);
+// Trạm xe bus: nhà chờ + biển báo + chiếc xe bus đỗ sẵn ở bến (bấm vào xe để lên xe, chọn điểm đến)
+function addBusStop(m, id, sx, sy, bx, by, noSol) {
+  addObj(m, { s: 'busshelter', x: sx, y: sy, sol: [1, 26, 44, 10], label: () => 'Trạm xe bus — ' + BUS_STOPS[id].name, act: () => ACT.bus(id) });
+  addObj(m, { s: 'bussign', x: sx + 52, y: sy + 4, sol: [4, 24, 6, 8] });
+  addObj(m, { s: 'bus', x: bx, y: by, sol: noSol ? undefined : [2, 14, 70, 16], ir: [0, 6, 74, 28], vis: busHere, label: () => 'Xe bus — lên xe, chọn điểm đến', act: () => ACT.bus(id) });
+}
 
-/* ---------------- PHỐ HOA SỮA: nhà bạn bè · trà sữa · TTTM · khu game ---------------- */
+/* ---------------- PHỐ HOA PHƯỢNG (trung tâm thành phố): nhà bạn bè · trà sữa · TTTM · khu game ----------------
+ * Trái: về khu phố nhà mình · Phải: sang trường · Trên: ga tàu · Dưới: bờ sông */
 const FRIEND_HOUSE = { khoa: ['houseB', 12], dat: ['houseC', 120], vy: ['houseD', 228], ngan: ['houseE', 336] };
 function buildPho() {
-  const m = mapNew('pho', 'Phố Hoa Sữa', 56, 26, false);
+  const m = mapNew('pho', 'Phố Hoa Phượng', 56, 26, false);
   paint(m, 'grass', 0, 0, 56, 26, 0);
-  [[1, 2], [7, 1], [13, 3], [20, 2], [27, 1], [33, 3], [53, 5], [54, 2], [1, 19], [17, 23], [18, 19], [36, 20], [37, 24], [47, 19], [50, 23], [53, 21], [45, 24]].forEach(([a, b]) => paint(m, 'flowers', a, b, 1, 1, 0));
+  [[1, 2], [7, 1], [13, 3], [20, 2], [25, 1], [33, 3], [54, 5], [54, 2], [1, 19], [17, 23], [18, 19], [36, 20], [37, 24], [47, 19], [50, 23], [53, 21], [45, 24]].forEach(([a, b]) => paint(m, 'flowers', a, b, 1, 1, 0));
   paint(m, 'walk', 0, 8, 56, 4, 0); paint(m, 'road', 0, 12, 56, 3, 0); paint(m, 'walk', 0, 15, 56, 2, 0);
+  paint(m, 'walk', 27, 0, 3, 8, 0);                                   // đường lên ga tàu
   for (let i = 0; i < 56; i += 2) R(m.x, '#f3e6a8', i * 16 + 4, 13 * 16 + 7, 12, 2);
-  for (let k = 0; k < 6; k++) R(m.x, '#f4f2ea', 39 * 16 + 2, 12 * 16 + 2 + k * 8, 28, 4);
+  for (let k = 0; k < 6; k++) R(m.x, '#f4f2ea', 27 * 16 + 10, 12 * 16 + 2 + k * 8, 28, 4);
   R(m.x, '#aaa392', 0, 190, 896, 2); R(m.x, '#aaa392', 0, 240, 896, 2);
   // dãy nhà bạn bè
   for (const fid in FRIEND_HOUSE) {
@@ -162,39 +170,44 @@ function buildPho() {
     NPCS.push({ id: 'h_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'pho', x: hx + 49, y: 144, dir: 0, wander: 8, vis: () => friendHome(fid), label: () => F.name + ' — đang ở trước nhà', act: () => ACT.friend(fid, 'house') });
   }
   // dãy vui chơi
-  addObj(m, { s: 'teashop', x: 448, y: 51, sol: [1, 24, 80, 53], label: () => PLACES.tea.name + ' — uống trà sữa', act: () => ACT.tea() });
-  m.labels.push({ x: 489, y: 67.5, text: 'TRÀ SỮA MÂY', size: 8, col: '#b5677c', maxw: 62 });
-  addObj(m, { s: 'mall', x: 540, y: 23, sol: [1, 30, 176, 75], label: () => PLACES.mall.name + ' — xem phim, nhà sách, siêu thị', act: () => ACT.mall() });
-  m.labels.push({ x: 629, y: 44.5, text: 'HOA PHƯỢNG PLAZA', size: 9, col: '#ffffff', maxw: 128 });
-  addObj(m, { s: 'arcade', x: 728, y: 51, sol: [1, 24, 96, 53], label: () => PLACES.arcade.name + ' — gắp thú, game thùng, máy nhảy', act: () => ACT.arcade() });
-  m.labels.push({ x: 777, y: 68, text: 'GAME ARCADE', size: 8, col: '#ffe066', maxw: 76 });
-  for (const lx of [112, 220, 436, 718, 838]) addObj(m, { s: 'lamp', x: lx, y: 112, sol: [3, 38, 6, 6] });
-  addObj(m, { s: 'treePink', x: 846, y: 20, sol: [13, 38, 10, 9] }); addObj(m, { s: 'tree', x: 420, y: 2, sol: [13, 38, 10, 9] });
-  // lối đi: trái về khu phố nhà mình, phải lên núi sau trường
-  addObj(m, { s: 'signpostL', x: 22, y: 148, sol: [10, 22, 8, 8], label: () => "Về khu phố nhà mình (đi bộ 10')", act: () => ACT.toTown() });
-  m.zones.push({ x: 0, y: 160, w: 8, h: 112, fn: () => ACT.toTown(), bx: 6 });
-  addObj(m, { s: 'trailsign', x: 862, y: 150, sol: [9, 16, 6, 8], label: () => "Đường lên núi sau trường (đi bộ 20')", act: () => ACT.toHill('pho') });
-  m.zones.push({ x: 888, y: 160, w: 8, h: 112, fn: () => ACT.toHill('pho'), bx: -6 });
-  // phía dưới: sân bóng mini · quảng trường đài phun nước · xe xiên que
+  addObj(m, { s: 'teashop', x: 484, y: 51, sol: [1, 24, 80, 53], label: () => PLACES.tea.name + ' — uống trà sữa', act: () => ACT.tea() });
+  m.labels.push({ x: 525, y: 67.5, text: 'TRÀ SỮA MÂY', size: 8, col: '#b5677c', maxw: 62 });
+  addObj(m, { s: 'mall', x: 572, y: 23, sol: [1, 30, 176, 75], label: () => PLACES.mall.name + ' — xem phim, nhà sách, siêu thị', act: () => ACT.mall() });
+  m.labels.push({ x: 661, y: 44.5, text: 'HOA PHƯỢNG PLAZA', size: 9, col: '#ffffff', maxw: 128 });
+  addObj(m, { s: 'arcade', x: 758, y: 51, sol: [1, 24, 96, 53], label: () => PLACES.arcade.name + ' — gắp thú, game thùng, máy nhảy', act: () => ACT.arcade() });
+  m.labels.push({ x: 807, y: 68, text: 'GAME ARCADE', size: 8, col: '#ffe066', maxw: 76 });
+  for (const lx of [112, 262, 416, 862]) addObj(m, { s: 'lamp', x: lx, y: 112, sol: [3, 38, 6, 6] });
+  addObj(m, { s: 'treePink', x: 862, y: 10, sol: [13, 38, 10, 9] });
+  addBusStop(m, 'pho', 196, 146, 176, 188);
+  // bốn hướng
+  addObj(m, { s: 'signpostL', x: 22, y: 148, sol: [10, 22, 8, 8], label: () => '← Khu phố nhà mình, tạp hoá Cô Ba', act: () => ACT.go('pho', 'town') });
+  m.zones.push({ x: 0, y: 160, w: 8, h: 112, fn: () => ACT.go('pho', 'town'), bx: 6 });
+  addObj(m, { s: 'signpost', x: 866, y: 150, sol: [10, 22, 8, 8], label: () => 'Trường THPT Hoa Phượng →', act: () => ACT.go('pho', 'school') });
+  m.zones.push({ x: 888, y: 160, w: 8, h: 112, fn: () => ACT.go('pho', 'school'), bx: -6 });
+  addObj(m, { s: 'trailsign', x: 406, y: 16, sol: [9, 16, 6, 8], label: () => '↑ Ga tàu (tàu ra biển)', act: () => ACT.go('pho', 'ga') });
+  m.zones.push({ x: 432, y: 5, w: 48, h: 7, fn: () => ACT.go('pho', 'ga'), by: 10 });
+  // phía dưới: sân bóng mini · quảng trường đài phun nước · xe xiên que · lối xuống bờ sông
   for (let i = 0; i < 56; i++) { if (i >= 26 && i <= 28) continue; addObj(m, { s: 'hedge', x: i * 16, y: 270, sol: [0, 4, 18, 12] }); }
   paint(m, 'court', 2, 18, 13, 7, 0);
   const W = '#eef7ee'; R(m.x, W, 36, 292, 200, 1); R(m.x, W, 36, 395, 200, 1); R(m.x, W, 36, 292, 1, 104); R(m.x, W, 235, 292, 1, 104); R(m.x, W, 36, 344, 200, 1); ring(m.x, W, 136, 344, 14);
   addObj(m, { s: 'goal', x: 116, y: 276, sol: [1, 2, 38, 8], label: () => "Sân bóng mini — chơi thể thao 20'", act: () => ACT.field() });
   addObj(m, { s: 'ball', x: 150, y: 338, flat: true });
-  paint(m, 'yard', 20, 18, 15, 7, 0); paint(m, 'yard', 26, 17, 3, 1, 0);
-  addObj(m, { s: 'fountain', x: 418, y: 326, sol: [2, 8, 42, 20] });
-  for (const [a, b] of [[344, 300], [488, 300], [344, 376], [488, 376]]) addObj(m, { s: 'bench', x: a, y: b, sol: [1, 1, 28, 12] });
+  paint(m, 'yard', 20, 18, 15, 7, 0); paint(m, 'yard', 26, 17, 3, 1, 0); paint(m, 'yard', 26, 25, 3, 1, 0);
+  addObj(m, { s: 'fountain', x: 366, y: 326, sol: [2, 8, 42, 20] });
+  for (const [a, b] of [[344, 296], [498, 296], [344, 380], [498, 380]]) addObj(m, { s: 'bench', x: a, y: b, sol: [1, 1, 28, 12] });
+  addObj(m, { s: 'trailsign', x: 470, y: 384, sol: [9, 16, 6, 8], label: () => '↓ Bờ sông (câu cá)', act: () => ACT.go('pho', 'song') });
+  m.zones.push({ x: 416, y: 409, w: 48, h: 7, fn: () => ACT.go('pho', 'song'), by: -10 });
   addObj(m, { s: 'cart', x: 620, y: 290, sol: [1, 22, 38, 18], label: () => 'Xe xiên que — ăn vặt 10.000đ', act: () => ACT.cart() });
   for (const [s2, a, b] of [['tree', 262, 286], ['treeOrange', 272, 356], ['treePink', 580, 352], ['tree2', 700, 292], ['treePink', 780, 348], ['tree', 840, 290], ['tree2', 690, 362]]) addObj(m, { s: s2, x: a, y: b, sol: [13, 38, 10, 9] });
   addObj(m, { s: 'bush', x: 600, y: 340, sol: [2, 4, 18, 9] }); addObj(m, { s: 'bush', x: 760, y: 300, sol: [2, 4, 18, 9] });
   addObj(m, { s: 'bench', x: 740, y: 380, sol: [1, 1, 28, 12] });
-  // vài người đi dạo cho phố có hơi người
   NPCS.push({ id: 'pho_a', name: 'Người đi dạo', look: 'c7', outfit: () => 'cas_dat', map: 'pho', x: 300, y: 252, dir: 2, wander: 46, vis: () => inWin(G.time, 420, 1290) });
-  NPCS.push({ id: 'pho_b', name: 'Người đi dạo', look: 'c6', outfit: () => 'cas_vy', map: 'pho', x: 560, y: 176, dir: 1, wander: 46, vis: () => inWin(G.time, 480, 1290) });
-  NPCS.push({ id: 'pho_c', name: 'Người đi dạo', look: 'c3', outfit: () => 'cas_khoa', map: 'pho', x: 430, y: 310, dir: 0, wander: 30, vis: () => inWin(G.time, 540, 1260) });
+  NPCS.push({ id: 'pho_b', name: 'Người đi dạo', look: 'c6', outfit: () => 'cas_vy', map: 'pho', x: 600, y: 176, dir: 1, wander: 46, vis: () => inWin(G.time, 480, 1290) });
+  NPCS.push({ id: 'pho_c', name: 'Người đi dạo', look: 'c3', outfit: () => 'cas_khoa', map: 'pho', x: 400, y: 304, dir: 0, wander: 22, vis: () => inWin(G.time, 540, 1260) });
 }
 
 /* ---------------- NÚI SAU TRƯỜNG: đường mòn, bãi cỏ picnic, hồ, đỉnh núi ---------------- */
+// Lên núi: từ vỉa hè trước cổng trường, theo lối mòn vòng bên ngoài hàng rào ra phía sau khuôn viên
 function buildHill() {
   const m = mapNew('nui', 'Núi sau trường', 40, 30, false), x = m.x;
   paint(m, 'grass2', 0, 0, 40, 30, 0);
@@ -236,19 +249,106 @@ function buildHill() {
   addObj(m, { s: 'bush', x: 180, y: 262, sol: [2, 4, 18, 9] }); addObj(m, { s: 'bush', x: 296, y: 300, sol: [2, 4, 18, 9] });
   // chân núi: bụi rậm chắn hai bên lối xuống
   for (let i = 0; i < 40; i++) { if (i >= 18 && i <= 21) continue; addObj(m, { s: 'hedge', x: i * 16, y: 464, sol: [0, 4, 18, 12] }); }
-  m.zones.push({ x: 290, y: 472, w: 60, h: 8, fn: () => ACT.leaveHill(), by: -8 });
+  m.zones.push({ x: 290, y: 472, w: 60, h: 8, fn: () => ACT.go('nui', 'school'), by: -8 });
 }
 
-/* ---------------- NHÀ VỆ SINH NỮ (chỉ dùng cho đoạn cắt cảnh) ---------------- */
+/* ---------------- NHÀ VỆ SINH nữ / nam (chỉ dùng cho hoạt cảnh) ---------------- */
 const WC_MIRRORS = [28, 60, 92];
-function buildWC() {
-  const m = mapNew('wc', 'Nhà vệ sinh nữ', 12, 9, true), x = m.x;
-  paint(m, 'void', 0, 0, 12, 9, 1); paint(m, 'wtile', 1, 2, 10, 6, 0);
-  wallFace(m, 16, 0, 160, 32, '#fbe4ea', '#eab2c2');
+function buildWC(id, name, wall, lower, door, tile) {
+  const m = mapNew(id, name, 12, 9, true), x = m.x;
+  paint(m, 'void', 0, 0, 12, 9, 1); paint(m, tile, 1, 2, 10, 6, 0);
+  wallFace(m, 16, 0, 160, 32, wall, lower);
   paint(m, 'walltop', 0, 0, 1, 9, 1); paint(m, 'walltop', 11, 0, 1, 9, 1); paint(m, 'walltop', 0, 8, 12, 1, 1);
   for (const mx of WC_MIRRORS) { R(x, '#2a2136', mx - 1, 5, 26, 21); R(x, '#c9ccd4', mx, 6, 24, 19); R(x, '#dff1fa', mx + 1, 7, 22, 17); R(x, '#eef8fd', mx + 1, 7, 22, 2); addObj(m, { s: 'wcsink', x: mx - 1, y: 26, sol: [1, 2, 24, 18] }); }
-  drawDoor(x, 126, 7, 14, 25, '#e98fa5'); drawDoor(x, 146, 7, 14, 25, '#e98fa5');
+  drawDoor(x, 126, 7, 14, 25, door); drawDoor(x, 146, 7, 14, 25, door);
   addObj(m, { s: 'plant', x: 160, y: 96, sol: [2, 14, 12, 9] });
+}
+
+/* ---------------- BỜ SÔNG (dưới phố Hoa Phượng): cầu gỗ câu cá ---------------- */
+function buildRiver() {
+  const m = mapNew('song', 'Bờ sông', 40, 24, false), x = m.x;
+  paint(m, 'grass', 0, 0, 40, 7, 0); paint(m, 'sand', 0, 7, 40, 1, 0); paint(m, 'water', 0, 8, 40, 16, 1);
+  [[3, 2], [9, 4], [14, 1], [26, 3], [31, 1], [36, 4], [6, 5]].forEach(([a, b]) => paint(m, 'flowers', a, b, 1, 1, 0));
+  paint(m, 'dirt', 19, 0, 2, 7, 0);
+  paint(m, 'plank', 19, 7, 2, 7, 0);                               // cầu gỗ vươn ra sông
+  for (let j = 0; j < 7; j++) { R(x, '#8a5a3a', 303, 116 + j * 16, 2, 6); R(x, '#8a5a3a', 335, 116 + j * 16, 2, 6); }
+  R(x, '#d9c690', 0, 126, 640, 2); for (let i = 0; i < 40; i++) R(x, '#eaf6fc', i * 16 + (i % 3) * 3, 130 + (i % 2) * 2, 7, 1);
+  addObj(m, { s: 'fishspot', x: 322, y: 196, sol: [2, 8, 9, 9], ir: [-14, 0, 30, 22], label: () => fishLabel(), act: () => ACT.fish() });
+  addObj(m, { s: 'boat', x: 430, y: 150, flat: true }); addObj(m, { s: 'boat', x: 120, y: 250, flat: true });
+  for (const [s2, a, b] of [['tree', 40, 10], ['tree2', 150, 30], ['treePink', 230, 4], ['tree', 380, 8], ['treeOrange', 470, 30], ['tree2', 570, 12]]) addObj(m, { s: s2, x: a, y: b, sol: [13, 38, 10, 9] });
+  addObj(m, { s: 'bench', x: 250, y: 84, sol: [1, 1, 28, 12] }); addObj(m, { s: 'bench', x: 366, y: 84, sol: [1, 1, 28, 12] });
+  for (const a of [20, 96, 190, 420, 520, 600]) addObj(m, { s: 'bush', x: a, y: 98, sol: [2, 4, 18, 9] });
+  addObj(m, { s: 'trailsign', x: 344, y: 8, sol: [9, 16, 6, 8], label: () => '↑ Về phố Hoa Phượng', act: () => ACT.go('song', 'pho') });
+  m.zones.push({ x: 304, y: 5, w: 32, h: 7, fn: () => ACT.go('song', 'pho'), by: 10 });
+}
+
+/* ---------------- GA TÀU (trên phố Hoa Phượng): chỉ có tàu mới ra được biển ---------------- */
+function drawRails(x, y, w) {
+  R(x, '#b9b2a6', 0, y, w, 30); R(x, '#a39c8f', 0, y + 28, w, 2);
+  for (let i = 0; i < w; i += 8) R(x, '#6f472c', i + 2, y + 6, 4, 18);
+  R(x, '#5f656f', 0, y + 8, w, 2); R(x, '#8b8f9c', 0, y + 8, w, 1); R(x, '#5f656f', 0, y + 20, w, 2); R(x, '#8b8f9c', 0, y + 20, w, 1);
+}
+function buildStation() {
+  const m = mapNew('ga', 'Ga Hoa Phượng', 36, 20, false), x = m.x;
+  paint(m, 'grass', 0, 0, 36, 20, 0);
+  for (let i = 0; i < 36 * 3; i++) m.solid[i] = 1;
+  drawRails(x, 14, 576);
+  paint(m, 'walk', 0, 3, 36, 2, 0); R(x, '#f4d35e', 0, 48, 576, 2);        // sân ga
+  paint(m, 'walk', 0, 10, 36, 3, 0); paint(m, 'road', 0, 13, 36, 3, 0); paint(m, 'walk', 16, 5, 4, 5, 0); paint(m, 'walk', 16, 16, 4, 4, 0);
+  for (let i = 0; i < 36; i += 2) R(x, '#f3e6a8', i * 16 + 4, 14 * 16 + 7, 12, 2);
+  addObj(m, { s: 'train', x: 190, y: 8, ir: [0, 20, 170, 20], label: () => 'Tàu ra biển — mua vé lên tàu', act: () => ACT.train('ga') });
+  addObj(m, { s: 'station', x: 60, y: 76, sol: [1, 28, 128, 56], label: () => 'Phòng vé — mua vé tàu ra biển', act: () => ACT.train('ga') });
+  m.labels.push({ x: 125, y: 112, text: 'GA HOA PHƯỢNG', size: 7.5, col: '#ffffff', maxw: 78 });
+  addBusStop(m, 'ga', 380, 166, 366, 210);
+  for (const [s2, a, b] of [['tree', 4, 70], ['treePink', 470, 70], ['tree2', 530, 80], ['tree', 10, 262], ['treeOrange', 100, 266], ['tree2', 400, 264], ['treePink', 500, 268]]) addObj(m, { s: s2, x: a, y: b, sol: [13, 38, 10, 9] });
+  for (const lx of [220, 340]) addObj(m, { s: 'lamp', x: lx, y: 124, sol: [3, 38, 6, 6] });
+  addObj(m, { s: 'bench', x: 60, y: 60, sol: [1, 1, 28, 12] }); addObj(m, { s: 'bench', x: 420, y: 60, sol: [1, 1, 28, 12] });
+  addObj(m, { s: 'trailsign', x: 326, y: 284, sol: [9, 16, 6, 8], label: () => '↓ Phố Hoa Phượng', act: () => ACT.go('ga', 'pho') });
+  m.zones.push({ x: 256, y: 313, w: 64, h: 7, fn: () => ACT.go('ga', 'pho'), by: -10 });
+  NPCS.push({ id: 'clerk', name: 'Cô soát vé', look: 'clerk', map: 'ga', x: 330, y: 72, dir: 0, vis: () => inWin(G.time, 330, 1260), label: () => 'Cô soát vé', act: () => ACT.train('ga') });
+}
+
+/* ---------------- BÃI BIỂN (đi tàu từ ga) ---------------- */
+function buildBeach() {
+  const m = mapNew('bien', 'Bãi biển', 44, 26, false), x = m.x;
+  paint(m, 'grass', 0, 0, 44, 5, 0);
+  for (let i = 0; i < 44 * 3; i++) m.solid[i] = 1;
+  drawRails(x, 14, 704);
+  paint(m, 'walk', 0, 3, 44, 2, 0); R(x, '#f4d35e', 0, 48, 704, 2);
+  paint(m, 'plank', 0, 5, 44, 2, 0); paint(m, 'sand', 0, 7, 44, 12, 0); paint(m, 'water', 0, 19, 44, 7, 1);
+  R(x, '#e6d096', 0, 296, 704, 4); for (let i = 0; i < 44; i++) { R(x, '#eaf6fc', i * 16 + (i % 3) * 2, 302 + (i % 2) * 2, 10, 2); R(x, '#cfeefa', i * 16 + 5, 312 + (i % 3), 6, 1); }
+  addObj(m, { s: 'train', x: 250, y: 8, ir: [0, 20, 170, 20], label: () => 'Tàu về ga Hoa Phượng', act: () => ACT.train('bien') });
+  addObj(m, { s: 'trailsign', x: 210, y: 52, sol: [9, 16, 6, 8], label: () => 'Ga Biển — tàu về thành phố', act: () => ACT.train('bien') });
+  for (const a of [20, 150, 470, 600, 668]) addObj(m, { s: 'palm', x: a, y: 62, sol: [13, 40, 8, 8] });
+  for (const [a, b] of [[60, 150], [140, 190], [420, 150], [600, 200]]) addObj(m, { s: 'parasol', x: a, y: b, sol: [3, 22, 26, 10], label: () => `Ghế dù — nằm nghỉ ${BEACH.rest.mins}' (+${BEACH.rest.stam} thể lực)`, act: () => ACT.beach('rest') });
+  addObj(m, { s: 'cart', x: 520, y: 100, sol: [1, 22, 38, 18], label: () => `Quán hải sản nướng — ${fmtMoney(BEACH.food.price)}`, act: () => ACT.beach('food') });
+  addObj(m, { s: 'castle', x: 220, y: 236, sol: [2, 8, 18, 10], label: () => `Xây lâu đài cát (${BEACH.castle.mins}')`, act: () => ACT.beach('castle') });
+  addObj(m, { s: 'buoy', x: 348, y: 268, sol: [5, 14, 4, 8], label: () => `Tắm biển (${BEACH.swim.mins}')`, act: () => ACT.beach('swim') });
+  addObj(m, { s: 'shells', x: 500, y: 264, flat: true, ir: [-4, -6, 24, 20], label: () => 'Nhặt vỏ sò (làm quà tặng bạn)', act: () => ACT.beach('shell') });
+  addObj(m, { s: 'shells', x: 90, y: 270, flat: true }); addObj(m, { s: 'shells', x: 640, y: 250, flat: true });
+  addObj(m, { s: 'boat', x: 560, y: 330, flat: true });
+}
+
+/* ---------------- CẢNH ĐI XE (hoạt cảnh xe bus / bố mẹ chở / tàu hoả) ---------------- */
+function buildRide(id, rail) {
+  const m = mapNew(id, rail ? 'Đường tàu ra biển' : 'Trên đường', 64, 12, false), x = m.x;
+  R(x, '#a8dcf5', 0, 0, 1024, 30); R(x, '#bfe6f7', 0, 30, 1024, 20); R(x, '#d9f0f9', 0, 50, 1024, 14);
+  for (let i = 0; i < 9; i++) { ell(x, '#ffffff', 60 + i * 118, 14 + (i % 3) * 7, 22, 5); ell(x, '#ffffff', 74 + i * 118, 10 + (i % 3) * 7, 11, 5); }
+  if (rail) {
+    ell(x, '#9fd0b4', 140, 70, 180, 26); ell(x, '#8cc4a4', 420, 72, 150, 22);
+    R(x, '#5fb0e0', 560, 52, 464, 12); for (let i = 0; i < 20; i++) R(x, '#8fd0f0', 570 + i * 23, 55 + (i % 3) * 3, 9, 1);
+    paint(m, 'grass', 0, 4, 34, 8); paint(m, 'sand', 34, 4, 30, 8);
+    drawRails(x, 112, 1024);
+    for (const [s2, a] of [['tree', 30], ['tree2', 150], ['pine', 250], ['tree', 360], ['pine2', 450], ['palm', 600], ['palm', 720], ['palm', 860], ['palm', 960]]) addObj(m, { s: s2, x: a, y: 58 });
+    addObj(m, { s: 'bush', x: 200, y: 160 }); addObj(m, { s: 'rock', x: 420, y: 164 }); addObj(m, { s: 'shells', x: 700, y: 170, flat: true }); addObj(m, { s: 'boat', x: 880, y: 160, flat: true });
+  } else {
+    for (let i = 0; i < 11; i++) { const bx = 10 + i * 96, bh = 22 + (i * 7) % 16, col = ['#c9d6e2', '#d9cfe6', '#e6d8c9'][i % 3]; R(x, col, bx, 64 - bh, 40, bh); for (let k = 0; k < 3; k++) for (let j = 0; j < Math.floor(bh / 8); j++) R(x, '#9fb4c7', bx + 5 + k * 12, 66 - bh + j * 8 + 3, 6, 4); }
+    paint(m, 'grass', 0, 4, 64, 3); paint(m, 'walk', 0, 7, 64, 1); paint(m, 'road', 0, 8, 64, 3); paint(m, 'grass', 0, 11, 64, 1);
+    for (let i = 0; i < 64; i += 2) R(x, '#f3e6a8', i * 16 + 4, 9 * 16 + 7, 12, 2);
+    for (const [s2, a, b] of [['houseB', 60, 30], ['shop', 250, 34], ['houseC', 470, 30], ['center', 660, 34], ['houseD', 850, 30]]) addObj(m, { s: s2, x: a, y: b });
+    for (const [s2, a] of [['tree', 10], ['treePink', 180], ['tree2', 380], ['treeOrange', 590], ['tree', 780], ['treeRed', 970]]) addObj(m, { s: s2, x: a, y: 66 });
+    for (const a of [160, 440, 640, 830]) addObj(m, { s: 'lamp', x: a, y: 74 });
+  }
 }
 
 /* ---------- bạn bè đứng đợi ở chỗ hẹn ---------- */
@@ -259,17 +359,20 @@ function addMeetNpcs() {
   });
 }
 
-/* ---------------- SÂN TRƯỜNG ---------------- */
+/* ---------------- TRƯỜNG (bên phải phố Hoa Phượng) ----------------
+ * Trong tường rào là khuôn viên (G.atSchool). Ngoài tường: vỉa hè trước cổng có trạm xe bus;
+ * mép trái về phố Hoa Phượng; mép phải có lối mòn vòng bên ngoài hàng rào ra sau trường để lên núi. */
+const GATE = { x: 303, w: 97, yIn: 366, yOut: 396 };
 function buildSchool() {
-  const m = mapNew('school', 'Sân trường', 44, 28, false);
-  paint(m, 'yard', 0, 0, 44, 24, 0);
+  const m = mapNew('school', 'Trường THPT Hoa Phượng', 47, 30, false);
+  paint(m, 'yard', 0, 0, 44, 24, 0); paint(m, 'grass', 44, 0, 3, 24, 0); paint(m, 'dirt', 45, 0, 2, 24, 0);
   paint(m, 'grass', 0, 7, 6, 16, 0); paint(m, 'flowers', 1, 9, 1, 1, 0); paint(m, 'flowers', 4, 13, 1, 1, 0); paint(m, 'flowers', 2, 19, 1, 1, 0); paint(m, 'flowers', 4, 21, 1, 1, 0);
   paint(m, 'court', 30, 8, 13, 13, 0);
   const W = '#eef7ee'; R(m.x, W, 484, 132, 200, 1); R(m.x, W, 484, 331, 200, 1); R(m.x, W, 484, 132, 1, 200); R(m.x, W, 683, 132, 1, 200); R(m.x, W, 484, 232, 200, 1); ring(m.x, W, 584, 232, 18);
-  paint(m, 'walk', 0, 24, 44, 2, 0); paint(m, 'road', 0, 26, 44, 2, 1);
-  for (let i = 0; i < 44; i += 2) R(m.x, '#f3e6a8', i * 16 + 4, 27 * 16 + 4, 12, 2);
-  R(m.x, '#aaa392', 0, 414, 704, 2);
-  addObj(m, { s: 'school', x: 191, y: 3, sol: [1, 22, 320, 79], label: () => 'Bảng tin — thời khoá biểu, lịch kiểm tra', act: () => UI.timetable() });
+  paint(m, 'walk', 0, 24, 47, 3, 0); paint(m, 'road', 0, 27, 47, 3, 1); paint(m, 'dirt', 45, 23, 2, 2, 0);
+  for (let i = 0; i < 47; i += 2) R(m.x, '#f3e6a8', i * 16 + 4, 28 * 16 + 7, 12, 2);
+  R(m.x, '#aaa392', 0, 430, 752, 2);
+  addObj(m, { s: 'school', x: 191, y: 3, sol: [1, 22, 320, 79], label: () => 'Bảng tin — thời khoá biểu', act: () => UI.timetable() });
   m.warps.push({ x: 235, y: 102, w: 18, h: 12, dir: 3, to: { map: 'class', x: 289, y: 204, dir: 3 } });
   m.labels.push({ x: 352, y: 30.5, text: 'THPT HOA PHƯỢNG', size: 9, col: '#ffffff', maxw: 74 });
   m.labels.push({ x: 244.5, y: 68.5, text: '10A1', size: 4.6, col: '#2a2136', maxw: 14 });
@@ -277,27 +380,28 @@ function buildSchool() {
   m.labels.push({ x: 461.5, y: 68.5, text: 'LAB', size: 4.6, col: '#2a2136', maxw: 14 });
   addObj(m, { s: 'canteen', x: 40, y: 50, sol: [1, 32, 76, 23], label: () => 'Căn tin — mua đồ ăn', act: () => ACT.canteen() });
   m.labels.push({ x: 79, y: 57.5, text: 'CĂN TIN', size: 6.5, col: '#2a2136', maxw: 40 });
-  addObj(m, { s: 'bikeshed', x: 524, y: 62, sol: [1, 26, 96, 17] });
+  addObj(m, { s: 'bikeshed', x: 524, y: 62, sol: [1, 26, 96, 17], label: () => shedLabel(), act: () => ACT.shed() });
   addObj(m, { s: 'flagpole', x: 342, y: 108, sol: [3, 52, 14, 9] });
+  addObj(m, { s: 'libsign', x: 378, y: 92, sol: [6, 18, 10, 7], label: () => `Thư viện — đọc sách ${LIBRARY.mins}'`, act: () => ACT.library() });
   for (const [a, b] of [[96, 140], [96, 250], [430, 140], [430, 250]]) addObj(m, { s: 'treeRed', x: a, y: b, sol: [13, 38, 10, 9] });
   for (const [a, b] of [[136, 172], [136, 282], [396, 172], [396, 282]]) addObj(m, { s: 'benchstone', x: a, y: b, sol: [1, 1, 28, 12] });
   addObj(m, { s: 'tree', x: 18, y: 150, sol: [13, 38, 10, 9] }); addObj(m, { s: 'tree2', x: 34, y: 244, sol: [13, 38, 10, 9] }); addObj(m, { s: 'bush', x: 60, y: 206, sol: [2, 4, 18, 9] }); addObj(m, { s: 'bush', x: 12, y: 318, sol: [2, 4, 18, 9] });
   addObj(m, { s: 'goal', x: 564, y: 118, sol: [1, 2, 38, 8], label: () => "Sân thể dục — chơi thể thao 20'", act: () => ACT.field() });
   addObj(m, { s: 'ball', x: 600, y: 250, flat: true });
-  // tường rào + cổng
-  for (let i = 0; i < 44; i++) { if (i >= 18 && i <= 25) continue; addObj(m, { s: 'wallseg', x: i * 16 - 1, y: 363, sol: [0, 8, 18, 14] }); }
-  addObj(m, { s: 'gate', x: 287, y: 340, label: () => 'Cổng trường — về nhà', act: () => ACT.leaveSchool() });
+  // tường rào + cổng + hàng rào phía đông
+  for (let i = 0; i <= 44; i++) { if (i >= 18 && i <= 25) continue; addObj(m, { s: 'wallseg', x: i * 16 - 1, y: 363, sol: [0, 8, 18, 14] }); }
+  for (let j = 0; j < 23; j++) addObj(m, { s: 'hedge', x: 704, y: 2 + j * 16, sol: [0, 4, 18, 12] });
+  addObj(m, { s: 'gate', x: 287, y: 340, label: () => 'Cổng trường', act: () => ACT.guard() });
   m.solids.push([288, 372, 15, 14], [400, 372, 15, 14]);
   m.labels.push({ x: 351.5, y: 348.5, text: 'TRƯỜNG THPT HOA PHƯỢNG', size: 7, col: '#ffffff', maxw: 96 });
   addObj(m, { s: 'booth', x: 422, y: 322, sol: [1, 14, 30, 27] });
-  m.zones.push({ x: 296, y: 398, w: 112, h: 20, fn: () => ACT.leaveSchool(), by: -10 });
-
-  // cổng sau: lối mòn lên núi sau trường (chỉ mở khi tan học)
-  paint(m, 'dirt', 1, 0, 2, 7, 0);
-  addObj(m, { s: 'backgate', x: 6, y: 0 }); m.solids.push([7, 0, 7, 24], [35, 0, 7, 24]);
-  addObj(m, { s: 'trailsign', x: 48, y: 6, sol: [9, 16, 6, 8], label: () => "Cổng sau — lối lên núi sau trường (đi bộ 10')", act: () => ACT.toHill('school') });
-  m.zones.push({ x: 14, y: 5, w: 21, h: 8, fn: () => ACT.toHill('school'), by: 12 });
-  addObj(m, { s: 'libsign', x: 378, y: 92, sol: [6, 18, 10, 7], label: () => `Thư viện — đọc sách ${LIBRARY.mins}'`, act: () => ACT.library() });
+  m.zones.push({ x: GATE.x, y: 377, w: GATE.w, h: 9, fn: () => gateCross() });
+  // ngoài cổng: trạm xe bus, đường về phố, lối mòn vòng ra sau trường
+  addBusStop(m, 'truong', 110, 386, 96, 436, true);
+  addObj(m, { s: 'signpostL', x: 20, y: 380, sol: [10, 22, 8, 8], label: () => '← Phố Hoa Phượng', act: () => ACT.go('school', 'pho') });
+  m.zones.push({ x: 0, y: 386, w: 8, h: 46, fn: () => ACT.go('school', 'pho'), bx: 6 });
+  addObj(m, { s: 'trailsign', x: 690, y: 384, sol: [9, 16, 6, 8], label: () => 'Lối mòn vòng ra sau trường → lên núi', act: () => UI.toast('Đi theo lối đất bên ngoài hàng rào lên phía trên là tới núi.') });
+  m.zones.push({ x: 720, y: 5, w: 32, h: 7, fn: () => ACT.go('school', 'nui'), by: 10 });
 
   NPCS.push({ id: 'guard', name: 'Bác bảo vệ', look: 'guard', map: 'school', x: 392, y: 362, dir: 1, vis: () => G.time < 1200, label: () => 'Bác bảo vệ', act: () => ACT.guard() });
   // học sinh ra sân giờ ra chơi
@@ -374,4 +478,9 @@ function buildLab() {
   m.warps.push({ x: 272, y: 214, w: 32, h: 10, dir: 0, to: { map: 'school', x: 461, y: 116, dir: 0 } });
 }
 
-function buildMaps() { buildHome(); buildTown(); buildSchool(); buildClass(); buildLab(); buildPho(); buildHill(); buildWC(); addMeetNpcs(); buildFamily(); }
+function buildMaps() {
+  buildHome(); buildTown(); buildSchool(); buildClass(); buildLab(); buildPho(); buildHill(); buildRiver(); buildStation(); buildBeach();
+  buildWC('wc', 'Nhà vệ sinh nữ', '#fbe4ea', '#eab2c2', '#e98fa5', 'wtile'); buildWC('wcm', 'Nhà vệ sinh nam', '#e4eef7', '#a9c6dc', '#5a8fd6', 'ltile');
+  buildRide('ride', false); buildRide('rail', true);
+  addMeetNpcs(); buildFamily();
+}
