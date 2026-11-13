@@ -44,6 +44,7 @@ function updateNpcs(dt, busy) {
     if (n.fam || n.map !== G.map) continue;      // bố mẹ do updateFamily điều khiển
     if (n.pos) { const p = n.pos(); n.cx = p.x; n.cy = p.y; n.cdir = p.dir; n.walk = -1; continue; }
     if (n.cx === undefined) { n.cx = n.x; n.cy = n.y; n.cdir = n.dir; n.walk = -1; n.wt = Math.random() * 3; }
+    if (n.solid && !busy) n.cdir = n.dir;         // bạn đang ngồi: nói chuyện xong thì quay lại nhìn bảng
     if (!n.wander || busy) { n.walk = -1; continue; }
     if (n.tx !== undefined) {
       const dx = n.tx - n.cx, dy = n.ty - n.cy, d = Math.hypot(dx, dy);
@@ -118,7 +119,9 @@ function update(dt) {
   const busy = RT.lock || UI.isOpen();
   if (!busy) {
     if (RT.forceSleep) { goSleep(true); return; }
+    if (RT.pendingBreak) { const b = RT.pendingBreak; RT.pendingBreak = null; if (!RT.pendingClass && breakFunFor(b.fid).includes(b.id)) { breakInvite(b); return; } }
     if (RT.pendingClass) { const p = RT.pendingClass; RT.pendingClass = null; runClass(p); return; }
+    if (RT.pendingEvent) { const e = RT.pendingEvent; RT.pendingEvent = null; if (G.atSchool && inWin(G.time, 640, 790)) { runLunchEvent(e); return; } }
     if (RT.pendingInvite) { const inv = RT.pendingInvite; RT.pendingInvite = null; if (yardTime()) { showInvite(inv); return; } }
     movePlayer(dt);
     RT.tickAcc += dt;
@@ -138,6 +141,24 @@ function update(dt) {
 function nightAlpha(t) {
   if (t < 320) return 0.42; if (t < 400) return 0.42 * (1 - (t - 320) / 80);
   if (t < 1050) return 0; if (t < 1200) return 0.5 * (t - 1050) / 150; return 0.5;
+}
+function wRect(col, x, y, w, h) { const S = VIEW.S; ctx.fillStyle = col; ctx.fillRect(VIEW.ox + Math.round(x * S), VIEW.oy + Math.round(y * S), Math.max(1, Math.round(w * S)), Math.max(1, Math.round(h * S))); }
+// Bong bóng lời thoại trong cắt cảnh
+function drawBubble(b) {
+  const S = VIEW.S, fs = Math.max(11, Math.round(5.6 * S)), pad = Math.round(2.5 * S), maxw = 116 * S, bd = Math.max(2, Math.round(S * 0.7));
+  ctx.font = `700 ${fs}px "Baloo 2", system-ui, sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  const lines = []; let cur = '';
+  for (const w of b.text.split(' ')) { const t = cur ? cur + ' ' + w : w; if (cur && ctx.measureText(t).width > maxw) { lines.push(cur); cur = w; } else cur = t; }
+  if (cur) lines.push(cur);
+  const lh = Math.round(fs * 1.25), bw = Math.ceil(Math.max(...lines.map(l => ctx.measureText(l).width))) + pad * 2, bh = lines.length * lh + pad * 2;
+  const ax = VIEW.ox + b.x * S, ay = VIEW.oy + b.y * S, tail = 3 * S;
+  const x = Math.round(clamp(ax - bw / 2, 6, cv.width - bw - 6)), y = Math.round(b.below ? ay + tail : Math.max(6, ay - bh - tail));
+  const ty = b.below ? y : y + bh, sg = b.below ? -1 : 1;          // đuôi bong bóng: chĩa xuống đầu người nói, hoặc chĩa lên nếu bong bóng nằm dưới chân
+  ctx.fillStyle = '#2a2136'; ctx.fillRect(x - bd, y - bd, bw + bd * 2, bh + bd * 2);
+  ctx.beginPath(); ctx.moveTo(ax - tail - bd, ty); ctx.lineTo(ax + tail + bd, ty); ctx.lineTo(ax, ty + sg * (tail + bd * 1.5)); ctx.fill();
+  ctx.fillStyle = '#fff6e3'; ctx.fillRect(x, y, bw, bh);
+  ctx.beginPath(); ctx.moveTo(ax - tail, ty - sg); ctx.lineTo(ax + tail, ty - sg); ctx.lineTo(ax, ty + sg * tail); ctx.fill();
+  ctx.fillStyle = '#2a2136'; lines.forEach((l, i) => ctx.fillText(l, x + pad, y + pad + i * lh));
 }
 function drawSpr(spr, x, y) { const S = VIEW.S; ctx.drawImage(spr, VIEW.ox + Math.round(x) * S, VIEW.oy + Math.round(y) * S, spr.width * S, spr.height * S); }
 function drawChar(look, outfit, x, y, dir, walkT) {
@@ -182,6 +203,8 @@ function render(now) {
     else if (e.a) drawChar(e.a.look, e.a.outfit, e.a.x, e.a.y, e.a.dir, -1);
     else drawChar(G.gender, RT.outfit || (schoolToday() ? null : 'casual'), G.x, G.y, G.dir, RT.walkT);
   }
+  // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
+  if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
   // biển hiệu (chữ nét)
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   for (const l of m.labels) { ctx.font = `800 ${l.size * S}px "Baloo 2", system-ui, sans-serif`; ctx.fillStyle = l.col; ctx.fillText(l.text, VIEW.ox + l.x * S, VIEW.oy + l.y * S, l.maxw * S); }
@@ -189,6 +212,14 @@ function render(now) {
   if (G) { const a = nightAlpha(G.time) * (m.indoor ? 0.4 : 1); if (a > 0.01) { ctx.fillStyle = `rgba(22,20,74,${a})`; ctx.fillRect(0, 0, cv.width, cv.height); } }
   // quầng sáng đèn đường ban đêm
   if (G && !m.indoor) { const a = nightAlpha(G.time); if (a > 0.05) { ctx.globalCompositeOperation = 'lighter'; for (const o of m.objs) { if (o.s !== 'lamp') continue; const X = VIEW.ox + (o.x + 6) * S, Y = VIEW.oy + (o.y + 8) * S, g = ctx.createRadialGradient(X, Y, 0, X, Y, 52 * S); g.addColorStop(0, `rgba(255,214,130,${0.55 * a * 2})`); g.addColorStop(1, 'rgba(255,214,130,0)'); ctx.fillStyle = g; ctx.fillRect(X - 52 * S, Y - 52 * S, 104 * S, 104 * S); } ctx.globalCompositeOperation = 'source-over'; } }
+  // cắt cảnh: hai dải đen kiểu phim + tên cảnh + bong bóng thoại
+  if (G && RT.scene && RT.scene.type === 'cut') {
+    const bh = Math.round(cv.height * 0.085);
+    ctx.fillStyle = '#15121f'; ctx.fillRect(0, 0, cv.width, bh); ctx.fillRect(0, cv.height - bh, cv.width, bh);
+    if (RT.scene.title) { ctx.font = `700 ${Math.max(12, Math.round(bh * 0.36))}px "Baloo 2", system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff6e3'; ctx.fillText(RT.scene.title, cv.width / 2, cv.height - bh / 2); }
+    if (RT.scene.bubble) drawBubble(RT.scene.bubble);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  }
   if (G && !RT.lock && !UI.isOpen()) {
     const t = RT.hover || RT.near;
     if (t && inRange(t)) drawSpr(SPR.marker, t.x + t.w / 2 - 5, t.y - 10 + Math.round(Math.sin(now / 160) * 1.5));
@@ -223,7 +254,7 @@ function bindInput() {
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
     if (e.repeat) return;
     if (k === 'e' || k === ' ' || k === 'enter') { scanTargets(); doInteract(RT.near || RT.hover); }
-    else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'escape') openMenu('set');
+    else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'p') openMenu('phone'); else if (k === 'escape') openMenu('set');
   });
   window.addEventListener('keyup', e => { KEYS[e.key.toLowerCase()] = false; });
   window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; });
@@ -259,8 +290,10 @@ function startGame(isNew) {
       <ul class="res"><li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> để di chuyển, <kbd>Chuột phải</kbd> vào đồ vật để tương tác.</li>
       <li>Buổi sáng: ăn sáng trong bếp, <b>soạn cặp ở bàn học</b> theo thời khoá biểu, rồi ra đường đến trường <b>trước 08:00</b>.</li>
       <li>Bố mẹ đi làm lúc 07:30 — muốn nhờ chở phải hỏi trước 07:20. Đi bộ mất 1 tiếng, xe bus 20 phút.</li>
-      <li>Trò chuyện, đấm lưng, phụ việc nhà để bố mẹ vui: tiền tiêu vặt đầu tuần sẽ nhiều hơn. Nhớ về nhà trước 20:00.</li>
-      <li>Ở trường bạn bè sẽ rủ rê đủ trò. Vui thì có vui, nhưng bị bắt là bị phạt.</li></ul>`, ['Bắt đầu']).then(() => morningBrief());
+      <li>Trò chuyện, đấm lưng, phụ việc nhà để bố mẹ vui: tiền tiêu vặt đầu tuần sẽ nhiều hơn. Tan học nhớ về nhà trước 20:00 — về rồi muốn đi chơi tiếp thì xin phép bố mẹ (được cho tiền đi chơi).</li>
+      <li>Ở trường bạn bè sẽ rủ rê đủ trò, và bạn cũng có thể chủ động rủ bạn cúp tiết. Vui thì có vui, nhưng bị bắt là bị phạt. Tan học rồi thì đi đâu cũng được.</li>
+      <li>Đi hết đường về bên phải khu phố là <b>phố Hoa Sữa</b>: nhà bạn bè, tiệm trà sữa, trung tâm thương mại, khu game, đường lên <b>núi sau trường</b>. Bấm <kbd>P</kbd> để nhắn tin hẹn bạn.</li>
+      <li>Mua bim bim Sao Vàng để sưu tầm <b>thẻ cầu thủ</b> rồi đem đấu với bạn.</li></ul>`, ['Bắt đầu']).then(() => morningBrief());
   } else morningBrief();
 }
 const TITLE = { gender: 'boy' };
@@ -276,7 +309,7 @@ function initTitle() {
 
 function boot() {
   cv = $('cv'); ctx = cv.getContext('2d');
-  buildSprites(); buildMaps();
+  buildSprites(); buildSprites2(); buildMaps();
   resize(); bindInput(); bindUI(); initTitle();
   requestAnimationFrame(frame);
 }

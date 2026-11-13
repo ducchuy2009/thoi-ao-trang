@@ -4,7 +4,7 @@
  * ============================================================ */
 const $ = id => document.getElementById(id);
 const UI = {
-  _res: null, _esc: 0, _panel: null, _gsem: 1, _mini: null, _mgBot: false,
+  _res: null, _esc: 0, _panel: null, _gsem: 1, _mini: null, _mgBot: false, _fast: false, _chat: null, _chatSub: null,
   isOpen() { return $('modal-wrap').classList.contains('on'); },
 
   /* ---------- hộp thoại ---------- */
@@ -28,7 +28,8 @@ const UI = {
     opts = opts || {};
     return new Promise(res => {
       const btns = buttons.map((b, i) => `<button class="btn ${i === 0 && !opts.grid && buttons.length < 4 ? 'primary' : ''} ${b === 'Thôi' || b === 'Chưa' ? 'ghost' : ''}" data-i="${i}">${opts.grid || buttons.length < 2 ? '' : `<kbd>${i + 1}</kbd>`}${b}</button>`).join('');
-      this._open(title, html + `<div class="btns ${opts.grid ? 'grid' : (buttons.length > 2 ? 'col' : '')}">${btns}</div>`, res, buttons.length - 1);
+      // opts.esc: giá trị trả về khi bấm Esc / nút ✕ (mặc định = nút cuối cùng)
+      this._open(title, html + `<div class="btns ${opts.grid ? 'grid' : (buttons.length > 2 ? 'col' : '')}">${btns}</div>`, res, opts.esc !== undefined ? opts.esc : buttons.length - 1);
     });
   },
   say(title, html) { return this.ask(title, `<p>${html}</p>`, ['OK']); },
@@ -83,6 +84,8 @@ const UI = {
         const ty = y(s.tp);
         if (o.icon === 'nhiet') { c.fillStyle = '#e2574c'; c.beginPath(); c.arc(52, ty, 7, 0, 6.3); c.fill(); c.fillStyle = '#ffd6cf'; c.fillRect(49, ty - 4, 2, 4); }
         else if (o.icon === 'mau') { c.fillStyle = '#7a5fc9'; c.beginPath(); c.ellipse(52, ty, 9, 6, 0, 0, 6.3); c.fill(); c.fillStyle = '#d9cdf5'; c.beginPath(); c.arc(54, ty - 1, 2.2, 0, 6.3); c.fill(); }
+        else if (o.icon === 'gau') { c.fillStyle = '#b9824f'; c.beginPath(); c.arc(52, ty, 8, 0, 6.3); c.fill(); c.beginPath(); c.arc(45, ty - 7, 3.2, 0, 6.3); c.arc(59, ty - 7, 3.2, 0, 6.3); c.fill(); c.fillStyle = '#f0d09a'; c.beginPath(); c.arc(52, ty + 2, 4, 0, 6.3); c.fill(); c.fillStyle = '#2a2136'; c.fillRect(48, ty - 3, 2, 2); c.fillRect(54, ty - 3, 2, 2); c.fillRect(51, ty + 1, 2, 2); }
+        else if (o.icon === 'bong') { c.fillStyle = '#fbf7ee'; c.strokeStyle = '#2a2136'; c.lineWidth = 1.5; c.beginPath(); c.arc(52, ty, 8, 0, 6.3); c.fill(); c.stroke(); c.fillStyle = '#2a2136'; c.beginPath(); c.arc(52, ty, 3, 0, 6.3); c.fill(); c.fillRect(46, ty - 6, 2, 2); c.fillRect(57, ty - 5, 2, 2); c.fillRect(47, ty + 5, 2, 2); c.fillRect(56, ty + 5, 2, 2); }
         else if (o.icon === 'nhip') { c.fillStyle = '#f2a93b'; c.beginPath(); c.moveTo(52, ty - 8); c.lineTo(61, ty); c.lineTo(52, ty + 8); c.lineTo(43, ty); c.fill(); }
         else { c.fillStyle = '#d9534f'; c.beginPath(); c.moveTo(34, ty); c.lineTo(66, ty - 5); c.lineTo(66, ty + 5); c.fill(); c.fillStyle = '#2a2136'; c.beginPath(); c.arc(68, ty, 3, 0, 6.3); c.fill(); }
         // thanh tiến độ
@@ -118,7 +121,19 @@ const UI = {
     setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 400); }, 3800);
   },
   float(text, col) { if (!G) return; const n = RT.floats.filter(f => f.t < 0.5).length; RT.floats.push({ text, col, x: G.x, y: G.y - 28, t: -n * 0.22 }); },
+  // Chờ ms mili giây; bấm chuột / Space / Enter để lướt nhanh (dùng cho lời thoại trong cắt cảnh)
+  wait(ms) {
+    if (this._fast) ms = 15;
+    return new Promise(res => {
+      let done = false, t = 0;
+      const key = e => { if (e.key === ' ' || e.key === 'Enter' || e.key === 'e' || e.key === 'E') fin(); };
+      const fin = () => { if (done) return; done = true; clearTimeout(t); window.removeEventListener('keydown', key, true); window.removeEventListener('mousedown', fin, true); window.removeEventListener('touchstart', fin, true); res(); };
+      t = setTimeout(fin, ms);
+      setTimeout(() => { if (done) return; window.addEventListener('keydown', key, true); window.addEventListener('mousedown', fin, true); window.addEventListener('touchstart', fin, true); }, Math.min(350, ms));
+    });
+  },
   progress(label, ms, col) {
+    if (this._fast) ms = 15;
     return new Promise(res => {
       const b = $('banner'); $('b-label').textContent = label; const f = $('b-fill');
       f.style.transition = 'none'; f.style.width = '0%'; f.style.background = col || '';
@@ -128,7 +143,7 @@ const UI = {
     });
   },
   fade(on, ms) {
-    ms = ms || 240;
+    ms = this._fast ? 10 : (ms || 240);
     return new Promise(res => { const f = $('fade'); f.style.transition = `opacity ${ms}ms`; f.style.opacity = on ? 1 : 0; f.style.pointerEvents = on ? 'auto' : 'none'; setTimeout(res, ms + 20); });
   },
 
@@ -145,6 +160,7 @@ const UI = {
     $('h-stamtx').textContent = `${Math.round(G.stamina)}/${mx}`;
     $('h-money').textContent = fmtMoney(G.money);
     $('h-conduct').textContent = fmtScore(G.conduct);
+    const un = unreadCount(), dot = $('ph-dot'); dot.textContent = un || ''; dot.classList.toggle('on', un > 0);
     const td = todoList();
     $('todo').innerHTML = td.map(([ok, s]) => `<div class="${ok ? 'ok' : ''}"><i></i>${s}</div>`).join('');
   },
@@ -166,11 +182,54 @@ const UI = {
       for (const id in FOODS) if (G.inv[id]) { any = true; h += `<div class="rowi"><span><b>${FOODS[id].name}</b> ×${G.inv[id]} <small>+${FOODS[id].stam} thể lực</small></span><button class="btn sm" data-act="eat" data-id="${id}">Dùng</button></div>`; }
       if (!any) h += '<span class="dim">Không có gì để ăn.</span>';
       h += '</div><h4>Hàng để bán</h4><p>Bánh tráng trộn: <b>' + (G.inv.banhtrang || 0) + '</b> bịch <small class="dim">— mời bạn mua trong giờ ra chơi</small></p>';
+      h += `<h4>Thẻ cầu thủ & quà</h4><div class="rowi"><span><b>Thẻ cầu thủ</b> ${cardCount()} lá · ${cardKinds()}/${CARDS.length} loại <small>bóc trong gói bim bim Sao Vàng, đem đấu với bạn</small></span><button class="btn sm" data-act="cards">Bộ sưu tập</button></div>`;
+      if (G.inv.gaubong) h += `<p>Gấu bông gắp được: <b>${G.inv.gaubong}</b> con <small class="dim">— tặng bạn thân (+${GIFT_FRIEND} thân thiết)</small></p>`;
       const own = [['xedap', 'Xe đạp'], ['xedapdien', 'Xe đạp điện'], ['xemay', 'Xe máy 50cc'], ['daynhay', 'Dây nhảy'], ['tatay', 'Tạ tay'], ['xadon', 'Xà đơn']].filter(([k]) => G.owned[k]).map(([, n]) => n);
       h += '<h4>Tài sản ở nhà</h4><p>' + (own.length ? own.join(' · ') : '<span class="dim">Chưa có gì.</span>') + '</p>';
       if (G.busPassUntil >= G.day) h += `<p>Vé tháng xe bus còn hạn đến <b>${dateLabel(G.busPassUntil)}</b>.</p>`;
       return h;
-    }, { eat: d => eat(d.id) });
+    }, { eat: d => eat(d.id), cards: () => UI.cards() });
+  },
+
+  /* ---------- Bộ sưu tập thẻ cầu thủ ---------- */
+  cards() {
+    this.panel('Bộ sưu tập thẻ cầu thủ', () => {
+      let h = `<p>Đã sưu tầm <b>${cardKinds()}/${CARDS.length}</b> loại · tổng <b>${cardCount()}</b> lá.${G.cardDone ? ' <b class="tag">Đủ bộ!</b>' : ` Đủ bộ được thưởng ${fmtMoney(CARD_SET_REWARD)}.`}</p><div class="pcards">`;
+      for (const c of CARDS) h += G.cards[c.id] ? cardHtml(c, '×' + G.cards[c.id]) : `<div class="pcard none" style="--rc:${CARD_RARITY[c.r].col}"><div class="pc-q">?</div><div class="pc-n">Số ${c.no}</div><div class="pc-r">${starsOf(c)} ${CARD_RARITY[c.r].name}</div></div>`;
+      return h + '</div><p class="dim">Mỗi gói bim bim Sao Vàng (căn tin, tạp hoá Cô Ba, TTTM) có 1 thẻ. TC = Tấn công · PT = Phòng thủ · TĐ = Tốc độ. Đấu thẻ với bạn: chọn 1 lá và 1 chỉ số để so — thắng lấy lá của bạn, thua mất lá của mình.</p>';
+    }, {}, true);
+  },
+
+  /* ---------- Điện thoại: nhắn tin ---------- */
+  phone() {
+    this._chat = null; this._chatSub = null;
+    const hs = id => { const n = hearts(id); return `<span class="hearts">${'♥'.repeat(n)}<i>${'♥'.repeat(5 - n)}</i></span>`; };
+    this.panel('Điện thoại', () => {
+      const id = UI._chat;
+      if (!id) {
+        let h = '<div class="rows">';
+        for (const c of PHONE_CONTACTS) {
+          const C = contactOf(c), a = G.phone.msgs[c] || [], last = a[a.length - 1], un = G.phone.unread[c] || 0;
+          h += `<button class="crow" data-act="open" data-id="${c}"><b>${C.name}</b>${c === 'mom' ? '' : hs(c)}${un ? `<i class="dot on">${un}</i>` : ''}<small>${last ? (last.m ? 'Bạn: ' : '') + last.t : C.note}</small></button>`;
+        }
+        h += '</div>';
+        if (G.meet && G.meet.day >= G.day) h += `<p class="okbox">Đã hẹn ${FRIENDS[G.meet.fid].name}: ${meetWhen(G.meet)} ở ${PLACES[G.meet.place].name}.</p>`;
+        return h + '<p class="dim">Nhắn tin không tốn thời gian. Rủ bạn đi chơi: bạn ấy sẽ đợi ở chỗ hẹn (trà sữa, TTTM, khu game ở phố Hoa Sữa; công viên; núi sau trường). Lỡ hẹn là bạn giận đó.</p>';
+      }
+      const C = contactOf(id), a = (G.phone.msgs[id] || []).slice(-9);
+      let h = `<div class="chead"><button class="btn sm" data-act="back">‹ Danh bạ</button><b>${C.name}</b>${id === 'mom' ? '' : hs(id)}</div><div class="chat">`;
+      h += a.length ? a.map(m => `<div class="msg ${m.m ? 'me' : ''}"><span>${m.t}</span></div>`).join('') : '<p class="dim">Chưa có tin nhắn nào. Gõ gì đó đi!</p>';
+      h += '</div><div class="btns">';
+      if (UI._chatSub === 'place') h += Object.keys(PLACES).map(p => `<button class="btn" data-act="go" data-id="${p}">${PLACES[p].name}${PLACE_LIKES[id].includes(p) ? ' ♥' : ''}</button>`).join('') + '<button class="btn ghost" data-act="sub" data-id="">Thôi</button>';
+      else h += phoneActions(id).map(([k, t]) => `<button class="btn" data-act="${k === 'ru' ? 'sub' : 'send'}" data-id="${k === 'ru' ? 'place' : k}">${t}</button>`).join('');
+      return h + '</div>' + (UI._chatSub === 'place' ? `<p class="dim">♥ = chỗ ${C.name} thích (dễ nhận lời hơn). Đang trong giờ học thì hẹn sau khi tan; muộn quá thì hẹn hôm sau.</p>` : '');
+    }, {
+      open: d => { UI._chat = d.id; UI._chatSub = null; G.phone.unread[d.id] = 0; },
+      back: () => { UI._chat = null; UI._chatSub = null; },
+      sub: d => { UI._chatSub = d.id || null; },
+      send: d => { phoneSend(UI._chat, d.id); },
+      go: d => { UI._chatSub = null; phoneSend(UI._chat, 'go', d.id); },
+    });
   },
 
   /* ---------- Soạn cặp (ở bàn học) ---------- */
@@ -188,7 +247,7 @@ const UI = {
       for (const s of BOOK_SUBJ) right += it('sach_' + s) + it('vo_' + s);
       right += '</div></div>';
       const status = day === null ? '' : (miss ? `<p class="warnbox">Còn thiếu <b>${miss}</b> món so với thời khoá biểu.</p>` : '<p class="okbox">Đã đủ đồ theo thời khoá biểu.</p>');
-      return `<div class="pack">${left}${right}</div>${status}<div class="btns"><button class="btn" data-act="quick">Soạn nhanh theo TKB (mất 10 phút)</button><button class="btn ghost" data-act="clear">Bỏ hết ra</button><button class="btn primary" data-close="1">Xong</button></div><p class="dim">Môn có sách + vở: +5 điểm/tiết · thiếu sách: mượn bạn (+3 hoặc +1) · thiếu vở: +3 · thiếu cả hai: −2.</p>`;
+      return `<div class="pack">${left}${right}</div>${status}<div class="btns"><button class="btn" data-act="quick">Soạn nhanh theo TKB (mất 10 phút)</button><button class="btn ghost" data-act="clear">Bỏ hết ra</button><button class="btn primary" data-close="1">Xong</button></div><p class="dim">Môn có sách + vở: +5 điểm/tiết · thiếu sách: quay sang mượn bạn (+3/+4 hoặc +1) · thiếu vở: +3 · thiếu cả hai: −2.</p>`;
     }, {
       tg: d => { if (G.bag[d.id]) delete G.bag[d.id]; else G.bag[d.id] = true; },
       clear: () => { G.bag = {}; },
@@ -205,7 +264,10 @@ const UI = {
       let h = '<h4>Chỉ số chính</h4><div class="sgrid two">';
       h += `<div class="st"><div class="sth"><b>Thể lực</b><span class="lv">Lv ${tl.lv}</span></div>${bar(tl.cur, tl.need, '#5fb0e0')}<small>${tl.lv >= 10 ? 'Tối đa' : `${Math.round(tl.cur)}/${tl.need} để lên cấp`} · tối đa ${tl.max} thể lực</small></div>`;
       h += `<div class="st"><div class="sth"><b>Tiền tiêu vặt</b><span class="lv">Lv ${pa.lv}</span></div>${bar(pa.cur, pa.need, '#5fae4a')}<small>${PARENT_TITLE[pa.lv]} · thiện cảm bố mẹ ${Math.round(pa.pts)}/${PARENT_MAX} · mẹ cho ${fmtMoney(pa.allowance)}/tuần</small></div>`;
-      h += '</div><p class="dim">Bố mẹ càng hài lòng (trò chuyện, đấm lưng, phụ việc nhà, điểm cao) thì tiền tiêu vặt càng nhiều. Về sau 20:00, bị cô báo phụ huynh hay bị bắt hút thuốc sẽ làm bố mẹ phiền lòng.</p>';
+      const tl2 = teacherLv();
+      h += `<div class="st"><div class="sth"><b>Thiện cảm thầy cô</b><span class="lv">Lv ${tl2}</span></div>${bar(tl2 >= 5 ? 1 : G.teacher % TEACHER.perLv, tl2 >= 5 ? 1 : TEACHER.perLv, '#9a72d6')}<small>${TEACHER_TITLE[tl2]} · ${Math.round(G.teacher)}/${TEACHER.max} · chấm bài ${tl2 > 1 ? '+' + fmtScore(TEACHER.gradePerLv * (tl2 - 1)) : tl2 < 1 ? '−' + fmtScore(TEACHER.gradePerLv) : '±0'} điểm · quay cóp bị bắt ${Math.round(cheatRisk() * 100)}%</small></div>`;
+      h += `<div class="st"><div class="sth"><b>Thẻ cầu thủ</b><span class="lv">${cardKinds()}/${CARDS.length}</span></div>${bar(cardKinds(), CARDS.length, '#f2a93b')}<small>${cardCount()} lá · xem bộ sưu tập trong Cặp sách</small></div>`;
+      h += '</div><p class="dim">Bố mẹ càng hài lòng (trò chuyện, đấm lưng, phụ việc nhà, điểm cao) thì tiền tiêu vặt càng nhiều. 20:00 chưa về nhà (mà cũng chưa xin phép), bị cô báo phụ huynh hay bị bắt hút thuốc sẽ làm bố mẹ phiền lòng. Thầy cô quý (xung phong, phát biểu, trực nhật, tố cáo bạn rủ rê) thì chấm bài nhẹ tay và khó bắt quay cóp hơn; bị bắt làm việc riêng, trốn học, quay cóp thì mất thiện cảm.</p>';
       h += '<h4>Năng lực tổng hợp</h4><div class="sgrid two"><div class="st big"><div class="sth"><b>Lý thuyết</b><span class="lv">' + fmtAvg(lyThuyet()) + '</span></div><small>TB cấp: Toán, Văn, Anh, Lý, Hoá, Sử, Địa</small></div><div class="st big"><div class="sth"><b>Thực hành</b><span class="lv">' + fmtAvg(thucHanh()) + '</span></div><small>TB cấp: Quốc phòng + thực hành Lý, Hoá, Sinh</small></div></div><h4>Môn học (lý thuyết)</h4><div class="sgrid">';
       for (const k of ['toan', 'van', 'anh', 'ly', 'hoa', 'sinh', 'su', 'dia']) h += cell(k);
       h += '</div><h4>Thực hành (tăng qua buổi thực hành và minigame)</h4><div class="sgrid">';
@@ -276,7 +338,7 @@ const UI = {
     this.panel('Cài đặt', () => {
       return `<h4>Tốc độ thời gian</h4><p>Mỗi <b id="spv">${G.speed}</b> giây thực = 10 phút trong game <small class="dim">(một ngày 05:00 → 03:00 dài khoảng ${Math.round(132 * G.speed / 60)} phút nếu không bỏ qua)</small></p>
       <input type="range" id="spd" min="2" max="12" step="1" value="${G.speed}">
-      <h4>Điều khiển</h4><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> di chuyển · <kbd>Chuột phải</kbd> vào đồ vật để tương tác (hoặc <kbd>E</kbd>) · <kbd>B</kbd> cặp · <kbd>C</kbd> chỉ số · <kbd>T</kbd> thời khoá biểu · <kbd>G</kbd> sổ điểm · <kbd>Esc</kbd> cài đặt</p>
+      <h4>Điều khiển</h4><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> di chuyển · <kbd>Chuột phải</kbd> vào đồ vật để tương tác (hoặc <kbd>E</kbd>) · <kbd>B</kbd> cặp · <kbd>C</kbd> chỉ số · <kbd>T</kbd> thời khoá biểu · <kbd>G</kbd> sổ điểm · <kbd>P</kbd> điện thoại · <kbd>Esc</kbd> cài đặt</p>
       <h4>Lưu game</h4><p class="dim">Game tự lưu mỗi sáng vào trình duyệt này. Muốn chuyển máy hoặc giữ chắc, hãy sao chép mã lưu.</p>
       <div class="btns"><button class="btn" data-act="save">Lưu ngay</button><button class="btn" data-act="copy">Sao chép mã lưu</button></div>
       <textarea id="imp" placeholder="Dán mã lưu vào đây…"></textarea>
@@ -301,5 +363,5 @@ function bindUI() {
 }
 function openMenu(k) {
   if (!G || RT.lock) return;
-  if (k === 'bag') UI.bag(); else if (k === 'stats') UI.stats(); else if (k === 'tt') UI.timetable(); else if (k === 'grades') UI.grades(); else if (k === 'set') UI.settings();
+  if (k === 'bag') UI.bag(); else if (k === 'stats') UI.stats(); else if (k === 'tt') UI.timetable(); else if (k === 'grades') UI.grades(); else if (k === 'phone') UI.phone(); else if (k === 'set') UI.settings();
 }

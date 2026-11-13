@@ -177,6 +177,7 @@ const MOM_TIPS = [
   'Phụ mẹ việc nhà, mẹ vui thì đầu tuần mẹ cho thêm tiền tiêu vặt.',
   'Ôn bài tối hôm trước thì hôm sau kiểm tra dễ được điểm cao hơn.',
   'Đi đâu thì đi, 8 giờ tối phải có mặt ở nhà nghe chưa.',
+  'Tan học về nhà đã rồi muốn đi chơi tiếp thì xin phép, mẹ cho ít tiền mà đi.',
   'Toán hoặc Văn phải từ 8,0 thì mới được học sinh Giỏi đó.',
 ];
 const DAD_TIPS = [
@@ -196,6 +197,7 @@ ACT.parent = async who => {
   if (!d.massage[who]) { opts.push(`Đấm lưng cho ${name.toLowerCase()} (20' · +thiện cảm)`); ids.push('massage'); }
   if (who === 'mom' && f.goal === 'stove' && !f.legs.length && !d.cook) { opts.push("Phụ mẹ nấu ăn (20' · +thiện cảm)"); ids.push('cook'); }
   if (who === 'dad' && dadWatching() && !d.football) { opts.push("Xem bóng đá cùng bố (30' · +thiện cảm)"); ids.push('football'); }
+  if (freeTime() && !d.askOut && G.time < 1290) { opts.push('Xin phép đi chơi (xin tiền đi chơi)'); ids.push('out'); }
   opts.push('Thôi'); ids.push('x');
   const pi = parentInfo(G.parent);
   const c = ids[await UI.ask(name, `<p>${name} ${parentTxt(who)}. “${who === 'mom' ? 'Con cần gì không?' : 'Sao thế con?'}”</p><p class="dim">Thiện cảm của bố mẹ: ${Math.round(pi.pts)}/${PARENT_MAX} · tiền tiêu vặt cấp ${pi.lv} (${fmtMoney(pi.allowance)}/tuần)</p>`, opts)];
@@ -213,7 +215,25 @@ ACT.parent = async who => {
   } else if (c === 'cook') {
     await activity('Đang phụ mẹ nấu ăn…', 20, () => { d.cook = true; useStam(3); addStat('kheotay', 2); addParent(PARENT.cook, 'phụ mẹ nấu ăn'); });
   } else if (c === 'football') watchFootball();
+  else if (c === 'out') askOuting(name);
 };
+// Đã về nhà rồi muốn ra ngoài chơi tiếp: xin phép bố mẹ → được cho tiền đi chơi (tối đa OUTING.perWeek lần/tuần), mỗi ngày hỏi một lần
+function outingChance() {
+  const d = G.daily;
+  return clamp(OUTING.chance + OUTING.perLvChance * parentInfo(G.parent).lv + (G.conduct >= 8 ? 0.1 : G.conduct < 6 ? -0.15 : 0) + (Object.keys(d.chores).length ? 0.1 : 0) - (d.scolded ? 0.3 : 0), 0.15, 0.95);
+}
+function askOuting(name) {
+  const d = G.daily, lc = name.toLowerCase();
+  d.askOut = true;
+  if (Math.random() >= outingChance()) return UI.say(name, `“Hôm nay ở nhà học bài đi con, để hôm khác.”<p class="dim">Bố mẹ dễ gật đầu hơn khi thiện cảm cao, hạnh kiểm tốt và hôm đó bạn có phụ việc nhà. Mỗi ngày chỉ xin được một lần.</p>`);
+  d.outPerm = true; d.outAt20 = false;
+  if (G.outAsk.n < OUTING.perWeek) {
+    const amt = OUTING.base + OUTING.perLv * parentInfo(G.parent).lv;
+    G.outAsk.n++; addMoney(amt);
+    return UI.say(name, `“Ừ, đi chơi vui nhé. ${name} cho ${fmtMoney(amt)} đây, tiêu vừa thôi, đừng về khuya quá.”<p class="dim">Đã xin phép nên về sau 20:00 cũng không bị mắng. Tuần này còn xin tiền đi chơi được ${OUTING.perWeek - G.outAsk.n} lần.</p>`);
+  }
+  UI.say(name, `“Đi thì được, nhưng tuần này ${lc} cho tiền đi chơi ${OUTING.perWeek} lần rồi. Lấy tiền tiêu vặt mà tiêu nhé.”<p class="dim">Đã xin phép nên về sau 20:00 cũng không bị mắng.</p>`);
+}
 function dadWatching() { const f = FAM.dad; return !!G && f.goal === 'sofaL' && !f.legs.length && !f.hidden && G.time >= 1200; }
 function tvLabel() { return dadWatching() && !G.daily.football ? "Tivi — xem bóng đá cùng bố (30')" : "Tivi — xem 30' (+6 thể lực)"; }
 async function watchFootball() {
@@ -224,10 +244,17 @@ ACT.tv = async () => {
   if (G.daily.tv) return UI.toast('Hôm nay xem tivi đủ rồi.');
   await activity('Đang xem tivi…', 30, () => { G.daily.tv = true; gainStam(6); });
 };
-// Về nhà sau 20:00: bố mẹ phiền lòng
+// Về nhà sau 20:00 mà trước đó chưa ghé nhà, cũng chưa xin phép: bố mẹ phiền lòng.
+// Đã về nhà trước 20:00 rồi mới đi chơi tiếp thì KHÔNG bị mắng.
 function onEnterHome() {
-  if (!G.daily.outAt20 || G.daily.scolded) return;
-  G.daily.scolded = true;
-  addParent(PARENT.lateHome, 'về nhà sau 20:00');
-  UI.say('Mẹ', '“Mấy giờ rồi mà giờ này con mới về? Lần sau đi đâu cũng phải về trước 8 giờ tối nhé.”');
+  checkIn();
+  if (G.daily.outAt20 && !G.daily.scolded) {
+    G.daily.scolded = true;
+    addParent(PARENT.lateHome, 'về nhà sau 20:00');
+    return UI.say('Mẹ', '“Mấy giờ rồi mà giờ này con mới về? Lần sau đi đâu cũng phải về nhà trước 8 giờ tối, hoặc xin phép bố mẹ trước nhé.”');
+  }
+  if (freeTime() && !G.daily.askOut && G.time < 1260 && (G.tips.askOut || 0) < 4) {
+    G.tips.askOut = (G.tips.askOut || 0) + 1;
+    UI.toast('Về nhà rồi. Muốn ra ngoài chơi tiếp thì xin phép bố mẹ — sẽ được cho tiền đi chơi.', 'info');
+  }
 }

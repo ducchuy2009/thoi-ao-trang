@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gộp src/*.js + style.css vào một file index.html duy nhất."""
+"""Gộp src/*.js + style.css vào một file index.html duy nhất (dist/index.html và index.html ở gốc)."""
 import glob, os
 here = os.path.dirname(os.path.abspath(__file__))
 src = os.path.join(here, 'src')
@@ -10,4 +10,5 @@ assert '</script' not in js
 out = tpl.replace('/*__CSS__*/', css).replace('/*__JS__*/', js)
 os.makedirs(os.path.join(here, 'dist'), exist_ok=True)
 open(os.path.join(here, 'dist', 'index.html'), 'w', encoding='utf-8').write(out)
+open(os.path.join(here, 'index.html'), 'w', encoding='utf-8').write(out)   # bản ở gốc repo để mở trực tiếp / GitHub Pages
 print('built', len(out), 'bytes')

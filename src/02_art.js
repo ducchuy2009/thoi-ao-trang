@@ -54,6 +54,7 @@ const LOOKS = {
   khoa: { ...UNI, hair: '#6b4429', style: 'spiky' },
   vy: { ...UNI, hair: '#3a2a2a', style: 'long', skirt: true, band: '#f2a93b' },
   dat: { ...UNI, hair: '#1f1f29', style: 'buzz', skin: '#e3ae80' },
+  ngan: { ...UNI, hair: '#5a3020', style: 'pony', skirt: true, band: '#e98fa5' },
   guard: { hair: '#5a5a66', style: 'short', cap: '#2f4a7a', shirt: '#9cc3e6', pants: '#2f3e63', mustache: true },
   vendor: { hair: '#4a3328', style: 'bun', shirt: '#f2a93b', pants: '#5b4a6b', apron: '#ffffff' },
   c1: { ...UNI, hair: '#3b2a22', style: 'short' },
@@ -75,6 +76,7 @@ const OUTFITS = {
   cas_khoa: { shirt: '#f2a93b', pants: '#3a4a6b', badge: null },
   cas_vy: { shirt: '#e98fa5', pants: '#5b4a6b', badge: null },
   cas_dat: { shirt: '#5fae4a', pants: '#2f3550', badge: null },
+  cas_ngan: { shirt: '#c9a0f0', pants: '#5b4a6b', badge: null },
 };
 const HEADROWS = [[4, 11], [2, 13], [1, 14], [1, 14], [1, 14], [1, 14], [1, 14], [1, 14], [1, 14], [1, 14], [2, 13], [4, 11]];
 
@@ -245,6 +247,8 @@ function buildSprites() {
   house('house', '#f6e6c2', '#cc5b40', '#8a5a3a', '#4f9a6b');
   house('houseB', '#d9e8f2', '#4f6f9c', '#6b4a36', '#e98fa5');
   house('houseC', '#f4d9c9', '#7a8f5a', '#7a4f33', '#f2a93b');
+  house('houseD', '#e7dcf2', '#8a5fa8', '#6b4a36', '#5fb0e0');
+  house('houseE', '#fde3ea', '#d9695f', '#7a4f33', '#8fd067');
   def('shop', 96, 76, x => {
     R(x, '#b7ddd0', 2, 6, 92, 70); R(x, '#9cc9ba', 2, 70, 92, 6); R(x, '#8b8f9c', 0, 2, 96, 5); R(x, '#a9adb9', 0, 2, 96, 2);
     R(x, '#2a2136', 5, 7, 86, 15); R(x, '#f4c64e', 6, 8, 84, 13); R(x, '#ffe08a', 6, 8, 84, 2);
@@ -478,6 +482,23 @@ const GROUND = {
   ctile(x, px, py, tx, ty) {
     R(x, '#e3e6d4', px, py, 16, 16); R(x, '#ced3bd', px + 15, py, 1, 16); R(x, '#ced3bd', px, py + 15, 16, 1); R(x, '#eef0e2', px, py, 15, 1);
   },
+  // cỏ núi: sẫm hơn, lẫn sỏi
+  grass2(x, px, py, tx, ty) {
+    R(x, '#6fae58', px, py, 16, 16); const r = rng(tx * 4127 + ty * 977 + 7);
+    for (let i = 0; i < 4; i++) { const a = px + 1 + (r() * 13 | 0), b = py + 2 + (r() * 13 | 0); R(x, '#5a9648', a, b, 2, 1); R(x, '#5a9648', a + 1, b - 1, 1, 1); }
+    for (let i = 0; i < 2; i++) R(x, '#86c35d', px + (r() * 15 | 0), py + (r() * 15 | 0), 2, 1);
+    if (r() < 0.12) R(x, '#b9b2a6', px + 3 + (r() * 9 | 0), py + 4 + (r() * 9 | 0), 2, 1);
+  },
+  flowers2(x, px, py, tx, ty) {
+    GROUND.grass2(x, px, py, tx, ty); const r = rng(tx * 53 + ty * 91 + 8);
+    for (let i = 0; i < 3; i++) { const a = px + 2 + (r() * 11 | 0), b = py + 2 + (r() * 11 | 0), c = ['#ffffff', '#ffd84d', '#ff8fa8', '#c9a0f0'][r() * 4 | 0]; R(x, c, a - 1, b, 3, 1); R(x, c, a, b - 1, 1, 3); R(x, '#f2a93b', a, b); }
+  },
+  water(x, px, py, tx, ty) {
+    R(x, '#5fb0e0', px, py, 16, 16); const r = rng(tx * 211 + ty * 613 + 4);
+    for (let i = 0; i < 3; i++) R(x, r() < .5 ? '#8fd0f0' : '#4f9bcb', px + (r() * 12 | 0), py + 2 + (r() * 12 | 0), 4, 1);
+  },
+  // gạch nhà vệ sinh
+  wtile(x, px, py) { for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) { R(x, (i + j) % 2 ? '#f7e9ee' : '#fdf6f8', px + i * 8, py + j * 8, 8, 8); R(x, '#e6cdd6', px + i * 8 + 7, py + j * 8, 1, 8); R(x, '#e6cdd6', px + i * 8, py + j * 8 + 7, 8, 1); } },
   ltile(x, px, py) { R(x, '#dfe9ee', px, py, 16, 16); R(x, '#c9d6dd', px + 15, py, 1, 16); R(x, '#c9d6dd', px, py + 15, 16, 1); R(x, '#eef4f7', px, py, 15, 1); },
   walltop(x, px, py) { R(x, '#3f354c', px, py, 16, 16); },
   void(x, px, py) { R(x, '#1f1b2e', px, py, 16, 16); },

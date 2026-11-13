@@ -13,7 +13,8 @@ const CFG = {
   PARENT_LEAVE: 7 * 60 + 30, // bố mẹ đi làm lúc 07:30
   RIDE_DEADLINE: 7 * 60 + 20,// nhờ bố/mẹ chở phải hỏi trước 07:20
   SCHOOL_END: 17 * 60,
-  LATE_HOME: 20 * 60,        // về nhà sau 20:00 thì bố mẹ phiền lòng
+  LATE_HOME: 20 * 60,        // 20:00 chưa có mặt ở nhà thì bố mẹ phiền lòng (trừ khi đã về rồi mới đi chơi tiếp, hoặc đã xin phép)
+  HOME_CHECK_OFF: 12 * 60,   // ngày nghỉ: có mặt ở nhà từ 12:00 trở đi là tính "đã về nhà"; ngày đi học tính từ lúc tan học
   ORAL_AFTER_SCHOOLDAYS: 5,  // sau tuần học đầu tiên: có thể bị kiểm tra miệng
   P15_AFTER_SCHOOLDAYS: 10,  // sau tuần thứ 2: có thể bị kiểm tra 15' đột xuất
   START_MONEY: 50000,
@@ -165,10 +166,13 @@ const FOODS = {
   comhop: { name: 'Cơm hộp mẹ nấu', stam: 30 },
   banhmi: { name: 'Bánh mì', stam: 15 },
   sua: { name: 'Sữa hộp', stam: 8 },
+  bimbim: { name: 'Bim bim Sao Vàng', stam: 5 },
 };
 const SHOP = [
   { id: 'banhmi', name: 'Bánh mì', price: 10000, desc: 'Ăn: +15 thể lực', inv: 'banhmi', n: 1 },
   { id: 'sua', name: 'Sữa hộp', price: 6000, desc: 'Uống: +8 thể lực', inv: 'sua', n: 1 },
+  { id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, desc: 'Ăn: +5 thể lực · trong gói có 1 thẻ cầu thủ', inv: 'bimbim', n: 1, pack: 1 },
+  { id: 'bimbim5', name: 'Lốc 5 gói bim bim Sao Vàng', price: 23000, desc: '5 gói = 5 thẻ cầu thủ', inv: 'bimbim', n: 5, pack: 5 },
   { id: 'banhtrang', name: 'Bánh tráng trộn ×5', price: 25000, desc: 'Hàng để bán lại cho bạn trong giờ ra chơi', inv: 'banhtrang', n: 5 },
   { id: 'vethang', name: 'Vé tháng xe bus', price: BUS_PASS_PRICE, desc: 'Dùng 30 ngày kể từ ngày mua', special: 'vethang' },
   { id: 'daynhay', name: 'Dây nhảy', price: 60000, desc: 'Tập: +8 điểm Thể thao/buổi', own: 'daynhay' },
@@ -182,6 +186,7 @@ const CANTEEN = [
   { name: 'Cơm trưa', price: 20000, stam: 30, mins: 20 },
   { name: 'Bánh mì', price: 10000, stam: 15, mins: 10 },
   { name: 'Nước mía', price: 5000, stam: 6, mins: 0 },
+  { name: 'Bim bim Sao Vàng (kèm 1 thẻ cầu thủ)', price: 5000, stam: 5, mins: 0, pack: 1 },
 ];
 const TUTOR = { price: 50000, mins: 90, pts: 12, stam: 10 };
 const SELF_STUDY = { mins: 60, pts: 5, stam: 8 };
@@ -203,10 +208,16 @@ const MISCHIEF = {
   trasua: { name: 'Trốn ra ngoài uống trà sữa', verb: 'Đi uống trà sữa', mins: 60, cost: 25000, leave: true, risk: 0.20, sev: 1, friend: 12, giaotiep: 4, stam: 10 },
   dabong: { name: 'Trốn ra sân bóng gần trường', verb: 'Đi đá bóng', mins: 60, leave: true, risk: 0.20, sev: 1, friend: 12, thethao: 6, stamCost: 15 },
   arcade: { name: 'Trốn ra trung tâm thương mại chơi arcade', verb: 'Đi chơi arcade', mins: 90, cost: 30000, leave: true, risk: 0.28, sev: 2, friend: 16, giaotiep: 4, stam: 6 },
+  tttm: { name: 'Trốn ra trung tâm thương mại xem phim', verb: 'Đi xem phim', mins: 110, cost: 45000, leave: true, risk: 0.26, sev: 2, friend: 18, giaotiep: 3, stam: 12 },
+  nui: { name: 'Cúp tiết leo núi sau trường', verb: 'Leo núi sau trường', mins: 80, leave: true, risk: 0.18, sev: 1, friend: 14, thethao: 4, stamCost: 10, day: true },
+  cantin: { name: 'Cúp tiết ngồi lì dưới căn tin', verb: 'Ngồi căn tin', mins: 40, cost: 10000, leave: true, inside: true, risk: 0.30, sev: 1, friend: 9, giaotiep: 2, stam: 8 },
   thinghiem: { name: 'Làm thí nghiệm dởm trong phòng hoá', verb: 'Nghịch trong phòng hoá', mins: 20, risk: 0.30, sev: 2, friend: 14, th_hoa: 2 },
   hutthuoc: { name: 'Hút thuốc trong nhà vệ sinh', verb: 'Trốn trong nhà vệ sinh', mins: 10, risk: 0.35, sev: 3, friend: 15, stamCost: 8, thethao: -2, smoke: true },
 };
-const FRIEND_LIKES = { khoa: ['dabong', 'arcade', 'trasua'], vy: ['trasua', 'thinghiem', 'arcade'], dat: ['hutthuoc', 'arcade', 'dabong', 'thinghiem'] };
+// leave: không có mặt trong lớp (trốn tiết nếu trùng giờ học) · inside: vẫn ở trong khuôn viên trường · day: chỉ đi được khi trời còn sáng
+// Sau giờ học / ngày nghỉ, các trò "leave" (trừ inside) chỉ là đi chơi bình thường: không ai bắt, không bị phạt (xem OUTING_FRIEND_RATE).
+const OUTING_FRIEND_RATE = 0.75;   // đi chơi đàng hoàng thì ít "kỷ niệm liều lĩnh" hơn: điểm thân thiết × 0,75
+const FRIEND_LIKES = { khoa: ['dabong', 'arcade', 'trasua', 'nui', 'cantin'], vy: ['trasua', 'thinghiem', 'tttm'], dat: ['hutthuoc', 'arcade', 'dabong', 'thinghiem', 'cantin'], ngan: ['trasua', 'tttm', 'arcade'] };
 const INVITE_CHANCE = 0.2, INVITE_MAX_PER_DAY = 2;
 const INVITE_TEXT = {
   trasua: '“Ê, trốn ra quán trà sữa đi, tớ khao… à mà thôi, chia đôi.”',
@@ -214,7 +225,12 @@ const INVITE_TEXT = {
   arcade: '“Trung tâm thương mại mới có máy arcade. Trốn ra chơi tí đi!”',
   thinghiem: '“Phòng hoá đang không có ai. Vào trộn thử mấy lọ xem ra màu gì không?”',
   hutthuoc: '“Ra nhà vệ sinh làm một điếu không? Tớ có sẵn rồi.”',
+  tttm: '“Rạp ở trung tâm thương mại đang chiếu phim mới. Trốn đi xem suất trưa không?”',
+  nui: '“Lên núi sau trường hóng gió đi, trên đó mát lắm!”',
+  cantin: '“Tiết sau chán lắm. Xuống căn tin ngồi với tớ đi.”',
 };
+// Khi BẠN chủ động rủ: bạn ấy có nhận lời không? (thích trò đó + càng thân thì càng dễ gật đầu)
+const INVITE_ACCEPT = { like: 0.6, other: 0.3, perHeart: 0.08, freeBonus: 0.25 };
 
 /* ---------- Buổi thực hành (minigame kiểu câu cá) ---------- */
 const PRACTICALS = {
@@ -234,10 +250,91 @@ const TEST_DIFF = { mieng: 0.3, p15: 0, tiet: -0.3, thi: -0.5 };
 
 /* ---------- Bạn bè ---------- */
 const FRIENDS = {
-  khoa: { name: 'Khoa', note: 'Bạn cùng bàn' },
-  vy: { name: 'Vy', note: 'Lớp phó học tập' },
-  dat: { name: 'Đạt', note: 'Cây văn nghệ của lớp' },
+  khoa: { name: 'Khoa', note: 'Bạn cùng bàn', g: 'boy', seat: 'cùng bàn', duel: 'kha' },
+  vy: { name: 'Vy', note: 'Lớp phó học tập', g: 'girl', seat: 'bàn bên phải', duel: 'gà' },
+  dat: { name: 'Đạt', note: 'Cây văn nghệ của lớp', g: 'boy', seat: 'bàn dưới', duel: 'caothu' },
+  ngan: { name: 'Ngân', note: 'Bạn bàn bên, mê làm đẹp', g: 'girl', seat: 'bàn bên trái', duel: 'gà' },
 };
+
+/* ---------- Thiện cảm của thầy cô ---------- */
+// 0–100 điểm, 20 điểm một cấp (0–5). Cấp 1 là bình thường.
+// Mỗi cấp trên 1: bài kiểm tra được chấm nhẹ tay +0,15 điểm và nguy cơ bị bắt quay cóp giảm 6%.
+const TEACHER = {
+  start: 20, max: 100, perLv: 20,
+  snitch: 8, snitchClass: 5, volunteer: 1, answer: 1, duty: 3, notebook: 1,
+  caughtFun: -3, caughtSkip: -5, caughtCheat: -10, noNotebook: -1,
+  gradePerLv: 0.15, cheatBase: 0.40, cheatPerLv: 0.06,
+};
+const TEACHER_TITLE = ['Bị thầy cô để ý', 'Bình thường', 'Có thiện cảm', 'Trò ngoan', 'Trò cưng', 'Được tin tuyệt đối'];
+const teacherLvOf = pts => Math.max(0, Math.min(5, Math.floor((pts || 0) / TEACHER.perLv)));
+// Quay cóp: trót lọt được cộng điểm, bị bắt thì bài bị trừ một nửa + trừ hạnh kiểm + mất thiện cảm thầy cô
+const CHEAT = { min: 1.5, max: 2.5, vyBonus: 0.5, conduct: -1, parentCall: 0.5 };
+// Tố cáo bạn rủ rê: được lòng thầy cô nhưng mất lòng bạn bè
+const SNITCH = { friend: -15, others: -2, grudgeDays: 7, friendClass: -10 };
+
+/* ---------- Mượn đồ khi quên (quay sang hỏi bạn) ---------- */
+const BORROW = { deskmate: 0.35, other: 0.22, perHeart: 0.12, perTalk: 0.03, grudge: -0.5, scold: 0.15 };
+
+/* ---------- Xin tiền bố mẹ đi chơi (sau khi đã về nhà) ---------- */
+const OUTING = { base: 10000, perLv: 4000, perWeek: 2, chance: 0.45, perLvChance: 0.05 };
+
+/* ---------- Giải lao giữa 2 tiết ---------- */
+// g: giới tính nhân vật được rủ trò này (bạn cùng giới) · risk: nguy cơ bị giám thị / cô nhắc
+const BREAK_FUN = {
+  wc: { g: 'girl', name: 'Rủ đi vệ sinh chung', friend: 5, giaotiep: 1, risk: 0.08 },
+  yoyo: { g: 'boy', name: 'Rủ chơi yoyo', friend: 4, kheotay: 1 },
+  conquay: { g: 'boy', name: 'Rủ chơi con quay', friend: 4, kheotay: 1 },
+  danhbai: { g: 'boy', name: 'Rủ đánh bài tiến lên', friend: 6, giaotiep: 1, risk: 0.14 },
+};
+const BREAK_FUN_MIN_HEARTS = 1, BREAK_FUN_PER_DAY = 2, BREAK_FUN_MINS = 10, BREAK_INVITE_CHANCE = 0.3;
+const SHORT_BREAK_AFTER = [1, 3, 5, 7];   // sau các tiết này chỉ nghỉ 10' (ngồi tại lớp)
+
+/* ---------- Sự kiện giờ nghỉ trưa & trong giờ học ---------- */
+const LUNCH_EVENT_TIME = 680, LUNCH_EVENT_CHANCE = 0.55, CLASS_EVENT_CHANCE = 0.26;
+const LIBRARY = { mins: 30, pts: 3, stam: 3 };
+const NAP = { mins: 40, stam: 18 };
+
+/* ---------- Địa điểm vui chơi ---------- */
+// x, y: chỗ bạn bè đứng đợi khi đã hẹn · open: giờ mở cửa (phút)
+const PLACES = {
+  tea: { name: 'Tiệm trà sữa Mây', short: 'tiệm trà sữa', map: 'pho', x: 470, y: 140, open: [540, 1290] },
+  mall: { name: 'TTTM Hoa Phượng Plaza', short: 'trung tâm thương mại', map: 'pho', x: 612, y: 140, open: [540, 1290] },
+  arcade: { name: 'Khu game Arcade', short: 'khu game', map: 'pho', x: 770, y: 140, open: [540, 1320] },
+  park: { name: 'Công viên', short: 'công viên', map: 'town', x: 380, y: 318, open: [360, 1290] },
+  nui: { name: 'Núi sau trường', short: 'núi sau trường (picnic)', map: 'nui', x: 200, y: 298, open: [360, 1110] },
+};
+const PLACE_LIKES = { khoa: ['arcade', 'park', 'nui'], vy: ['tea', 'mall', 'nui'], dat: ['arcade', 'park', 'tea'], ngan: ['mall', 'tea', 'arcade'] };
+const MEET_END = 1290;            // bạn đợi tới 21:30
+const TRAVEL = { townPho: 10, phoNui: 20, schoolNui: 10 };
+const HILL_HOURS = [360, 1110];   // 06:00–18:30: trời tối thì không lên núi
+const MALL = { movie: { price: 45000, mins: 100, stam: 20, friend: 12 }, book: { price: 60000, pts: 10 }, box: { price: 30000, n: 5 }, chicken: { price: 35000, mins: 30, stam: 35, friend: 6 } };
+const ARCADE = { claw: { price: 10000 }, cab: { price: 30000, mins: 60, stam: 8, friend: 10 }, dance: { price: 15000, mins: 20, stam: 6, pts: 3, friend: 5 } };
+const TEA = { cup: { price: 25000, mins: 40, stam: 10, friend: 10 }, togo: { price: 15000, stam: 6 } };
+const PICNIC = { mins: 90, base: 12, friend: 14 };
+const GIFT_FRIEND = 10;           // tặng gấu bông gắp được
+
+/* ---------- Thẻ cầu thủ sưu tầm (trong gói bim bim Sao Vàng) ---------- */
+// r: độ hiếm 0 Thường · 1 Hiếm · 2 Siêu hiếm · 3 Huyền thoại. Đấu thẻ: chọn 1 lá + 1 chỉ số để so; thua mất lá, thắng lấy lá của đối thủ.
+const CARD_RARITY = [
+  { name: 'Thường', w: 62, col: '#8fa0ab' }, { name: 'Hiếm', w: 28, col: '#3b82c4' },
+  { name: 'Siêu hiếm', w: 9, col: '#f2a93b' }, { name: 'Huyền thoại', w: 1, col: '#d9534f' },
+];
+const CARD_STATS = [['atk', 'Tấn công', 'TC'], ['def', 'Phòng thủ', 'PT'], ['spd', 'Tốc độ', 'TĐ']];
+const CARD_POS = { tm: 'Thủ môn', hv: 'Hậu vệ', tv: 'Tiền vệ', td: 'Tiền đạo' };
+const CARDS = [
+  ['Tùng “Tay Nhện”', 'tm', 0, 2, 6, 3], ['Đức “Găng Sắt”', 'tm', 0, 1, 7, 3],
+  ['Lâm “Lá Chắn”', 'hv', 0, 2, 6, 4], ['Hùng “Xe Ủi”', 'hv', 0, 3, 6, 2], ['Phong “Bóng Ma”', 'hv', 0, 3, 5, 5],
+  ['Nam “Con Thoi”', 'tv', 0, 4, 4, 5], ['Quân “Nhạc Trưởng”', 'tv', 0, 5, 4, 3], ['Bảo “Máy Quét”', 'tv', 0, 3, 5, 4], ['Tài “Ong Thợ”', 'tv', 0, 4, 5, 4],
+  ['Minh “Chớp”', 'td', 0, 5, 2, 6], ['Sơn “Búa Tạ”', 'td', 0, 6, 3, 2], ['Việt “Cáo Già”', 'td', 0, 6, 2, 4],
+  ['Khánh “Người Nhện”', 'tm', 1, 2, 9, 5], ['Trung “Bức Tường”', 'hv', 1, 4, 9, 4], ['Hải “Mũi Khoan”', 'hv', 1, 6, 7, 7],
+  ['Long “Phù Thuỷ”', 'tv', 1, 8, 5, 6], ['Kiên “La Bàn”', 'tv', 1, 7, 7, 5], ['Duy “Tia Chớp”', 'td', 1, 7, 3, 9], ['Thắng “Sát Thủ”', 'td', 1, 9, 3, 6],
+  ['Vũ “Thần Giữ Cửa”', 'tm', 2, 3, 11, 7], ['Cường “Đá Tảng”', 'hv', 2, 6, 11, 6], ['An “Bậc Thầy”', 'tv', 2, 10, 8, 8], ['Hoàng “Vua Phá Lưới”', 'td', 2, 11, 5, 9],
+  ['Rồng Vàng “Số 10 huyền thoại”', 'tv', 3, 12, 10, 11],
+].map(([name, pos, r, atk, def, spd], i) => ({ id: 'c' + String(i + 1).padStart(2, '0'), no: i + 1, name, pos, r, atk, def, spd }));
+const CARD_BY_ID = {}; for (const c of CARDS) CARD_BY_ID[c.id] = c;
+// Tỉ lệ độ hiếm của lá bài đối thủ tung ra, theo trình của đối thủ
+const DUEL_TIER = { 'gà': [72, 24, 4, 0], kha: [60, 30, 9, 1], caothu: [45, 35, 17, 3], lop: [65, 28, 6, 1] };
+const CARD_SET_REWARD = 200000;
 
 /* ---------- Tiện ích lịch & định dạng ---------- */
 function cal(day) {
