@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Thời Áo Trắng — mô phỏng đời học sinh cấp 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/*__CSS__*/
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="left">
+<div id="hud" class="card">
+  <div class="r1"><div><div id="h-date"></div><div id="h-year"></div></div><div id="h-time">05:00</div></div>
+  <div id="h-phase"></div>
+  <div class="bar"><div id="h-stam"></div><label>Thể lực</label><span id="h-stamtx"></span></div>
+  <div class="r2"><span><small>Tiền tiêu vặt</small><span id="h-money"></span></span><span style="text-align:right"><small>Hạnh kiểm</small><span id="h-conduct"></span></span></div>
+</div>
+<div id="todo" class="card"></div>
+</div>
+<div id="menu">
+  <button data-m="bag">Cặp sách<kbd>B</kbd></button>
+  <button data-m="stats">Chỉ số<kbd>C</kbd></button>
+  <button data-m="tt">Thời khoá biểu<kbd>T</kbd></button>
+  <button data-m="grades">Sổ điểm<kbd>G</kbd></button>
+  <button data-m="set">Cài đặt<kbd>Esc</kbd></button>
+</div>
+<div id="hint" class="card"></div>
+<div id="toasts"></div>
+<div id="fade"></div>
+<div id="banner" class="card"><div id="b-label"></div><div class="bar"><div id="b-fill"></div></div></div>
+
+<div id="modal-wrap"><div id="modal" class="card">
+  <div id="m-head"><div id="m-title"></div><button id="m-x" aria-label="Đóng">✕</button></div>
+  <div id="m-body"></div>
+</div></div>
+
+<div id="title"><div class="box card">
+  <h1>Thời Áo Trắng</h1>
+  <div class="sub">Mô phỏng đời học sinh cấp 3 Việt Nam</div>
+  <div class="gs">
+    <button class="g on" id="g-boy"><canvas id="pv-boy" width="78" height="96"></canvas>Cậu học sinh</button>
+    <button class="g" id="g-girl"><canvas id="pv-girl" width="78" height="96"></canvas>Cô học sinh</button>
+  </div>
+  <input id="t-name" maxlength="16" placeholder="Tên của bạn" autocomplete="off">
+  <button class="btn primary" id="t-start">Vào lớp 10</button>
+  <button class="btn" id="t-cont" style="display:none">Chơi tiếp bản đã lưu</button>
+  <div id="t-warn" class="dim" style="display:none;margin-top:8px;font-size:12px">Bấm “Vào lớp 10” sẽ bắt đầu lại và ghi đè bản đã lưu.</div>
+</div></div>
+
+<script>
+/*__JS__*/
+</script>
+</body>
+</html>
