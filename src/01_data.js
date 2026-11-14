@@ -155,7 +155,7 @@ const BUS_FARE_CARD = 3000, BUS_FARE_NOCARD = 6000, BUS_PASS_PRICE = 50000, BUS_
 const BUS_MIN_PER_HOP = 10, BUS_HOURS = [300, 1320];
 const BUS_STOPS = {
   home: { name: 'Khu phố nhà mình', map: 'town', x: 684, y: 186, pos: 0, off: 0 },
-  pho: { name: 'Phố Hoa Phượng', map: 'pho', x: 256, y: 184, pos: 1, off: 0 },
+  pho: { name: 'Phố Hoa Phượng', map: 'pho', x: 276, y: 186, pos: 1, off: 0 },
   truong: { name: 'Trường THPT Hoa Phượng', map: 'school', x: 182, y: 408, pos: 2, off: 0 },
   ga: { name: 'Ga tàu', map: 'ga', x: 458, y: 200, pos: 1, off: 1 },
 };
@@ -197,20 +197,52 @@ const SHOP = [
   { id: 'bimbim5', name: 'Lốc 5 gói bim bim Sao Vàng', price: 23000, desc: '5 gói = 5 thẻ cầu thủ', inv: 'bimbim', n: 5, pack: 5 },
   { id: 'banhtrang', name: 'Bánh tráng trộn ×5', price: 25000, desc: 'Hàng để bán lại cho bạn trong giờ ra chơi', inv: 'banhtrang', n: 5 },
   { id: 'vethang', name: 'Vé tháng xe bus', price: BUS_PASS_PRICE, desc: 'Dùng 30 ngày kể từ ngày mua', special: 'vethang' },
-  { id: 'daynhay', name: 'Dây nhảy', price: 60000, desc: 'Dụng cụ tập thể dục ở nhà', own: 'daynhay' },
-  { id: 'tatay', name: 'Tạ tay', price: 150000, desc: 'Dụng cụ tập thể dục ở nhà, nặng hơn dây nhảy', own: 'tatay' },
-  { id: 'xadon', name: 'Xà đơn gắn cửa', price: 350000, desc: 'Dụng cụ tập thể dục ở nhà, khó nhất', own: 'xadon' },
   { id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu cá ở bờ sông (dưới phố Hoa Phượng)', own: 'cancau' },
   { id: 'xedap', name: 'Xe đạp', price: 400000, desc: 'Để ở sân nhà, bấm vào xe để đi', own: 'xedap' },
   { id: 'xedapdien', name: 'Xe đạp điện', price: 2500000, desc: 'Chạy nhanh hơn xe đạp', own: 'xedapdien' },
   { id: 'xemay', name: 'Xe máy 50cc', price: 6000000, desc: 'Chạy nhanh nhất', own: 'xemay' },
 ];
 const CANTEEN = [
-  { name: 'Cơm trưa', price: 20000, stam: 30, mins: 20 },
-  { name: 'Bánh mì', price: 10000, stam: 15, mins: 10 },
-  { name: 'Nước mía', price: 5000, stam: 6, mins: 0 },
-  { name: 'Bim bim Sao Vàng (kèm 1 thẻ cầu thủ)', price: 5000, stam: 5, mins: 0, pack: 1 },
+  { id: 'comtrua', name: 'Cơm trưa', price: 20000, stam: 30, mins: 20, desc: 'Ăn tại chỗ' },
+  { id: 'banhmi', name: 'Bánh mì', price: 10000, stam: 15, mins: 10, desc: 'Ăn tại chỗ' },
+  { id: 'nuocmia', name: 'Nước mía', price: 5000, stam: 6, mins: 0, desc: 'Uống liền' },
+  { id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, stam: 5, mins: 0, pack: 1, desc: 'Trong gói có 1 thẻ cầu thủ' },
 ];
+/* ---------- Gian hàng trong TTTM ---------- */
+// [id, tên, sprite]. Hàng của từng gian: own = mua một lần (để ở nhà); act = làm ngay tại chỗ
+const MALL_STALLS = [['phim', 'Rạp phim', 'stA'], ['sach', 'Nhà sách', 'stB'], ['sieuthi', 'Siêu thị', 'stC'], ['anuong', 'Ăn uống', 'stD'], ['noithat', 'Nội thất', 'stE'], ['nhaccu', 'Nhạc cụ', 'stF'], ['thethao', 'Thể thao', 'stG']];
+const MALL_GOODS = {
+  phim: [{ id: 'vephim', name: 'Vé xem phim', price: 45000, desc: 'Vào rạp xem một suất phim', act: 'movie' }],
+  sach: [{ id: 'sachtk', name: 'Sách tham khảo', price: 60000, desc: 'Chọn một môn để đọc thêm (mỗi ngày một cuốn)', act: 'book' }],
+  sieuthi: [{ id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, desc: 'Trong gói có 1 thẻ cầu thủ', act: 'bim' }, { id: 'hopthe', name: 'Hộp thẻ đặc biệt', price: 30000, desc: '5 thẻ, chắc chắn có thẻ Hiếm trở lên', act: 'box' }, { id: 'banhmi', name: 'Bánh mì', price: 10000, desc: 'Mang theo ăn dần', inv: 'banhmi' }, { id: 'sua', name: 'Sữa hộp', price: 6000, desc: 'Mang theo uống dần', inv: 'sua' }],
+  anuong: [{ id: 'garan', name: 'Gà rán', price: 35000, desc: 'Ăn tại khu ăn uống', act: 'chicken' }, { id: 'trasua', name: 'Trà sữa', price: 25000, desc: 'Uống tại khu ăn uống', act: 'teamall' }],
+  noithat: [{ id: 'd_poster', name: 'Tấm áp phích', price: 40000, desc: 'Dán tường phòng ngủ', own: 'd_poster' }, { id: 'd_den', name: 'Đèn cây', price: 90000, desc: 'Đặt ở góc phòng ngủ', own: 'd_den' }, { id: 'd_cay', name: 'Chậu cây cảnh', price: 60000, desc: 'Đặt trong phòng ngủ', own: 'd_cay' }, { id: 'd_tham', name: 'Thảm trải sàn', price: 120000, desc: 'Trải giữa phòng ngủ', own: 'd_tham' }],
+  nhaccu: [{ id: 'micro', name: 'Micro karaoke', price: 150000, desc: 'Để trong phòng ngủ, tập hát ở nhà', own: 'micro' }, { id: 'guitar', name: 'Đàn guitar', price: 400000, desc: 'Dựng trong phòng ngủ; có đàn tập hát vào hơn', own: 'guitar' }],
+  thethao: [{ id: 'daynhay', name: 'Dây nhảy', price: 60000, desc: 'Dụng cụ tập thể dục ở nhà', own: 'daynhay' }, { id: 'tatay', name: 'Tạ tay', price: 150000, desc: 'Dụng cụ tập thể dục ở nhà, nặng hơn dây nhảy', own: 'tatay' }, { id: 'xadon', name: 'Xà đơn gắn cửa', price: 350000, desc: 'Dụng cụ tập thể dục ở nhà, khó nhất', own: 'xadon' }],
+};
+const DECOR_SLEEP = 2;        // mỗi món trang trí phòng: ngủ dậy hồi thêm chừng này thể lực
+/* ---------- Khu game: chơi bằng xèng ---------- */
+const TOKENS = { price: 10000, n: 5 };
+const MACHINES = { claw: 2, fight: 2, slot: 1, race: 2, dance: 2 };   // số xèng mỗi lượt
+/* ---------- Phòng nhạc / tập ở nhà ---------- */
+const MUSIC = { perDay: 3, stam: 6, mins: 20, base: 2, bonus: 6, homeBase: 1, homeBonus: 4 };   // điểm Văn nghệ = base + bonus × điểm mini-game
+/* ---------- Nhà bạn ---------- */
+const FRIEND_HOME_HEARTS = 2, FRIEND_ROOM_HEARTS = 4, PHONE_HEARTS = 1;
+const FH = { tv: { mins: 30, friend: 5 }, game: { mins: 40, friend: 8 } };
+/* ---------- Tụ chơi giờ ra chơi / nghỉ trưa ---------- */
+// game: mini-game khi xin chơi cùng · n: số người · sport: cộng Thể thao
+const YARD_GAMES = {
+  chat: { name: 'tám chuyện', n: 3 }, eat: { name: 'ăn trưa', n: 2 },
+  danhbai: { name: 'đánh bài', n: 3, game: 'arrows', what: 'Ra bài' }, conquay: { name: 'chọi con quay', n: 3, game: 'arrows', what: 'Quấn dây, giật con quay' },
+  rongran: { name: 'rồng rắn lên mây', n: 4, game: 'arrows', what: 'Lượn theo đầu rồng' }, trontim: { name: 'trốn tìm', n: 3, game: 'seek' },
+  duoibat: { name: 'đuổi bắt', n: 3, game: 'arrows', what: 'Né trái né phải', sport: 1 }, dabong: { name: 'đá bóng', n: 3, game: 'keepup', sport: 2 }, dacau: { name: 'đá cầu', n: 3, game: 'keepup', sport: 2 },
+};
+const YARD_JOIN = { friend: 3, bonus: 4, mins: 10 };
+/* ---------- Thể lực trong giờ học ---------- */
+const LESSON_STAM = 6;        // mỗi tiết lý thuyết tốn chừng này thể lực; hết thể lực thì ngất trong lớp, được đưa xuống trạm y tế
+const FAINT = { at: 2, rest: 60, stam: 0.4 };   // at: thể lực từ mức này trở xuống khi vào tiết là ngất · rest: phút nằm trạm y tế · stam: tỉ lệ thể lực hồi lại
+const INFIRM = { mins: 30, stam: 15 };          // tự xuống trạm y tế nằm nghỉ
+const SMOKE = { mins: 10, stam: 12, risk: 0.3, perDay: 2, conduct: 1.5 };   // trốn trong buồng vệ sinh hút thuốc: hồi thể lực nhưng dễ bị giám thị bắt
 const TUTOR = { price: 50000, mins: 90, pts: 12, stam: 10 };
 const SELF_STUDY = { mins: 60, pts: 5, stam: 8 };
 const PART_TIME = { mins: 120, pay: 30000, payPerLv: 3000, pts: 10, stam: 12 };
@@ -260,10 +292,10 @@ const INVITE_ACCEPT = { like: 0.6, other: 0.3, perHeart: 0.08, freeBonus: 0.25 }
 
 /* ---------- Buổi thực hành (minigame kiểu câu cá) ---------- */
 const PRACTICALS = {
-  th_ly: { stat: 'th_ly', title: 'Thí nghiệm Vật lý', task: 'Giữ kim ampe kế nằm trong vùng xanh để đo cho chuẩn', icon: 'kim' },
-  th_hoa: { stat: 'th_hoa', title: 'Pha chế trong phòng Hoá', task: 'Giữ nhiệt độ dung dịch trong vùng an toàn', icon: 'nhiet' },
-  th_sinh: { stat: 'th_sinh', title: 'Soi mẫu vật dưới kính hiển vi', task: 'Giữ mẫu vật nằm trong vùng lấy nét', icon: 'mau' },
-  th_qp: { stat: 'qp', title: 'Tháo lắp súng AK mô hình, lắp lựu đạn tập', task: 'Giữ đúng nhịp thao tác trong vùng xanh', icon: 'nhip' },
+  th_ly: { stat: 'th_ly', title: 'Thí nghiệm Vật lý', task: 'Chuyển động ném xiên: chỉnh góc, canh lực để ném quả cầu vào rổ phía sau bức tường', game: 'physics' },
+  th_hoa: { stat: 'th_hoa', title: 'Pha chế trong phòng Hoá', task: 'Rót các chất vào cốc cho đúng liều lượng cô yêu cầu', game: 'mix' },
+  th_sinh: { stat: 'th_sinh', title: 'Soi mẫu vật dưới kính hiển vi', task: 'Rê kính hiển vi, tìm đúng vi sinh vật cô yêu cầu trước khi hết giờ', game: 'micro' },
+  th_qp: { stat: 'qp', title: 'Tháo lắp súng AK mô hình, lựu đạn tập', task: 'Ghép các mảnh lại thành hình khẩu súng hoặc quả lựu đạn hoàn chỉnh', game: 'jigsaw' },
 };
 const DIFF_WEIGHTS = [0.15, 0.30, 0.30, 0.18, 0.07];   // xác suất độ khó 1–5 sao
 // Hoàn thành ở độ khó càng cao càng được nhiều điểm thực hành
@@ -346,7 +378,7 @@ const BREAK_FUN_MIN_HEARTS = 1, BREAK_FUN_PER_DAY = 2, BREAK_FUN_MINS = 10;
 
 /* ---------- Sự kiện giờ nghỉ trưa & trong giờ học ---------- */
 const LUNCH_EVENT_TIME = 660, LUNCH_EVENT_CHANCE = 0.55, CLASS_EVENT_CHANCE = 0.26;
-const LIBRARY = { mins: 30, pts: 3, stam: 3 };
+const LIBRARY = { mins: 30, pts: 3, stam: 3, perDay: 2 };
 const NAP = { mins: 40, stam: 18 };
 
 /* ---------- Địa điểm vui chơi ---------- */

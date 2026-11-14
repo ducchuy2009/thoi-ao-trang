@@ -17,11 +17,11 @@ const UI = {
   isOpen() { return $('modal-wrap').classList.contains('on'); },
 
   /* ---------- hộp thoại ---------- */
-  _open(title, body, res, esc, wide) {
+  _open(title, body, res, esc, wide, who) {
     if (this.isOpen()) this.close(-1);
     $('m-title').textContent = title; $('m-body').innerHTML = body;
     $('modal').classList.toggle('wide', !!wide);
-    const sp = res ? speakerOf(title) : null;         // hội thoại với nhân vật: hiện ở dưới, có chân dung
+    const sp = who || (res ? speakerOf(title) : null);         // hội thoại với nhân vật: hiện ở dưới, có chân dung
     $('modal-wrap').classList.toggle('talk', !!sp);
     if (sp) $('m-face').src = faceOf(sp.look, sp.outfit);
     $('modal-wrap').classList.add('on');
@@ -41,7 +41,7 @@ const UI = {
     return new Promise(res => {
       const btns = buttons.map((b, i) => `<button class="btn ${i === 0 && !opts.grid && buttons.length < 4 ? 'primary' : ''} ${b === 'Thôi' || b === 'Chưa' ? 'ghost' : ''}" data-i="${i}">${opts.grid || buttons.length < 2 ? '' : `<kbd>${i + 1}</kbd>`}${b}</button>`).join('');
       // opts.esc: giá trị trả về khi bấm Esc / nút ✕ (mặc định = nút cuối cùng)
-      this._open(title, html + `<div class="btns ${opts.grid ? 'grid' : (buttons.length > 2 ? 'col' : '')}">${btns}</div>`, res, opts.esc !== undefined ? opts.esc : buttons.length - 1);
+      this._open(title, html + `<div class="btns ${opts.grid ? 'grid' : (buttons.length > 2 ? 'col' : '')}">${btns}</div>`, res, opts.esc !== undefined ? opts.esc : buttons.length - 1, false, opts.who);      // opts.who = { look, outfit }: ép hiện hội thoại ở dưới với chân dung này
     });
   },
   say(title, html) { return this.ask(title, `<p>${html}</p>`, ['OK']); },
@@ -236,16 +236,17 @@ const UI = {
       const id = UI._chat;
       if (!id) {
         let h = '<div class="rows">';
-        for (const c of PHONE_CONTACTS) {
+        for (const c of phoneList()) {
           const C = contactOf(c), a = G.phone.msgs[c] || [], last = a[a.length - 1], un = G.phone.unread[c] || 0;
-          h += `<button class="crow" data-act="open" data-id="${c}"><b>${C.name}</b>${c === 'mom' ? '' : hs(c)}${un ? `<i class="dot on">${un}</i>` : ''}<small>${last ? (last.m ? 'Bạn: ' : '') + last.t : C.note}</small></button>`;
+          h += `<button class="crow" data-act="open" data-id="${c}"><b>${C.name}</b>${FRIENDS[c] ? hs(c) : ''}${un ? `<i class="dot on">${un}</i>` : ''}<small>${last ? (last.m ? 'Bạn: ' : '') + last.t : C.note}</small></button>`;
         }
         h += '</div>';
+        if (phoneList().length < 2 + Object.keys(FRIENDS).length) h += `<p class="dim">Danh bạ mới chỉ có ${phoneList().length === 2 ? 'bố mẹ' : 'bố mẹ và vài người bạn'}. Chơi thân với bạn nào (từ ${PHONE_HEARTS}♥) thì gặp bạn ấy, chọn “Xin số điện thoại”.</p>`;
         if (G.meet && G.meet.day >= G.day) h += `<p class="okbox">Đã hẹn ${FRIENDS[G.meet.fid].name}: ${meetWhen(G.meet)} ở ${PLACES[G.meet.place].name}.</p>`;
         return h + '<p class="dim">Nhắn tin không tốn thời gian. Rủ bạn đi chơi: bạn ấy sẽ đợi ở chỗ hẹn (trà sữa, TTTM, khu game ở phố Hoa Phượng; công viên; núi sau trường; bãi biển). Lỡ hẹn là bạn giận đó.</p>';
       }
       const C = contactOf(id), a = (G.phone.msgs[id] || []).slice(-9);
-      let h = `<div class="chead"><button class="btn sm" data-act="back">‹ Danh bạ</button><b>${C.name}</b>${id === 'mom' ? '' : hs(id)}</div><div class="chat">`;
+      let h = `<div class="chead"><button class="btn sm" data-act="back">‹ Danh bạ</button><b>${C.name}</b>${FRIENDS[id] ? hs(id) : ''}</div><div class="chat">`;
       h += a.length ? a.map(m => `<div class="msg ${m.m ? 'me' : ''}"><span>${m.t}</span></div>`).join('') : '<p class="dim">Chưa có tin nhắn nào. Gõ gì đó đi!</p>';
       h += '</div><div class="btns">';
       if (UI._chatSub === 'place') h += Object.keys(PLACES).map(p => `<button class="btn" data-act="go" data-id="${p}">${PLACES[p].name}${PLACE_LIKES[id].includes(p) ? ' ♥' : ''}</button>`).join('') + '<button class="btn ghost" data-act="sub" data-id="">Thôi</button>';
@@ -289,19 +290,7 @@ const UI = {
   calendar() { this.menu('cal'); },
   grades() { this.menu('grades'); },
 
-  /* ---------- Tạp hoá ---------- */
-  shop() {
-    this.panel('Tạp hoá Cô Ba', () => {
-      let h = `<p>“Mua gì con?” — Bạn đang có <b>${fmtMoney(G.money)}</b>.</p><div class="rows">`;
-      for (const it of SHOP) {
-        const owned = (it.own && G.owned[it.own]) || (it.special === 'vethang' && G.busPassUntil >= G.day);
-        h += `<div class="rowi"><span><b>${it.name}</b> <small>${it.desc}</small></span><button class="btn sm" data-act="buy" data-id="${it.id}" ${owned || G.money < it.price ? 'disabled' : ''}>${owned ? 'Đã có' : fmtMoney(it.price)}</button></div>`;
-      }
-      if (fishCount()) h += `</div><h4>Bán cá câu được</h4><div class="rowi"><span><b>${fishCount()} con cá</b> <small>${FISH.filter(f => G.fish[f.id]).map(f => `${f.name} ×${G.fish[f.id]}`).join(' · ')}</small></span><button class="btn sm" data-act="fish">Bán hết · ${fmtMoney(fishValue())}</button>`;
-      h += `</div><h4>Phụ bán hàng (ngày nghỉ, 08:00–18:00)</h4><div class="rowi"><span><b>Phụ cô Ba 2 tiếng</b> <small>Cô Ba trả công ${fmtMoney(PART_TIME.pay + PART_TIME.payPerLv * lv('buonban'))}</small></span><button class="btn sm" data-act="pt">Nhận việc</button></div>`;
-      return h;
-    }, { buy: d => buy(SHOP.find(x => x.id === d.id)), pt: () => { partTime(); }, fish: () => sellFish() }, true);
-  },
+  /* Tạp hoá, căn tin, gian hàng TTTM: UI.store (cửa hàng dạng icon) — xem 05b_games.js */
 
   settings() { this.menu('set'); },
 };

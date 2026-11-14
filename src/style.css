@@ -263,3 +263,22 @@ body.cut #hotbar{opacity:0;pointer-events:none}
   #title h1{font-size:34px}
 }
 @media (max-height:480px){#left{width:196px;left:8px;top:8px}#hud{padding:5px 9px 7px}#h-time{font-size:19px}#h-date{font-size:13px}#h-phase{font-size:11px;margin:3px 0 5px}#menu{right:8px;top:8px;gap:5px}#menu button{padding:4px 8px;font-size:12px}#menu kbd{display:none}#todo{display:none!important}#title .g canvas{width:54px;height:72px}#title .box{padding:12px 18px}#title h1{font-size:30px}}
+
+/* ---------- mini-game (khung chung) ---------- */
+.gm{display:flex;gap:16px;align-items:flex-start}
+.gm canvas{flex:none;background:#fff;border:3px solid var(--ink);border-radius:10px;touch-action:none;cursor:pointer;image-rendering:auto}
+.gm-side{flex:1;min-width:0}
+.gm-side kbd{margin:0 1px}
+@media (max-width:720px){.gm{flex-direction:column;align-items:center}.gm canvas{max-width:100%;height:auto!important}}
+/* ---------- cửa hàng dạng icon ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin:8px 0}
+.tile{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px 6px;background:#f4ead2;border:3px solid transparent;border-radius:12px;cursor:pointer;font:inherit;color:var(--ink)}
+.tile img{width:44px;height:44px;image-rendering:pixelated}
+.tile small{font-size:11px;font-weight:800;white-space:nowrap}
+.tile:hover{background:#ffe9b8}
+.tile.on{border-color:var(--ink);background:#ffe066}
+.tile.own{opacity:.55}
+.tinfo{display:flex;align-items:center;gap:10px;min-height:54px;padding:8px 10px;background:#fff6e3;border:2px dashed #c9b58a;border-radius:10px}
+.tinfo img{width:36px;height:36px;image-rendering:pixelated;flex:none}
+.tinfo span{flex:1;min-width:0;display:flex;flex-direction:column}
+.tinfo small{color:#6b6170;font-size:12px}

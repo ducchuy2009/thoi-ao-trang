@@ -42,7 +42,7 @@ function updateNpcs(dt, busy) {
   const m = MAPS[G.map];
   for (const n of NPCS) {
     if (n.fam || n.map !== G.map) continue;      // bố mẹ do updateFamily điều khiển
-    if (n.pos) { const p = n.pos(); n.cx = p.x; n.cy = p.y; n.cdir = p.dir; n.walk = -1; continue; }
+    if (n.pos) { const p = n.pos(); if (!p) continue; n.cx = p.x; n.cy = p.y; n.cdir = p.dir; n.walk = p.walk === undefined ? -1 : p.walk; n.coy = p.oy || 0; continue; }
     if (n.cx === undefined) { n.cx = n.x; n.cy = n.y; n.cdir = n.dir; n.walk = -1; n.wt = Math.random() * 3; }
     if (n.solid && !busy) n.cdir = n.dir;         // bạn đang ngồi: nói chuyện xong thì quay lại nhìn bảng
     if (!n.wander || busy) { n.walk = -1; continue; }
@@ -89,7 +89,8 @@ function interactables() {
   // xe của mình đang dựng ở đâu đó: bấm vào để lên xe
   if (G.park && !G.park.shed && G.park.map === G.map) { const P = G.park; a.push({ x: P.x - 14, y: P.y - 18, w: 28, h: 20, rx: P.x - 12, ry: P.y - 8, rw: 24, rh: 8, base: P.y, label: () => `${VEHICLES[P.id].name} — lên xe`, act: () => ACT.mount(P.id), range: 20 }); }
   if (G.comp && RT.fol && !G.ride) { const f = RT.fol, fid = G.comp.fid; a.push({ x: f.x - 9, y: f.y - 24, w: 18, h: 25, rx: f.x - 4, ry: f.y - 5, rw: 8, rh: 5, base: f.y, label: () => `${FRIENDS[fid].name} — đang đi cùng bạn`, act: () => ACT.friend(fid, 'comp'), range: 24 }); }
-  for (const n of npcsHere()) if (n.act && !(n.fam && FAM[n.fam].riding)) a.push({ x: n.cx - 9, y: n.cy - 24, w: 18, h: 25, rx: n.cx - 4, ry: n.cy - 5, rw: 8, rh: 5, base: n.cy, label: n.label, act: n.act, range: 24, npc: n });
+  yardTargets(a);       // tụ chơi ngoài sân: bấm vào giữa tụ để xin chơi cùng
+  for (const n of npcsHere()) if (n.act && n.cx !== undefined && !(n.fam && FAM[n.fam].riding)) a.push({ x: n.cx - 9, y: n.cy - 24, w: 18, h: 25, rx: n.cx - 4, ry: n.cy - 5, rw: 8, rh: 5, base: n.cy, label: n.label, act: n.act, range: 24, npc: n });
   return a;
 }
 function distTo(t) { const px = G.x, py = G.y - 2; return Math.hypot(Math.max(t.rx - px, 0, px - (t.rx + t.rw)), Math.max(t.ry - py, 0, py - (t.ry + t.rh))); }
@@ -164,7 +165,7 @@ function update(dt) {
     if (RT.pendingClass) { const p = RT.pendingClass; RT.pendingClass = null; runClass(p); return; }
     if (RT.pendingEvent) { const e = RT.pendingEvent; RT.pendingEvent = null; if (G.atSchool && inWin(G.time, AM_END, PM_START - 20)) { runLunchEvent(e); return; } }
     if (RT.pendingInvite) { const inv = RT.pendingInvite; RT.pendingInvite = null; if (yardTime()) { showInvite(inv); return; } }
-    movePlayer(dt);
+    movePlayer(dt); lifeTick();
     RT.tickAcc += dt;
     if (RT.tickAcc >= G.speed) { RT.tickAcc = 0; advanceTime(CFG.TICK_MIN); }
     scanTargets();
@@ -249,7 +250,7 @@ function render(now) {
       drawSpr(SHADOW, n.cx - 7, n.cy - 3); drawSpr(b, n.cx - 16, n.cy - 21);
       drawSpr(charSheet(n.look, n.outfit ? n.outfit() : null)[left ? 1 : 2][0], n.cx - 9 + (left ? 2 : -2), n.cy - 32);
     }
-    else if (e.n) drawChar(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cx, e.n.cy, e.n.cdir, e.n.walk);
+    else if (e.n) drawChar(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cx, e.n.cy, e.n.cdir, e.n.walk, e.n.coy);
     else if (e.a) { if (!e.a.hidden) drawChar(e.a.look, e.a.outfit, e.a.x, e.a.y, e.a.dir, e.a.walk === undefined ? -1 : e.a.walk, e.a.oy); }
     else if (e.v) drawSpr(SPR[VEHICLES[e.v.id].spr], e.v.x - 15, e.v.y - 19);
     else if (e.f) drawChar(G.comp.fid, friendOutfit(G.comp.fid), e.f.x, e.f.y, e.f.dir, e.f.walk);
@@ -258,6 +259,7 @@ function render(now) {
   }
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
+  if (G && !RT.scene) drawYardProps(now);        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
   // biển hiệu (chữ nét)
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   for (const l of m.labels) { ctx.font = `800 ${l.size * S}px "Baloo 2", system-ui, sans-serif`; ctx.fillStyle = l.col; ctx.fillText(l.text, VIEW.ox + l.x * S, VIEW.oy + l.y * S, l.maxw * S); }

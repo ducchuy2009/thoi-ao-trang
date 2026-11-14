@@ -173,9 +173,9 @@ function rollDiff() { let r = Math.random(); for (let d = 0; d < 5; d++) { r -= 
 const starStr = d => '★'.repeat(d) + '☆'.repeat(5 - d);
 const MG_HELP = '<p class="dim">Giữ <kbd>Space</kbd> hoặc nhấn giữ chuột để nâng vùng xanh, thả ra để hạ. Giữ kim trong vùng xanh cho đến khi thanh tiến độ đầy.</p>';
 async function practicalSession(key, half) {
-  const P = PRACTICALS[key], d = rollDiff(), lvP = lv(P.stat), L = [], full = practicalReward(d, true, false);
-  await UI.ask(P.title, `<p>${P.task}.</p><p>Độ khó hôm nay: <span class="stars">${starStr(d)}</span></p>${MG_HELP}`, ['Bắt đầu']);
-  const r = await UI.minigame({ title: P.title, task: P.task, icon: P.icon, diff: d, level: lvP, tired: G.stamina < 10 });
+  const P = PRACTICALS[key], d = rollDiff(), L = [];
+  await UI.ask(P.title, `<p>${P.task}.</p><p>Độ khó hôm nay: <span class="stars">${starStr(d)}</span></p><p class="dim">Có thể bấm “Bỏ qua” trong lúc làm — khi đó chỉ được điểm chuyên cần.</p>`, ['Bắt đầu']);
+  const r = gameRes(await playGame(P.game, d));
   let pts = practicalReward(d, r.win, r.perfect); if (half) pts = Math.ceil(pts / 2);
   L.push(li(`${P.title} · độ khó <span class="stars">${starStr(d)}</span>`, 'warn'));
   L.push(li(r.win ? (r.perfect ? 'Hoàn thành xuất sắc, không lệch nhịp nào!' : 'Hoàn thành bài thực hành.') : 'Chưa hoàn thành — vẫn được điểm chuyên cần.', r.win ? 'good' : 'bad'));

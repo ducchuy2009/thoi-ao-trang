@@ -9,8 +9,9 @@ Toàn bộ đồ hoạ pixel được vẽ bằng code, không dùng file ảnh.
                  Ga tàu ──(tàu hoả)── Bãi biển
                    │
 Khu phố nhà mình ─ Phố Hoa Phượng ─ Trường ── lối mòn vòng sau trường ── Núi
-(nhà, tạp hoá,     (nhà bạn bè, trà sữa,   (cổng, sân, lớp,
- công viên)         TTTM, khu game)         phòng thí nghiệm)
+(nhà, tạp hoá,     (nhà bạn bè, trà sữa,   (cổng, sân, lớp, phòng thí nghiệm,
+ công viên)         TTTM, khu game —        trạm y tế, phòng nhạc, thư viện,
+                    đều vào được)          phòng ngủ trưa, khu vệ sinh)
                    │
                  Bờ sông (câu cá)
 ```
@@ -25,11 +26,14 @@ Khu phố nhà mình ─ Phố Hoa Phượng ─ Trường ── lối mòn vò
 | `src/02_art.js` | Đồ hoạ: nhân vật chibi (4 hướng, hoạt ảnh đi bộ, trang phục), vật thể, nền |
 | `src/02b_art2.js` | Đồ hoạ bổ sung: TTTM, khu game, trà sữa, núi, xe bus, tàu, ga, biển, bờ sông, đạo cụ hoạt cảnh, biểu tượng vật phẩm cho thanh đồ, chân dung hội thoại và thẻ cầu thủ |
 | `src/03_maps.js` | Bản đồ: Nhà, Khu phố, Phố Hoa Phượng, Trường, Lớp học, Phòng thí nghiệm, Núi, Bờ sông, Ga tàu, Bãi biển; các bản đồ chỉ dùng cho hoạt cảnh (nhà vệ sinh nam/nữ, cảnh xe chạy, cảnh tàu chạy); vật thể tương tác và NPC |
+| `src/03b_maps2.js` | Các phòng vào được: trong trường (trạm y tế, phòng nhạc, thư viện, phòng ngủ trưa, khu vệ sinh — cửa nằm trên dãy nhà chính), bên trong TTTM (7 gian hàng), khu game (quầy xèng + các máy), nhà bạn (phòng khách + phòng riêng), đồ trang trí phòng ngủ ở nhà |
 | `src/04_game.js` | Luật chơi: đồng hồ, ngày mới/đi ngủ, tiết học, kiểm tra, điểm, hạnh kiểm, qua cổng trường, việc nhà, buôn bán |
 | `src/04a_family.js` | Bố mẹ: lịch trong ngày, tìm đường A*, ra cửa lấy xe đi làm, đi chợ; trò chuyện, đấm lưng; về muộn |
 | `src/04b_mischief.js` | Làm việc riêng trong giờ, trốn học cùng bạn (ra ngoài thật, thời gian trôi thật, qua cổng trường mới là về lớp), quậy trong trường, tố cáo bạn (có hoạt cảnh bị phạt), buổi thực hành và vật lý của minigame |
 | `src/04c_social.js` | Đi lại (ranh giới các khu, xe của mình, xe bus, tàu), câu cá, biển; bộ máy hoạt cảnh `playCut` (lau nhà, rửa xe, đấm lưng, trèo tường, bị giám thị bắt, giải lao); quay sang bạn trong giờ học; mượn sách; sự kiện trong giờ và giờ nghỉ trưa; trà sữa/TTTM/khu game/picnic; thẻ cầu thủ; nhắn tin và hẹn đi chơi |
+| `src/04d_life.js` | Đời sống học đường: tụ chơi giờ ra chơi / nghỉ trưa (`yardState`, `yardPos`), đạo cụ và hoạt ảnh trong tiết học (`classProps`, `handOut` phát đề, `toTeacherDesk` lên trả bài), ngất xỉu (`faintFlow`), các phòng mới (`ACT.nap`, `ACT.readBook`, `ACT.music`, `ACT.stall`, `ACT.infirmary`), gian hàng TTTM, máy chơi game, nhà bạn, danh bạ điện thoại, hoạt ảnh nhổ cỏ / đá bóng |
 | `src/05_ui.js` | HUD, thanh đồ, hộp thoại (hội thoại với nhân vật nằm dưới màn hình kèm chân dung), minigame, túi đồ, điện thoại, và **menu chung** dạng tab icon (`MV`): Chỉ số, Bạn bè, Thời khoá biểu, Học bạ, Lịch, Thẻ cầu thủ, Cài đặt (kèm mã thử nghiệm và du hành thời gian) |
+| `src/05b_games.js` | Khung mini-game `UI.game()` + các trò (`GAMES`): tâng cầu, bấm mũi tên theo nhịp, nốt nhạc rơi, ném xiên (Lý), pha chế (Hoá), ghép hình (Quốc phòng), kính hiển vi (Sinh), trốn tìm, gắp thú, máy may rủi — trò nào cũng có nút Bỏ qua. Cửa hàng dạng icon `UI.store()` |
 | `src/06_engine.js` | Vòng lặp, WASD + chuột phải, va chạm, camera, vẽ, bong bóng thoại của cắt cảnh |
 | `build.py` | Gộp tất cả thành một file: `index.html` (ở gốc, để mở trực tiếp) và `dist/index.html` |
 
@@ -55,10 +59,16 @@ Trong `01_data.js`:
 - `OUTING` — xin tiền bố mẹ đi chơi · `BORROW` — khả năng mượn được sách/bút · `BREAK_FUN` — trò giải lao giữa 2 tiết · `LUNCH_EVENT_CHANCE`, `CLASS_EVENT_CHANCE` — tần suất sự kiện.
 - `PLACES`, `MALL`, `ARCADE`, `TEA`, `PICNIC`, `TRAVEL`, `HILL_HOURS` — địa điểm vui chơi: giờ mở cửa, giá, thời gian, điểm thưởng.
 - `CARDS`, `CARD_RARITY`, `DUEL_TIER`, `CARD_SET_REWARD` — bộ thẻ cầu thủ, tỉ lệ độ hiếm, trình của đối thủ khi đấu thẻ.
-- `DIFF_WEIGHTS`, `practicalReward()` — xác suất độ khó và điểm thưởng buổi thực hành.
+- `DIFF_WEIGHTS`, `practicalReward()` — xác suất độ khó và điểm thưởng buổi thực hành. `PRACTICALS[*].game` — mỗi buổi thực hành dùng mini-game nào.
+- `LESSON_STAM`, `FAINT`, `INFIRM`, `NAP` — thể lực mất sau mỗi tiết; vào tiết mà thể lực ≤ `FAINT.at` thì ngất, được đưa xuống trạm y tế và nghỉ luôn buổi học. Ngủ trưa chỉ được ở phòng ngủ trưa.
+- `YARD_GAMES`, `YARD_JOIN` — các tụ chơi ngoài sân (số người, mini-game khi mình xin vào, điểm thân thiết). `SMOKE` — trốn trong buồng vệ sinh hút thuốc (hồi thể lực, nguy cơ bị giám thị bắt).
+- `MUSIC` — phòng nhạc / micro ở nhà: số lần mỗi ngày, điểm Văn nghệ theo kết quả mini-game. `LIBRARY` — đọc sách ở tủ từng môn.
+- `MALL_STALLS`, `MALL_GOODS` — các gian hàng trong TTTM và hàng bán (đồ trang trí phòng `d_*`, micro, guitar, dụng cụ thể thao). `DECOR_SLEEP` — mỗi món trang trí giúp ngủ hồi thêm thể lực. `TOKENS`, `MACHINES` — giá xèng và số xèng mỗi máy.
+- `FRIEND_HOME_HEARTS`, `FRIEND_ROOM_HEARTS`, `PHONE_HEARTS`, `FH` — độ thân cần để vào nhà bạn, vào phòng riêng, xin số điện thoại.
 
 Trong `04_game.js`: `testScore()` là công thức làm bài kiểm tra (năng lực môn + may rủi, "trúng tủ", "học tài thi phận").
-Trong `04b_mischief.js`: `MGP` là toàn bộ thông số của minigame (độ rộng vùng xanh theo cấp, tốc độ kim theo độ khó).
+Trong `04b_mischief.js`: `MGP` là thông số của minigame giữ-thanh kiểu cũ (giờ chỉ còn dùng cho câu cá). Các mini-game mới chỉnh ngay trong `GAMES` (`05b_games.js`).
+Trong `04d_life.js`: `YARD_SPOT`, `HIDE_SPOTS`, `EAT_SEATS` là vị trí các tụ chơi ngoài sân.
 Trong `04a_family.js`: `SCHED` là lịch trong ngày của bố và mẹ, `POI` là các điểm bố mẹ lui tới.
 
 Trong `04c_social.js`: `LINKS` là ranh giới giữa các khu (đi tới đâu, mất bao lâu); `CUTS`, `VENUE`, `wallCut()`, `mopCut()`, `washCut()`, `massageCut()` là kịch bản các hoạt cảnh (vị trí nhân vật, lời thoại, đạo cụ, các bước `say` / `move` / `hop`); `classAction()` là menu quay sang bạn trong giờ học; `classEvent()` và `runLunchEvent()` là các sự kiện trong giờ học / giờ nghỉ trưa; `MSG_TAM` là câu trả lời tin nhắn của từng bạn.

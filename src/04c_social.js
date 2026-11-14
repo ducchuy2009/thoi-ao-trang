@@ -291,8 +291,10 @@ ACT.friend = async (fid, where) => {
   const atSch = (where === 'school' || where === 'class') && G.atSchool;
   if (where === 'comp') { if (!G.comp.skip) add('bye', 'Tạm biệt, ai về nhà nấy'); }
   else if (where === 'meet') add('join', 'Đi chơi cùng nhau');
+  else if (where === 'in') { }
   else if (atSch && !freeTime()) add('out', 'Trốn học');
   else if (where !== 'class') add('out', 'Rủ đi chơi');
+  if (!hasNum(fid)) add('num', 'Xin số điện thoại');
   if (sellables().length) add('sell', 'Bán đồ');
   add('x', 'Rời đi');
   const note = grudge(fid) ? `<p class="warnbox">${F.name} đang giận vì bị bạn tố cáo (đến ${dateLabel(G.grudge[fid])}).</p>` : '';
@@ -300,22 +302,11 @@ ACT.friend = async (fid, where) => {
   if (c === 'talk') talkMenu(fid, where);
   else if (c === 'sell') sellMenu('f_' + fid, fid, F.name);
   else if (c === 'out') askOut(fid);
+  else if (c === 'num') askNumber(fid);
   else if (c === 'join') { if (G.meet) G.meet.n = Math.max(1, G.meet.n); setComp(fid, false); UI.say(F.name, '“Tới rồi hả! Đi thôi, cậu dẫn đường đi.”'); }
   else if (c === 'bye') endComp(`${F.name} vẫy tay chào rồi về.`);
 };
-// Bấm chuông nhà bạn ở phố Hoa Phượng
-ACT.house = fid => {
-  const F = FRIENDS[fid];
-  if (friendHome(fid)) return ACT.friend(fid, 'house');
-  let where;
-  if (G.time >= 1290 || G.time < 390) where = `“Khuya rồi cháu ơi, ${F.name} ngủ rồi.”`;
-  else if (meetToday(fid)) where = `“${F.name} ra ${PLACES[G.meet.place].name} rồi, bảo là có hẹn với cháu mà?”`;
-  else if (parkTime()) where = `“${F.name} ra công viên bên khu nhà cháu chơi rồi.”`;
-  else if (isComp(fid)) where = `“Ơ, ${F.name} đang đi với cháu đấy thôi?”`;
-  else if (schoolToday() && G.time < AFTER_SCHOOL) where = `“Giờ này ${F.name} đang ở trường mà cháu?”`;
-  else where = `“${F.name} vừa chạy đi đâu đó rồi cháu ạ.”`;
-  UI.say(`Nhà ${F.name}`, `Bấm chuông… Người nhà ${F.name} ló đầu ra: ${where}<p class="dim">${F.name} có nhà: ngày đi học 20:10–21:30 · ngày nghỉ 06:30–08:00 và 18:10–21:30. Muốn chắc ăn thì nhắn tin hẹn trước (Điện thoại).</p>`);
-};
+// ACT.house (bấm chuông, vào nhà bạn chơi): xem 04d_life.js
 
 /* ---------- hoạt cảnh ---------- */
 // o: { map, me:[x,y,dir], actors:[{look,x,y,dir,hidden}], cam, props:[fn(now)], hide:[sid], title, below,
@@ -340,7 +331,7 @@ async function runStep(st, o) {
   else if (st.par) await Promise.all(st.par.map(q => runStep(q, o)));
 }
 async function playCut(o) {
-  const back = { map: G.map, x: G.x, y: G.y, dir: G.dir };
+  const back = { map: G.map, x: G.x, y: G.y, dir: G.dir }, prev = RT.scene;      // đang trong tiết học mà diễn hoạt cảnh thì xong trả lại cảnh lớp học
   if (!o.inPlace) await UI.fade(true);
   if (o.me) setMap(o.map, o.me[0], o.me[1], o.me[2]);
   RT.scene = { type: 'cut', map: o.map || G.map, actors: o.actors || [], cam: o.cam, props: o.props || [], hide: o.hide || [], bubble: null, title: o.title || '', tw: [], bars: o.bars, hideMe: o.hideMe };
@@ -349,7 +340,7 @@ async function playCut(o) {
   if (!o.inPlace) await UI.fade(false);
   for (const st of (o.steps || (o.lines || []).map(l => ({ say: l })))) await runStep(st, o);
   if (!o.inPlace) await UI.fade(true);
-  RT.scene = null; document.body.classList.remove('cut');
+  RT.scene = prev && prev.type !== 'cut' ? prev : null; document.body.classList.remove('cut');
   if (!o.stay) setMap(back.map, back.x, back.y, back.dir);
   if (!o.inPlace) await UI.fade(false);
 }
@@ -579,7 +570,7 @@ async function classAction(p, subj) {
 const borrowChance = fid => clamp((fid === 'khoa' ? BORROW.deskmate : BORROW.other) + BORROW.perHeart * hearts(fid) + BORROW.perTalk * lv('giaotiep') + (grudge(fid) ? BORROW.grudge : 0), 0.03, 0.95);
 async function askBorrow(subj) {
   const item = `sách ${SUBJ[subj].short}`, fids = Object.keys(FRIENDS), L = [];
-  const c = await UI.ask(`Quên ${item}!`, `<p>Vào tiết rồi mới phát hiện quên ${item}. Quay sang hỏi mượn ai?</p>`, fids.map(f => `${FRIENDS[f].name} (${FRIENDS[f].seat})`).concat('Thôi, ngồi nghe chay'));
+  const c = await meSay(`<p><i>Thôi chết… lục tung cả cặp mà không thấy ${item} đâu. Chắc để quên ở nhà rồi. Quay sang hỏi mượn ai bây giờ?</i></p>`, fids.map(f => `${FRIENDS[f].name} (${FRIENDS[f].seat})`).concat('Thôi, ngồi nghe chay'));
   if (c < 0 || c >= fids.length) return { gain: 1, lines: [li('Quên sách, ngồi nghe chay.', 'warn')] };
   const fid = fids[c], F = FRIENDS[fid];
   let gain = 1;
@@ -643,7 +634,7 @@ async function runLunchEvent(id) {
     if (c !== 0) return;
     if (G.stamina < 10) return UI.toast('Mệt quá, đá không nổi.', 'bad');
     RT.lock = true;
-    const r = await UI.minigame({ title: 'Giao hữu 10A1 – 10A2', task: 'Giữ bóng trong vùng xanh để dẫn bóng qua hàng thủ và ghi bàn', icon: 'bong', diff: 2 + Math.floor(Math.random() * 3), level: lv('thethao'), tired: G.stamina < 15 });
+    const r = gameRes(await playGame('keepup', 2 + Math.floor(Math.random() * 2), 'Giao hữu 10A1 – 10A2: tâng bóng qua hàng thủ'));
     useStam(10, true); addStat('thethao', r.win ? 8 : 3);
     if (r.win) for (const f in FRIENDS) addFriend(f, 2, true);
     advanceTime(30); RT.lock = false; UI.hud();
@@ -676,20 +667,6 @@ async function runLunchEvent(id) {
     if (r === 1) await showPack(openPacks(1), 'Phần thưởng giải đấu');
   }
 }
-ACT.library = async () => {
-  if (!G.atSchool || !schoolToday()) return UI.say('Thư viện', 'Thư viện đóng cửa.');
-  if (!(inWin(G.time, AM_END, PM_START - 10) || inWin(G.time, CFG.SCHOOL_END, CFG.SCHOOL_END + 100))) return UI.say('Thư viện', 'Cô thủ thư: “Giờ học thì về lớp đi em.”<p class="dim">Thư viện mở giờ nghỉ trưa và sau giờ tan học.</p>');
-  if (G.daily.lib) return UI.toast('Hôm nay bạn đọc sách ở thư viện rồi.');
-  if (G.stamina < LIBRARY.stam) return UI.toast('Mệt quá, đọc không vào.', 'bad');
-  const c = await UI.ask('Thư viện', '<p>“Em muốn mượn đọc sách môn nào?”</p>', BOOK_SUBJ.map(s => SUBJ[s].name).concat('Thôi'), { grid: true });
-  if (c < 0 || c >= BOOK_SUBJ.length) return;
-  const s = BOOK_SUBJ[c];
-  await activity(`Đang đọc sách ${SUBJ[s].name} ở thư viện…`, LIBRARY.mins, () => {
-    G.daily.lib = true; useStam(LIBRARY.stam); addStat(s, LIBRARY.pts);
-    if (!grudge('vy') && !isComp('vy') && Math.random() < 0.35) { addFriend('vy', 2); UI.toast('Gặp Vy cũng đang ngồi đọc sách.', 'good'); }
-  });
-};
-
 /* ---------- phố Hoa Phượng: trà sữa · TTTM · khu game · xiên que, kem ---------- */
 const withF = fid => (fid ? ` cùng ${FRIENDS[fid].name}` : '');
 ACT.tea = async () => {
@@ -704,58 +681,7 @@ ACT.tea = async () => {
     addMoney(-T.togo.price); gainStam(T.togo.stam); UI.hud();
   }
 };
-ACT.mall = async () => {
-  const P = PLACES.mall; if (RT.lock || !placeOpen(P)) return;
-  const fid = palAt('mall'), wf = withF(fid), M = MALL, ids = ['movie', 'book', 'box', 'bim', 'chicken', 'x'];
-  const c = ids[await UI.ask(P.name, '<p>Trung tâm thương mại sáng choang, máy lạnh mát rượi.</p>', [
-    `Rạp chiếu phim: xem phim${wf} · ${fmtMoney(M.movie.price)}`,
-    `Nhà sách: sách tham khảo · ${fmtMoney(M.book.price)}`,
-    `Siêu thị: hộp ${M.box.n} thẻ cầu thủ đặc biệt · ${fmtMoney(M.box.price)}`,
-    `Siêu thị: bim bim Sao Vàng · ${fmtMoney(5000)}`,
-    `Khu ăn uống: gà rán${wf} · ${fmtMoney(M.chicken.price)}`, 'Thôi'])];
-  if (c === 'movie') {
-    if (G.money < M.movie.price) return UI.toast('Không đủ tiền.', 'bad');
-    await jointAct(`Đang xem phim${wf}…`, M.movie.mins, 'movie', fid, () => { addMoney(-M.movie.price); gainStam(M.movie.stam); addStat('giaotiep', fid ? 3 : 1); palGain('mall', M.movie.friend); });
-  } else if (c === 'book') {
-    if (G.daily.book) return UI.toast('Hôm nay bạn mua sách tham khảo rồi, đọc hết cuốn đó đã.');
-    if (G.money < M.book.price) return UI.toast('Không đủ tiền.', 'bad');
-    const k = await UI.ask('Nhà sách', '<p>Chọn sách tham khảo môn nào?</p>', BOOK_SUBJ.map(s => SUBJ[s].name).concat('Thôi'), { grid: true });
-    if (k < 0 || k >= BOOK_SUBJ.length) return;
-    G.daily.book = true; addMoney(-M.book.price); addStat(BOOK_SUBJ[k], M.book.pts); UI.hud();
-  } else if (c === 'box') {
-    if (G.money < M.box.price) return UI.toast('Không đủ tiền.', 'bad');
-    addMoney(-M.box.price); UI.hud();
-    await showPack(openPacks(M.box.n, 1), 'Mở hộp thẻ đặc biệt');
-  } else if (c === 'bim') {
-    if (G.money < 5000) return UI.toast('Không đủ tiền.', 'bad');
-    addMoney(-5000); G.inv.bimbim++; UI.hud();
-    await showPack(openPacks(1), 'Bóc gói bim bim Sao Vàng');
-  } else if (c === 'chicken') {
-    if (G.money < M.chicken.price) return UI.toast('Không đủ tiền.', 'bad');
-    await jointAct(`Đang ăn gà rán${wf}…`, M.chicken.mins, 'chicken', fid, () => { addMoney(-M.chicken.price); gainStam(M.chicken.stam); palGain('mall', M.chicken.friend); });
-  }
-};
-ACT.arcade = async () => {
-  const P = PLACES.arcade; if (RT.lock || !placeOpen(P)) return;
-  const fid = palAt('arcade'), wf = withF(fid), A = ARCADE;
-  const c = await UI.ask(P.name, '<p>Tiếng nhạc xập xình, đèn nhấp nháy đủ màu.</p>', [
-    `Máy gắp thú · ${fmtMoney(A.claw.price)}/lượt`, `Game thùng đua xe, bắn súng${wf} · ${fmtMoney(A.cab.price)}`, `Máy nhảy${wf} · ${fmtMoney(A.dance.price)}`, 'Thôi']);
-  if (c === 0) {
-    if (G.money < A.claw.price) return UI.toast('Không đủ tiền.', 'bad');
-    RT.lock = true; addMoney(-A.claw.price); UI.hud();
-    const r = await UI.minigame({ title: 'Máy gắp thú', task: 'Giữ con gấu nằm trong vùng xanh (càng gắp) cho tới khi nhấc được lên', icon: 'gau', diff: 2 + Math.floor(Math.random() * 3), level: lv('kheotay'), tired: G.stamina < 10 });
-    addStat('kheotay', r.win ? 3 : 1);
-    if (r.win) { G.inv.gaubong++; UI.toast('Gắp được một con gấu bông! Đem tặng bạn thân nhé.', 'good'); } else UI.toast('Càng gắp tuột mất rồi… thử lại lần nữa?', 'info');
-    advanceTime(10); RT.lock = false; UI.hud();
-  } else if (c === 1) {
-    if (G.money < A.cab.price) return UI.toast('Không đủ tiền.', 'bad');
-    await jointAct(`Đang chơi game thùng${wf}…`, A.cab.mins, 'cab', fid, () => { addMoney(-A.cab.price); gainStam(A.cab.stam); addStat('giaotiep', fid ? 3 : 1); addStat('kheotay', 1); palGain('arcade', A.cab.friend); });
-  } else if (c === 2) {
-    if (G.money < A.dance.price) return UI.toast('Không đủ tiền.', 'bad');
-    if (G.stamina < A.dance.stam) return UI.toast('Không đủ thể lực.', 'bad');
-    await jointAct(`Đang quẩy máy nhảy${wf}…`, A.dance.mins, 'dance', fid, () => { addMoney(-A.dance.price); useStam(A.dance.stam, true); addStat('vannghe', A.dance.pts); addStat('thethao', 1); palGain('arcade', A.dance.friend); });
-  }
-};
+// ACT.mall / ACT.arcade: giờ đi hẳn vào bên trong (xem 04d_life.js)
 ACT.cart = async () => {
   if (!inWin(G.time, 600, 1290)) return UI.say('Xe xiên que', 'Xe chưa dọn hàng.<p class="dim">Bán từ 10:00 đến 21:30.</p>');
   const fid = palAt('cart'), wf = withF(fid);
@@ -765,13 +691,7 @@ ACT.cart = async () => {
   if (G.money < price) return UI.toast('Không đủ tiền.', 'bad');
   await jointAct(c ? `Đang ăn kem${wf}…` : `Đang ăn xiên que${wf}…`, 10, c ? 'kem' : 'xien', fid, () => { addMoney(-price); gainStam(c ? 8 : 12); palGain('cart', 5); });
 };
-// Sân bóng, sân thể dục: chơi thể thao (có bạn đi cùng thì đá chung)
-ACT.field = async () => {
-  if (G.daily.field >= 2) return UI.toast('Hôm nay chơi thể thao đủ rồi.');
-  if (G.stamina < 8) return UI.toast('Không đủ thể lực.', 'bad');
-  const fid = G.comp ? G.comp.fid : null;
-  await jointAct(`Đang chơi thể thao${withF(fid)}…`, 20, 'sport', fid, () => { G.daily.field++; useStam(8, true); addStat('thethao', 3); palGain('park', 6); });
-};
+// ACT.field (đá bóng có hoạt ảnh): xem 04d_life.js
 
 /* ---------- núi sau trường ---------- */
 ACT.picnic = async () => {
@@ -859,7 +779,7 @@ async function cardDuel(sid, fid, name, tier, o) {
 
 /* ---------- điện thoại: nhắn tin với bạn bè, mẹ ---------- */
 const PHONE_CONTACTS = ['khoa', 'vy', 'dat', 'ngan', 'mom'];
-const contactOf = id => (id === 'mom' ? { name: 'Mẹ', note: 'Xin phép về muộn' } : FRIENDS[id]);
+const contactOf = id => (id === 'mom' ? { name: 'Mẹ', note: 'Xin phép về muộn' } : id === 'dad' ? { name: 'Bố', note: 'Hỏi thăm bố' } : FRIENDS[id]);
 const MSG_ME = ['Đang làm gì đó?', 'Hôm nay học mệt ghê…', 'Ăn cơm chưa?', 'Chán quá, tám tí đi.', 'Bài hôm nay cậu hiểu không?'];
 const MSG_TAM = {
   khoa: ['Đang cày game nè, tí nữa mới học.', 'Mai đá bóng không? Tớ mới mua đôi giày mới.', 'Bài Toán hôm nay khó ghê, tớ chép của Vy rồi.', 'Tớ vừa bóc được thẻ hiếm, mai mang lên lớp khoe.'],
@@ -869,7 +789,7 @@ const MSG_TAM = {
 };
 const MSG_NO = ['Hôm đó tớ kẹt rồi, để bữa khác nha.', 'Mẹ tớ không cho đi rồi…', 'Tớ còn một đống bài chưa làm. Lần sau nhé!'];
 function pushMsg(id, me, t) { const a = (G.phone.msgs[id] = G.phone.msgs[id] || []); a.push({ m: me ? 1 : 0, t }); if (a.length > 30) a.splice(0, a.length - 30); }
-function inbox(id, t) { pushMsg(id, false, t); G.phone.unread[id] = (G.phone.unread[id] || 0) + 1; UI.toast(`Tin nhắn mới từ ${contactOf(id).name} — mở Điện thoại (P) để xem`, 'info'); }
+function inbox(id, t) { if (!hasNum(id)) return; pushMsg(id, false, t); G.phone.unread[id] = (G.phone.unread[id] || 0) + 1; UI.toast(`Tin nhắn mới từ ${contactOf(id).name} — mở Điện thoại (P) để xem`, 'info'); }
 const unreadCount = () => Object.values(G.phone.unread).reduce((s, n) => s + n, 0);
 const meetBusy = () => !!(G.meet && G.meet.day >= G.day);
 function setMeet(fid, place, day, from) { G.meet = { fid, place, day, from: from || 0, n: 0 }; }
@@ -882,6 +802,7 @@ function phoneActions(id) {
     a.push(['hoi', 'Hỏi mẹ tối nay ăn gì']);
     return a;
   }
+  if (id === 'dad') return [['dad', 'Hỏi thăm bố']];
   const p = G.phone.pend;
   if (p && p.fid === id && p.day >= G.day) { a.push(['yes', 'Đi chứ!']); a.push(['no', 'Tớ bận rồi, để bữa khác']); }
   a.push(['tam', 'Tám chuyện']); a.push(['bai', 'Hỏi lịch kiểm tra']);
@@ -897,6 +818,12 @@ function phoneSend(id, act, arg) {
       if (Math.random() < p) { G.daily.outPerm = true; G.daily.outAt20 = false; pushMsg('mom', false, 'Ừ, đi đâu nhớ cẩn thận, đừng về khuya quá nhé con.'); UI.toast('Mẹ đồng ý: hôm nay về sau 20:00 không bị mắng.', 'good'); }
       else pushMsg('mom', false, 'Không được. Về ăn cơm rồi còn học bài, con.');
     } else { pushMsg('mom', true, 'Mẹ ơi tối nay nhà mình ăn gì ạ?'); pushMsg('mom', false, pick(['Canh chua cá với thịt kho. Về sớm ăn cho nóng.', 'Mẹ nấu cà ri gà. Nhớ về trước 8 giờ nhé.', 'Rau muống xào tỏi, trứng chiên. Bố con đang đợi cơm đấy.'])); }
+    return;
+  }
+  if (id === 'dad') {
+    pushMsg('dad', true, pick(['Bố ơi bố đang làm gì đấy ạ?', 'Bố ăn cơm chưa ạ?', 'Hôm nay bố về sớm không ạ?']));
+    pushMsg('dad', false, pick(['Bố đang bận chút việc. Học hành cẩn thận nhé con.', 'Bố ăn rồi. Con nhớ ăn uống đầy đủ, đừng để đói rồi ngất ra đấy.', 'Tối bố về. Cuối tuần hai bố con đi câu cá nhé.']));
+    if (!G.daily.msg.dad) { G.daily.msg.dad = true; addParent(1, '', true); }
     return;
   }
   const F = FRIENDS[id], say = t => pushMsg(id, false, t);
@@ -948,7 +875,7 @@ function phoneInvite(fid, place) {
 }
 // Bạn bè chủ động nhắn: nhắc lịch kiểm tra, rủ đi chơi, tám chuyện
 function friendPing(evening) {
-  const fids = Object.keys(FRIENDS).filter(f => !grudge(f)); if (!fids.length) return;
+  const fids = Object.keys(FRIENDS).filter(f => !grudge(f) && hasNum(f)); if (!fids.length) return;      // chỉ bạn nào đã cho số mới nhắn
   const fid = pick(fids), r = Math.random();
   const tmr = G.tests.find(t => t.day === G.day + 1 && !t.done);
   if (evening && tmr && r < 0.45) return inbox(fid, `Mai có ${TEST_NAME[tmr.type]} môn ${SUBJ[tmr.subj].name} đó. Ôn chưa?`);
@@ -969,7 +896,7 @@ function socialNewDay() {
   if (G.meet && G.meet.day < G.day) {
     if (!G.meet.n) {
       const f = G.meet.fid; addFriend(f, -5, true);
-      pushMsg(f, false, 'Hôm qua tớ đợi mãi mà không thấy cậu. Cho tớ leo cây hả? :('); G.phone.unread[f] = (G.phone.unread[f] || 0) + 1;
+      if (hasNum(f)) { pushMsg(f, false, 'Hôm qua tớ đợi mãi mà không thấy cậu. Cho tớ leo cây hả? :('); G.phone.unread[f] = (G.phone.unread[f] || 0) + 1; }
       RT.morning.push(`Hôm qua bạn lỡ hẹn với ${FRIENDS[f].name}. Bạn ấy giận rồi.`);
     }
     G.meet = null;

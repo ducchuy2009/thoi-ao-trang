@@ -165,16 +165,15 @@ function buildPho() {
   // dãy nhà bạn bè
   for (const fid in FRIEND_HOUSE) {
     const [spr, hx] = FRIEND_HOUSE[fid], F = FRIENDS[fid];
-    addObj(m, { s: spr, x: hx, y: 47, sol: [1, 30, 96, 51], label: () => `Nhà ${F.name} — bấm chuông`, act: () => ACT.house(fid) });
-    m.labels.push({ x: hx + 49, y: 82.5, text: 'NHÀ ' + F.name.toUpperCase(), size: 5.5, col: '#2a2136', maxw: 60 });
+    addObj(m, { s: spr, x: hx, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà bạn — bấm chuông', act: () => ACT.house(fid) });
     NPCS.push({ id: 'h_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'pho', x: hx + 49, y: 144, dir: 0, wander: 8, vis: () => friendHome(fid), label: () => F.name + ' — đang ở trước nhà', act: () => ACT.friend(fid, 'house') });
   }
   // dãy vui chơi
   addObj(m, { s: 'teashop', x: 484, y: 51, sol: [1, 24, 80, 53], label: () => PLACES.tea.name + ' — uống trà sữa', act: () => ACT.tea() });
   m.labels.push({ x: 525, y: 67.5, text: 'TRÀ SỮA MÂY', size: 8, col: '#b5677c', maxw: 62 });
-  addObj(m, { s: 'mall', x: 572, y: 23, sol: [1, 30, 176, 75], label: () => PLACES.mall.name + ' — xem phim, nhà sách, siêu thị', act: () => ACT.mall() });
+  addObj(m, { s: 'mall', x: 572, y: 23, sol: [1, 30, 176, 75], label: () => PLACES.mall.name + ' — vào trong', act: () => ACT.enter('mall') });
   m.labels.push({ x: 661, y: 44.5, text: 'HOA PHƯỢNG PLAZA', size: 9, col: '#ffffff', maxw: 128 });
-  addObj(m, { s: 'arcade', x: 758, y: 51, sol: [1, 24, 96, 53], label: () => PLACES.arcade.name + ' — gắp thú, game thùng, máy nhảy', act: () => ACT.arcade() });
+  addObj(m, { s: 'arcade', x: 758, y: 51, sol: [1, 24, 96, 53], label: () => PLACES.arcade.name + ' — vào trong', act: () => ACT.enter('arcade') });
   m.labels.push({ x: 807, y: 68, text: 'GAME ARCADE', size: 8, col: '#ffe066', maxw: 76 });
   for (const lx of [112, 262, 416, 862]) addObj(m, { s: 'lamp', x: lx, y: 112, sol: [3, 38, 6, 6] });
   addObj(m, { s: 'treePink', x: 862, y: 10, sol: [13, 38, 10, 9] });
@@ -382,7 +381,6 @@ function buildSchool() {
   m.labels.push({ x: 79, y: 57.5, text: 'CĂN TIN', size: 6.5, col: '#2a2136', maxw: 40 });
   addObj(m, { s: 'bikeshed', x: 524, y: 62, sol: [1, 26, 96, 17], label: () => shedLabel(), act: () => ACT.shed() });
   addObj(m, { s: 'flagpole', x: 342, y: 108, sol: [3, 52, 14, 9] });
-  addObj(m, { s: 'libsign', x: 378, y: 92, sol: [6, 18, 10, 7], label: () => 'Thư viện — đọc sách', act: () => ACT.library() });
   for (const [a, b] of [[96, 140], [96, 250], [430, 140], [430, 250]]) addObj(m, { s: 'treeRed', x: a, y: b, sol: [13, 38, 10, 9] });
   for (const [a, b] of [[136, 172], [136, 282], [396, 172], [396, 282]]) addObj(m, { s: 'benchstone', x: a, y: b, sol: [1, 1, 28, 12] });
   addObj(m, { s: 'tree', x: 18, y: 150, sol: [13, 38, 10, 9] }); addObj(m, { s: 'tree2', x: 34, y: 244, sol: [13, 38, 10, 9] }); addObj(m, { s: 'bush', x: 60, y: 206, sol: [2, 4, 18, 9] }); addObj(m, { s: 'bush', x: 12, y: 318, sol: [2, 4, 18, 9] });
@@ -410,7 +408,7 @@ function buildSchool() {
   const mates = [['khoa', 'Khoa', 'khoa'], ['vy', 'Vy', 'vy'], ['dat', 'Đạt', 'dat'], ['m1', 'Bạn cùng lớp', 'c1'], ['ngan', 'Ngân', 'ngan'], ['m3', 'Bạn cùng lớp', 'c3'], ['m4', 'Bạn cùng lớp', 'c4'], ['m5', 'Bạn cùng lớp', 'c5']];
   mates.forEach(([id, name, look], i) => {
     const fr = !!FRIENDS[id];
-    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(id), label: () => name, act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
+    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(id) && !!yardPos(id), label: () => name, act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
   });
 }
 
@@ -482,5 +480,6 @@ function buildMaps() {
   buildHome(); buildTown(); buildSchool(); buildClass(); buildLab(); buildPho(); buildHill(); buildRiver(); buildStation(); buildBeach();
   buildWC('wc', 'Nhà vệ sinh nữ', '#fbe4ea', '#eab2c2', '#e98fa5', 'wtile'); buildWC('wcm', 'Nhà vệ sinh nam', '#e4eef7', '#a9c6dc', '#5a8fd6', 'ltile');
   buildRide('ride', false); buildRide('rail', true);
+  buildRooms();
   addMeetNpcs(); buildFamily();
 }

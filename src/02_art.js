@@ -59,6 +59,9 @@ const LOOKS = {
   giamthi: { hair: '#3a3340', style: 'short', shirt: '#fbf7ee', pants: '#2f3550', tie: '#2a2136', mustache: true, skin: '#eab98c' },
   driver: { hair: '#3a3340', style: 'short', cap: '#3f9a6b', shirt: '#dfe7ef', pants: '#3a3f55' },
   clerk: { hair: '#3b2a22', style: 'bun', cap: '#b23b3b', shirt: '#3b6fb6', pants: '#2f3550' },
+  doctor: { hair: '#3b2a22', style: 'bun', shirt: '#fbfdff', pants: '#9fd6c4', aodai: true, shoe: '#fbfdff' },
+  x1: { ...UNI, hair: '#3b2a22', style: 'spiky', skin: '#eab98c' }, x2: { ...UNI, hair: '#2c2733', style: 'pony', skirt: true, band: '#f2a93b' },
+  x3: { ...UNI, hair: '#1f1f29', style: 'short' }, x4: { ...UNI, hair: '#5a3020', style: 'long', skirt: true, band: '#5fb0e8' },
   vendor: { hair: '#4a3328', style: 'bun', shirt: '#f2a93b', pants: '#5b4a6b', apron: '#ffffff' },
   c1: { ...UNI, hair: '#3b2a22', style: 'short' },
   c2: { ...UNI, hair: '#2c2733', style: 'long', skirt: true },
@@ -508,6 +511,7 @@ const GROUND = {
   plank(x, px, py) { R(x, '#c58c56', px, py, 16, 16); for (let k = 0; k < 4; k++) { R(x, '#a8713f', px, py + k * 4 + 3, 16, 1); R(x, '#dba56e', px, py + k * 4, 16, 1); } R(x, '#a8713f', px + 7, py, 1, 16); },
   // gạch nhà vệ sinh
   wtile(x, px, py) { for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) { R(x, (i + j) % 2 ? '#f7e9ee' : '#fdf6f8', px + i * 8, py + j * 8, 8, 8); R(x, '#e6cdd6', px + i * 8 + 7, py + j * 8, 1, 8); R(x, '#e6cdd6', px + i * 8, py + j * 8 + 7, 8, 1); } },
+  dtile(x, px, py, tx, ty) { R(x, (tx + ty) % 2 ? '#3a2f5b' : '#43376a', px, py, 16, 16); R(x, '#2c2347', px + 15, py, 1, 16); R(x, '#2c2347', px, py + 15, 16, 1); },
   ltile(x, px, py) { R(x, '#dfe9ee', px, py, 16, 16); R(x, '#c9d6dd', px + 15, py, 1, 16); R(x, '#c9d6dd', px, py + 15, 16, 1); R(x, '#eef4f7', px, py, 15, 1); },
   walltop(x, px, py) { R(x, '#3f354c', px, py, 16, 16); },
   void(x, px, py) { R(x, '#1f1b2e', px, py, 16, 16); },

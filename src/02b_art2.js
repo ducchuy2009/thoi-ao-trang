@@ -196,6 +196,51 @@ function buildSprites2() {
   def('hit', 7, 7, x => { R(x, '#ffe066', 3, 0, 1, 7); R(x, '#ffe066', 0, 3, 7, 1); R(x, '#fff', 2, 2, 3, 3); R(x, '#ffe066', 1, 1, 1, 1); R(x, '#ffe066', 5, 1, 1, 1); R(x, '#ffe066', 1, 5, 1, 1); R(x, '#ffe066', 5, 5, 1, 1); }, true);
   def('emoBang', 5, 9, x => { R(x, '#e2574c', 1, 0, 3, 5); R(x, '#e2574c', 2, 5, 1, 1); R(x, '#e2574c', 1, 7, 3, 2); });
   def('cup', 6, 8, x => { R(x, '#fffaf0', 0, 2, 6, 6); R(x, '#c98f5a', 1, 4, 4, 3); R(x, '#2a2136', 1, 6, 1, 1); R(x, '#2a2136', 3, 6, 1, 1); R(x, '#d9534f', 4, 0, 1, 3); });
+  /* ---------- các phòng trong trường, TTTM, khu game, nhà bạn ---------- */
+  // cửa phòng đè lên ô cửa sổ tầng trệt của dãy nhà trường (không viền)
+  def('sdoor', 22, 36, x => { R(x, '#f4d273', 0, 0, 22, 36); R(x, '#fffaf0', 3, 1, 16, 6); R(x, '#5f656f', 3, 6, 16, 1); drawDoor(x, 4, 8, 14, 27, '#3f7d5c'); }, true);
+  def('sdoorBig', 40, 8, x => { R(x, '#fffaf0', 0, 0, 40, 8); R(x, '#5f656f', 0, 7, 40, 1); }, true);
+  const bshelf = (name, col) => def(name, 26, 38, x => {
+    R(x, '#8a5a3a', 0, 0, 26, 38); R(x, '#a9703f', 0, 0, 26, 2); R(x, col, 2, 3, 22, 6); R(x, shade(col, 30), 2, 3, 22, 1);
+    for (let j = 0; j < 3; j++) { R(x, '#5b3d27', 2, 11 + j * 9, 22, 7); for (let i = 0; i < 7; i++) R(x, i % 3 === 0 ? col : ['#fffaf0', shade(col, -25), '#e3ddd0'][(i + j) % 3], 3 + i * 3, 12 + j * 9 + ((i + j) % 2), 2, 6 - ((i + j) % 2)); }
+  });
+  for (const s of BOOK_SUBJ) bshelf('bs_' + s, SUBJ[s].color);
+  def('napmat', 30, 18, x => { R(x, '#e6d096', 0, 0, 30, 18); R(x, '#c9b170', 0, 16, 30, 2); for (let i = 0; i < 30; i += 4) R(x, '#d9c27f', i, 0, 1, 16); R(x, '#fffaf0', 2, 3, 8, 11); R(x, '#e3ddd0', 2, 12, 8, 2); });
+  def('sleeper', 30, 18, x => { x.drawImage(SPR.napmat, -1, -1); R(x, '#f8d0a8', 3, 5, 7, 7); R(x, '#2c2733', 2, 4, 5, 8); R(x, '#8fb0d8', 10, 3, 18, 12); R(x, '#6f8fb8', 10, 13, 18, 2); R(x, '#2a2136', 8, 8, 1, 1); });
+  def('medbed', 34, 22, x => { R(x, '#c9ccd4', 0, 4, 34, 18); R(x, '#fbfdff', 1, 5, 32, 14); R(x, '#ffffff', 2, 6, 9, 11); R(x, '#9fd6c4', 12, 6, 20, 12); R(x, '#7fbfa9', 12, 16, 20, 2); R(x, '#8b8f9c', 0, 0, 2, 22); R(x, '#8b8f9c', 32, 2, 2, 20); });
+  def('redcross', 14, 14, x => { R(x, '#fffaf0', 0, 0, 14, 14); R(x, '#d9534f', 5, 2, 4, 10); R(x, '#d9534f', 2, 5, 10, 4); });
+  def('mic', 8, 22, x => { R(x, '#5f656f', 3, 6, 2, 14); R(x, '#3a3f55', 0, 20, 8, 2); ell(x, '#2a2136', 3.5, 3, 3, 3); R(x, '#8b8f9c', 2, 2, 2, 1); });
+  def('speaker', 14, 22, x => { R(x, '#2a2136', 0, 0, 14, 22); ell(x, '#5f656f', 6.5, 6, 4, 4); ell(x, '#3a3f55', 6.5, 6, 2, 2); ell(x, '#5f656f', 6.5, 15, 5, 5); ell(x, '#3a3f55', 6.5, 15, 2.5, 2.5); });
+  def('guitar', 10, 26, x => { R(x, '#8a5a3a', 4, 0, 2, 14); R(x, '#2a2136', 3, 0, 4, 3); ell(x, '#c98f5a', 4.5, 19, 4.5, 6); ell(x, '#dba56e', 4.5, 15, 3.4, 3.4); ell(x, '#3a2a22', 4.5, 18, 1.6, 1.6); R(x, '#fffaf0', 4, 4, 1, 16); });
+  def('poster', 14, 18, x => { R(x, '#fffaf0', 0, 0, 14, 18); R(x, '#7a5fc9', 1, 1, 12, 16); ell(x, '#ffe066', 7, 7, 3.5, 3.5); R(x, '#fff', 3, 13, 8, 1); R(x, '#fff', 4, 15, 6, 1); });
+  def('floorlamp', 12, 28, x => { R(x, '#5f656f', 5, 10, 2, 16); R(x, '#4a4f5a', 2, 26, 8, 2); tri(x, '#ffe9a0', 6, 0, 10, 6); R(x, '#f4d35e', 0, 9, 12, 1); });
+  // gian hàng trong TTTM (mái hiên theo màu) và quầy
+  const stall = (name, col) => def(name, 52, 46, x => {
+    for (let i = 0; i < 7; i++) { R(x, i % 2 ? '#fbf7ee' : col, i * 8 - 2, 0, 8, 10); R(x, i % 2 ? '#e3ddd0' : shade(col, -22), i * 8 - 2, 9, 8, 2); }
+    R(x, '#8b5e3c', 1, 11, 3, 20); R(x, '#8b5e3c', 48, 11, 3, 20);
+    const v = charSheet('vendor')[0][0]; x.drawImage(v, 17, 8);
+    R(x, '#e9e4d8', 0, 28, 52, 6); R(x, '#fbf8f0', 0, 28, 52, 2); R(x, shade(col, 35), 0, 34, 52, 12); R(x, shade(col, -10), 0, 43, 52, 3);
+    R(x, col, 4, 24, 6, 6); R(x, shade(col, 30), 12, 25, 5, 5); R(x, '#f4d35e', 38, 24, 5, 6); R(x, '#5a8fd6', 44, 25, 5, 5);
+  });
+  stall('stA', '#d9534f'); stall('stB', '#3b82c4'); stall('stC', '#5fae4a'); stall('stD', '#f2a93b'); stall('stE', '#7a5fc9'); stall('stF', '#2e9e86'); stall('stG', '#e06a9a');
+  // máy trong khu game
+  const cab = (name, body, scr, top) => def(name, 20, 36, x => {
+    R(x, body, 0, 4, 20, 32); R(x, shade(body, 25), 0, 4, 20, 2); R(x, shade(body, -25), 0, 32, 20, 4); R(x, top, 1, 0, 18, 5); R(x, '#fff', 3, 1, 3, 1); R(x, '#fff', 12, 2, 4, 1);
+    R(x, '#1b1530', 2, 8, 16, 12); R(x, scr, 3, 9, 14, 10); R(x, shade(scr, 40), 4, 10, 5, 2); R(x, '#2a2136', 1, 22, 18, 5); R(x, '#e2574c', 4, 21, 2, 4); R(x, '#f4d35e', 11, 23, 2, 2); R(x, '#5fe0f0', 15, 23, 2, 2);
+  });
+  cab('cabFight', '#4a3f6b', '#ff5fa8', '#ff5fa8'); cab('cabSlot', '#d9534f', '#ffe066', '#f4d35e'); cab('cabRace', '#3b6fb6', '#5fe0f0', '#5fe0f0'); cab('cabDance', '#7a5fc9', '#8fd067', '#ffe066');
+  def('cabClaw', 22, 38, x => { R(x, '#e2574c', 0, 0, 22, 38); R(x, '#f07a6f', 0, 0, 22, 2); R(x, '#bfe3f2', 2, 4, 18, 20); R(x, '#8b8f9c', 10, 4, 2, 8); R(x, '#8b8f9c', 7, 12, 8, 2); for (const [a, c2] of [[4, '#b9824f'], [10, '#e98fa5'], [15, '#8fd067']]) ell(x, c2, a + 1, 20, 2.6, 2.6); R(x, '#2a2136', 3, 27, 16, 6); R(x, '#ffe066', 9, 28, 3, 3); R(x, '#b23b3b', 0, 34, 22, 4); });
+  def('dancepad', 34, 22, x => { R(x, '#2a2136', 0, 0, 34, 22); for (let j = 0; j < 2; j++) for (let i = 0; i < 3; i++) R(x, ['#5fe0f0', '#ff5fa8', '#ffe066', '#8fd067', '#ff5fa8', '#5fe0f0'][j * 3 + i], 2 + i * 11, 2 + j * 10, 9, 8); }, true);
+  def('gameconsole', 22, 18, x => { R(x, '#2f2a3a', 1, 0, 20, 12); R(x, '#5fe0f0', 3, 2, 16, 8); R(x, '#ff5fa8', 5, 4, 4, 3); R(x, '#ffe066', 12, 5, 3, 3); R(x, '#8a5a3a', 0, 12, 22, 6); R(x, '#5f656f', 4, 14, 5, 2); R(x, '#5f656f', 13, 14, 5, 2); });
+  def('toiletdoor', 20, 30, x => { drawDoor(x, 1, 1, 18, 29, '#8fb9cf'); R(x, '#fffaf0', 7, 5, 6, 5); R(x, '#3b6fb6', 9, 6, 2, 3); }, true);
+  def('paper', 6, 5, x => { R(x, '#fffaf0', 0, 0, 6, 5); R(x, '#8fa0ab', 1, 1, 4, 1); R(x, '#8fa0ab', 1, 3, 3, 1); }, true);
+  def('book', 7, 5, x => { R(x, '#fffaf0', 0, 0, 7, 5); R(x, '#d9d0bd', 3, 0, 1, 5); R(x, '#8fa0ab', 1, 2, 2, 1); R(x, '#8fa0ab', 4, 2, 2, 1); }, true);
+  def('gunpart', 12, 5, x => { R(x, '#3a3f55', 0, 1, 12, 3); R(x, '#8a5a3a', 0, 1, 4, 4); R(x, '#55662f', 6, 3, 2, 2); }, true);
+  def('bball', 7, 7, x => { ell(x, '#e98a3c', 3, 3, 3, 3); R(x, '#8a4a1c', 3, 0, 1, 7); R(x, '#8a4a1c', 0, 3, 7, 1); });
+  def('shuttle', 5, 7, x => { R(x, '#fffaf0', 0, 0, 1, 4); R(x, '#fffaf0', 2, 0, 1, 4); R(x, '#fffaf0', 4, 0, 1, 4); R(x, '#d9534f', 1, 4, 3, 3); }, true);
+  def('zzz', 9, 9, x => { R(x, '#5a8fd6', 0, 0, 5, 1); R(x, '#5a8fd6', 3, 1, 1, 1); R(x, '#5a8fd6', 2, 2, 1, 1); R(x, '#5a8fd6', 0, 3, 5, 1); R(x, '#8fc1ee', 5, 5, 4, 1); R(x, '#8fc1ee', 6, 6, 2, 1); R(x, '#8fc1ee', 5, 8, 4, 1); }, true);
+  def('weedfly', 5, 6, x => { R(x, '#4c9a3c', 2, 0, 1, 6); R(x, '#6fbd4f', 0, 2, 2, 1); R(x, '#6fbd4f', 3, 1, 2, 1); }, true);
+  def('ricebox', 8, 6, x => { R(x, '#e2574c', 0, 2, 8, 4); R(x, '#fbf7ee', 0, 0, 8, 3); }, true);
   for (const k of ['bike', 'ebike', 'moto50']) SPR[k + 'L'] = flipH(SPR[k]);
 }
 
@@ -221,6 +266,30 @@ function itemIcon(id) {
   else if (id === 'ca') { ell(x, '#6fa8dc', 7, 8, 5.5, 3.2); R(x, '#6fa8dc', 12, 5, 3, 7); R(x, '#4f86b8', 13, 7, 2, 3); ell(x, '#cfe6f7', 6, 9, 3, 1.4); R(x, '#2a2136', 3, 7, 1, 1); }
   else if (id === 'cancau') { line(x, '#8b5e3c', 2, 14, 13, 1); line(x, '#8b5e3c', 3, 14, 14, 1); R(x, '#fffaf0', 14, 2, 1, 8); R(x, '#e2574c', 13, 10, 3, 2); R(x, '#5f656f', 4, 11, 3, 3); }
   else if (id === 'voso') { ell(x, '#f7c9b8', 7.5, 8.5, 6, 5); for (const a of [4, 6, 8, 10]) R(x, '#e9a48e', a, 5, 1, 7); R(x, '#fffaf0', 6, 12, 4, 2); }
+  // hàng hoá ở tạp hoá, căn tin, TTTM, khu game
+  else if (id === 'daynhay') { ring(x, '#e2574c', 8, 8, 6); R(x, '#fff6e3', 2, 2, 12, 5); R(x, '#3b82c4', 2, 3, 3, 5); R(x, '#3b82c4', 11, 3, 3, 5); }
+  else if (id === 'tatay') { R(x, '#8b8f9c', 4, 7, 8, 2); R(x, '#3a3f55', 1, 4, 3, 8); R(x, '#3a3f55', 12, 4, 3, 8); R(x, '#5f656f', 1, 4, 3, 2); R(x, '#5f656f', 12, 4, 3, 2); }
+  else if (id === 'xadon') { R(x, '#8b8f9c', 1, 3, 14, 2); R(x, '#5f656f', 2, 5, 2, 9); R(x, '#5f656f', 12, 5, 2, 9); R(x, '#f4d35e', 6, 3, 4, 2); }
+  else if (id === 'xedap' || id === 'xedapdien' || id === 'xemay') { const col = id === 'xedap' ? '#3b82c4' : id === 'xedapdien' ? '#5fae4a' : '#d9534f'; ring(x, '#2f2a3a', 4, 11, 3); ring(x, '#2f2a3a', 12, 11, 3); R(x, col, 4, 7, 9, 3); R(x, col, 10, 4, 2, 5); R(x, '#2f2a3a', 9, 3, 4, 1); R(x, '#2f2a3a', 3, 5, 4, 2); }
+  else if (id === 'bimbim5') { for (const [a, b2] of [[1, 3], [5, 1], [8, 4]]) { R(x, '#f2a93b', a, b2, 7, 10); R(x, '#d9862b', a, b2, 7, 1); R(x, '#e2574c', a + 2, b2 + 4, 3, 3); } }
+  else if (id === 'comtrua') { ell(x, '#fffaf0', 7.5, 9, 7, 5); ell(x, '#f4e3b0', 5.5, 8, 3.4, 2.6); ell(x, '#5fae4a', 10.5, 9, 2.6, 2); R(x, '#c9862b', 6, 10, 3, 2); }
+  else if (id === 'nuocmia') { R(x, '#eaf6fc', 4, 3, 8, 11); R(x, '#c9d98a', 5, 6, 6, 7); R(x, '#fffaf0', 6, 7, 2, 2); R(x, '#d9534f', 9, 0, 1, 7); }
+  else if (id === 'trasua') { R(x, '#fffaf0', 4, 4, 8, 10); R(x, '#c98f5a', 5, 6, 6, 7); for (const a of [5, 7, 9]) R(x, '#2a2136', a, 11, 1, 1); R(x, '#fff', 3, 3, 10, 2); R(x, '#d9534f', 9, 0, 1, 5); }
+  else if (id === 'tradao') { R(x, '#fffaf0', 4, 4, 8, 10); R(x, '#f2a93b', 5, 6, 6, 7); ell(x, '#e98a3c', 7.5, 10, 2, 2); R(x, '#fff', 3, 3, 10, 2); R(x, '#5fae4a', 9, 0, 1, 5); }
+  else if (id === 'xien') { R(x, '#c98f5a', 7, 1, 1, 14); for (const [b2, c2] of [[3, '#e2574c'], [7, '#f2a93b'], [11, '#8b5e3c']]) ell(x, c2, 7.5, b2, 2.6, 1.8); }
+  else if (id === 'kem') { tri(x, '#dba56e', 7.5, 8, 7, 4); ell(x, '#f7c9d6', 7.5, 6, 4.4, 4); ell(x, '#fffaf0', 6, 4.5, 1.6, 1.4); R(x, '#d9534f', 7, 0, 2, 2); }
+  else if (id === 'garan') { ell(x, '#c9862b', 6, 7, 5, 4.4); ell(x, '#e0a85a', 5, 6, 3, 2.4); R(x, '#fffaf0', 10, 9, 5, 2); R(x, '#fffaf0', 13, 8, 2, 4); }
+  else if (id === 'haisan') { ell(x, '#f79a90', 7, 8, 5, 3); R(x, '#f79a90', 10, 5, 4, 2); R(x, '#f79a90', 10, 10, 4, 2); R(x, '#2a2136', 4, 7, 1, 1); R(x, '#c98f5a', 0, 13, 16, 1); }
+  else if (id === 'vephim') { R(x, '#f4d35e', 1, 4, 14, 8); R(x, '#d9b23c', 5, 4, 1, 8); R(x, '#2a2136', 8, 6, 5, 1); R(x, '#2a2136', 8, 9, 4, 1); R(x, '#e2574c', 2, 6, 2, 4); }
+  else if (id === 'sachtk') { R(x, '#3f7d5c', 2, 2, 12, 13); R(x, '#2f5f46', 2, 2, 2, 13); R(x, '#fffaf0', 6, 5, 6, 2); R(x, '#f4d35e', 6, 9, 4, 1); R(x, '#fffaf0', 4, 14, 10, 1); }
+  else if (id === 'hopthe') { R(x, '#d9534f', 2, 4, 12, 10); R(x, '#f4d35e', 2, 4, 12, 3); R(x, '#fffaf0', 5, 8, 6, 4); R(x, '#3b82c4', 6, 9, 4, 2); }
+  else if (id === 'xeng') { ell(x, '#d9b23c', 6, 9, 5, 5); ell(x, '#f4d35e', 6, 8, 5, 5); R(x, '#d9b23c', 5, 6, 2, 5); ell(x, '#d9b23c', 11, 6, 3.4, 3.4); ell(x, '#f4d35e', 11, 5.4, 3.4, 3.4); }
+  else if (id === 'd_poster') { R(x, '#fffaf0', 3, 1, 10, 14); R(x, '#7a5fc9', 4, 2, 8, 12); ell(x, '#ffe066', 8, 6, 2.4, 2.4); R(x, '#fff', 5, 11, 6, 1); }
+  else if (id === 'd_den') { tri(x, '#ffe9a0', 8, 1, 7, 5); R(x, '#f4d35e', 3, 7, 10, 1); R(x, '#5f656f', 7, 8, 2, 6); R(x, '#4a4f5a', 4, 14, 8, 1); }
+  else if (id === 'd_cay') { R(x, '#c8583f', 5, 10, 6, 5); ell(x, '#5fae4a', 8, 6, 5, 5); ell(x, '#7cc75f', 6, 4, 2.4, 2.4); }
+  else if (id === 'd_tham') { ell(x, '#d9695f', 7.5, 8, 7.5, 5); ell(x, '#f0c9a0', 7.5, 8, 5.5, 3.5); ell(x, '#d9695f', 7.5, 8, 3, 1.8); }
+  else if (id === 'guitar') { R(x, '#8a5a3a', 7, 0, 2, 8); ell(x, '#c98f5a', 7.5, 11, 4, 4.4); ell(x, '#3a2a22', 7.5, 10.5, 1.4, 1.4); R(x, '#2a2136', 6, 0, 4, 2); }
+  else if (id === 'micro') { ell(x, '#3a3f55', 8, 4, 3.4, 3.4); R(x, '#8b8f9c', 6, 3, 2, 1); R(x, '#5f656f', 7, 7, 2, 7); R(x, '#3a3f55', 4, 14, 8, 1); }
   // biểu tượng các tab của menu
   else if (id === 'm_stats') { R(x, '#3b82c4', 2, 9, 3, 5); R(x, '#5fae4a', 6, 5, 3, 9); R(x, '#f2a93b', 10, 2, 3, 12); R(x, '#2a2136', 1, 14, 14, 1); }
   else if (id === 'm_friends') { ell(x, '#e2574c', 4.5, 5.5, 3.5, 3.5); ell(x, '#e2574c', 10.5, 5.5, 3.5, 3.5); for (let j = 0; j < 7; j++) R(x, '#e2574c', 1 + j, 7 + j, 14 - 2 * j, 1); R(x, '#ffb3c7', 3, 4, 2, 2); }
