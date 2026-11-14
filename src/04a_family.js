@@ -194,16 +194,16 @@ ACT.parent = async who => {
   const f = FAM[who], name = PNAME[who], d = G.daily, opts = [], ids = [];
   const morning = schoolToday() && !d.arrived && G.time < CFG.PARENT_LEAVE && parentHome(who);
   if (morning) { opts.push(`Nhờ ${name.toLowerCase()} chở đi học`); ids.push('ride'); }
-  opts.push(d.pchat[who] ? 'Trò chuyện' : 'Trò chuyện (+thiện cảm)'); ids.push('talk');
-  if (!d.massage[who]) { opts.push(`Đấm lưng cho ${name.toLowerCase()} (20' · +thiện cảm)`); ids.push('massage'); }
-  if (who === 'mom' && f.goal === 'stove' && !f.legs.length && !d.cook) { opts.push("Phụ mẹ nấu ăn (20' · +thiện cảm)"); ids.push('cook'); }
-  if (who === 'dad' && dadWatching() && !d.football) { opts.push("Xem bóng đá cùng bố (30' · +thiện cảm)"); ids.push('football'); }
-  if (freeTime() && !d.askOut && G.time < 1290) { opts.push('Xin phép đi chơi (xin tiền đi chơi)'); ids.push('out'); }
-  if (who === 'mom' && fishCount() && !d.fishMom) { opts.push(`Đưa cá cho mẹ nấu (+${FISHING.momGift} thiện cảm)`); ids.push('fish'); }
-  if (isDate(PARENT_BDAY[who], G.day) && !d.bday[who]) { opts.unshift(`Chúc mừng sinh nhật ${name.toLowerCase()}! (+${BDAY_PARENT} thiện cảm)`); ids.unshift('bday'); }
+  opts.push('Trò chuyện'); ids.push('talk');
+  if (!d.massage[who]) { opts.push(`Đấm lưng cho ${name.toLowerCase()}`); ids.push('massage'); }
+  if (who === 'mom' && f.goal === 'stove' && !f.legs.length && !d.cook) { opts.push('Phụ mẹ nấu ăn'); ids.push('cook'); }
+  if (who === 'dad' && dadWatching() && !d.football) { opts.push('Xem bóng đá cùng bố'); ids.push('football'); }
+  if (freeTime() && !d.askOut && G.time < 1290) { opts.push('Xin phép đi chơi'); ids.push('out'); }
+  if (who === 'mom' && fishCount() && !d.fishMom) { opts.push('Đưa cá cho mẹ nấu'); ids.push('fish'); }
+  if (isDate(PARENT_BDAY[who], G.day) && !d.bday[who]) { opts.unshift(`Chúc mừng sinh nhật ${name.toLowerCase()}!`); ids.unshift('bday'); }
   opts.push('Thôi'); ids.push('x');
   const pi = parentInfo(G.parent);
-  const c = ids[await UI.ask(name, `<p>${name} ${parentTxt(who)}. “${who === 'mom' ? 'Con cần gì không?' : 'Sao thế con?'}”</p><p class="dim">Thiện cảm của bố mẹ: ${Math.round(pi.pts)}/${PARENT_MAX} · tiền tiêu vặt cấp ${pi.lv} (${fmtMoney(pi.allowance)}/tuần)</p>`, opts)];
+  const c = ids[await UI.ask(name, `<p>${name} ${parentTxt(who)}. “${who === 'mom' ? 'Con cần gì không?' : 'Sao thế con?'}”</p>`, opts)];
   if (c === 'ride') {
     if (G.time >= CFG.RIDE_DEADLINE) return UI.say(name, `“Muộn rồi con ơi, ${name.toLowerCase()} phải đi làm ngay. Con tự đi nhé!”<p class="dim">Chỉ nhờ chở được trước 07:20.</p>`);
     const miss = missingToday();
@@ -216,7 +216,7 @@ ACT.parent = async who => {
     if (G.stamina < 3) return UI.toast('Mệt quá, đấm không nổi.', 'bad');
     await animActivity(`Đang đấm lưng cho ${name.toLowerCase()}…`, 20, massageCut(f.n), () => { d.massage[who] = true; useStam(3); addParent(PARENT.massage, `đấm lưng cho ${name.toLowerCase()}`); });
   } else if (c === 'cook') {
-    await activity('Đang phụ mẹ nấu ăn…', 20, () => { d.cook = true; useStam(3); addStat('kheotay', 2); addParent(PARENT.cook, 'phụ mẹ nấu ăn'); });
+    await animActivity('Đang phụ mẹ nấu ăn…', 20, cookCut(f.n), () => { d.cook = true; useStam(3); addStat('kheotay', 2); addParent(PARENT.cook, 'phụ mẹ nấu ăn'); });
   } else if (c === 'football') watchFootball();
   else if (c === 'out') askOuting(name);
   else if (c === 'fish') { const id = Object.keys(G.fish).find(k => G.fish[k] > 0); G.fish[id]--; d.fishMom = true; addParent(FISHING.momGift, 'mang cá về cho mẹ nấu'); UI.say('Mẹ', `“Ôi, ${FISH.find(x => x.id === id).name.toLowerCase()} tươi thế! Tối nay mẹ nấu canh chua nhé.”`); }
@@ -240,17 +240,17 @@ function outingChance() {
 function askOuting(name) {
   const d = G.daily, lc = name.toLowerCase();
   d.askOut = true;
-  if (Math.random() >= outingChance()) return UI.say(name, `“Hôm nay ở nhà học bài đi con, để hôm khác.”<p class="dim">Bố mẹ dễ gật đầu hơn khi thiện cảm cao, hạnh kiểm tốt và hôm đó bạn có phụ việc nhà. Mỗi ngày chỉ xin được một lần.</p>`);
+  if (Math.random() >= outingChance()) return UI.say(name, '“Hôm nay ở nhà học bài đi con, để hôm khác.”');
   d.outPerm = true; d.outAt20 = false;
   if (G.outAsk.n < OUTING.perWeek) {
     const amt = OUTING.base + OUTING.perLv * parentInfo(G.parent).lv;
     G.outAsk.n++; addMoney(amt);
-    return UI.say(name, `“Ừ, đi chơi vui nhé. ${name} cho ${fmtMoney(amt)} đây, tiêu vừa thôi, đừng về khuya quá.”<p class="dim">Đã xin phép nên về sau 20:00 cũng không bị mắng. Tuần này còn xin tiền đi chơi được ${OUTING.perWeek - G.outAsk.n} lần.</p>`);
+    return UI.say(name, `“Ừ, đi chơi vui nhé. ${name} cho ${fmtMoney(amt)} đây, tiêu vừa thôi, đừng về khuya quá.”`);
   }
-  UI.say(name, `“Đi thì được, nhưng tuần này ${lc} cho tiền đi chơi ${OUTING.perWeek} lần rồi. Lấy tiền tiêu vặt mà tiêu nhé.”<p class="dim">Đã xin phép nên về sau 20:00 cũng không bị mắng.</p>`);
+  UI.say(name, `“Đi thì được, nhưng tuần này ${lc} cho tiền đi chơi ${OUTING.perWeek} lần rồi. Lấy tiền tiêu vặt mà tiêu nhé.”`);
 }
 function dadWatching() { const f = FAM.dad; return !!G && f.goal === 'sofaL' && !f.legs.length && !f.hidden && G.time >= 1200; }
-function tvLabel() { return dadWatching() && !G.daily.football ? "Tivi — xem bóng đá cùng bố (30')" : "Tivi — xem 30' (+6 thể lực)"; }
+function tvLabel() { return dadWatching() && !G.daily.football ? 'Tivi — xem bóng đá cùng bố' : 'Tivi'; }
 async function watchFootball() {
   await activity('Đang xem bóng đá cùng bố…', 30, () => { G.daily.football = true; G.daily.tv = true; gainStam(6); addParent(PARENT.football, 'xem bóng đá cùng bố'); });
 }
@@ -263,13 +263,10 @@ ACT.tv = async () => {
 // Đã về nhà trước 20:00 rồi mới đi chơi tiếp thì KHÔNG bị mắng.
 function onEnterHome() {
   checkIn();
+  if (G.comp && !G.comp.skip) endComp(`${FRIENDS[G.comp.fid].name} chào bạn rồi về.`);
   if (G.daily.outAt20 && !G.daily.scolded) {
     G.daily.scolded = true;
     addParent(PARENT.lateHome, 'về nhà sau 20:00');
     return UI.say('Mẹ', '“Mấy giờ rồi mà giờ này con mới về? Lần sau đi đâu cũng phải về nhà trước 8 giờ tối, hoặc xin phép bố mẹ trước nhé.”');
-  }
-  if (freeTime() && !G.daily.askOut && G.time < 1260 && (G.tips.askOut || 0) < 4) {
-    G.tips.askOut = (G.tips.askOut || 0) + 1;
-    UI.toast('Về nhà rồi. Muốn ra ngoài chơi tiếp thì xin phép bố mẹ — sẽ được cho tiền đi chơi.', 'info');
   }
 }

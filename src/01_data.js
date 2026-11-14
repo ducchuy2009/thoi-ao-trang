@@ -12,7 +12,7 @@ const CFG = {
   GATE_TIME: 8 * 60,         // đến trường đúng giờ = TRƯỚC 08:00
   PARENT_LEAVE: 7 * 60 + 30, // bố mẹ đi làm lúc 07:30
   RIDE_DEADLINE: 7 * 60 + 20,// nhờ bố/mẹ chở phải hỏi trước 07:20
-  SCHOOL_END: 17 * 60,
+  SCHOOL_END: 16 * 60 + 40,  // tan học 16:40 (không còn nghỉ 10' giữa các tiết)
   LATE_HOME: 20 * 60,        // NGÀY ĐI HỌC: 20:00 chưa có mặt ở nhà thì bố mẹ phiền lòng (trừ khi đã về rồi mới đi chơi tiếp, hoặc đã xin phép). Thứ 7, Chủ nhật, ngày nghỉ: về muộn thoải mái.
   ORAL_AFTER_SCHOOLDAYS: 5,  // sau tuần học đầu tiên: có thể bị kiểm tra miệng
   P15_AFTER_SCHOOLDAYS: 10,  // sau tuần thứ 2: có thể bị kiểm tra 15' đột xuất
@@ -77,14 +77,17 @@ const TIMETABLE = [
   ['ly', 'van', 'toan', 'dia', 'anh', 'th_hoa', 'sinh', 'van', 'toan'],
   ['van', 'toan', 'ly', 'hoa', 'anh', 'su', 'dia', 'td', 'shl'],
 ];
-// Tiết 1 lúc 08:00; mỗi tiết 30', nghỉ 10'; sau mỗi 2 tiết ra chơi 20'; chiều bắt đầu 13:30
+// Tiết 1 lúc 08:00; mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 20'; nghỉ trưa 10:20–13:30; tan học 16:40
 const PERIODS = [
-  { n: 1, start: 480 }, { n: 2, start: 520 }, { n: 3, start: 570 }, { n: 4, start: 610 },
-  { n: 5, start: 810 }, { n: 6, start: 850 }, { n: 7, start: 900 }, { n: 8, start: 940 }, { n: 9, start: 990 },
+  { n: 1, start: 480 }, { n: 2, start: 510 }, { n: 3, start: 560 }, { n: 4, start: 590 },
+  { n: 5, start: 810 }, { n: 6, start: 840 }, { n: 7, start: 890 }, { n: 8, start: 920 }, { n: 9, start: 970 },
 ];
 const PERIOD_LEN = 30;
-// Khoảng thời gian học sinh ra sân (ra chơi 20', nghỉ trưa)
-const YARD_WINDOWS = [[360, 480], [550, 570], [640, 810], [880, 900], [970, 990], [1020, 1060]];
+const AM_END = 620, PM_START = 810;             // nghỉ trưa
+// Khoảng thời gian học sinh ra sân (trước giờ học, ra chơi 20', nghỉ trưa, tan học)
+const YARD_WINDOWS = [[360, 480], [540, 560], [AM_END, PM_START], [870, 890], [950, 970], [CFG.SCHOOL_END, CFG.SCHOOL_END + 40]];
+const INVITE_TIMES = [540, AM_END, 870, 950];   // đầu giờ ra chơi: bạn có thể rủ rê
+const AFTER_SCHOOL = CFG.SCHOOL_END + 20;       // bạn bè rời trường (ra công viên, tới chỗ hẹn)
 
 /* ---------- Chỉ số ---------- */
 // Chỉ số hỗ trợ: 10 level. Level 1 cần 50 điểm, mỗi level sau cần hơn level trước 20 điểm.
@@ -118,7 +121,7 @@ const PARENT = {
 const STAT_NAMES = {
   toan: 'Toán', van: 'Văn', anh: 'Tiếng Anh', ly: 'Lý', hoa: 'Hoá', su: 'Sử', dia: 'Địa', sinh: 'Sinh học', qp: 'Quốc phòng',
   th_ly: 'TH Lý', th_hoa: 'TH Hoá', th_sinh: 'TH Sinh',
-  thethao: 'Thể thao', buonban: 'Buôn bán', giaotiep: 'Giao tiếp', kheotay: 'Khéo tay',
+  thethao: 'Thể thao', buonban: 'Buôn bán', giaotiep: 'Giao tiếp', kheotay: 'Khéo tay', vannghe: 'Văn nghệ',
 };
 
 /* ---------- Việc nhà ---------- */
@@ -188,19 +191,19 @@ const FOODS = {
   bimbim: { name: 'Bim bim Sao Vàng', stam: 5 },
 };
 const SHOP = [
-  { id: 'banhmi', name: 'Bánh mì', price: 10000, desc: 'Ăn: +15 thể lực', inv: 'banhmi', n: 1 },
-  { id: 'sua', name: 'Sữa hộp', price: 6000, desc: 'Uống: +8 thể lực', inv: 'sua', n: 1 },
-  { id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, desc: 'Ăn: +5 thể lực · trong gói có 1 thẻ cầu thủ', inv: 'bimbim', n: 1, pack: 1 },
+  { id: 'banhmi', name: 'Bánh mì', price: 10000, desc: 'Bánh mì kẹp, ăn lót dạ', inv: 'banhmi', n: 1 },
+  { id: 'sua', name: 'Sữa hộp', price: 6000, desc: 'Hộp sữa nhỏ mang theo', inv: 'sua', n: 1 },
+  { id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, desc: 'Trong gói có 1 thẻ cầu thủ', inv: 'bimbim', n: 1, pack: 1 },
   { id: 'bimbim5', name: 'Lốc 5 gói bim bim Sao Vàng', price: 23000, desc: '5 gói = 5 thẻ cầu thủ', inv: 'bimbim', n: 5, pack: 5 },
   { id: 'banhtrang', name: 'Bánh tráng trộn ×5', price: 25000, desc: 'Hàng để bán lại cho bạn trong giờ ra chơi', inv: 'banhtrang', n: 5 },
   { id: 'vethang', name: 'Vé tháng xe bus', price: BUS_PASS_PRICE, desc: 'Dùng 30 ngày kể từ ngày mua', special: 'vethang' },
-  { id: 'daynhay', name: 'Dây nhảy', price: 60000, desc: 'Tập: +8 điểm Thể thao/buổi', own: 'daynhay' },
-  { id: 'tatay', name: 'Tạ tay', price: 150000, desc: 'Tập: +12 điểm Thể thao/buổi', own: 'tatay' },
-  { id: 'xadon', name: 'Xà đơn gắn cửa', price: 350000, desc: 'Tập: +16 điểm Thể thao/buổi', own: 'xadon' },
+  { id: 'daynhay', name: 'Dây nhảy', price: 60000, desc: 'Dụng cụ tập thể dục ở nhà', own: 'daynhay' },
+  { id: 'tatay', name: 'Tạ tay', price: 150000, desc: 'Dụng cụ tập thể dục ở nhà, nặng hơn dây nhảy', own: 'tatay' },
+  { id: 'xadon', name: 'Xà đơn gắn cửa', price: 350000, desc: 'Dụng cụ tập thể dục ở nhà, khó nhất', own: 'xadon' },
   { id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu cá ở bờ sông (dưới phố Hoa Phượng)', own: 'cancau' },
-  { id: 'xedap', name: 'Xe đạp', price: 400000, desc: 'Để ở sân nhà, bấm vào xe để đi · nhanh gấp 1,6 lần đi bộ', own: 'xedap' },
-  { id: 'xedapdien', name: 'Xe đạp điện', price: 2500000, desc: 'Nhanh gấp 2,1 lần đi bộ', own: 'xedapdien' },
-  { id: 'xemay', name: 'Xe máy 50cc', price: 6000000, desc: 'Nhanh gấp 2,8 lần đi bộ', own: 'xemay' },
+  { id: 'xedap', name: 'Xe đạp', price: 400000, desc: 'Để ở sân nhà, bấm vào xe để đi', own: 'xedap' },
+  { id: 'xedapdien', name: 'Xe đạp điện', price: 2500000, desc: 'Chạy nhanh hơn xe đạp', own: 'xedapdien' },
+  { id: 'xemay', name: 'Xe máy 50cc', price: 6000000, desc: 'Chạy nhanh nhất', own: 'xemay' },
 ];
 const CANTEEN = [
   { name: 'Cơm trưa', price: 20000, stam: 30, mins: 20 },
@@ -212,6 +215,9 @@ const TUTOR = { price: 50000, mins: 90, pts: 12, stam: 10 };
 const SELF_STUDY = { mins: 60, pts: 5, stam: 8 };
 const PART_TIME = { mins: 120, pay: 30000, payPerLv: 3000, pts: 10, stam: 12 };
 const SELL = { cost: 5000, price: 8000, pricePerLv: 500, baseChance: 0.45, caught: 0.07 };
+// Bán đồ cho bạn: đồ ăn mang theo và thẻ cầu thủ (giá thẻ theo độ hiếm)
+const SELL_FOOD = { bimbim: 7000, banhmi: 13000, sua: 8000 };
+const SELL_CARD = [3000, 9000, 25000, 80000];
 
 /* ---------- Làm việc riêng trong giờ học (sev: 1 nhẹ, 2 nặng) ---------- */
 const CLASS_FUN_CHANCE = 0.22;
@@ -264,7 +270,7 @@ const DIFF_WEIGHTS = [0.15, 0.30, 0.30, 0.18, 0.07];   // xác suất độ khó
 const practicalReward = (d, win, perfect) => (win ? 3 + 3 * d + (perfect ? 2 : 0) : 2);
 
 /* ---------- Hệ số điểm ---------- */
-const COEF = { mieng: 1, p15: 1, tiet: 2, thi: 3 };
+const COEF = { mieng: 1, p15: 1, tiet: 1, thi: 1 };   // đã bỏ hệ số nhân: điểm trung bình môn = trung bình cộng các con điểm
 const TEST_NAME = { mieng: 'Kiểm tra miệng', p15: "Kiểm tra 15'", tiet: 'Kiểm tra 1 tiết', thi: 'Thi học kỳ' };
 const TEST_DIFF = { mieng: 0.3, p15: 0, tiet: -0.3, thi: -0.5 };
 
@@ -282,17 +288,39 @@ const BDAY_FRIEND = 8, BDAY_PARENT = 4;
 const FESTIVALS = [];
 const isDate = (d, day) => { const c = cal(day); return !!d && c.season === d[0] && c.dos === d[1]; };
 
-/* ---------- Thiện cảm của thầy cô ---------- */
-// 0–100 điểm, 20 điểm một cấp (0–5). Cấp 1 là bình thường.
-// Mỗi cấp trên 1: bài kiểm tra được chấm nhẹ tay +0,15 điểm và nguy cơ bị bắt quay cóp giảm 6%.
+/* ---------- Thiện cảm của TỪNG thầy cô (như bạn bè) ---------- */
+// 0–100 điểm mỗi người, 20 điểm một tim (0–5). 1 tim là bình thường.
+// Mỗi tim trên 1 của giáo viên bộ môn: bài kiểm tra môn đó được chấm nhẹ tay +0,15 điểm và nguy cơ bị bắt quay cóp giảm 6%.
+const TEACHERS = {
+  hanh: { name: 'Cô Hạnh', note: 'Chủ nhiệm · dạy Văn, Sinh', look: 'teacherA', subj: ['van', 'sinh', 'shl', 'cc', 'th_sinh'] },
+  lan: { name: 'Cô Lan', note: 'Dạy Anh, Hoá, Địa', look: 'teacherB', subj: ['anh', 'hoa', 'dia', 'th_hoa'] },
+  tung: { name: 'Thầy Tùng', note: 'Dạy Toán, Lý, Sử', look: 'teacherC', subj: ['toan', 'ly', 'su', 'th_ly'] },
+  manh: { name: 'Thầy Mạnh', note: 'Dạy Thể dục', look: 'teacherM', subj: ['td'] },
+  quan: { name: 'Thầy Quân', note: 'Dạy Quốc phòng', look: 'teacherQ', subj: ['qp', 'th_qp'] },
+  nghiem: { name: 'Thầy Nghiêm', note: 'Giám thị', look: 'giamthi', subj: [] },
+};
+const teacherOf = subj => Object.keys(TEACHERS).find(k => TEACHERS[k].subj.includes(subj)) || 'hanh';
 const TEACHER = {
   start: 20, max: 100, perLv: 20,
   snitch: 8, snitchClass: 5, volunteer: 1, answer: 1, duty: 3, notebook: 1,
   caughtFun: -3, caughtSkip: -5, caughtCheat: -10, noNotebook: -1,
   gradePerLv: 0.15, cheatBase: 0.40, cheatPerLv: 0.06,
 };
-const TEACHER_TITLE = ['Bị thầy cô để ý', 'Bình thường', 'Có thiện cảm', 'Trò ngoan', 'Trò cưng', 'Được tin tuyệt đối'];
 const teacherLvOf = pts => Math.max(0, Math.min(5, Math.floor((pts || 0) / TEACHER.perLv)));
+// Người ngoài xã hội hay gặp: quen mặt dần mỗi lần ghé (mỗi ngày +SOC_GAIN lần đầu)
+const SOCIETY = {
+  coba: { name: 'Cô Ba', note: 'Chủ tiệm tạp hoá', look: 'vendor' },
+  cantin: { name: 'Cô căn tin', note: 'Bán hàng ở căn tin trường', look: 'vendor' },
+  baove: { name: 'Bác bảo vệ', note: 'Gác cổng trường', look: 'guard' },
+  taixe: { name: 'Bác tài', note: 'Lái xe bus', look: 'driver' },
+  soatve: { name: 'Cô soát vé', note: 'Ga Hoa Phượng', look: 'clerk' },
+};
+const SOC_GAIN = 2;
+// Mã thử nghiệm (dán vào ô "Dán mã" trong Cài đặt, không phân biệt hoa thường)
+const CHEATS = { money: 'HI!IAMBILLGATES', time: 'HI!IAMCIRI', love: 'HI!IAMBALDER' };
+const CHEAT_MONEY = 100000000, CHEAT_LOVE = 2;
+// Trốn học cùng bạn (đi thật ra ngoài, thời gian trôi thật): nguy cơ bị bắt khi quay lại / khi tan học mà chưa về
+const SKIP = { friend: 6, risk: 0.18, perMissed: 0.1, accept: 0.4, perHeart: 0.11, freeBonus: 0.3, perDay: 3, endAt: 1290 };
 // Quay cóp: trót lọt được cộng điểm, bị bắt thì bài bị trừ một nửa + trừ hạnh kiểm + mất thiện cảm thầy cô
 const CHEAT = { min: 1.5, max: 2.5, vyBonus: 0.5, conduct: -1, parentCall: 0.5 };
 // Tố cáo bạn rủ rê: được lòng thầy cô nhưng mất lòng bạn bè
@@ -306,7 +334,7 @@ const BORROW = { deskmate: 0.35, other: 0.22, perHeart: 0.12, perTalk: 0.03, gru
 /* ---------- Xin tiền bố mẹ đi chơi (sau khi đã về nhà) ---------- */
 const OUTING = { base: 10000, perLv: 4000, perWeek: 2, chance: 0.45, perLvChance: 0.05 };
 
-/* ---------- Giải lao giữa 2 tiết ---------- */
+/* ---------- Trò riêng với bạn cùng giới (giờ ra chơi, hoặc lén làm trong giờ học) ---------- */
 // g: giới tính nhân vật được rủ trò này (bạn cùng giới) · risk: nguy cơ bị giám thị / cô nhắc
 const BREAK_FUN = {
   wc: { g: 'girl', name: 'Rủ đi vệ sinh chung', friend: 5, giaotiep: 1, risk: 0.08 },
@@ -314,11 +342,10 @@ const BREAK_FUN = {
   conquay: { g: 'boy', name: 'Rủ chơi con quay', friend: 4, kheotay: 1 },
   danhbai: { g: 'boy', name: 'Rủ đánh bài tiến lên', friend: 6, giaotiep: 1, risk: 0.14 },
 };
-const BREAK_FUN_MIN_HEARTS = 1, BREAK_FUN_PER_DAY = 2, BREAK_FUN_MINS = 10, BREAK_INVITE_CHANCE = 0.3;
-const SHORT_BREAK_AFTER = [1, 3, 5, 7];   // sau các tiết này chỉ nghỉ 10' (ngồi tại lớp)
+const BREAK_FUN_MIN_HEARTS = 1, BREAK_FUN_PER_DAY = 2, BREAK_FUN_MINS = 10;
 
 /* ---------- Sự kiện giờ nghỉ trưa & trong giờ học ---------- */
-const LUNCH_EVENT_TIME = 680, LUNCH_EVENT_CHANCE = 0.55, CLASS_EVENT_CHANCE = 0.26;
+const LUNCH_EVENT_TIME = 660, LUNCH_EVENT_CHANCE = 0.55, CLASS_EVENT_CHANCE = 0.26;
 const LIBRARY = { mins: 30, pts: 3, stam: 3 };
 const NAP = { mins: 40, stam: 18 };
 

@@ -27,9 +27,9 @@ Khu phố nhà mình ─ Phố Hoa Phượng ─ Trường ── lối mòn vò
 | `src/03_maps.js` | Bản đồ: Nhà, Khu phố, Phố Hoa Phượng, Trường, Lớp học, Phòng thí nghiệm, Núi, Bờ sông, Ga tàu, Bãi biển; các bản đồ chỉ dùng cho hoạt cảnh (nhà vệ sinh nam/nữ, cảnh xe chạy, cảnh tàu chạy); vật thể tương tác và NPC |
 | `src/04_game.js` | Luật chơi: đồng hồ, ngày mới/đi ngủ, tiết học, kiểm tra, điểm, hạnh kiểm, qua cổng trường, việc nhà, buôn bán |
 | `src/04a_family.js` | Bố mẹ: lịch trong ngày, tìm đường A*, ra cửa lấy xe đi làm, đi chợ; trò chuyện, đấm lưng; về muộn |
-| `src/04b_mischief.js` | Làm việc riêng trong giờ, trốn học/quậy cùng bạn, rủ bạn đi chơi sau giờ học, tố cáo bạn, buổi thực hành và vật lý của minigame |
+| `src/04b_mischief.js` | Làm việc riêng trong giờ, trốn học cùng bạn (ra ngoài thật, thời gian trôi thật, qua cổng trường mới là về lớp), quậy trong trường, tố cáo bạn (có hoạt cảnh bị phạt), buổi thực hành và vật lý của minigame |
 | `src/04c_social.js` | Đi lại (ranh giới các khu, xe của mình, xe bus, tàu), câu cá, biển; bộ máy hoạt cảnh `playCut` (lau nhà, rửa xe, đấm lưng, trèo tường, bị giám thị bắt, giải lao); quay sang bạn trong giờ học; mượn sách; sự kiện trong giờ và giờ nghỉ trưa; trà sữa/TTTM/khu game/picnic; thẻ cầu thủ; nhắn tin và hẹn đi chơi |
-| `src/05_ui.js` | HUD, thanh đồ, hộp thoại (hội thoại với nhân vật nằm dưới màn hình kèm chân dung), minigame, cặp sách, bộ sưu tập thẻ, điện thoại, chỉ số, thời khoá biểu, lịch, sổ điểm, cài đặt |
+| `src/05_ui.js` | HUD, thanh đồ, hộp thoại (hội thoại với nhân vật nằm dưới màn hình kèm chân dung), minigame, túi đồ, điện thoại, và **menu chung** dạng tab icon (`MV`): Chỉ số, Bạn bè, Thời khoá biểu, Học bạ, Lịch, Thẻ cầu thủ, Cài đặt (kèm mã thử nghiệm và du hành thời gian) |
 | `src/06_engine.js` | Vòng lặp, WASD + chuột phải, va chạm, camera, vẽ, bong bóng thoại của cắt cảnh |
 | `build.py` | Gộp tất cả thành một file: `index.html` (ở gốc, để mở trực tiếp) và `dist/index.html` |
 
@@ -48,7 +48,10 @@ Trong `01_data.js`:
 - `TIMETABLE` — thời khoá biểu; các ô `th_ly`, `th_hoa`, `th_sinh`, `th_qp` là buổi thực hành.
 - `PARENT`, `parentNeed()` — điểm thiện cảm cộng/trừ và ngưỡng lên cấp tiền tiêu vặt.
 - `CLASS_FUN`, `MISCHIEF`, `FRIEND_LIKES` — các trò làm việc riêng / quậy: thời gian, điểm tình bạn, xác suất bị bắt (`risk`), mức nghiêm trọng (`sev`). `INVITE_ACCEPT` — khả năng bạn nhận lời khi mình chủ động rủ. `OUTING_FRIEND_RATE` — hệ số điểm thân thiết khi đi chơi sau giờ học (không rủi ro).
-- `TEACHER`, `CHEAT`, `SNITCH` — thiện cảm thầy cô (chấm nhẹ tay, khó bắt quay cóp), quay cóp, tố cáo bạn rủ rê.
+- `TEACHERS`, `TEACHER`, `CHEAT`, `SNITCH` — thiện cảm của TỪNG thầy cô (giáo viên bộ môn quý thì chấm môn đó nhẹ tay, khó bắt quay cóp), quay cóp, tố cáo bạn rủ rê. `SOCIETY` — người ngoài xã hội hiện trong tab Bạn bè.
+- `PERIODS`, `AM_END`, `PM_START`, `CFG.SCHOOL_END` — giờ các tiết (hai tiết liền nhau rồi ra chơi 20', không còn nghỉ 10' giữa tiết). `COEF` — hệ số điểm (đang để 1 hết: đã bỏ hệ số nhân).
+- `SKIP` — trốn học cùng bạn: khả năng bạn nhận lời, nguy cơ bị bắt. `SELL_FOOD`, `SELL_CARD` — giá bán đồ ăn, thẻ cho bạn.
+- `CHEATS` — mã thử nghiệm dán vào Cài đặt → Cài đặt khác → Dán mã (không phân biệt hoa thường): `HI!IAMBILLGATES` (+100.000.000đ), `HI!IAMCIRI` (du hành tới một ngày bất kỳ trên lịch), `HI!IAMBALDER` (+2 thiện cảm với mọi nhân vật).
 - `OUTING` — xin tiền bố mẹ đi chơi · `BORROW` — khả năng mượn được sách/bút · `BREAK_FUN` — trò giải lao giữa 2 tiết · `LUNCH_EVENT_CHANCE`, `CLASS_EVENT_CHANCE` — tần suất sự kiện.
 - `PLACES`, `MALL`, `ARCADE`, `TEA`, `PICNIC`, `TRAVEL`, `HILL_HOURS` — địa điểm vui chơi: giờ mở cửa, giá, thời gian, điểm thưởng.
 - `CARDS`, `CARD_RARITY`, `DUEL_TIER`, `CARD_SET_REWARD` — bộ thẻ cầu thủ, tỉ lệ độ hiếm, trình của đối thủ khi đấu thẻ.
@@ -62,4 +65,4 @@ Trong `04c_social.js`: `LINKS` là ranh giới giữa các khu (đi tới đâu,
 
 ## Điều khiển
 
-`W` `A` `S` `D` di chuyển · chuột phải (hoặc `E`) tương tác · `X` xuống xe · `B` cặp sách · `C` chỉ số · `T` thời khoá biểu · `G` sổ điểm · `L` lịch · `P` điện thoại · `Esc` cài đặt. Thanh đồ ở cạnh dưới cho biết đang mang gì; bấm vào đồ ăn để ăn.
+`W` `A` `S` `D` di chuyển · chuột phải (hoặc `E`) tương tác · `Q` quay sang bạn trong giờ học · `X` xuống xe · `B` túi đồ · `Esc` / `M` menu (`C` chỉ số · `F` bạn bè · `T` thời khoá biểu · `G` học bạ · `L` lịch · `K` thẻ) · `P` điện thoại. Thanh đồ ở cạnh dưới cho biết đang mang gì; bấm vào đồ ăn để ăn. Game tự lưu mỗi khi đi ngủ.

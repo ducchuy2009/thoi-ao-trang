@@ -221,6 +221,16 @@ function itemIcon(id) {
   else if (id === 'ca') { ell(x, '#6fa8dc', 7, 8, 5.5, 3.2); R(x, '#6fa8dc', 12, 5, 3, 7); R(x, '#4f86b8', 13, 7, 2, 3); ell(x, '#cfe6f7', 6, 9, 3, 1.4); R(x, '#2a2136', 3, 7, 1, 1); }
   else if (id === 'cancau') { line(x, '#8b5e3c', 2, 14, 13, 1); line(x, '#8b5e3c', 3, 14, 14, 1); R(x, '#fffaf0', 14, 2, 1, 8); R(x, '#e2574c', 13, 10, 3, 2); R(x, '#5f656f', 4, 11, 3, 3); }
   else if (id === 'voso') { ell(x, '#f7c9b8', 7.5, 8.5, 6, 5); for (const a of [4, 6, 8, 10]) R(x, '#e9a48e', a, 5, 1, 7); R(x, '#fffaf0', 6, 12, 4, 2); }
+  // biểu tượng các tab của menu
+  else if (id === 'm_stats') { R(x, '#3b82c4', 2, 9, 3, 5); R(x, '#5fae4a', 6, 5, 3, 9); R(x, '#f2a93b', 10, 2, 3, 12); R(x, '#2a2136', 1, 14, 14, 1); }
+  else if (id === 'm_friends') { ell(x, '#e2574c', 4.5, 5.5, 3.5, 3.5); ell(x, '#e2574c', 10.5, 5.5, 3.5, 3.5); for (let j = 0; j < 7; j++) R(x, '#e2574c', 1 + j, 7 + j, 14 - 2 * j, 1); R(x, '#ffb3c7', 3, 4, 2, 2); }
+  else if (id === 'm_tt') { R(x, '#fffaf0', 1, 2, 14, 12); R(x, '#3b6fb6', 1, 2, 14, 3); for (const a of [5, 10]) R(x, '#8fa0ab', a, 5, 1, 9); for (const b2 of [8, 11]) R(x, '#8fa0ab', 1, b2, 14, 1); R(x, '#e2574c', 6, 6, 4, 2); R(x, '#5fae4a', 11, 9, 3, 2); R(x, '#f2a93b', 2, 12, 3, 2); }
+  else if (id === 'm_grades') { R(x, '#3f7d5c', 2, 1, 12, 14); R(x, '#2f5f46', 2, 1, 2, 14); R(x, '#fffaf0', 6, 3, 6, 7); R(x, '#e2574c', 7, 4, 4, 1); R(x, '#e2574c', 7, 4, 1, 5); R(x, '#e2574c', 10, 4, 1, 5); R(x, '#e2574c', 7, 6, 4, 1); R(x, '#f4d35e', 6, 12, 6, 1); }
+  else if (id === 'm_cal') { R(x, '#fffaf0', 1, 3, 14, 11); R(x, '#e2574c', 1, 3, 14, 4); R(x, '#2a2136', 4, 1, 1, 4); R(x, '#2a2136', 11, 1, 1, 4); for (let j = 0; j < 2; j++) for (let i = 0; i < 4; i++) R(x, i === 2 && j === 1 ? '#e2574c' : '#8fa0ab', 3 + i * 3, 9 + j * 3, 2, 2); }
+  else if (id === 'm_cards') { R(x, '#fffaf0', 2, 3, 8, 11); R(x, '#d9534f', 3, 4, 6, 9); R(x, '#fffaf0', 6, 2, 8, 11); R(x, '#3b82c4', 7, 3, 6, 9); R(x, '#ffe066', 9, 6, 2, 3); }
+  else if (id === 'm_set') { ell(x, '#8b8f9c', 7.5, 7.5, 5, 5); for (const [a, b2] of [[7, 0], [7, 13], [0, 7], [13, 7], [2, 2], [12, 2], [2, 12], [12, 12]]) R(x, '#8b8f9c', a, b2, 2, 2); ell(x, '#fff6e3', 7.5, 7.5, 2, 2); R(x, '#c9ccd4', 5, 4, 4, 1); }
+  else if (id === 'm_menu') { for (const b2 of [3, 7, 11]) { R(x, '#2a2136', 2, b2, 12, 2); R(x, '#5f656f', 2, b2, 12, 1); } }
+  else if (id === 'm_phone') { R(x, '#2a2136', 4, 1, 8, 14); R(x, '#8fd0f0', 5, 3, 6, 8); R(x, '#cfeefa', 5, 3, 6, 2); R(x, '#fff6e3', 7, 12, 2, 1); }
   else { R(x, '#c9b58a', 3, 3, 10, 10); }
   return (_icons[id] = outline(c).toDataURL());
 }

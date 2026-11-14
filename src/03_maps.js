@@ -56,7 +56,7 @@ function buildHome() {
   addObj(m, { s: 'chair', x: 70, y: 49, sol: [1, 1, 12, 11] });
   addObj(m, { s: 'wardrobe', x: 95, y: 6, sol: [1, 10, 30, 29] });
   addObj(m, { s: 'shelf', x: 126, y: 12, sol: [1, 8, 16, 25] });
-  addObj(m, { s: 'mat', x: 24, y: 150, flat: true, label: () => 'Thảm tập — tập thể dục', act: () => ACT.exercise() });
+  addObj(m, { s: 'mat', x: 24, y: 150, flat: true, label: () => 'Thảm tập thể dục', act: () => ACT.exercise() });
   addObj(m, { s: 'plant', x: 20, y: 194, sol: [2, 14, 12, 9] });
   // phòng khách
   addObj(m, { s: 'rug', x: 188, y: 60, flat: true });
@@ -132,13 +132,13 @@ function buildTown() {
   for (let i = 0; i < 50; i++) { if (i >= 23 && i <= 25) continue; addObj(m, { s: 'hedge', x: i * 16, y: 270, sol: [0, 4, 18, 12] }); }
   for (const [s, a, b] of [['tree', 24, 290], ['treePink', 150, 282], ['tree2', 250, 286], ['treeOrange', 300, 356], ['treePink', 436, 282], ['tree', 480, 352], ['treePink', 506, 284], ['tree2', 190, 362]]) addObj(m, { s, x: a, y: b, sol: [13, 38, 10, 9] });
   addObj(m, { s: 'bench', x: 318, y: 316, sol: [1, 1, 28, 12] }); addObj(m, { s: 'bench', x: 420, y: 356, sol: [1, 1, 28, 12] });
-  addObj(m, { s: 'goal', x: 628, y: 276, sol: [1, 2, 38, 8] });
+  addObj(m, { s: 'goal', x: 628, y: 276, sol: [1, 2, 38, 8], label: () => 'Sân bóng công viên — chơi thể thao', act: () => ACT.field() });
   addObj(m, { s: 'ball', x: 664, y: 336, flat: true });
   addObj(m, { s: 'bush', x: 30, y: 350, sol: [2, 4, 18, 9] }); addObj(m, { s: 'bush', x: 160, y: 388, sol: [2, 4, 18, 9] });
   const parkT = () => parkTime();
   for (const [fid, a, b, d, wd] of [['khoa', 636, 348, 0, 26], ['dat', 694, 368, 1, 26], ['vy', 338, 344, 0, 14], ['ngan', 452, 340, 0, 12]]) {
     const F = FRIENDS[fid];
-    NPCS.push({ id: 'p_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'town', x: a, y: b, dir: d, wander: wd, vis: () => parkT() && !meetToday(fid), label: () => F.name + ' — rủ đi chơi', act: () => ACT.friend(fid, 'park') });
+    NPCS.push({ id: 'p_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'town', x: a, y: b, dir: d, wander: wd, vis: () => parkT() && !meetToday(fid) && !isComp(fid), label: () => F.name, act: () => ACT.friend(fid, 'park') });
   }
 }
 const friendOutfit = fid => (schoolToday() ? null : 'cas_' + fid);
@@ -190,14 +190,14 @@ function buildPho() {
   for (let i = 0; i < 56; i++) { if (i >= 26 && i <= 28) continue; addObj(m, { s: 'hedge', x: i * 16, y: 270, sol: [0, 4, 18, 12] }); }
   paint(m, 'court', 2, 18, 13, 7, 0);
   const W = '#eef7ee'; R(m.x, W, 36, 292, 200, 1); R(m.x, W, 36, 395, 200, 1); R(m.x, W, 36, 292, 1, 104); R(m.x, W, 235, 292, 1, 104); R(m.x, W, 36, 344, 200, 1); ring(m.x, W, 136, 344, 14);
-  addObj(m, { s: 'goal', x: 116, y: 276, sol: [1, 2, 38, 8], label: () => "Sân bóng mini — chơi thể thao 20'", act: () => ACT.field() });
+  addObj(m, { s: 'goal', x: 116, y: 276, sol: [1, 2, 38, 8], label: () => 'Sân bóng mini — chơi thể thao', act: () => ACT.field() });
   addObj(m, { s: 'ball', x: 150, y: 338, flat: true });
   paint(m, 'yard', 20, 18, 15, 7, 0); paint(m, 'yard', 26, 17, 3, 1, 0); paint(m, 'yard', 26, 25, 3, 1, 0);
   addObj(m, { s: 'fountain', x: 366, y: 326, sol: [2, 8, 42, 20] });
   for (const [a, b] of [[344, 296], [498, 296], [344, 380], [498, 380]]) addObj(m, { s: 'bench', x: a, y: b, sol: [1, 1, 28, 12] });
   addObj(m, { s: 'trailsign', x: 470, y: 384, sol: [9, 16, 6, 8], label: () => '↓ Bờ sông (câu cá)', act: () => ACT.go('pho', 'song') });
   m.zones.push({ x: 416, y: 409, w: 48, h: 7, fn: () => ACT.go('pho', 'song'), by: -10 });
-  addObj(m, { s: 'cart', x: 620, y: 290, sol: [1, 22, 38, 18], label: () => 'Xe xiên que — ăn vặt 10.000đ', act: () => ACT.cart() });
+  addObj(m, { s: 'cart', x: 620, y: 290, sol: [1, 22, 38, 18], label: () => 'Xe xiên que, kem ốc quế', act: () => ACT.cart() });
   for (const [s2, a, b] of [['tree', 262, 286], ['treeOrange', 272, 356], ['treePink', 580, 352], ['tree2', 700, 292], ['treePink', 780, 348], ['tree', 840, 290], ['tree2', 690, 362]]) addObj(m, { s: s2, x: a, y: b, sol: [13, 38, 10, 9] });
   addObj(m, { s: 'bush', x: 600, y: 340, sol: [2, 4, 18, 9] }); addObj(m, { s: 'bush', x: 760, y: 300, sol: [2, 4, 18, 9] });
   addObj(m, { s: 'bench', x: 740, y: 380, sol: [1, 1, 28, 12] });
@@ -230,7 +230,7 @@ function buildHill() {
   paint(m, 'grass', 11, 15, 8, 6, 0);
   [[11, 15], [18, 15], [14, 20], [11, 19], [17, 18]].forEach(([a, b]) => paint(m, 'flowers', a, b, 1, 1, 0));
   [[3, 9], [5, 17], [14, 8], [22, 17], [24, 26], [33, 9], [36, 24], [30, 23], [3, 25]].forEach(([a, b]) => paint(m, 'flowers2', a, b, 1, 1, 0));
-  addObj(m, { s: 'picnicmat', x: 214, y: 276, flat: true, label: () => "Bãi cỏ picnic — trải bạt ăn uống, hóng gió (90')", act: () => ACT.picnic() });
+  addObj(m, { s: 'picnicmat', x: 214, y: 276, flat: true, label: () => 'Bãi cỏ picnic', act: () => ACT.picnic() });
   // hồ nước + suối
   ell(x, '#9cc48a', 528, 290, 62, 40); ell(x, '#5fb0e0', 528, 290, 58, 36); ell(x, '#8fd0f0', 510, 280, 30, 10); ell(x, '#5fb0e0', 516, 283, 22, 6);
   ell(x, '#5fae4a', 560, 300, 6, 3); ell(x, '#5fae4a', 496, 306, 5, 2.6); R(x, '#ff8fa8', 560, 299, 2, 1);
@@ -238,9 +238,9 @@ function buildHill() {
   m.solids.push([472, 258, 112, 64], [566, 322, 14, 158]);
   addObj(m, { s: 'rock', x: 448, y: 304, sol: [1, 3, 16, 9], label: () => 'Hồ nước — rửa mặt cho tỉnh táo', act: () => ACT.stream() });
   // đỉnh núi
-  addObj(m, { s: 'summit', x: 478, y: 58, sol: [3, 20, 12, 8], label: () => "Đỉnh núi — ngắm cảnh (20')", act: () => ACT.summit() });
+  addObj(m, { s: 'summit', x: 478, y: 58, sol: [3, 20, 12, 8], label: () => 'Đỉnh núi — ngắm cảnh', act: () => ACT.summit() });
   addObj(m, { s: 'bench', x: 388, y: 66, sol: [1, 1, 28, 12] });
-  addObj(m, { s: 'trailsign', x: 348, y: 432, sol: [9, 16, 6, 8], label: () => "Đường mòn — chạy bộ leo dốc (30')", act: () => ACT.hike() });
+  addObj(m, { s: 'trailsign', x: 348, y: 432, sol: [9, 16, 6, 8], label: () => 'Đường mòn — chạy bộ leo dốc', act: () => ACT.hike() });
   // cây thông, đá
   for (let j = 0; j < 9; j++) { addObj(m, { s: j % 2 ? 'pine2' : 'pine', x: 0, y: 46 + j * 46, sol: [10, 36, 12, 14] }); addObj(m, { s: j % 2 ? 'pine' : 'pine2', x: 608, y: 40 + j * 46, sol: [10, 36, 12, 14] }); }
   for (const [s2, a, b] of [['pine', 60, 70], ['pine2', 200, 62], ['pine', 300, 96], ['pine2', 344, 50], ['pine', 560, 110], ['pine2', 68, 250], ['pine', 180, 130], ['pine2', 250, 138], ['pine', 330, 250], ['pine2', 386, 330], ['pine', 430, 380], ['pine2', 96, 380], ['pine', 220, 390], ['pine2', 500, 400], ['pine', 40, 150], ['pine2', 360, 138], ['pine', 470, 150], ['pine2', 590, 190]]) addObj(m, { s: s2, x: a, y: b, sol: [10, 36, 12, 14] });
@@ -320,10 +320,10 @@ function buildBeach() {
   addObj(m, { s: 'train', x: 250, y: 8, ir: [0, 20, 170, 20], label: () => 'Tàu về ga Hoa Phượng', act: () => ACT.train('bien') });
   addObj(m, { s: 'trailsign', x: 210, y: 52, sol: [9, 16, 6, 8], label: () => 'Ga Biển — tàu về thành phố', act: () => ACT.train('bien') });
   for (const a of [20, 150, 470, 600, 668]) addObj(m, { s: 'palm', x: a, y: 62, sol: [13, 40, 8, 8] });
-  for (const [a, b] of [[60, 150], [140, 190], [420, 150], [600, 200]]) addObj(m, { s: 'parasol', x: a, y: b, sol: [3, 22, 26, 10], label: () => `Ghế dù — nằm nghỉ ${BEACH.rest.mins}' (+${BEACH.rest.stam} thể lực)`, act: () => ACT.beach('rest') });
+  for (const [a, b] of [[60, 150], [140, 190], [420, 150], [600, 200]]) addObj(m, { s: 'parasol', x: a, y: b, sol: [3, 22, 26, 10], label: () => 'Ghế dù — nằm nghỉ', act: () => ACT.beach('rest') });
   addObj(m, { s: 'cart', x: 520, y: 100, sol: [1, 22, 38, 18], label: () => `Quán hải sản nướng — ${fmtMoney(BEACH.food.price)}`, act: () => ACT.beach('food') });
-  addObj(m, { s: 'castle', x: 220, y: 236, sol: [2, 8, 18, 10], label: () => `Xây lâu đài cát (${BEACH.castle.mins}')`, act: () => ACT.beach('castle') });
-  addObj(m, { s: 'buoy', x: 348, y: 268, sol: [5, 14, 4, 8], label: () => `Tắm biển (${BEACH.swim.mins}')`, act: () => ACT.beach('swim') });
+  addObj(m, { s: 'castle', x: 220, y: 236, sol: [2, 8, 18, 10], label: () => 'Xây lâu đài cát', act: () => ACT.beach('castle') });
+  addObj(m, { s: 'buoy', x: 348, y: 268, sol: [5, 14, 4, 8], label: () => 'Tắm biển', act: () => ACT.beach('swim') });
   addObj(m, { s: 'shells', x: 500, y: 264, flat: true, ir: [-4, -6, 24, 20], label: () => 'Nhặt vỏ sò (làm quà tặng bạn)', act: () => ACT.beach('shell') });
   addObj(m, { s: 'shells', x: 90, y: 270, flat: true }); addObj(m, { s: 'shells', x: 640, y: 250, flat: true });
   addObj(m, { s: 'boat', x: 560, y: 330, flat: true });
@@ -355,7 +355,7 @@ function buildRide(id, rail) {
 function addMeetNpcs() {
   for (const pl in PLACES) Object.keys(FRIENDS).forEach((fid, i) => {
     const P = PLACES[pl], F = FRIENDS[fid];
-    NPCS.push({ id: 'meet_' + pl + '_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: P.map, x: P.x + (i % 2) * 6, y: P.y, dir: 0, vis: () => meetHere(pl) === fid, label: () => `${F.name} — đang đợi bạn ở đây`, act: () => ACT.friend(fid, 'meet') });
+    NPCS.push({ id: 'meet_' + pl + '_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: P.map, x: P.x + (i % 2) * 6, y: P.y, dir: 0, vis: () => meetHere(pl) === fid && !isComp(fid), label: () => `${F.name} — đang đợi bạn ở đây`, act: () => ACT.friend(fid, 'meet') });
   });
 }
 
@@ -382,11 +382,11 @@ function buildSchool() {
   m.labels.push({ x: 79, y: 57.5, text: 'CĂN TIN', size: 6.5, col: '#2a2136', maxw: 40 });
   addObj(m, { s: 'bikeshed', x: 524, y: 62, sol: [1, 26, 96, 17], label: () => shedLabel(), act: () => ACT.shed() });
   addObj(m, { s: 'flagpole', x: 342, y: 108, sol: [3, 52, 14, 9] });
-  addObj(m, { s: 'libsign', x: 378, y: 92, sol: [6, 18, 10, 7], label: () => `Thư viện — đọc sách ${LIBRARY.mins}'`, act: () => ACT.library() });
+  addObj(m, { s: 'libsign', x: 378, y: 92, sol: [6, 18, 10, 7], label: () => 'Thư viện — đọc sách', act: () => ACT.library() });
   for (const [a, b] of [[96, 140], [96, 250], [430, 140], [430, 250]]) addObj(m, { s: 'treeRed', x: a, y: b, sol: [13, 38, 10, 9] });
   for (const [a, b] of [[136, 172], [136, 282], [396, 172], [396, 282]]) addObj(m, { s: 'benchstone', x: a, y: b, sol: [1, 1, 28, 12] });
   addObj(m, { s: 'tree', x: 18, y: 150, sol: [13, 38, 10, 9] }); addObj(m, { s: 'tree2', x: 34, y: 244, sol: [13, 38, 10, 9] }); addObj(m, { s: 'bush', x: 60, y: 206, sol: [2, 4, 18, 9] }); addObj(m, { s: 'bush', x: 12, y: 318, sol: [2, 4, 18, 9] });
-  addObj(m, { s: 'goal', x: 564, y: 118, sol: [1, 2, 38, 8], label: () => "Sân thể dục — chơi thể thao 20'", act: () => ACT.field() });
+  addObj(m, { s: 'goal', x: 564, y: 118, sol: [1, 2, 38, 8], label: () => 'Sân thể dục — chơi thể thao', act: () => ACT.field() });
   addObj(m, { s: 'ball', x: 600, y: 250, flat: true });
   // tường rào + cổng + hàng rào phía đông
   for (let i = 0; i <= 44; i++) { if (i >= 18 && i <= 25) continue; addObj(m, { s: 'wallseg', x: i * 16 - 1, y: 363, sol: [0, 8, 18, 14] }); }
@@ -410,7 +410,7 @@ function buildSchool() {
   const mates = [['khoa', 'Khoa', 'khoa'], ['vy', 'Vy', 'vy'], ['dat', 'Đạt', 'dat'], ['m1', 'Bạn cùng lớp', 'c1'], ['ngan', 'Ngân', 'ngan'], ['m3', 'Bạn cùng lớp', 'c3'], ['m4', 'Bạn cùng lớp', 'c4'], ['m5', 'Bạn cùng lớp', 'c5']];
   mates.forEach(([id, name, look], i) => {
     const fr = !!FRIENDS[id];
-    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: yard, label: () => name + (fr ? ' — trò chuyện' : ' — bắt chuyện'), act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
+    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(id), label: () => name, act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
   });
 }
 
@@ -444,8 +444,8 @@ function buildClass() {
       // bạn thân ngồi gần: giờ giải lao 10' giữa 2 tiết có thể quay sang rủ rê, trò chuyện, đấu thẻ
       NPCS.push({
         id: 's_' + c + r + sd, sid: sp || null, fid: fr ? sp : null, name: fr ? fr.name : 'Bạn học', look: sp ? spLook[sp] : looks[(k++ * 3 + r) % 8], map: 'class', x: sx, y: sy, dir: 3, solid: true,
-        vis: sp ? () => classSeated() && !yardTime() && !sceneHides(sp) : () => classSeated(),
-        label: fr ? () => `${fr.name} (${fr.seat}) — trò chuyện, rủ rê` : null, act: fr ? () => ACT.friend(sp, 'class') : null,
+        vis: sp ? () => classSeated() && !yardTime() && !sceneHides(sp) && !isComp(sp) : () => classSeated(),
+        label: fr ? () => `${fr.name} (${fr.seat})` : null, act: fr ? () => ACT.friend(sp, 'class') : null,
       });
     }
   }

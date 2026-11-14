@@ -182,12 +182,12 @@ const UI = {
   hotbarItems() {
     const it = [], add = (id, n, title, act, lab) => it.push({ id, n, title, act: act || '', lab: lab || '' });
     for (const k of Object.keys(ITEMS)) if (G.bag[k]) add(k, 0, ITEMS[k].name + (ITEMS[k].desc ? ' — ' + ITEMS[k].desc : ''), '', ITEMS[k].subj ? SUBJ[ITEMS[k].subj].short : '');
-    for (const k in FOODS) if (G.inv[k]) add(k, G.inv[k], `${FOODS[k].name} — bấm để ăn (+${FOODS[k].stam} thể lực)`, 'eat');
+    for (const k in FOODS) if (G.inv[k]) add(k, G.inv[k], `${FOODS[k].name} — bấm để ăn`, 'eat');
     if (G.inv.banhtrang) add('banhtrang', G.inv.banhtrang, 'Bánh tráng trộn — hàng để mời bạn mua giờ ra chơi');
     if (cardCount()) add('the', cardCount(), 'Thẻ cầu thủ — bấm để xem bộ sưu tập', 'cards');
     if (G.inv.gaubong) add('gaubong', G.inv.gaubong, 'Gấu bông — tặng bạn thân');
     if (G.inv.voso) add('voso', G.inv.voso, 'Vỏ sò — tặng bạn thân');
-    if (fishCount()) add('ca', fishCount(), `Cá câu được — bán cho Cô Ba (${fmtMoney(fishValue())}) hoặc đưa mẹ nấu`);
+    if (fishCount()) add('ca', fishCount(), 'Cá câu được — bán cho Cô Ba hoặc đưa mẹ nấu');
     if (G.owned.cancau) add('cancau', 0, 'Cần câu — câu cá ở bờ sông');
     return it;
   },
@@ -206,34 +206,27 @@ const UI = {
 
   /* ---------- Cặp sách ---------- */
   bag() {
-    this.panel('Cặp sách', () => {
+    this.panel('Túi đồ', () => {
       const inBag = Object.keys(ITEMS).filter(i => G.bag[i]);
       let h = '<h4>Đang mang trong cặp</h4><div class="chips">' + (inBag.length ? inBag.map(i => `<span class="it on">${ITEMS[i].name}</span>`).join('') : '<span class="dim">Cặp trống.</span>') + '</div>';
       if (schoolToday() && G.time < CFG.SCHOOL_END) { const ms = missingToday(); h += ms.length ? `<p class="warnbox">So với thời khoá biểu hôm nay còn thiếu ${ms.length} món. Chỉ soạn cặp được ở bàn học tại nhà.</p>` : '<p class="okbox">Đủ đồ cho thời khoá biểu hôm nay.</p>'; }
       h += '<h4>Đồ ăn mang theo</h4><div class="rows">';
       let any = false;
-      for (const id in FOODS) if (G.inv[id]) { any = true; h += `<div class="rowi"><span><b>${FOODS[id].name}</b> ×${G.inv[id]} <small>+${FOODS[id].stam} thể lực</small></span><button class="btn sm" data-act="eat" data-id="${id}">Dùng</button></div>`; }
+      for (const id in FOODS) if (G.inv[id]) { any = true; h += `<div class="rowi"><span><b>${FOODS[id].name}</b> ×${G.inv[id]} </span><button class="btn sm" data-act="eat" data-id="${id}">Dùng</button></div>`; }
       if (!any) h += '<span class="dim">Không có gì để ăn.</span>';
       h += '</div><h4>Hàng để bán</h4><p>Bánh tráng trộn: <b>' + (G.inv.banhtrang || 0) + '</b> bịch <small class="dim">— mời bạn mua trong giờ ra chơi</small></p>';
       h += `<h4>Thẻ cầu thủ & quà</h4><div class="rowi"><span><b>Thẻ cầu thủ</b> ${cardCount()} lá · ${cardKinds()}/${CARDS.length} loại <small>bóc trong gói bim bim Sao Vàng, đem đấu với bạn</small></span><button class="btn sm" data-act="cards">Bộ sưu tập</button></div>`;
-      if (G.inv.gaubong) h += `<p>Gấu bông gắp được: <b>${G.inv.gaubong}</b> con <small class="dim">— tặng bạn thân (+${GIFT_FRIEND} thân thiết)</small></p>`;
+      if (G.inv.gaubong) h += `<p>Gấu bông gắp được: <b>${G.inv.gaubong}</b> con <small class="dim">— tặng bạn thân</small></p>`;
       const own = [['xedap', 'Xe đạp'], ['xedapdien', 'Xe đạp điện'], ['xemay', 'Xe máy 50cc'], ['daynhay', 'Dây nhảy'], ['tatay', 'Tạ tay'], ['xadon', 'Xà đơn'], ['cancau', 'Cần câu']].filter(([k]) => G.owned[k]).map(([, n]) => n);
       if (fishCount()) h += '<p>Cá câu được: ' + FISH.filter(f => G.fish[f.id]).map(f => `<b>${f.name}</b> ×${G.fish[f.id]}`).join(' · ') + ` <small class="dim">— bán cho Cô Ba được ${fmtMoney(fishValue())}, hoặc đưa mẹ nấu</small></p>`;
-      if (G.inv.voso) h += `<p>Vỏ sò: <b>${G.inv.voso}</b> <small class="dim">— tặng bạn thân (+${SHELL_FRIEND} thân thiết)</small></p>`;
+      if (G.inv.voso) h += `<p>Vỏ sò: <b>${G.inv.voso}</b> <small class="dim">— tặng bạn thân</small></p>`;
       h += '<h4>Tài sản ở nhà</h4><p>' + (own.length ? own.join(' · ') : '<span class="dim">Chưa có gì.</span>') + '</p>';
       if (G.busPassUntil >= G.day) h += `<p>Vé tháng xe bus còn hạn đến <b>${dateLabel(G.busPassUntil)}</b>.</p>`;
       return h;
     }, { eat: d => eat(d.id), cards: () => UI.cards() });
   },
 
-  /* ---------- Bộ sưu tập thẻ cầu thủ ---------- */
-  cards() {
-    this.panel('Bộ sưu tập thẻ cầu thủ', () => {
-      let h = `<p>Đã sưu tầm <b>${cardKinds()}/${CARDS.length}</b> loại · tổng <b>${cardCount()}</b> lá.${G.cardDone ? ' <b class="tag">Đủ bộ!</b>' : ` Đủ bộ được thưởng ${fmtMoney(CARD_SET_REWARD)}.`}</p><div class="pcards">`;
-      for (const c of CARDS) h += G.cards[c.id] ? cardHtml(c, '×' + G.cards[c.id]) : `<div class="pcard none" style="--rc:${CARD_RARITY[c.r].col}"><div class="pc-q">?</div><div class="pc-n">Số ${c.no}</div><div class="pc-r">${starsOf(c)} ${CARD_RARITY[c.r].name}</div></div>`;
-      return h + '</div><p class="dim">Mỗi gói bim bim Sao Vàng (căn tin, tạp hoá Cô Ba, TTTM) có 1 thẻ. TC = Tấn công · PT = Phòng thủ · TĐ = Tốc độ. Đấu thẻ với bạn: chọn 1 lá và 1 chỉ số để so — thắng lấy lá của bạn, thua mất lá của mình.</p>';
-    }, {}, true);
-  },
+  cards() { this.menu('cards'); },
 
   /* ---------- Điện thoại: nhắn tin ---------- */
   phone() {
@@ -282,7 +275,7 @@ const UI = {
       for (const s of BOOK_SUBJ) right += it('sach_' + s);
       right += '</div></div>';
       const status = day === null ? '' : (miss ? `<p class="warnbox">Còn thiếu <b>${miss}</b> món so với thời khoá biểu.</p>` : '<p class="okbox">Đã đủ đồ theo thời khoá biểu.</p>');
-      return `<div class="pack">${left}${right}</div>${status}<div class="btns"><button class="btn" data-act="quick">Soạn nhanh theo TKB (mất 10 phút)</button><button class="btn ghost" data-act="clear">Bỏ hết ra</button><button class="btn primary" data-close="1">Xong</button></div><p class="dim">Mỗi tiết chỉ cần mang <b>sách</b> của môn đó: +5 điểm/tiết. Quên sách: quay sang mượn bạn (+3/+4, không mượn được thì +1). Tự học ở trường cũng chỉ học được môn có mang sách.</p>`;
+      return `<div class="pack">${left}${right}</div>${status}<div class="btns"><button class="btn" data-act="quick">Soạn nhanh theo TKB (mất 10 phút)</button><button class="btn ghost" data-act="clear">Bỏ hết ra</button><button class="btn primary" data-close="1">Xong</button></div><p class="dim">Mỗi tiết chỉ cần mang <b>sách</b> của môn đó. Quên sách thì phải quay sang mượn bạn. Tự học ở trường cũng chỉ học được môn có mang sách.</p>`;
     }, {
       tg: d => { if (G.bag[d.id]) delete G.bag[d.id]; else G.bag[d.id] = true; },
       clear: () => { G.bag = {}; },
@@ -290,97 +283,11 @@ const UI = {
     }, true);
   },
 
-  /* ---------- Chỉ số ---------- */
-  stats() {
-    const bar = (cur, need, col) => `<div class="pb"><div style="width:${need ? Math.round(100 * cur / need) : 100}%;background:${col || ''}"></div></div>`;
-    const cell = k => { const i = lvlInfo(G.stats[k]), col = SUBJ[k] ? SUBJ[k].color : ({ thethao: '#d9742b', buonban: '#c9862b', giaotiep: '#e06a9a', kheotay: '#3f8f9b' })[k]; return `<div class="st"><div class="sth"><b>${STAT_NAMES[k]}</b><span class="lv">Lv ${i.lv}</span></div>${bar(i.cur, i.need, col)}<small>${i.lv >= 10 ? 'Tối đa' : `${i.cur}/${i.need}`}</small></div>`; };
-    this.panel('Chỉ số', () => {
-      const tl = tlInfo(G.tlXp), pa = parentInfo(G.parent);
-      let h = '<h4>Chỉ số chính</h4><div class="sgrid two">';
-      h += `<div class="st"><div class="sth"><b>Thể lực</b><span class="lv">Lv ${tl.lv}</span></div>${bar(tl.cur, tl.need, '#5fb0e0')}<small>${tl.lv >= 10 ? 'Tối đa' : `${Math.round(tl.cur)}/${tl.need} để lên cấp`} · tối đa ${tl.max} thể lực</small></div>`;
-      h += `<div class="st"><div class="sth"><b>Tiền tiêu vặt</b><span class="lv">Lv ${pa.lv}</span></div>${bar(pa.cur, pa.need, '#5fae4a')}<small>${PARENT_TITLE[pa.lv]} · thiện cảm bố mẹ ${Math.round(pa.pts)}/${PARENT_MAX} · mẹ cho ${fmtMoney(pa.allowance)}/tuần</small></div>`;
-      const tl2 = teacherLv();
-      h += `<div class="st"><div class="sth"><b>Thiện cảm thầy cô</b><span class="lv">Lv ${tl2}</span></div>${bar(tl2 >= 5 ? 1 : G.teacher % TEACHER.perLv, tl2 >= 5 ? 1 : TEACHER.perLv, '#9a72d6')}<small>${TEACHER_TITLE[tl2]} · ${Math.round(G.teacher)}/${TEACHER.max} · chấm bài ${tl2 > 1 ? '+' + fmtScore(TEACHER.gradePerLv * (tl2 - 1)) : tl2 < 1 ? '−' + fmtScore(TEACHER.gradePerLv) : '±0'} điểm · quay cóp bị bắt ${Math.round(cheatRisk() * 100)}%</small></div>`;
-      h += `<div class="st"><div class="sth"><b>Thẻ cầu thủ</b><span class="lv">${cardKinds()}/${CARDS.length}</span></div>${bar(cardKinds(), CARDS.length, '#f2a93b')}<small>${cardCount()} lá · xem bộ sưu tập trong Cặp sách</small></div>`;
-      h += '</div><p class="dim">Bố mẹ càng hài lòng (trò chuyện, đấm lưng, phụ việc nhà, điểm cao) thì tiền tiêu vặt càng nhiều. 20:00 chưa về nhà (mà cũng chưa xin phép), bị cô báo phụ huynh hay bị bắt hút thuốc sẽ làm bố mẹ phiền lòng. Thầy cô quý (xung phong, phát biểu, trực nhật, tố cáo bạn rủ rê) thì chấm bài nhẹ tay và khó bắt quay cóp hơn; bị bắt làm việc riêng, trốn học, quay cóp thì mất thiện cảm.</p>';
-      h += '<h4>Năng lực tổng hợp</h4><div class="sgrid two"><div class="st big"><div class="sth"><b>Lý thuyết</b><span class="lv">' + fmtAvg(lyThuyet()) + '</span></div><small>TB cấp: Toán, Văn, Anh, Lý, Hoá, Sử, Địa</small></div><div class="st big"><div class="sth"><b>Thực hành</b><span class="lv">' + fmtAvg(thucHanh()) + '</span></div><small>TB cấp: Quốc phòng + thực hành Lý, Hoá, Sinh</small></div></div><h4>Môn học (lý thuyết)</h4><div class="sgrid">';
-      for (const k of ['toan', 'van', 'anh', 'ly', 'hoa', 'sinh', 'su', 'dia']) h += cell(k);
-      h += '</div><h4>Thực hành (tăng qua buổi thực hành và minigame)</h4><div class="sgrid">';
-      for (const k of PRACTICE) h += cell(k);
-      h += '</div><h4>Kỹ năng khác</h4><div class="sgrid">';
-      for (const k of ['thethao', 'buonban', 'giaotiep', 'kheotay']) h += cell(k);
-      h += '</div><h4>Bạn bè</h4><div class="sgrid">';
-      for (const f in FRIENDS) { const hs = hearts(f); h += `<div class="st"><div class="sth"><b>${FRIENDS[f].name}</b><span class="hearts">${'♥'.repeat(hs)}<i>${'♥'.repeat(5 - hs)}</i></span></div><small>${FRIENDS[f].note}</small></div>`; }
-      return h + '</div><p class="dim">Mỗi chỉ số hỗ trợ có 10 cấp: cấp 1 cần 50 điểm, mỗi cấp sau cần thêm 20 điểm so với cấp trước. Lý thuyết và Thực hành càng cao thì càng dễ gặp may khi kiểm tra.</p>';
-    }, {}, true);
-  },
-
-  /* ---------- Thời khoá biểu + lịch kiểm tra ---------- */
-  timetable() {
-    this.panel('Thời khoá biểu', () => {
-      const c = today(), sd = schoolToday(), cp = currentPeriod();
-      let h = '<table class="tt"><tr><th></th>' + [0, 1, 2, 3, 4].map(d => `<th class="${sd && c.dow === d ? 'now' : ''}">${DOW[d]}</th>`).join('') + '</tr>';
-      for (let p = 0; p < 9; p++) {
-        if (p === 4) h += '<tr class="gap"><td colspan="6">Nghỉ trưa · 10:40 – 13:30</td></tr>';
-        h += `<tr><td class="pn">Tiết ${p + 1}<small>${fmtTime(PERIODS[p].start)}</small></td>` + [0, 1, 2, 3, 4].map(d => { const s = TIMETABLE[d][p]; return `<td class="${sd && c.dow === d ? 'now' : ''} ${sd && c.dow === d && cp && cp.n === p + 1 ? 'cur' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td>`; }).join('') + '</tr>';
-      }
-      return h + "</table><p class=\"dim\">Ô “TH” là buổi thực hành riêng (minigame). Mỗi tiết 30', nghỉ 10'; sau mỗi 2 tiết ra chơi 20'. Lịch kiểm tra 1 tiết và thi học kỳ xem ở <b>Lịch</b> (phím L).</p><div class=\"btns\"><button class=\"btn\" data-act=\"cal\">Mở Lịch</button></div>";
-    }, { cal: () => UI.calendar() }, true);
-  },
-
-  /* ---------- Lịch (kiểu Stardew Valley): ngày tháng, ngày lễ / lễ hội, sinh nhật, lịch kiểm tra ---------- */
-  calendar() {
-    const c0 = today(); this._calS = c0.season; this._calY = c0.year;
-    this.panel('Lịch', () => {
-      const yr = UI._calY, se = UI._calS, base = yr * YEAR_DAYS + se * CFG.DAYS_PER_SEASON, tests = {};
-      for (const t of G.tests) (tests[t.day] = tests[t.day] || []).push(t);
-      let h = `<div class="calhead"><button class="btn sm" data-act="prev">‹</button><b>Mùa ${SEASONS[se].name} · Năm ${yr + 1}</b><button class="btn sm" data-act="next">›</button><button class="btn sm ghost" data-act="now">Hôm nay</button><span class="dim">${dateLabel(G.day)}</span></div><div class="cal">`;
-      h += DOW.map((d, i) => `<div class="cd h ${i >= 5 ? 'we' : ''}">${d}</div>`).join('');
-      for (let i = 0; i < cal(base).dow; i++) h += '<div class="cd x"></div>';
-      for (let d = 0; d < CFG.DAYS_PER_SEASON; d++) {
-        const day = base + d, c = cal(day), ev = [], hol = holidayOf(day), sem = semOf(day);
-        if (sem && c.doy === sem.from) ev.push(`<span class="ev sem">Bắt đầu ${sem.name}</span>`);
-        if (sem && c.doy === sem.to) ev.push(`<span class="ev sem">Tổng kết ${sem.name}</span>`);
-        if (hol) ev.push(`<span class="ev hol">${hol.name}</span>`);
-        for (const f of FESTIVALS) if (f.season === se && f.day === d + 1) ev.push(`<span class="ev fes">${f.name}</span>`);
-        for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, day)) ev.push(`<span class="ev bd">Sinh nhật ${FRIENDS[f].name}</span>`);
-        for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], day)) ev.push(`<span class="ev bd">Sinh nhật ${PNAME[w].toLowerCase()}</span>`);
-        for (const t of tests[day] || []) ev.push(`<span class="ev ts ${t.done ? 'done' : ''}" style="--c:${SUBJ[t.subj].color}" title="${TEST_NAME[t.type]} · ${SUBJ[t.subj].name}">${SUBJ[t.subj].short} · ${t.type === 'thi' ? 'thi' : '1 tiết'}</span>`);
-        if (G.meet && G.meet.day === day) ev.push(`<span class="ev mt">Hẹn ${FRIENDS[G.meet.fid].name}</span>`);
-        const off = c.dow >= 5 || !SEASONS[se].school || hol;
-        h += `<div class="cd ${day === G.day ? 'today' : ''} ${day < G.day ? 'past' : ''} ${off ? 'we' : ''}"><b>${d + 1}</b>${ev.join('')}</div>`;
-      }
-      h += '</div><div class="callegend"><span class="ev ts" style="--c:#7a7085">Kiểm tra 1 tiết / thi</span><span class="ev bd">Sinh nhật</span><span class="ev hol">Ngày lễ</span><span class="ev fes">Lễ hội</span><span class="ev mt">Cuộc hẹn</span><span class="ev sem">Học kỳ</span></div>';
-      return h + `<p class="dim">${SEASONS[se].school ? 'Ô màu nhạt là ngày nghỉ (thứ 7, chủ nhật, ngày lễ).' : 'Nghỉ hè — không có tiết học.'} Lịch kiểm tra của một học kỳ được xếp vào ngày đầu học kỳ đó. Sinh nhật bạn bè: chúc mừng được +${BDAY_FRIEND} thân thiết, tặng quà hôm đó được cộng gấp đôi.${FESTIVALS.length ? '' : ' Lễ hội sẽ được bổ sung sau.'}</p>`;
-    }, {
-      prev: () => { if (--UI._calS < 0) { if (UI._calY > 0) { UI._calS = SEASONS.length - 1; UI._calY--; } else UI._calS = 0; } },
-      next: () => { if (++UI._calS >= SEASONS.length) { UI._calS = 0; UI._calY++; } },
-      now: () => { const c = today(); UI._calS = c.season; UI._calY = c.year; },
-    }, true);
-  },
-
-  /* ---------- Sổ điểm ---------- */
-  grades() {
-    const s0 = semOf(G.day); this._gsem = s0 ? s0.id : (today().doy > 59 ? 2 : 1);
-    this.panel('Sổ điểm', () => {
-      const year = today().year, key = year + '-' + UI._gsem, g = G.grades[key] || {}, rep = semReport(key);
-      let h = '<div class="tabs">' + SEMESTERS.map(s => `<button class="tab ${UI._gsem === s.id ? 'on' : ''}" data-act="sem" data-id="${s.id}">${s.name}</button>`).join('') + '</div>';
-      h += "<table class=\"tb\"><tr><th>Môn</th><th>Miệng ×1</th><th>15' ×1</th><th>1 tiết ×2</th><th>Thi ×3</th><th>TB</th></tr>";
-      for (const s of GRADED) {
-        const a = g[s] || [], col = t => a.filter(x => x.t === t).map(x => fmtScore(x.s)).join(' · ') || '–';
-        h += `<tr><td><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td><td>${col('mieng')}</td><td>${col('p15')}</td><td>${col('tiet')}</td><td>${col('thi')}</td><td><b>${fmtAvg(rep.rows[s])}</b></td></tr>`;
-      }
-      h += `</table><div class="sum"><span>Điểm tổng kết <b>${fmtAvg(rep.avg)}</b></span><span>Học lực tạm tính <b class="tag">${rep.hl}</b></span></div>`;
-      const yr = yearReport(year);
-      if (yr.hk1.avg !== null && yr.hk2.avg !== null) h += `<div class="sum"><span>Cả năm <b>${fmtAvg(yr.avg)}</b></span><span>Học lực <b class="tag">${yr.hl}</b></span></div>`;
-      const log = G.conductLog.filter(e => cal(e.day).year === year);
-      h += `<h4>Hạnh kiểm</h4><div class="sum"><span>Hiện tại <b>${fmtScore(G.conduct)}</b>/10</span><span><b class="tag">${hanhKiem(G.conduct)}</b></span></div>`;
-      if (log.length) h += '<p>Các kỳ 2 tuần đã chốt: ' + log.map(e => `<b>${fmtScore(e.score)}</b> (${hanhKiem(e.score)})`).join(' · ') + '</p>';
-      h += '<p class="dim">Giỏi: ĐTB ≥ 8,0 và Toán hoặc Văn ≥ 8,0 · Khá: ≥ 6,0 · Trung bình: ≥ 4,0. Hạnh kiểm: 8–10 Tốt · 6–8 Khá · 4–6 Trung bình · dưới 4 Yếu.</p>';
-      if (G.reports.length) h += '<h4>Các năm trước</h4>' + G.reports.map(r => `<p>Lớp ${r.grade}: ĐTB <b>${fmtAvg(r.avg)}</b> · ${r.hl} · Hạnh kiểm ${r.hk}${r.title ? ' · ' + r.title : ''}</p>`).join('');
-      return h;
-    }, { sem: d => { UI._gsem = +d.id; } }, true);
-  },
+  /* ---------- các bảng trong menu chung: xem MV bên dưới ---------- */
+  stats() { this.menu('stats'); },
+  timetable() { this.menu('tt'); },
+  calendar() { this.menu('cal'); },
+  grades() { this.menu('grades'); },
 
   /* ---------- Tạp hoá ---------- */
   shop() {
@@ -391,37 +298,234 @@ const UI = {
         h += `<div class="rowi"><span><b>${it.name}</b> <small>${it.desc}</small></span><button class="btn sm" data-act="buy" data-id="${it.id}" ${owned || G.money < it.price ? 'disabled' : ''}>${owned ? 'Đã có' : fmtMoney(it.price)}</button></div>`;
       }
       if (fishCount()) h += `</div><h4>Bán cá câu được</h4><div class="rowi"><span><b>${fishCount()} con cá</b> <small>${FISH.filter(f => G.fish[f.id]).map(f => `${f.name} ×${G.fish[f.id]}`).join(' · ')}</small></span><button class="btn sm" data-act="fish">Bán hết · ${fmtMoney(fishValue())}</button>`;
-      h += `</div><h4>Phụ bán hàng (ngày nghỉ, 08:00–18:00)</h4><div class="rowi"><span><b>Phụ cô Ba 2 tiếng</b> <small>+${fmtMoney(PART_TIME.pay + PART_TIME.payPerLv * lv('buonban'))} · +${PART_TIME.pts} Buôn bán · −${PART_TIME.stam} thể lực</small></span><button class="btn sm" data-act="pt">Nhận việc</button></div>`;
+      h += `</div><h4>Phụ bán hàng (ngày nghỉ, 08:00–18:00)</h4><div class="rowi"><span><b>Phụ cô Ba 2 tiếng</b> <small>Cô Ba trả công ${fmtMoney(PART_TIME.pay + PART_TIME.payPerLv * lv('buonban'))}</small></span><button class="btn sm" data-act="pt">Nhận việc</button></div>`;
       return h;
     }, { buy: d => buy(SHOP.find(x => x.id === d.id)), pt: () => { partTime(); }, fish: () => sellFish() }, true);
   },
 
-  /* ---------- Cài đặt ---------- */
-  settings() {
-    this.panel('Cài đặt', () => {
-      return `<h4>Tốc độ thời gian</h4><p>Mỗi <b id="spv">${G.speed}</b> giây thực = 10 phút trong game <small class="dim">(một ngày 05:00 → 03:00 dài khoảng ${Math.round(132 * G.speed / 60)} phút nếu không bỏ qua)</small></p>
-      <input type="range" id="spd" min="2" max="12" step="1" value="${G.speed}">
-      <h4>Điều khiển</h4><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> di chuyển · <kbd>Chuột phải</kbd> vào đồ vật để tương tác (hoặc <kbd>E</kbd>) · <kbd>B</kbd> cặp · <kbd>C</kbd> chỉ số · <kbd>T</kbd> thời khoá biểu · <kbd>G</kbd> sổ điểm · <kbd>L</kbd> lịch · <kbd>P</kbd> điện thoại · <kbd>X</kbd> xuống xe · <kbd>Esc</kbd> cài đặt</p>
-      <h4>Lưu game</h4><p class="dim">Game tự lưu mỗi sáng vào trình duyệt này. Muốn chuyển máy hoặc giữ chắc, hãy sao chép mã lưu.</p>
-      <div class="btns"><button class="btn" data-act="save">Lưu ngay</button><button class="btn" data-act="copy">Sao chép mã lưu</button></div>
-      <textarea id="imp" placeholder="Dán mã lưu vào đây…"></textarea>
-      <div class="btns"><button class="btn" data-act="imp">Nhập mã lưu</button><button class="btn danger" data-act="reset">Chơi lại từ đầu</button></div>`;
-    }, {
-      save: () => { UI.toast(save() ? 'Đã lưu.' : 'Trình duyệt không cho lưu. Hãy sao chép mã lưu.', 'good'); },
-      copy: () => { const code = exportCode(); const ta = $('imp'); const done = ok => UI.toast(ok ? 'Đã sao chép mã lưu.' : 'Mã lưu nằm trong ô bên dưới — hãy chép tay.', 'good'); try { navigator.clipboard.writeText(code).then(() => done(true), () => { ta.value = code; done(false); }); } catch (e) { ta.value = code; done(false); } },
-      imp: () => { const v = $('imp').value; if (!v.trim()) return UI.toast('Chưa dán mã lưu.'); if (importCode(v)) { save(); UI.close(-1); UI.hud(); UI.toast('Đã nhập mã lưu.', 'good'); } else UI.toast('Mã lưu không hợp lệ.', 'bad'); },
-      reset: (d, el) => { if (el.dataset.sure) { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } location.reload(); } else { el.dataset.sure = '1'; el.textContent = 'Bấm lần nữa để xoá'; UI._panel._keep = true; } },
-    }, true);
-  },
+  settings() { this.menu('set'); },
 };
 // refresh() vẽ lại nội dung nên nút "chơi lại" cần giữ trạng thái xác nhận: bỏ qua refresh một lần
 const _refresh = UI.refresh.bind(UI);
 UI.refresh = function () { if (this._panel && this._panel._keep) { this._panel._keep = false; return; } _refresh(); };
 
+/* ============================================================
+ *  MENU CHUNG (Esc hoặc M): một bảng duy nhất, các tab là icon
+ *  Chỉ số · Bạn bè · Thời khoá biểu · Học bạ · Lịch · Thẻ cầu thủ · Cài đặt
+ * ============================================================ */
+const MENU_TABS = [['stats', 'Chỉ số'], ['friends', 'Bạn bè'], ['tt', 'Thời khoá biểu'], ['grades', 'Học bạ'], ['cal', 'Lịch'], ['cards', 'Thẻ cầu thủ'], ['set', 'Cài đặt']];
+const MV = {};
+const subTabs = (act, cur, list) => '<div class="tabs">' + list.map(([id, name]) => `<button class="tab ${cur === id ? 'on' : ''}" data-act="${act}" data-id="${id}">${name}</button>`).join('') + '</div>';
+const heartsHtml = n => `<span class="hearts">${'♥'.repeat(n)}<i>${'♥'.repeat(5 - n)}</i></span>`;
+UI.menu = function (tab) {
+  if (tab && MV[tab]) { this._tab = tab; if (MV[tab].init) MV[tab].init(); }
+  if (!this._tab) { this._tab = 'stats'; }
+  const H = { tab: d => { UI._tab = d.id; if (MV[d.id].init) MV[d.id].init(); } };
+  for (const k in MV) Object.assign(H, MV[k].h || {});
+  const name = () => MENU_TABS.find(x => x[0] === UI._tab)[1];
+  this.panel('', () => {
+    $('m-title').textContent = name();
+    return `<div class="mtabs">${MENU_TABS.map(([id, nm]) => `<button class="mtab ${id === UI._tab ? 'on' : ''}" data-act="tab" data-id="${id}" title="${nm}"><img src="${itemIcon('m_' + id)}" alt="${nm}"></button>`).join('')}</div>` + MV[UI._tab].render();
+  }, H, true);
+  $('m-title').textContent = name();
+};
+
+/* ---------- Chỉ số: Lý thuyết · Thực hành · Khác ---------- */
+MV.stats = {
+  h: { stab: d => { UI._stab = d.id; } },
+  render() {
+    const st = UI._stab || 'ly';
+    const bar = (cur, need, col) => `<div class="pb"><div style="width:${need ? Math.round(100 * cur / need) : 100}%;background:${col || ''}"></div></div>`;
+    const cell = k => { const i = lvlInfo(G.stats[k]), col = SUBJ[k] ? SUBJ[k].color : ({ thethao: '#d9742b', buonban: '#c9862b', giaotiep: '#e06a9a', kheotay: '#3f8f9b', vannghe: '#9a72d6' })[k]; return `<div class="st"><div class="sth"><b>${STAT_NAMES[k]}</b><span class="lv">Lv ${i.lv}</span></div>${bar(i.cur, i.need, col)}<small>${i.lv >= 10 ? 'Tối đa' : `${i.cur}/${i.need}`}</small></div>`; };
+    const big = (name, v, note) => `<div class="st big"><div class="sth"><b>${name}</b><span class="lv">${fmtAvg(v)}</span></div><small>${note}</small></div>`;
+    let h = subTabs('stab', st, [['ly', 'Lý thuyết'], ['th', 'Thực hành'], ['khac', 'Khác']]);
+    if (st === 'ly') h += big('Lý thuyết', lyThuyet(), 'Trung bình cấp các môn Toán, Văn, Anh, Lý, Hoá, Sử, Địa') + '<div class="sgrid">' + ['toan', 'van', 'anh', 'ly', 'hoa', 'sinh', 'su', 'dia'].map(cell).join('') + '</div>';
+    else if (st === 'th') h += big('Thực hành', thucHanh(), 'Trung bình cấp Quốc phòng và thực hành Lý, Hoá, Sinh') + '<div class="sgrid">' + PRACTICE.map(cell).join('') + '</div>';
+    else h += '<div class="sgrid">' + ['thethao', 'buonban', 'giaotiep', 'kheotay', 'vannghe'].map(cell).join('') + '</div>';
+    return h;
+  },
+};
+
+/* ---------- Bạn bè: bạn cùng lớp · gia đình · thầy cô · người ngoài xã hội ---------- */
+MV.friends = {
+  render() {
+    const dl = d => `${d[1]} ${SEASONS[d[0]].name}`;
+    const row = (look, outfit, name, note, n) => `<div class="frow"><img src="${faceOf(look, outfit)}" alt=""><div><b>${name}</b><small>${note}</small></div>${heartsHtml(n)}</div>`;
+    let h = '<h4>Bạn bè</h4><div class="fgrid">';
+    for (const f in FRIENDS) { const F = FRIENDS[f]; h += row(f, null, F.name, `${F.note} · sinh nhật ${dl(F.bday)}${grudge(f) ? ' · <b>đang giận bạn</b>' : ''}${isComp(f) ? ' · đang đi cùng bạn' : ''}`, hearts(f)); }
+    h += '</div><h4>Gia đình</h4><div class="fgrid">';
+    const pl = Math.min(5, Math.ceil(parentInfo(G.parent).lv / 2));
+    for (const w of ['mom', 'dad']) h += row(w, null, PNAME[w], `sinh nhật ${dl(PARENT_BDAY[w])}`, pl);
+    h += '</div><h4>Thầy cô</h4><div class="fgrid">';
+    for (const t in TEACHERS) h += row(TEACHERS[t].look, null, TEACHERS[t].name, TEACHERS[t].note, teacherLv(t));
+    h += '</div><h4>Ngoài xã hội</h4><div class="fgrid">';
+    for (const k in SOCIETY) h += row(SOCIETY[k].look, null, SOCIETY[k].name, SOCIETY[k].note, Math.min(5, Math.floor((G.soc[k] || 0) / 20)));
+    return h + '</div>';
+  },
+};
+
+/* ---------- Thời khoá biểu ---------- */
+MV.tt = {
+  render() {
+    const c = today(), sd = schoolToday(), cp = currentPeriod();
+    let h = '<table class="tt"><tr><th></th>' + [0, 1, 2, 3, 4].map(d => `<th class="${sd && c.dow === d ? 'now' : ''}">${DOW[d]}</th>`).join('') + '</tr>';
+    for (let p = 0; p < 9; p++) {
+      if (p === 4) h += `<tr class="gap"><td colspan="6">Nghỉ trưa · ${fmtTime(AM_END)} – ${fmtTime(PM_START)}</td></tr>`;
+      h += `<tr><td class="pn">Tiết ${p + 1}<small>${fmtTime(PERIODS[p].start)}</small></td>` + [0, 1, 2, 3, 4].map(d => { const s = TIMETABLE[d][p]; return `<td class="${sd && c.dow === d ? 'now' : ''} ${sd && c.dow === d && cp && cp.n === p + 1 ? 'cur' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td>`; }).join('') + '</tr>';
+    }
+    return h + `</table><p class="dim">Ô “TH” là buổi thực hành riêng. Mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 20'; tan học ${fmtTime(CFG.SCHOOL_END)}. Lịch kiểm tra xem ở tab Lịch.</p>`;
+  },
+};
+
+/* ---------- Học bạ ---------- */
+MV.grades = {
+  init() { const s0 = semOf(G.day); UI._gsem = s0 ? s0.id : (today().doy > 59 ? 2 : 1); },
+  h: { sem: d => { UI._gsem = +d.id; } },
+  render() {
+    if (!UI._gsem) MV.grades.init();
+    const year = today().year, key = year + '-' + UI._gsem, g = G.grades[key] || {}, rep = semReport(key);
+    let h = subTabs('sem', UI._gsem, SEMESTERS.map(s => [s.id, s.name]));
+    h += "<table class=\"tb\"><tr><th>Môn</th><th>Miệng</th><th>15'</th><th>1 tiết</th><th>Thi</th><th>TB</th></tr>";
+    for (const s of GRADED) {
+      const a = g[s] || [], col = t => a.filter(x => x.t === t).map(x => fmtScore(x.s)).join(' · ') || '–';
+      h += `<tr><td><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td><td>${col('mieng')}</td><td>${col('p15')}</td><td>${col('tiet')}</td><td>${col('thi')}</td><td><b>${fmtAvg(rep.rows[s])}</b></td></tr>`;
+    }
+    h += `</table><div class="sum"><span>Điểm tổng kết <b>${fmtAvg(rep.avg)}</b></span><span>Học lực tạm tính <b class="tag">${rep.hl}</b></span></div>`;
+    const yr = yearReport(year);
+    if (yr.hk1.avg !== null && yr.hk2.avg !== null) h += `<div class="sum"><span>Cả năm <b>${fmtAvg(yr.avg)}</b></span><span>Học lực <b class="tag">${yr.hl}</b></span></div>`;
+    const log = G.conductLog.filter(e => cal(e.day).year === year);
+    h += `<h4>Hạnh kiểm</h4><div class="sum"><span>Hiện tại <b>${fmtScore(G.conduct)}</b>/10</span><span><b class="tag">${hanhKiem(G.conduct)}</b></span></div>`;
+    if (log.length) h += '<p>Các kỳ 2 tuần đã chốt: ' + log.map(e => `<b>${fmtScore(e.score)}</b> (${hanhKiem(e.score)})`).join(' · ') + '</p>';
+    h += '<p class="dim">Giỏi: ĐTB ≥ 8,0 và Toán hoặc Văn ≥ 8,0 · Khá: ≥ 6,0 · Trung bình: ≥ 4,0. Hạnh kiểm: 8–10 Tốt · 6–8 Khá · 4–6 Trung bình · dưới 4 Yếu.</p>';
+    if (G.reports.length) h += '<h4>Các năm trước</h4>' + G.reports.map(r => `<p>Lớp ${r.grade}: ĐTB <b>${fmtAvg(r.avg)}</b> · ${r.hl} · Hạnh kiểm ${r.hk}${r.title ? ' · ' + r.title : ''}</p>`).join('');
+    return h;
+  },
+};
+
+/* ---------- Lịch (kiểu Stardew Valley) — kiêm bảng chọn ngày khi du hành thời gian ---------- */
+MV.cal = {
+  init() { const c = today(); UI._calS = c.season; UI._calY = c.year; },
+  h: {
+    prev: () => { if (--UI._calS < 0) { if (UI._calY > 0) { UI._calS = SEASONS.length - 1; UI._calY--; } else UI._calS = 0; } },
+    next: () => { if (++UI._calS >= SEASONS.length) { UI._calS = 0; UI._calY++; } },
+    now: () => MV.cal.init(),
+    jump: d => { const day = +d.id; UI._travel = false; UI.close(-1); timeTravelAsk(day); },
+    notravel: () => { UI._travel = false; },
+  },
+  render() {
+    if (UI._calS === undefined) MV.cal.init();
+    const yr = UI._calY, se = UI._calS, base = yr * YEAR_DAYS + se * CFG.DAYS_PER_SEASON, tests = {}, tv = !!UI._travel;
+    for (const t of G.tests) (tests[t.day] = tests[t.day] || []).push(t);
+    let h = tv ? '<p class="warnbox">Du hành thời gian: bấm vào một ngày bất kỳ để nhảy tới ngày đó. <button class="btn sm ghost" data-act="notravel">Thôi</button></p>' : '';
+    h += `<div class="calhead"><button class="btn sm" data-act="prev">‹</button><b>Mùa ${SEASONS[se].name} · Năm ${yr + 1}</b><button class="btn sm" data-act="next">›</button><button class="btn sm ghost" data-act="now">Hôm nay</button><span class="dim">${dateLabel(G.day)}</span></div><div class="cal">`;
+    h += DOW.map((d, i) => `<div class="cd h ${i >= 5 ? 'we' : ''}">${d}</div>`).join('');
+    for (let i = 0; i < cal(base).dow; i++) h += '<div class="cd x"></div>';
+    for (let d = 0; d < CFG.DAYS_PER_SEASON; d++) {
+      const day = base + d, c = cal(day), ev = [], hol = holidayOf(day), sem = semOf(day);
+      if (sem && c.doy === sem.from) ev.push(`<span class="ev sem">Bắt đầu ${sem.name}</span>`);
+      if (sem && c.doy === sem.to) ev.push(`<span class="ev sem">Tổng kết ${sem.name}</span>`);
+      if (hol) ev.push(`<span class="ev hol">${hol.name}</span>`);
+      for (const f of FESTIVALS) if (f.season === se && f.day === d + 1) ev.push(`<span class="ev fes">${f.name}</span>`);
+      for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, day)) ev.push(`<span class="ev bd">Sinh nhật ${FRIENDS[f].name}</span>`);
+      for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], day)) ev.push(`<span class="ev bd">Sinh nhật ${PNAME[w].toLowerCase()}</span>`);
+      for (const t of tests[day] || []) ev.push(`<span class="ev ts ${t.done ? 'done' : ''}" style="--c:${SUBJ[t.subj].color}" title="${TEST_NAME[t.type]} · ${SUBJ[t.subj].name}">${SUBJ[t.subj].short} · ${t.type === 'thi' ? 'thi' : '1 tiết'}</span>`);
+      if (G.meet && G.meet.day === day) ev.push(`<span class="ev mt">Hẹn ${FRIENDS[G.meet.fid].name}</span>`);
+      const off = c.dow >= 5 || !SEASONS[se].school || hol;
+      h += `<div class="cd ${day === G.day ? 'today' : ''} ${day < G.day ? 'past' : ''} ${off ? 'we' : ''} ${tv ? 'pick' : ''}" ${tv ? `data-act="jump" data-id="${day}"` : ''}><b>${d + 1}</b>${ev.join('')}</div>`;
+    }
+    h += '</div><div class="callegend"><span class="ev ts" style="--c:#7a7085">Kiểm tra 1 tiết / thi</span><span class="ev bd">Sinh nhật</span><span class="ev hol">Ngày lễ</span><span class="ev fes">Lễ hội</span><span class="ev mt">Cuộc hẹn</span><span class="ev sem">Học kỳ</span></div>';
+    return h + `<p class="dim">${SEASONS[se].school ? 'Ô màu nhạt là ngày nghỉ (thứ 7, chủ nhật, ngày lễ).' : 'Nghỉ hè — không có tiết học.'} Lịch kiểm tra của một học kỳ được xếp vào ngày đầu học kỳ đó.${FESTIVALS.length ? '' : ' Lễ hội sẽ được bổ sung sau.'}</p>`;
+  },
+};
+
+/* ---------- Thẻ cầu thủ ---------- */
+MV.cards = {
+  render() {
+    let h = `<p>Đã sưu tầm <b>${cardKinds()}/${CARDS.length}</b> loại · tổng <b>${cardCount()}</b> lá.${G.cardDone ? ' <b class="tag">Đủ bộ!</b>' : ''}</p><div class="pcards">`;
+    for (const c of CARDS) h += G.cards[c.id] ? cardHtml(c, '×' + G.cards[c.id]) : `<div class="pcard none" style="--rc:${CARD_RARITY[c.r].col}"><div class="pc-q">?</div><div class="pc-n">Số ${c.no}</div><div class="pc-r">${starsOf(c)} ${CARD_RARITY[c.r].name}</div></div>`;
+    return h + '</div><p class="dim">Mỗi gói bim bim Sao Vàng (căn tin, tạp hoá Cô Ba, TTTM) có 1 thẻ. TC = Tấn công · PT = Phòng thủ · TĐ = Tốc độ. Đấu thẻ với bạn: chọn 1 lá và 1 chỉ số để so — thắng lấy lá của bạn, thua mất lá của mình.</p>';
+  },
+};
+
+/* ---------- Cài đặt: Hiệu chỉnh game · Điều khiển · Cài đặt khác ---------- */
+const KEYMAP = [['W A S D / ↑ ↓ ← →', 'Di chuyển'], ['Chuột_phải / E', 'Tương tác với người, đồ vật'], ['Q', 'Trong giờ học: quay sang bạn'], ['X', 'Xuống xe'], ['B', 'Mở túi đồ'], ['Esc / M', 'Mở menu'],
+  ['C', 'Chỉ số'], ['F', 'Bạn bè'], ['T', 'Thời khoá biểu'], ['G', 'Học bạ'], ['L', 'Lịch'], ['K', 'Thẻ cầu thủ'], ['P', 'Điện thoại'], ['Space / Enter', 'Chọn nút chính trong hộp thoại; lướt nhanh lời thoại'], ['1 – 9', 'Chọn nhanh lựa chọn trong hộp thoại']];
+MV.set = {
+  h: {
+    sset: d => { UI._sset = d.id; },
+    save: () => { UI.toast(save() ? 'Đã lưu.' : 'Trình duyệt không cho lưu. Hãy sao chép mã lưu.', 'good'); },
+    copy: () => { const code = exportCode(), ta = $('imp'); UI._panel._keep = true; const done = ok => UI.toast(ok ? 'Đã sao chép mã lưu.' : 'Mã lưu nằm trong ô “Dán mã” — hãy chép tay.', 'good'); try { navigator.clipboard.writeText(code).then(() => done(true), () => { ta.value = code; done(false); }); } catch (e) { ta.value = code; done(false); } },
+    imp: () => {
+      const v = $('imp').value.trim(), up = v.toUpperCase();       // mã thử nghiệm không phân biệt hoa thường
+      if (!v) return UI.toast('Chưa dán mã.');
+      if (up === CHEATS.money) { addMoney(CHEAT_MONEY, true); UI.toast(`Tiền tiêu vặt +${fmtMoney(CHEAT_MONEY)}.`, 'good'); }
+      else if (up === CHEATS.love) { cheatLove(); UI.toast(`Mọi nhân vật quý bạn hơn (+${CHEAT_LOVE} thiện cảm).`, 'good'); }
+      else if (up === CHEATS.time) { UI._travel = true; UI._tab = 'cal'; MV.cal.init(); UI.toast('Du hành thời gian: chọn một ngày trên lịch.', 'info'); }
+      else if (importCode(v)) { save(); UI.close(-1); UI.toast('Đã nhập mã lưu.', 'good'); }
+      else UI.toast('Mã không hợp lệ.', 'bad');
+    },
+    reset: (d, el) => { if (el.dataset.sure) { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } location.reload(); } else { el.dataset.sure = '1'; el.textContent = 'Bấm lần nữa để xoá'; UI._panel._keep = true; } },
+  },
+  render() {
+    const st = UI._sset || 'game';
+    let h = subTabs('sset', st, [['game', 'Hiệu chỉnh game'], ['keys', 'Điều khiển'], ['other', 'Cài đặt khác']]);
+    if (st === 'game') h += `<h4>Âm thanh</h4><p>Âm lượng <b id="volv">${G.vol === undefined ? 70 : G.vol}</b>% <small class="dim">(âm thanh sẽ được lồng vào sau)</small></p><input type="range" id="vol" min="0" max="100" step="5" value="${G.vol === undefined ? 70 : G.vol}">
+      <h4>Tốc độ thời gian</h4><p>Mỗi <b id="spv">${G.speed}</b> giây thực = 10 phút trong game <small class="dim">(một ngày 05:00 → 03:00 dài khoảng ${Math.round(132 * G.speed / 60)} phút nếu không bỏ qua)</small></p><input type="range" id="spd" min="2" max="12" step="1" value="${G.speed}">`;
+    else if (st === 'keys') h += '<table class="tb keys">' + KEYMAP.map(([k, v]) => `<tr><td>${k.split(' / ').map(x => x.split(' ').map(y => (y === '–' ? '–' : `<kbd>${y.replace('_', ' ')}</kbd>`)).join('')).join(' hoặc ')}</td><td>${v}</td></tr>`).join('') + '</table>';
+    else h += `<h4>Lưu game</h4><p class="dim">Game tự lưu vào trình duyệt này mỗi khi bạn đi ngủ. Muốn chuyển máy hoặc giữ chắc, hãy sao chép mã lưu.</p>
+      <div class="btns"><button class="btn" data-act="save">Lưu ngay</button><button class="btn" data-act="copy">Sao chép mã lưu</button></div>
+      <h4>Dán mã</h4><textarea id="imp" placeholder="Dán mã lưu hoặc mã đặc biệt vào đây…"></textarea>
+      <div class="btns"><button class="btn primary" data-act="imp">Nhập mã</button></div>
+      <h4>Chơi lại</h4><div class="btns"><button class="btn danger" data-act="reset">Chơi lại từ đầu</button></div>`;
+    return h;
+  },
+};
+// Mã thử nghiệm: +thiện cảm với mọi nhân vật
+function cheatLove() {
+  for (const f in FRIENDS) addFriend(f, CHEAT_LOVE, true);
+  for (const t in TEACHERS) addTeacher(CHEAT_LOVE, t, true);
+  for (const k in SOCIETY) G.soc[k] = clamp((G.soc[k] || 0) + CHEAT_LOVE, 0, 100);
+  addParent(CHEAT_LOVE, '', true);
+}
+// Mã thử nghiệm: du hành tới một ngày bất kỳ trên lịch
+async function timeTravelAsk(day) {
+  const sd = isSchoolDay(day);
+  const opts = sd ? [['05:00 — vừa ngủ dậy ở nhà', 300], ['07:30 — trước cổng trường', 450], [`${fmtTime(AM_END)} — nghỉ trưa ở trường`, AM_END], [`${fmtTime(CFG.SCHOOL_END)} — tan học, ở sân trường`, CFG.SCHOOL_END], ['19:00 — buổi tối ở nhà', 1140]]
+    : [['05:00 — vừa ngủ dậy', 300], ['09:00 — buổi sáng', 540], ['14:00 — buổi chiều', 840], ['19:00 — buổi tối', 1140]];
+  const c = await UI.ask('Du hành thời gian', `<p>Tới <b>${dateLabel(day)}</b>, năm ${cal(day).year + 1}. Vào lúc nào?</p>`, opts.map(o => o[0]).concat('Thôi'));
+  if (c < 0 || c >= opts.length) return;
+  timeTravel(day, opts[c][1]);
+}
+function timeTravel(day, time) {
+  const c = cal(day), sem = semOf(day), key = semKey(day);
+  G.day = day; G.comp = null; G.meet = null; G.phone.pend = null;
+  if (sem && !G.tests.some(t => t.sem === key)) scheduleSemester(c.year, sem);
+  for (const t of G.tests) if (t.day < day && !t.done) { t.done = true; t.q = true; }     // các bài kiểm tra đã trôi qua coi như bỏ qua
+  G.pending = {};
+  G.schoolDays = 0; for (let d = c.year * YEAR_DAYS; d < day; d++) if (isSchoolDay(d)) G.schoolDays++;
+  RT.morning = []; RT.pendingClass = null; RT.pendingInvite = null; RT.pendingEvent = null; RT.scene = null;
+  beginDay(false);
+  if (time > CFG.DAY_START) {
+    G.time = time;
+    if (isSchoolDay(day)) {
+      for (const p of PERIODS) if (p.start < time) G.daily.done[p.n] = true;
+      if (time === 450) setMap('school', 350, 404, 3);
+      else if (time <= CFG.SCHOOL_END) { G.atSchool = true; G.daily.arrived = true; setMap('school', 300, 300, 0); }
+    }
+  }
+  RT.snapNpcs = true; UI.hud();
+  UI.toast(`Đã du hành tới ${dateLabel(day)}, ${fmtTime(G.time)}.`, 'good');
+}
+
 function bindUI() {
+  $('ic-menu').src = itemIcon('m_menu'); $('ic-phone').src = itemIcon('m_phone');
+  $('banner').addEventListener('click', () => turnToFriend());
   $('modal').addEventListener('click', UI._click);
   $('m-x').addEventListener('click', () => UI.close(UI._res ? UI._esc : -1));
-  $('modal-wrap').addEventListener('input', e => { if (e.target.id === 'spd') { G.speed = +e.target.value; $('spv').textContent = G.speed; } });
+  $('modal-wrap').addEventListener('input', e => {
+    if (e.target.id === 'spd') { G.speed = +e.target.value; $('spv').textContent = G.speed; }
+    else if (e.target.id === 'vol') { G.vol = +e.target.value; $('volv').textContent = G.vol; }
+  });
   $('hotbar').addEventListener('click', e => {
     const b = e.target.closest('[data-hb]'); if (!b) return; b.blur();
     if (!G || RT.lock || UI.isOpen()) return;
@@ -432,5 +536,5 @@ function bindUI() {
 }
 function openMenu(k) {
   if (!G || RT.lock) return;
-  if (k === 'bag') UI.bag(); else if (k === 'stats') UI.stats(); else if (k === 'tt') UI.timetable(); else if (k === 'grades') UI.grades(); else if (k === 'phone') UI.phone(); else if (k === 'cal') UI.calendar(); else if (k === 'set') UI.settings();
+  if (k === 'bag') UI.bag(); else if (k === 'phone') UI.phone(); else UI.menu(k === 'menu' ? null : k);
 }
