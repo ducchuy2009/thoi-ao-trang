@@ -175,6 +175,7 @@ function update(dt) {
     if (RT.pendingClass) { const p = RT.pendingClass; RT.pendingClass = null; runClass(p); return; }
     if (RT.pendingEvent) { const e = RT.pendingEvent; RT.pendingEvent = null; if (G.atSchool && inWin(G.time, AM_END, PM_START - 20)) { runLunchEvent(e); return; } }
     if (RT.pendingInvite) { const inv = RT.pendingInvite; RT.pendingInvite = null; if (yardTime()) { showInvite(inv); return; } }
+    if (eventTick()) return;                       // Tết, giao thừa, thi gói bánh chưng
     movePlayer(dt); lifeTick();
     RT.tickAcc += dt;
     if (RT.tickAcc >= G.speed) { RT.tickAcc = 0; advanceTime(CFG.TICK_MIN); }
@@ -269,14 +270,17 @@ function render(now) {
   }
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
-  if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
+  if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);
+  if (G) drawFestProps(now);
+  for (const o of m.objs) if (o.smoke && (!o.vis || o.vis())) smokeProp(now, o.x + o.smoke[0], o.y + o.smoke[1]);   // khói nhang        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
   // biển hiệu (chữ nét)
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   for (const l of m.labels) { ctx.font = `800 ${l.size * S}px "Baloo 2", system-ui, sans-serif`; ctx.fillStyle = l.col; ctx.fillText(l.text, VIEW.ox + l.x * S, VIEW.oy + l.y * S, l.maxw * S); }
   // sáng / tối theo giờ
   if (G) { const a = nightAlpha(G.time) * (m.indoor ? 0.4 : 1); if (a > 0.01) { ctx.fillStyle = `rgba(22,20,74,${a})`; ctx.fillRect(0, 0, cv.width, cv.height); } }
   // quầng sáng đèn đường ban đêm
-  if (G && !m.indoor) { const a = nightAlpha(G.time); if (a > 0.05) { ctx.globalCompositeOperation = 'lighter'; for (const o of m.objs) { if (o.s !== 'lamp') continue; const X = VIEW.ox + (o.x + 6) * S, Y = VIEW.oy + (o.y + 8) * S, g = ctx.createRadialGradient(X, Y, 0, X, Y, 52 * S); g.addColorStop(0, `rgba(255,214,130,${0.55 * a * 2})`); g.addColorStop(1, 'rgba(255,214,130,0)'); ctx.fillStyle = g; ctx.fillRect(X - 52 * S, Y - 52 * S, 104 * S, 104 * S); } ctx.globalCompositeOperation = 'source-over'; } }
+  if (G && !m.indoor) { const a = nightAlpha(G.time); if (a > 0.05) { ctx.globalCompositeOperation = 'lighter'; for (const o of m.objs) { if (o.s !== 'lamp' && !(o.glow && (!o.vis || o.vis()))) continue; const X = VIEW.ox + (o.x + 6) * S, Y = VIEW.oy + (o.y + 8) * S, g = ctx.createRadialGradient(X, Y, 0, X, Y, 52 * S); g.addColorStop(0, `rgba(255,214,130,${0.55 * a * 2})`); g.addColorStop(1, 'rgba(255,214,130,0)'); ctx.fillStyle = g; ctx.fillRect(X - 52 * S, Y - 52 * S, 104 * S, 104 * S); } ctx.globalCompositeOperation = 'source-over'; } }
+  if (G && RT.scene && RT.scene.glow) for (const p of RT.scene.glow) p(now);   // pháo hoa: vẽ sau lớp tối ban đêm cho sáng rực
   // cắt cảnh: hai dải đen kiểu phim + tên cảnh + bong bóng thoại
   if (G && RT.scene && RT.scene.type === 'cut') {
     const bh = RT.scene.bars === false ? 0 : Math.round(cv.height * 0.085);

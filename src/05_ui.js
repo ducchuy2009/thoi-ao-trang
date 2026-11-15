@@ -302,7 +302,7 @@ UI.refresh = function () { if (this._panel && this._panel._keep) { this._panel._
  *  MENU CHUNG (Esc hoặc M): một bảng duy nhất, các tab là icon
  *  Chỉ số · Bạn bè · Thời khoá biểu · Học bạ · Lịch · Thẻ cầu thủ · Cài đặt
  * ============================================================ */
-const MENU_TABS = [['stats', 'Chỉ số'], ['friends', 'Bạn bè'], ['tt', 'Thời khoá biểu'], ['grades', 'Học bạ'], ['cal', 'Lịch'], ['cards', 'Thẻ cầu thủ'], ['map', 'Bản đồ'], ['set', 'Cài đặt']];
+const MENU_TABS = [['stats', 'Chỉ số'], ['friends', 'Bạn bè'], ['tt', 'Thời khoá biểu'], ['grades', 'Học bạ'], ['cal', 'Lịch'], ['cards', 'Thẻ cầu thủ'], ['map', 'Bản đồ'], ['memo', 'Lưu bút'], ['set', 'Cài đặt']];
 const MV = {};
 const subTabs = (act, cur, list) => '<div class="tabs">' + list.map(([id, name]) => `<button class="tab ${cur === id ? 'on' : ''}" data-act="${act}" data-id="${id}">${name}</button>`).join('') + '</div>';
 const heartsHtml = n => `<span class="hearts">${'♥'.repeat(n)}<i>${'♥'.repeat(5 - n)}</i></span>`;
@@ -415,6 +415,7 @@ MV.cal = {
       if (sem && c.doy === sem.to) ev.push(`<span class="ev sem">Tổng kết ${sem.name}</span>`);
       if (hol) ev.push(`<span class="ev hol">${hol.name}</span>`);
       for (const f of FESTIVALS) if (f.season === se && f.day === d + 1) ev.push(`<span class="ev fes">${f.name}</span>`);
+      if (day === contestDay(yr)) ev.push('<span class="ev fes">Thi gói bánh chưng</span>');
       for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, day)) ev.push(`<span class="ev bd">Sinh nhật ${FRIENDS[f].name}</span>`);
       for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], day)) ev.push(`<span class="ev bd">Sinh nhật ${PNAME[w].toLowerCase()}</span>`);
       for (const t of tests[day] || []) ev.push(`<span class="ev ts ${t.done ? 'done' : ''}" style="--c:${SUBJ[t.subj].color}" title="${TEST_NAME[t.type]} · ${SUBJ[t.subj].name}">${SUBJ[t.subj].short} · ${t.type === 'thi' ? 'thi' : '1 tiết'}</span>`);
@@ -448,6 +449,7 @@ function cityLayout() {
   L.ga = [L.pho[0] + 456 - 288, -M.ga.ph - g];                       // đường lên ga
   L.bien = [L.ga[0] - M.bien.pw - g, L.ga[1] - 96];                  // tàu hoả ra biển
   L.song = [L.pho[0] + 440 - 320, M.pho.ph + g];                     // lối xuống bờ sông
+  L.chua = [0, M.town.ph + g];                                       // dưới khu phố nhà mình, bên trái bờ sông
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
   for (const k in L) { x0 = Math.min(x0, L[k][0]); y0 = Math.min(y0, L[k][1]); x1 = Math.max(x1, L[k][0] + M[k].pw); y1 = Math.max(y1, L[k][1] + M[k].ph); }
   const pad = 56;                                                    // lề quanh bản đồ để tên khu không bị cắt
@@ -458,7 +460,7 @@ const CITY_POI = [
   ['town', 95, 100, 'Nhà mình'], ['town', 351, 86, 'Tạp hoá Cô Ba'], ['town', 479, 86, 'Học thêm'], ['town', 630, 166, 'Trạm bus'], ['town', 380, 334, 'Công viên'],
   ['pho', 175, 86, 'Nhà các bạn'], ['pho', 524, 86, 'Trà sữa'], ['pho', 660, 66, 'TTTM'], ['pho', 806, 86, 'Khu game'], ['pho', 218, 166, 'Trạm bus'], ['pho', 640, 316, 'Xiên que'], ['pho', 136, 344, 'Sân bóng'],
   ['school', 352, 66, 'Dãy lớp học'], ['school', 79, 80, 'Căn tin'], ['school', 572, 84, 'Nhà xe'], ['school', 664, 64, 'Vệ sinh'], ['school', 584, 232, 'Sân thể dục'], ['school', 352, 352, 'Cổng'], ['school', 130, 406, 'Trạm bus'],
-  ['nui', 200, 290, 'Bãi picnic'], ['song', 320, 180, 'Câu cá'],
+  ['nui', 200, 290, 'Bãi picnic'], ['song', 320, 180, 'Câu cá'], ['chua', 321, 222, 'Lư hương · xin xăm'],
 ];
 // Chỗ mình đang ở trên bản đồ chung (ở trong nhà / phòng thì lấy cửa ra vào)
 function whereAmI() {
@@ -475,7 +477,7 @@ function cityMapImage() {
   // đường nối giữa các khu
   const road = (pts, w, col) => { x.strokeStyle = col; x.lineWidth = w * S; x.lineJoin = 'round'; x.beginPath(); pts.forEach(([a, px, py], i) => { const [X, Y] = P(a, px, py); i ? x.lineTo(X, Y) : x.moveTo(X, Y); }); x.stroke(); };
   road([['town', 790, 216], ['pho', 10, 216]], 48, '#5f656f'); road([['pho', 886, 216], ['school', -10, 430]], 48, '#5f656f');
-  road([['pho', 456, 6], ['ga', 288, 314]], 40, '#d9ccb2'); road([['pho', 440, 410], ['song', 320, 10]], 40, '#d9ccb2'); road([['school', 736, 4], ['nui', 320, 470]], 30, '#b89a6a');
+  road([['pho', 456, 6], ['ga', 288, 314]], 40, '#d9ccb2'); road([['town', 176, 410], ['chua', 176, 6]], 32, '#d9ccb2'); road([['chua', 634, 176], ['song', 6, 70]], 32, '#d9ccb2'); road([['pho', 440, 410], ['song', 320, 10]], 40, '#d9ccb2'); road([['school', 736, 4], ['nui', 320, 470]], 30, '#b89a6a');
   x.setLineDash([10, 8]); road([['ga', 0, 250], ['bien', MAPS.bien.pw, 250]], 10, '#8a5a3a'); x.setLineDash([]);
   // từng khu: nền + đồ vật
   x.imageSmoothingEnabled = true;

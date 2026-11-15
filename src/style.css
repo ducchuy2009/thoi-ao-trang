@@ -307,3 +307,19 @@ body.cut #hotbar{opacity:0;pointer-events:none}
 .cmap img{display:block;width:100%;height:auto;border:3px solid var(--ink);border-radius:10px;background:#7fb36a}
 .cmap-info{margin-top:8px}
 .cmap-info p{margin:0 0 5px}
+/* ---------- xin xăm ---------- */
+.que-poem{font-style:italic;background:#fff3c8;border-left:4px solid #e8b83a;padding:6px 10px;border-radius:6px}
+/* ---------- lưu bút ---------- */
+.memo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.memo-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;padding:10px 8px;background:#fff6e3;border:3px solid #e8b83a;border-radius:12px}
+.memo-item img,.memo-row img{width:40px;height:40px;image-rendering:pixelated}
+.memo-item small{font-size:12px;color:#6b6170}
+.memo-item.lock,.memo-row.lock,.memo-note.lock{border-color:#d9d0bd;background:#efe9dc}
+.memo-item.lock img,.memo-row.lock img{filter:grayscale(1) brightness(.45);opacity:.6}
+.memo-row{display:flex;align-items:center;gap:10px;padding:6px 10px;background:#fff6e3;border:2px solid #e8b83a;border-radius:10px}
+.memo-row span{flex:1;display:flex;flex-direction:column}.memo-row small{color:#6b6170}
+.memo-row i{font-style:normal;font-size:11px;color:#8a7f6a;text-align:right}
+.memo-note{display:flex;gap:10px;padding:8px 10px;background:#fffdf6;border:2px dashed #c9b58a;border-radius:10px}
+.memo-note img{width:44px;height:44px;image-rendering:pixelated;flex:none;border-radius:8px;background:#f4ead2}
+.memo-note p{margin:3px 0 0;font-family:"Comic Sans MS","Baloo 2",cursive;font-size:14px}
+.bc-board{margin:6px 0 8px;padding-left:22px}.bc-board li{padding:2px 0}.bc-board li.me{color:#2f7d5b;font-weight:800}

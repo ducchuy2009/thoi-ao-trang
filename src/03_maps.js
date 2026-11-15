@@ -120,7 +120,9 @@ function buildTown() {
   // dãy phố
   addObj(m, { s: 'shop', x: 303, y: 51, sol: [1, 24, 96, 53], label: () => 'Tạp hoá Cô Ba — mua đồ, phụ bán hàng', act: () => ACT.shop() });
   addObj(m, { s: 'center', x: 431, y: 51, sol: [1, 24, 96, 53], label: () => 'Trung tâm Sao Mai — đăng ký học thêm', act: () => ACT.center() });
-  addObj(m, { s: 'houseB', x: 575, y: 47, sol: [1, 30, 96, 51] }); addObj(m, { s: 'houseC', x: 687, y: 47, sol: [1, 30, 96, 51] });
+  // nhà cô chủ nhiệm và thầy Tùng (ngày Tết tới chúc Tết)
+  addObj(m, { s: 'houseB', x: 575, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà cô Hạnh (cô chủ nhiệm)', act: () => ACT.teacherHouse('hanh') });
+  addObj(m, { s: 'houseC', x: 687, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà thầy Tùng', act: () => ACT.teacherHouse('tung') });
   addObj(m, { s: 'bush', x: 405, y: 113, sol: [2, 4, 18, 9] }); addObj(m, { s: 'tree2', x: 533, y: 80, sol: [13, 38, 10, 9] });
   addObj(m, { s: 'treePink', x: 292, y: 4, sol: [13, 38, 10, 9] }); addObj(m, { s: 'tree', x: 404, y: 2, sol: [13, 38, 10, 9] }); addObj(m, { s: 'treeOrange', x: 534, y: 6, sol: [13, 38, 10, 9] });
   m.labels.push({ x: 352, y: 66.5, text: 'TẠP HOÁ CÔ BA', size: 8.5, col: '#2a2136', maxw: 78 });
@@ -130,12 +132,15 @@ function buildTown() {
   addObj(m, { s: 'signpost', x: 766, y: 148, sol: [10, 22, 8, 8], label: () => 'Phố Hoa Phượng → (đi tiếp nữa là tới trường)', act: () => ACT.go('town', 'pho') });
   m.zones.push({ x: 792, y: 160, w: 8, h: 112, fn: () => ACT.go('town', 'pho'), bx: -6 });
   // công viên
-  for (let i = 0; i < 50; i++) { if (i >= 23 && i <= 25) continue; addObj(m, { s: 'hedge', x: i * 16, y: 270, sol: [0, 4, 18, 12] }); }
-  for (const [s, a, b] of [['tree', 24, 290], ['treePink', 150, 282], ['tree2', 250, 286], ['treeOrange', 300, 356], ['treePink', 436, 282], ['tree', 480, 352], ['treePink', 506, 284], ['tree2', 190, 362]]) addObj(m, { s, x: a, y: b, sol: [13, 38, 10, 9] });
+  for (let i = 0; i < 50; i++) { if ((i >= 23 && i <= 25) || i === 10 || i === 11) continue; addObj(m, { s: 'hedge', x: i * 16, y: 270, sol: [0, 4, 18, 12] }); }
+  paint(m, 'dirt', 10, 17, 2, 9, 0);                                  // lối mòn xuống chùa
+  addObj(m, { s: 'trailsign', x: 194, y: 378, sol: [9, 16, 6, 8], label: () => '↓ Chùa Hoa Phượng (thắp nhang, xin xăm)', act: () => ACT.go('town', 'chua') });
+  m.zones.push({ x: 160, y: 408, w: 32, h: 8, fn: () => ACT.go('town', 'chua'), by: -10 });
+  for (const [s, a, b] of [['tree', 24, 290], ['treePink', 116, 282], ['tree2', 250, 286], ['treeOrange', 300, 356], ['treePink', 436, 282], ['tree', 480, 352], ['treePink', 506, 284], ['tree2', 190, 362]]) addObj(m, { s, x: a, y: b, sol: [13, 38, 10, 9] });
   addObj(m, { s: 'bench', x: 318, y: 316, sol: [1, 1, 28, 12] }); addObj(m, { s: 'bench', x: 420, y: 356, sol: [1, 1, 28, 12] });
   addObj(m, { s: 'goal', x: 628, y: 276, sol: [1, 2, 38, 8], label: () => 'Sân bóng công viên — chơi thể thao', act: () => ACT.field() });
   addObj(m, { s: 'ball', x: 664, y: 336, flat: true });
-  addObj(m, { s: 'bush', x: 30, y: 350, sol: [2, 4, 18, 9] }); addObj(m, { s: 'bush', x: 160, y: 388, sol: [2, 4, 18, 9] });
+  addObj(m, { s: 'bush', x: 30, y: 350, sol: [2, 4, 18, 9] }); addObj(m, { s: 'bush', x: 118, y: 398, sol: [2, 4, 18, 9] });
   const parkT = () => parkTime();
   for (const [fid, a, b, d, wd] of [['khoa', 636, 348, 0, 26], ['dat', 694, 368, 1, 26], ['vy', 338, 344, 0, 14], ['ngan', 452, 340, 0, 12]]) {
     const F = FRIENDS[fid];
@@ -280,6 +285,8 @@ function buildRiver() {
   for (const a of [20, 96, 190, 420, 520, 600]) addObj(m, { s: 'bush', x: a, y: 98, sol: [2, 4, 18, 9] });
   addObj(m, { s: 'trailsign', x: 344, y: 8, sol: [9, 16, 6, 8], label: () => '↑ Về phố Hoa Phượng', act: () => ACT.go('song', 'pho') });
   m.zones.push({ x: 304, y: 5, w: 32, h: 7, fn: () => ACT.go('song', 'pho'), by: 10 });
+  addObj(m, { s: 'signpostL', x: 14, y: 26, sol: [10, 22, 8, 8], label: () => '← Chùa Hoa Phượng', act: () => ACT.go('song', 'chua') });
+  m.zones.push({ x: 0, y: 40, w: 8, h: 60, fn: () => ACT.go('song', 'chua'), bx: 6 });
 }
 
 /* ---------------- GA TÀU (trên phố Hoa Phượng): chỉ có tàu mới ra được biển ---------------- */
@@ -415,6 +422,9 @@ function buildSchool() {
 
 /* ---------------- LỚP HỌC ---------------- */
 const SEAT = { x: 111, y: 134 };
+// Chỗ có người ngồi trong lớp (cột, hàng, bên): 8 bạn có tên + vài bạn khác — lớp không còn kín chỗ
+const CLASS_SEATED = new Set();
+const seatTaken = (c, r, sd, sp) => !!sp || (c * 3 + r * 5 + sd * 7) % 4 === 1;
 function buildClass() {
   const m = mapNew('class', 'Lớp 10A1', 20, 14, true);
   paint(m, 'void', 0, 0, 20, 14, 1);
@@ -440,6 +450,8 @@ function buildClass() {
       const sx = X[c] + 7 + sd * 14, sy = Y[r] + 30;
       if (mine && sd === 0) continue;
       const sp = special[c + ',' + r + ',' + sd], fr = sp && FRIENDS[sp];
+      if (!seatTaken(c, r, sd, sp)) continue;
+      CLASS_SEATED.add(c + ',' + r + ',' + sd);
       // bạn thân ngồi gần: giờ giải lao 10' giữa 2 tiết có thể quay sang rủ rê, trò chuyện, đấu thẻ
       NPCS.push({
         id: 's_' + c + r + sd, sid: sp || null, fid: fr ? sp : null, name: fr ? fr.name : 'Bạn học', look: sp ? spLook[sp] : looks[(k++ * 3 + r) % 8], map: 'class', x: sx, y: sy, dir: 3, solid: true,

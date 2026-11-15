@@ -34,6 +34,7 @@ function addShop(m, id, a, name, label, act, vendor) {
 }
 
 function buildRooms() {
+  buildChua();
   const sch = MAPS.school;
   /* ---------- cửa phòng trên dãy nhà trường ---------- */
   for (const [id, dx, text] of SCHOOL_ROOMS) {
@@ -52,7 +53,9 @@ function buildRooms() {
   sch.labels.push({ x: 352, y: 59.5, text: 'THƯ VIỆN', size: 5, col: '#2a2136', maxw: 36 });
   sch.warps.push({ x: 342, y: 102, w: 20, h: 12, dir: 3, to: { map: 'thuvien', x: 289, y: 204, dir: 3 } });
   // thêm học sinh ra sân cho đông vui + cho mọi học sinh ngoài sân nhập vào các tụ chơi
-  for (const [id, a, b] of [['x1', 150, 240], ['x2', 420, 300], ['x3', 260, 200], ['x4', 340, 330]]) NPCS.push({ id: 'y_' + id, sid: id, name: 'Bạn lớp bên', look: id, map: 'school', x: a, y: b, dir: 0, wander: 30, vis: () => yardTime() && !!yardPos(id), label: () => 'Bạn lớp bên', act: () => ACT.mate(id) });
+  for (const [id, a, b, name] of [['x1', 150, 240, 'Tú · 10A2'], ['x2', 420, 300, 'Linh · 10A2'], ['x3', 260, 200, 'Bảo · 10A3'], ['x4', 340, 330, 'Nhi · 10A4']]) NPCS.push({ id: 'y_' + id, sid: id, name, look: id, map: 'school', x: a, y: b, dir: 0, wander: 30, vis: () => yardTime() && !!yardPos(id), label: () => name, act: () => ACT.mate(id) });
+  // anh chị khoá trên (11, 12): nói chuyện riêng thì được chỉ mẹo học hành, đi lại trong trường
+  for (const [id, soc] of [['sA', 'a_hung'], ['sB', 'c_mai'], ['sC', 'a_phong'], ['sD', 'c_thao']]) { const S = SOCIETY[soc]; NPCS.push({ id: 'y_' + id, sid: id, soc, name: `${S.name} · ${S.note.split(' · ')[1].split(',')[0]}`, look: id, map: 'school', x: 300, y: 260, dir: 0, vis: () => yardTime() && !!yardPos(id), label: () => S.name, act: () => ACT.senior(soc) }); }
   // học sinh ngoài sân: đứng theo tụ chơi; nói chuyện với bạn nào thì bạn đó hỏi có vào chơi cùng không
   for (const n of NPCS) if (n.id.startsWith('y_')) {
     n.pos = () => yardPos(n.sid); n.act0 = n.act; n.act = () => ACT.yardTalk(n);
@@ -154,6 +157,7 @@ function buildRooms() {
   NPCS.push({ id: 'fh', name: 'Bạn', look: 'khoa', dynLook: () => G.visit || 'khoa', outfit: () => friendOutfit(G.visit || 'khoa'), map: 'fhome', x: 130, y: 110, dir: 0, wander: 18, vis: () => !sceneHides('fh'), label: () => FRIENDS[G.visit].name, act: () => ACT.friend(G.visit, 'in') });
   m.zones.push({ x: 272, y: 216, w: 32, h: 8, fn: () => ACT.leaveFh(), by: -8 });
 
+  buildFest();
   /* ---------- đồ trang trí phòng ngủ ở nhà (mua ở gian Nội thất, Nhạc cụ) ---------- */
   const h = MAPS.home, own = k => () => !!G && !!G.owned[k];
   addObj(h, { s: 'poster', x: 24, y: 8, base: 0, vis: own('d_poster') });
@@ -162,4 +166,84 @@ function buildRooms() {
   addObj(h, { s: 'rug', x: 66, y: 166, flat: true, vis: own('d_tham') });
   addObj(h, { s: 'guitar', x: 112, y: 50, sol: [2, 18, 6, 8], vis: own('guitar') });
   addObj(h, { s: 'mic', x: 132, y: 96, sol: [2, 16, 6, 6], ir: [-8, 0, 24, 30], vis: own('micro'), label: () => 'Micro — tập hát ở nhà', act: () => ACT.music('home') });
+}
+
+/* ============================================================
+ *  CHÙA HOA PHƯỢNG (dưới khu phố nhà mình, bên trái bờ sông): chính điện, lư hương — thắp nhang, xin xăm
+ * ============================================================ */
+const tetTime = () => !!G && !!holidayOf(G.day) && holidayOf(G.day).name === 'Tết Nguyên Đán';
+function buildChua() {
+  const m = mapNew('chua', 'Chùa Hoa Phượng', 40, 26, false), x = m.x;
+  paint(m, 'grass', 0, 0, 40, 26, 0);
+  [[3, 3], [6, 18], [14, 23], [26, 23], [34, 4], [37, 17], [2, 12], [31, 22]].forEach(([a, b]) => paint(m, 'flowers', a, b, 1, 1, 0));
+  paint(m, 'yard', 11, 8, 18, 14, 0);                                // sân chùa lát gạch
+  paint(m, 'dirt', 10, 0, 2, 10, 0);                                 // lối từ khu phố xuống
+  paint(m, 'dirt', 29, 10, 11, 2, 0);                                // lối sang bờ sông
+  // ao sen
+  ell(x, '#9cc48a', 96, 316, 62, 34); ell(x, '#5fb0e0', 96, 316, 58, 30); ell(x, '#8fd0f0', 80, 306, 26, 8);
+  for (const [a, b] of [[70, 320], [104, 304], [124, 326], [86, 332], [60, 302]]) { ell(x, '#5fae4a', a, b, 6, 3.5); R(x, '#ff8fb8', a - 1, b - 3, 3, 3); R(x, '#ffd6e4', a, b - 3, 1, 1); }
+  m.solids.push([36, 286, 120, 60]);
+  addObj(m, { s: 'pagoda', x: 231, y: 18, sol: [4, 62, 170, 44] });
+  m.labels.push({ x: 320, y: 84.5, text: 'CHÙA HOA PHƯỢNG', size: 4.4, col: '#ffe066', maxw: 46 });
+  addObj(m, { s: 'luhuong0', x: 309, y: 186, sol: [3, 18, 20, 10], smoke: [13, 4], dyn: () => 'luhuong' + (Math.floor(performance.now() / 350) % 2), label: () => (G.daily.que !== undefined && G.daily.que !== null ? 'Lư hương — hôm nay đã xin quẻ' : 'Lư hương — thắp nhang, xin xăm'), act: () => ACT.incense() });
+  for (const a of [252, 380]) { addObj(m, { s: 'stonelamp', x: a, y: 160, sol: [1, 16, 12, 8] }); addObj(m, { s: 'stonelamp', x: a, y: 260, sol: [1, 16, 12, 8] }); }
+  for (const [s2, a, b] of [['tree2', 150, 110], ['tree', 480, 110], ['tree2', 470, 290], ['tree', 40, 30], ['treePink', 560, 260], ['tree2', 590, 40], ['tree', 300, 340], ['tree2', 200, 330]]) addObj(m, { s: s2, x: a, y: b, sol: [13, 38, 10, 9] });
+  for (const a of [176, 448]) addObj(m, { s: 'benchstone', x: a, y: 230, sol: [1, 1, 28, 12] });
+  for (let i = 0; i < 40; i++) addObj(m, { s: 'hedge', x: i * 16, y: 398, sol: [0, 4, 18, 12] });
+  // ngày Tết: mai vàng, đào, lồng đèn
+  for (const a of [292, 336]) addObj(m, { s: 'chaumai', x: a, y: 126, sol: [3, 20, 10, 6], vis: tetTime });
+  addObj(m, { s: 'treeMai', x: 200, y: 150, sol: [13, 38, 10, 9], vis: tetTime }); addObj(m, { s: 'treePink', x: 410, y: 150, sol: [13, 38, 10, 9], vis: tetTime });
+  addObj(m, { s: 'lanterns', x: 280, y: 136, base: 0, vis: tetTime });
+  NPCS.push({ id: 'su', name: 'Sư thầy', look: 'monk', map: 'chua', x: 372, y: 210, dir: 0, wander: 10, vis: () => inWin(G.time, 330, 1260), label: () => 'Sư thầy', act: () => ACT.monk() });
+  NPCS.push({ id: 'chua_a', name: 'Người đi lễ', look: 'c6', outfit: () => 'cas_ngan', map: 'chua', x: 220, y: 280, dir: 0, wander: 30, vis: () => inWin(G.time, 360, 1140) });
+  NPCS.push({ id: 'chua_b', name: 'Người đi lễ', look: 'c7', outfit: () => 'cas_dat', map: 'chua', x: 430, y: 300, dir: 1, wander: 30, vis: () => tetTime() || inWin(G.time, 420, 660) });
+  NPCS.push({ id: 'chua_c', name: 'Người đi lễ', look: 'vendor', outfit: () => 'noapron', map: 'chua', x: 300, y: 240, dir: 3, wander: 20, vis: () => tetTime() && inWin(G.time, 360, 1140) });
+  addObj(m, { s: 'trailsign', x: 196, y: 6, sol: [9, 16, 6, 8], label: () => '↑ Về khu phố nhà mình', act: () => ACT.go('chua', 'town') });
+  m.zones.push({ x: 160, y: 5, w: 32, h: 7, fn: () => ACT.go('chua', 'town'), by: 10 });
+  addObj(m, { s: 'signpost', x: 600, y: 140, sol: [10, 22, 8, 8], label: () => 'Bờ sông →', act: () => ACT.go('chua', 'song') });
+  m.zones.push({ x: 632, y: 156, w: 8, h: 40, fn: () => ACT.go('chua', 'song'), bx: -6 });
+}
+
+/* ============================================================
+ *  TRANG TRÍ NGÀY TẾT ở nhà mình, nhà các bạn · HỘI CHỢ ĐÊM GIAO THỪA trên núi sau trường
+ * ============================================================ */
+const isEveDay = day => { const c = cal(day); return c.season === 1 && c.dos === CFG.DAYS_PER_SEASON; };
+const festDecor = () => !!G && (RT.fest || (isEveDay(G.day) && G.time >= 1020 && G.time < CFG.DAY_END));
+// tụ chơi trong hội chợ: [id, kiểu, tâm x, tâm y]
+const FEST_SPOTS = { rope: [130, 424], cau: [250, 420], skip: [462, 252] };
+function buildFest() {
+  const t = MAPS.town;
+  for (const a of [64, 110]) addObj(t, { s: 'chaumai', x: a, y: 110, sol: [3, 20, 10, 6], vis: tetTime });
+  const p = MAPS.pho;
+  for (const fid in FRIEND_HOUSE) { const hx = FRIEND_HOUSE[fid][1]; addObj(p, { s: 'chaumai', x: hx + 12, y: 106, sol: [3, 20, 10, 6], vis: tetTime }); addObj(p, { s: 'chaumai', x: hx + 72, y: 106, sol: [3, 20, 10, 6], vis: tetTime }); }
+  const m = MAPS.nui;
+  // dọn chỗ cho hội chợ: vài cây thông, tảng đá ẩn đi trong đêm hội
+  const clear = [[386, 330], [430, 380], [500, 400], [340, 380], [96, 380], [220, 390], [240, 440], [290, 340], [410, 260]];
+  for (const o of m.objs) if (clear.some(([a, b]) => o.x === a && o.y === b)) { const v0 = o.vis; o.vis = () => !festDecor() && (!v0 || v0()); }
+  // lồng đèn, cờ, dây cờ
+  for (const [a, b] of [[280, 444], [190, 236], [430, 316], [90, 360], [520, 196]]) addObj(m, { s: 'lanterns', x: a, y: b, base: 900, glow: true, vis: festDecor });
+  for (const [a, b] of [[150, 196], [330, 196], [380, 440]]) addObj(m, { s: 'bunting', x: a, y: b, base: 900, vis: festDecor });
+  for (const [a, b] of [[170, 238], [300, 234]]) addObj(m, { s: 'flagpole', x: a, y: b, sol: [3, 52, 14, 9], vis: festDecor });
+  // sạp trò chơi, sạp đồ ăn (có người bán đứng quầy)
+  const booth = (id, a, name, label, act, look, of) => {
+    addObj(m, { s: `fb_${id}_b`, x: a, y: 334, sol: [0, 26, 56, 20], vis: festDecor });
+    addObj(m, { s: `fb_${id}_f`, x: a, y: 372, sol: [1, 8, 54, 15], label, act, vis: festDecor });
+    NPCS.push({ id: 'fv_' + id, name, look, outfit: () => of, map: 'nui', x: a + 28, y: 384, dir: 0, vis: festDecor, label, act });
+  };
+  booth('nemvong', 372, 'Chú bán sạp', () => 'Sạp ném vòng — trúng vòng thì lấy quà', () => ACT.festGame('nemvong'), 'driver', null);
+  booth('banna', 432, 'Anh bán sạp', () => 'Sạp bắn ná cao su — bắn đổ lon', () => ACT.festGame('banna'), 'c5', 'cas_khoa');
+  booth('doan', 492, 'Cô bán hàng', () => 'Sạp đồ ăn đêm giao thừa', () => ACT.festFood(), 'vendor', null);
+  // mọi người ngồi chờ pháo hoa, nói chuyện
+  const FEST_CHAT = ['Còn mấy tiếng nữa là bắn pháo hoa rồi, háo hức ghê!', 'Năm nay tớ ước thi đậu đại học, cả nhà mạnh khoẻ.', 'Đứng chỗ này nhìn pháo hoa là đẹp nhất đó, tin tớ!', 'Ăn bánh chưng rán ở sạp kia chưa? Giòn lắm!', 'Mới gói bánh chưng với ông bà xong là chạy lên đây luôn.'];
+  [['c2', 'cas_vy', 206, 300], ['c4', 'cas_ngan', 232, 314], ['c7', 'cas_dat', 290, 300], ['c3', 'cas_khoa', 268, 322]].forEach(([look, of, a, b], i) => NPCS.push({ id: 'fc_' + i, name: 'Người dự hội', look, outfit: () => of, map: 'nui', x: a, y: b, dir: i % 2 ? 1 : 2, vis: festDecor, label: () => 'Người dự hội — trò chuyện', act: () => festChat(i, look, of, FEST_CHAT[i % FEST_CHAT.length]) }));
+  addObj(m, { s: 'picnicmat', x: 236, y: 290, flat: true, vis: festDecor });
+  // bố mẹ (nếu cả nhà cùng đi)
+  NPCS.push({ id: 'f_mom', name: 'Mẹ', look: 'mom', outfit: () => 'noapron', map: 'nui', x: 250, y: 296, dir: 0, vis: () => RT.fest && G.eve && G.eve.who === 'parents', label: () => 'Mẹ', act: () => UI.ask('Mẹ', '<p>“Đi chơi một vòng đi con, gần giao thừa thì về đây cả nhà cùng xem pháo hoa.”</p>', ['Dạ'], { who: { look: 'mom', outfit: 'noapron' } }) });
+  NPCS.push({ id: 'f_dad', name: 'Bố', look: 'dad', outfit: () => 'dadhome', map: 'nui', x: 268, y: 296, dir: 0, vis: () => RT.fest && G.eve && G.eve.who === 'parents', label: () => 'Bố', act: () => UI.ask('Bố', '<p>“Ném vòng ở sạp kia khó lắm đấy, con thử xem có trúng con gấu không.”</p>', ['Dạ'], { who: { look: 'dad', outfit: 'dadhome' } }) });
+  // nhảy dây (2 bạn quay dây, 1 bạn nhảy) · đá cầu · ném đá thia lia xuống hồ
+  const R0 = FEST_SPOTS.rope, C0 = FEST_SPOTS.cau, S0 = FEST_SPOTS.skip;
+  [['x2', 'cas_vy', -22, 0, 2], ['x4', 'cas_ngan', 22, 0, 1], ['c6', 'cas_ngan', 0, 2, 0]].forEach(([look, of, dx, dy, d], i) => NPCS.push({ id: 'fr_' + i, name: 'Bạn nhảy dây', look, outfit: () => of, map: 'nui', x: R0[0] + dx, y: R0[1] + dy, dir: d, vis: festDecor, pos: i === 2 ? () => ({ x: R0[0], y: R0[1] + 2, dir: 0, oy: -Math.abs(Math.sin(performance.now() / 260)) * 6 }) : undefined, label: () => 'Nhảy dây — xin vào nhảy cùng', act: () => ACT.festJoin('rope') }));
+  [0, 1, 2].forEach(i => { const a = i / 3 * 6.283 + 0.6; NPCS.push({ id: 'fk_' + i, name: 'Bạn đá cầu', look: ['c1', 'c8', 'x3'][i], outfit: () => ['cas_dat', 'cas_vy', 'cas_khoa'][i], map: 'nui', x: Math.round(C0[0] + Math.cos(a) * 20), y: Math.round(C0[1] + Math.sin(a) * 13), dir: dirOf(-Math.cos(a), -Math.sin(a)), vis: festDecor, label: () => 'Đá cầu — xin vào đá cùng', act: () => ACT.festJoin('cau') }); });
+  NPCS.push({ id: 'fs_0', name: 'Bạn ném đá', look: 'c5', outfit: () => 'cas_dat', map: 'nui', x: S0[0] - 14, y: S0[1] + 26, dir: 2, vis: festDecor, label: () => 'Ném đá thia lia xuống hồ', act: () => ACT.festSkip() });
+  addObj(m, { s: 'blank', x: S0[0], y: S0[1], ir: [-10, -6, 20, 30], vis: festDecor, label: () => 'Bờ hồ — ném đá thia lia', act: () => ACT.festSkip() });
 }

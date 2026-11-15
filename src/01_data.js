@@ -317,7 +317,10 @@ const FRIENDS = {
 const PARENT_BDAY = { mom: [1, 20], dad: [2, 12] };
 const BDAY_FRIEND = 8, BDAY_PARENT = 4;
 // Lễ hội — ĐỂ SẴN, sẽ định nghĩa sau: { season, day, name }. Lịch tự hiển thị.
-const FESTIVALS = [];
+// Lễ hội trên Lịch: { season, day, name, desc } — desc là câu bản tin đọc khi sắp tới lễ
+const FESTIVALS = [
+  { season: 1, day: 30, name: 'Đêm giao thừa', desc: 'Núi sau trường mở hội chợ đón giao thừa, có sạp trò chơi, đồ ăn và pháo hoa lúc nửa đêm.' },
+];
 const isDate = (d, day) => { const c = cal(day); return !!d && c.season === d[0] && c.dos === d[1]; };
 
 /* ---------- Thiện cảm của TỪNG thầy cô (như bạn bè) ---------- */
@@ -346,6 +349,11 @@ const SOCIETY = {
   baove: { name: 'Bác bảo vệ', note: 'Gác cổng trường', look: 'guard' },
   taixe: { name: 'Bác tài', note: 'Lái xe bus', look: 'driver' },
   soatve: { name: 'Cô soát vé', note: 'Ga Hoa Phượng', look: 'clerk' },
+  a_hung: { name: 'Anh Hùng', note: 'Khoá trên · 12A1, bí thư Đoàn trường', look: 'sA' },
+  c_mai: { name: 'Chị Mai', note: 'Khoá trên · 12A2, đội trưởng văn nghệ', look: 'sB' },
+  a_phong: { name: 'Anh Phong', note: 'Khoá trên · 11A1, đội trưởng đội bóng', look: 'sC' },
+  c_thao: { name: 'Chị Thảo', note: 'Khoá trên · 11A3, lớp phó học tập', look: 'sD' },
+  su: { name: 'Sư thầy', note: 'Trụ trì chùa Hoa Phượng', look: 'monk' },
 };
 const SOC_GAIN = 2;
 // Mã thử nghiệm (dán vào ô "Dán mã" trong Cài đặt, không phân biệt hoa thường)
@@ -380,7 +388,69 @@ const BREAK_FUN_MIN_HEARTS = 1, BREAK_FUN_PER_DAY = 2, BREAK_FUN_MINS = 10;
 const LUNCH_EVENT_TIME = 660, LUNCH_EVENT_CHANCE = 0.55, CLASS_EVENT_CHANCE = 0.26;
 const LIBRARY = { mins: 30, pts: 3, stam: 3, perDay: 2 };
 const NAP = { mins: 40, stam: 18 };
-const BED_NAP = { mins: 30, stam: 12, perDay: 2 };       // ban ngày nằm lên giường nào cũng chợp mắt được
+const BED_NAP = { mins: 30, stam: 12, perDay: 2 };
+/* ---------- Chùa: thắp nhang rồi lắc ống xăm, thẻ xăm rơi ra cho biết vận may hôm nay ---------- */
+// luck: điểm may mắn hôm nay cộng/trừ · w: tỉ lệ rơi ra (tương đối)
+const QUE = [
+  { name: 'Thượng thượng — Đại cát', luck: 35, w: 12, col: '#d9534f', poem: 'Mây tan trăng sáng giữa trời,<br>Thuyền xuôi gió thuận, việc đời hanh thông.', giai: 'Mọi việc như ý. Làm bài kiểm tra dễ trúng tủ, đi đâu cũng gặp may.' },
+  { name: 'Thượng — Cát', luck: 18, w: 28, col: '#f2a93b', poem: 'Cây non gặp nắng xuân sang,<br>Chăm vun ắt có ngày vàng trổ hoa.', giai: 'Có quý nhân giúp đỡ. Chăm chỉ thì kết quả sẽ tốt.' },
+  { name: 'Trung bình', luck: 0, w: 30, col: '#5fae4a', poem: 'Đường xa từng bước mà đi,<br>Chẳng lo chẳng vội, việc gì cũng xong.', giai: 'Không hên không xui. Học bao nhiêu được bấy nhiêu.' },
+  { name: 'Hạ — Hung', luck: -15, w: 20, col: '#3b82c4', poem: 'Gió ngược thuyền nhỏ chòng chành,<br>Cẩn thận từng bước, an lành về sau.', giai: 'Hơi xui. Làm gì cũng nên cẩn thận, đọc kỹ đề bài.' },
+  { name: 'Hạ hạ — Đại hung', luck: -30, w: 10, col: '#5f656f', poem: 'Mây đen che khuất vầng trăng,<br>Hôm nay nên tĩnh, chớ hăng việc gì.', giai: 'Ngày xấu. Dễ “học tài thi phận”, tránh quậy phá kẻo bị bắt.' },
+];
+/* ---------- Tết, giao thừa, thi gói bánh chưng ---------- */
+// Lì xì: bố mẹ (sáng mùng 1) · nhà bạn và nhà thầy cô (khi đến chúc Tết): base + perHeart × số tim
+const LIXI = { parents: 50000, perParentLv: 5000, friend: 10000, teacher: 20000, perHeart: 10000, friendGain: 6, teacherGain: 6 };
+const TET_TEMPLE = { luck: 25, parent: 3, mins: 60 };   // đi chùa đầu năm cùng bố mẹ
+// Đêm giao thừa (ngày cuối mùa đông): được rủ lúc 17:00, lên núi trước 24:00 là vào hội; trong hội thời gian đứng yên; rời hội thì về nhà lúc 01:00
+const EVE = { ask: 1020, from: 1080, until: 1440, home: 1500 };
+const FEST_GAME = { price: 5000, friend: 4 };
+const FEST_FOOD = [
+  { id: 'banhchung', name: 'Bánh chưng rán', price: 15000, stam: 20, desc: 'Giòn rụm, nóng hổi' },
+  { id: 'xoi', name: 'Xôi gấc', price: 10000, stam: 15, desc: 'Đỏ may mắn đầu năm' },
+  { id: 'keobong', name: 'Kẹo bông', price: 8000, stam: 6, desc: 'Ngọt lịm, tan ngay trong miệng' },
+];
+// Thi gói bánh chưng: đăng ký ở buổi sinh hoạt lớp trước đó; time: giây chơi; npc: số bánh trung bình các đối thủ gói được trong thời gian đó
+const BANHCHUNG = { time: 60, npc: [['m1', 'Minh (10A1)', 4.6], ['x1', 'Tú (10A2)', 5.4], ['x3', 'Bảo (10A3)', 6.2]], regDays: 14 };
+/* ---------- Lưu bút: kỷ vật, khoảnh khắc, lời lưu bút (viết vào ngày tốt nghiệp) ---------- */
+const MEMO_ITEMS = {
+  cup: { name: 'Cúp Vua gói bánh chưng', desc: 'Vô địch hội thi gói bánh chưng của trường.', hint: 'Thắng hội thi gói bánh chưng trước Tết' },
+  photo: { name: 'Ảnh cả lớp ăn mừng', desc: 'Cả lớp đứng chen nhau quanh chiếc cúp, cười tít mắt.', hint: 'Thắng hội thi gói bánh chưng trước Tết' },
+  lixi: { name: 'Phong bao lì xì đầu năm', desc: 'Bao lì xì đỏ bố mẹ trao sáng mùng 1 Tết.', hint: 'Ăn Tết ở nhà' },
+  que: { name: 'Thẻ xăm Đại cát', desc: 'Thẻ xăm may mắn nhất rút được ở chùa.', hint: 'Xin được quẻ thật tốt ở chùa' },
+  longden: { name: 'Lồng đèn hội chợ', desc: 'Phần thưởng ném vòng ở hội chợ đêm giao thừa.', hint: 'Ném vòng trúng ở hội chợ giao thừa' },
+  gaubong: { name: 'Gấu bông gắp được', desc: 'Con gấu đầu tiên gắp được ở khu game.', hint: 'Gắp thú ở khu game' },
+  the: { name: 'Thẻ cầu thủ huyền thoại', desc: 'Lá thẻ hiếm nhất trong bộ sưu tập.', hint: 'Bóc được thẻ huyền thoại' },
+  voso: { name: 'Vỏ sò biển Hoa Phượng', desc: 'Áp lên tai nghe được tiếng sóng.', hint: 'Đi biển nhặt vỏ sò' },
+};
+const MEMO_SCENES = {
+  giaothua: { name: 'Đón giao thừa trên núi', icon: 'sc_giaothua', desc: 'Pháo hoa nở rực trời lúc nửa đêm, cả thành phố chào năm mới.' },
+  chuatet: { name: 'Đi chùa đầu năm', icon: 'sc_chua', desc: 'Sáng mùng 1 cùng bố mẹ thắp nhang cầu may.' },
+  tetvisit: { name: 'Đi chúc Tết', icon: 'sc_tetvisit', desc: 'Đi chúc Tết bạn bè, thầy cô và nhận lì xì.' },
+  banhchung: { name: 'Hội thi gói bánh chưng', icon: 'sc_banhchung', desc: 'Tay lấm lá dong, gạo nếp — một buổi chiều cuối năm thật vui.' },
+  xinxam: { name: 'Xin xăm ở chùa', icon: 'sc_xinxam', desc: 'Lắc ống xăm, hồi hộp chờ thẻ rơi ra.' },
+  skip: { name: 'Lần đầu trốn học', icon: 'sc_skip', desc: 'Trèo tường trốn ra ngoài cùng bạn — tim đập thình thịch.' },
+  picnic: { name: 'Picnic trên núi', icon: 'sc_picnic', desc: 'Trải tấm bạt trên bãi cỏ, nhìn xuống ngôi trường bé tí.' },
+  bien: { name: 'Chuyến đi biển', icon: 'sc_bien', desc: 'Ngồi tàu hoả ra biển, gió mặn và cát trắng.' },
+  movie: { name: 'Xem phim cùng bạn', icon: 'sc_movie', desc: 'Hai đứa chia nhau hộp bắp rang trong rạp tối om.' },
+  faint: { name: 'Ngất trong giờ học', icon: 'sc_faint', desc: 'Tỉnh dậy ở trạm y tế, cô y tá dặn phải giữ sức khoẻ.' },
+  caught: { name: 'Bị giám thị bắt', icon: 'sc_caught', desc: 'Tiếng còi của thầy giám thị — một kỷ niệm khó quên.' },
+  ngu: { name: 'Ngủ lại nhà bạn', icon: 'sc_ngu', desc: 'Nằm nói chuyện tới khuya ở nhà bạn thân.' },
+  totnghiep: { name: 'Ngày tốt nghiệp', icon: 'sc_totnghiep', desc: 'Ba năm áo trắng khép lại, ai cũng ký tên vào lưu bút.' },
+};
+const MEMO_NOTE_HEARTS = 3;          // thân từ 3 tim trở lên thì người đó viết lưu bút cho mình vào ngày tốt nghiệp
+const MEMO_NOTES = {
+  khoa: 'Ê bạn cùng bàn! Ba năm chia nhau cái bàn, chia nhau cả bịch bánh tráng. Lên đại học nhớ nhắn tin cho tớ nha, đừng có quên đó!',
+  vy: 'Cảm ơn cậu vì những buổi ôn bài trong thư viện. Mong cậu luôn tự tin và đạt được ước mơ của mình. Hẹn gặp lại ở giảng đường nhé!',
+  dat: 'Nhớ mấy trận đá bóng với những lần trốn tiết không? Đỉnh nhất cấp ba luôn! Sau này thành đạt rồi thì bao tớ ly trà sữa nha.',
+  ngan: 'Lớn rồi thì cũng đừng quên mấy buổi tô son lén trong nhà vệ sinh nha, hihi. Chúc cậu luôn xinh, luôn vui và thật hạnh phúc!',
+  hanh: 'Cô chúc em vững vàng bước vào chặng đường mới. Dù đi đâu cũng nhớ về mái trường Hoa Phượng nhé.',
+  lan: 'Keep going! Cô tin em sẽ làm được những điều tuyệt vời. Nhớ giữ thói quen đọc sách mỗi ngày.',
+  tung: 'Toán học dạy ta kiên nhẫn. Chúc em kiên trì với mọi bài toán của cuộc đời.',
+  manh: 'Sức khoẻ là vốn quý nhất. Ra trường rồi vẫn phải tập thể dục đều đặn đấy nhé!',
+  quan: 'Kỷ luật và bản lĩnh — mang theo hai điều đó, em sẽ đi rất xa.',
+  parents: 'Con yêu, bố mẹ tự hào về con. Dù con chọn con đường nào, bố mẹ luôn ở bên con.',
+};       // ban ngày nằm lên giường nào cũng chợp mắt được
 /* ---------- Điểm may mắn: mỗi ngày quay ngẫu nhiên 0–100, xem trên tivi (kênh “Vận may hôm nay”) ---------- */
 // test: điểm cộng/trừ tối đa vào bài kiểm tra (may 100 → +test, xui 0 → −test) · tu: may thì dễ “trúng tủ”, xui thì dễ “học tài thi phận”
 const LUCK = { test: 0.8, tu: 0.7 };

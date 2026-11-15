@@ -329,6 +329,63 @@ function buildSprites2() {
   });
   shopFront('sh_xeng', '#ff5fa8', x => { for (let i = 0; i < 3; i++) ell(x, '#f4d35e', 8, 6 - i * 2, 4, 1.6); for (let i = 0; i < 2; i++) ell(x, '#f4d35e', 46, 6 - i * 2, 4, 1.6); R(x, '#ffe066', 0, 13, 54, 1); });
 
+
+  /* ---------- CHÙA: chính điện mái cong hai tầng, lư hương, đèn đá ---------- */
+  def('pagoda', 176, 112, x => {
+    const roof = '#8a3a2a', roofS = '#6e2a1e', gold = '#e8b83a', wall = '#f1d9a0', pil = '#b23b3b';
+    const trap = (y0, y1, w0, w1) => { for (let y = y0; y < y1; y++) { const w = Math.round(w0 + (w1 - w0) * (y - y0) / (y1 - y0)), a = 88 - (w >> 1); R(x, roof, a, y, w, 1); for (let i = a + 2; i < a + w; i += 4) R(x, roofS, i, y, 1, 1); } R(x, gold, 88 - (w1 >> 1), y1 - 2, w1, 2); };
+    trap(5, 27, 92, 142); trap(35, 59, 146, 176);
+    for (const [a, b, d] of [[15, 22, -1], [161, 22, 1], [0, 54, -1], [176, 54, 1]]) { R(x, gold, a - (d > 0 ? 3 : 0), b, 3, 2); R(x, gold, a + (d > 0 ? 0 : -1) + d * 2, b - 3, 2, 3); }
+    R(x, gold, 42, 3, 92, 3); ell(x, '#ffcf3a', 88, 2, 3, 2.6); R(x, gold, 46, 0, 4, 3); R(x, gold, 126, 0, 4, 3);
+    R(x, wall, 44, 27, 88, 9); R(x, '#d8bd80', 44, 34, 88, 2); for (const a of [64, 108]) { ell(x, '#8a5a3a', a, 31, 3, 3); ell(x, '#f4d35e', a, 31, 1.6, 1.6); }
+    R(x, wall, 8, 59, 160, 41); R(x, '#d8bd80', 8, 59, 160, 2);
+    for (const a of [10, 38, 66, 104, 132, 160]) { R(x, pil, a, 60, 6, 40); R(x, '#d9534f', a, 60, 2, 40); R(x, '#5b3d27', a - 1, 97, 8, 3); }
+    R(x, '#5b3d27', 74, 70, 28, 31); R(x, '#8a5a3a', 76, 72, 11, 29); R(x, '#8a5a3a', 89, 72, 11, 29); for (let j = 0; j < 4; j++) { R(x, gold, 77, 75 + j * 7, 9, 1); R(x, gold, 90, 75 + j * 7, 9, 1); }
+    for (const a of [44, 112]) { R(x, '#5b3d27', a, 74, 20, 27); R(x, '#8a5a3a', a + 2, 76, 16, 25); R(x, gold, a + 2, 82, 16, 1); R(x, gold, a + 2, 92, 16, 1); }
+    R(x, '#2a2136', 63, 61, 50, 9); R(x, pil, 64, 62, 48, 7); R(x, gold, 64, 62, 48, 1); R(x, gold, 64, 68, 48, 1);
+    for (const a of [26, 150]) { R(x, '#2a2136', a - 1, 60, 1, 3); ell(x, '#e2574c', a - 1, 66, 3.4, 4); R(x, gold, a - 3, 61, 5, 1); R(x, gold, a - 2, 70, 3, 2); }
+    R(x, '#c9c2b3', 4, 100, 168, 6); R(x, '#e2ddd2', 4, 100, 168, 1);
+    for (let j = 0; j < 3; j++) { R(x, ['#b9b2a6', '#cfc8bb', '#e2ddd2'][j], 64 - j * 3, 106 + j * 2, 48 + j * 6, 2); }
+  });
+  for (let f = 0; f < 2; f++) def('luhuong' + f, 24, 30, x => {
+    R(x, '#5b3d27', 4, 26, 3, 4); R(x, '#5b3d27', 17, 26, 3, 4);
+    ell(x, '#b8862b', 12, 21, 11, 6); ell(x, '#d9a53a', 12, 19, 10, 4); R(x, '#7a5a1c', 2, 17, 20, 2); ell(x, '#3a2a22', 12, 17, 9, 2);
+    R(x, '#b8862b', 1, 15, 22, 2); R(x, '#e8c25a', 1, 15, 22, 1);
+    for (const [a, h] of [[8, 9], [11, 11], [14, 10], [17, 8]]) { R(x, '#c8583f', a, 16 - h, 1, h); R(x, (a + f) % 2 ? '#ffd23a' : '#ff7a3a', a, 16 - h, 1, 1); }
+  });
+  def('stonelamp', 12, 24, x => { R(x, '#a8a39a', 3, 18, 6, 6); R(x, '#cfcac0', 1, 16, 10, 2); R(x, '#bfbab0', 2, 8, 8, 8); R(x, '#ffe9a0', 4, 10, 4, 4); R(x, '#a8a39a', 0, 5, 12, 3); R(x, '#cfcac0', 2, 2, 8, 3); R(x, '#a8a39a', 5, 0, 2, 2); });
+  def('chaumai', 16, 26, x => { R(x, '#c8583f', 3, 19, 10, 7); R(x, '#e07a5f', 2, 18, 12, 2); R(x, '#6f472c', 7, 9, 2, 10); line(x, '#6f472c', 8, 12, 3, 6); line(x, '#6f472c', 8, 11, 13, 5); for (const [a, b] of [[3, 5], [5, 3], [8, 4], [11, 3], [13, 5], [2, 8], [14, 8], [6, 7], [10, 7], [8, 1]]) { R(x, '#ffd23a', a, b, 2, 2); R(x, '#f2a93b', a, b + 1, 1, 1); } });
+  def('lanterns', 80, 24, x => {
+    R(x, '#6f472c', 0, 0, 2, 24); R(x, '#6f472c', 78, 0, 2, 24);
+    for (let i = 0; i <= 76; i++) R(x, '#3a2a22', 2 + i, 2 + Math.round(Math.sin(i / 76 * Math.PI) * 6), 1, 1);
+    for (let k = 0; k < 5; k++) { const a = 10 + k * 15, b = 4 + Math.round(Math.sin((a - 2) / 76 * Math.PI) * 6); R(x, '#3a2a22', a + 2, b, 1, 2); ell(x, '#e2574c', a + 2, b + 7, 4, 5); R(x, '#ffd23a', a, b + 2, 5, 1); R(x, '#ffd23a', a, b + 11, 5, 1); R(x, '#ff8f7a', a + 1, b + 5, 1, 4); R(x, '#ffd23a', a + 2, b + 13, 1, 2); }
+  });
+  def('bunting', 96, 14, x => {
+    for (let i = 0; i <= 94; i++) R(x, '#5f656f', 1 + i, 1 + Math.round(Math.sin(i / 94 * Math.PI) * 4), 1, 1);
+    for (let k = 0; k < 8; k++) { const a = 4 + k * 11, b = 2 + Math.round(Math.sin((a + 3) / 94 * Math.PI) * 4); if (k % 2) { R(x, '#da251d', a, b, 8, 6); R(x, '#ffde59', a + 3, b + 2, 2, 2); R(x, '#ffde59', a + 4, b + 1, 1, 1); } else { tri(x, '#ffde59', a + 4, b, 7, 4); } }
+  });
+  /* ---------- sạp hội chợ đêm giao thừa (2 lớp: sạp + quầy) ---------- */
+  const boothBack = (name, col, fn) => def(name + '_b', 54, 44, x => {
+    for (let i = 0; i < 7; i++) { R(x, i % 2 ? '#fbf7ee' : col, i * 8 - 1, 0, 8, 9); R(x, i % 2 ? '#e3ddd0' : shade(col, -25), i * 8 - 1, 9, 8, 1); ell(x, i % 2 ? '#fbf7ee' : col, i * 8 + 3, 10, 4, 2); }
+    R(x, '#8b5e3c', 1, 12, 3, 32); R(x, '#8b5e3c', 50, 12, 3, 32); R(x, '#3a2f4a', 4, 12, 46, 32);
+    fn(x);
+  });
+  boothBack('fb_nemvong', '#d9534f', x => {
+    for (let r = 0; r < 2; r++) { R(x, '#a9703f', 5, 24 + r * 10, 44, 2); for (let i = 0; i < 6; i++) { R(x, ['#5fae4a', '#3b82c4', '#f2a93b'][(i + r) % 3], 7 + i * 7, 17 + r * 10, 4, 7); R(x, '#fffaf0', 8 + i * 7, 15 + r * 10, 2, 2); } }
+    ic(x, 'gaubong', 4, 0 + 12); ic(x, 'longden', 33, 12);
+  });
+  shopFront('fb_nemvong', '#d9534f', x => { for (let i = 0; i < 4; i++) { ell(x, '#ffd23a', 8 + i * 4, 5, 3.5, 1.6); ell(x, '#3a2f4a', 8 + i * 4, 5, 1.6, 0.6); } R(x, '#ffd23a', 0, 13, 54, 1); });
+  boothBack('fb_banna', '#3b82c4', x => {
+    ell(x, '#fffaf0', 27, 22, 10, 9); ell(x, '#d9534f', 27, 22, 7, 6); ell(x, '#fffaf0', 27, 22, 4, 3.4); ell(x, '#d9534f', 27, 22, 1.5, 1.5);
+    R(x, '#a9703f', 5, 38, 44, 2); for (let i = 0; i < 6; i++) { R(x, '#c9ccd4', 6 + i * 7, 32, 5, 6); R(x, ['#e2574c', '#5fae4a', '#f2a93b'][i % 3], 6 + i * 7, 34, 5, 2); }
+  });
+  shopFront('fb_banna', '#3b82c4', x => { R(x, '#8a5a3a', 8, 1, 2, 7); R(x, '#8a5a3a', 6, 0, 2, 3); R(x, '#8a5a3a', 10, 0, 2, 3); R(x, '#d9534f', 7, 1, 4, 1); for (let i = 0; i < 4; i++) R(x, '#8b8f9c', 38 + i * 3, 5, 2, 2); R(x, '#fffaf0', 0, 13, 54, 1); });
+  boothBack('fb_doan', '#f2a93b', x => {
+    R(x, '#2a2136', 6, 13, 42, 22); ic(x, 'banhchung', 6, 14); ic(x, 'xoi', 18, 14); ic(x, 'keobong', 30, 14);
+    for (let i = 0; i < 3; i++) R(x, '#ffe066', 10 + i * 12, 33, 8, 1);
+  });
+  shopFront('fb_doan', '#f2a93b', x => { ell(x, '#5f656f', 12, 5, 8, 4); R(x, '#5f656f', 4, 5, 17, 4); ell(x, '#8b8f9c', 12, 4, 7, 2); R(x, 'rgba(240,240,240,.7)', 9, 0, 1, 2); R(x, 'rgba(240,240,240,.7)', 14, 0, 1, 2); for (let i = 0; i < 3; i++) { R(x, '#3f8f3a', 36 + i * 5, 3 - (i % 2), 5, 5); R(x, '#d9c690', 38 + i * 5, 3 - (i % 2), 1, 5); } R(x, '#d9534f', 0, 13, 54, 1); });
+
 }
 
 /* ---------- biểu tượng vật phẩm cho thanh đồ (16×16 → dataURL) ---------- */
@@ -386,6 +443,28 @@ function itemIcon(id) {
   else if (id === 'm_cal') { R(x, '#fffaf0', 1, 3, 14, 11); R(x, '#e2574c', 1, 3, 14, 4); R(x, '#2a2136', 4, 1, 1, 4); R(x, '#2a2136', 11, 1, 1, 4); for (let j = 0; j < 2; j++) for (let i = 0; i < 4; i++) R(x, i === 2 && j === 1 ? '#e2574c' : '#8fa0ab', 3 + i * 3, 9 + j * 3, 2, 2); }
   else if (id === 'm_cards') { R(x, '#fffaf0', 2, 3, 8, 11); R(x, '#d9534f', 3, 4, 6, 9); R(x, '#fffaf0', 6, 2, 8, 11); R(x, '#3b82c4', 7, 3, 6, 9); R(x, '#ffe066', 9, 6, 2, 3); }
   else if (id === 'm_set') { ell(x, '#8b8f9c', 7.5, 7.5, 5, 5); for (const [a, b2] of [[7, 0], [7, 13], [0, 7], [13, 7], [2, 2], [12, 2], [2, 12], [12, 12]]) R(x, '#8b8f9c', a, b2, 2, 2); ell(x, '#fff6e3', 7.5, 7.5, 2, 2); R(x, '#c9ccd4', 5, 4, 4, 1); }
+  else if (id === 'banhchung' || id === 'sc_banhchung') { R(x, '#3f8f3a', 2, 3, 12, 11); R(x, '#5fae4a', 2, 3, 12, 2); R(x, '#d9c690', 7, 3, 2, 11); R(x, '#d9c690', 2, 8, 12, 2); R(x, '#2f6b2b', 2, 13, 12, 1); }
+  else if (id === 'xoi') { ell(x, '#5fae4a', 8, 11, 7, 3.5); ell(x, '#e2574c', 8, 8, 5.5, 4); ell(x, '#f07a6f', 7, 7, 3, 2); R(x, '#fffaf0', 5, 6, 1, 1); R(x, '#fffaf0', 10, 8, 1, 1); }
+  else if (id === 'keobong') { R(x, '#d9c690', 7, 9, 2, 7); ell(x, '#ff9fc0', 8, 6, 6, 5); ell(x, '#ffc6dc', 6, 5, 3, 2.4); ell(x, '#ff7fa8', 10, 8, 2.4, 2); }
+  else if (id === 'longden') { R(x, '#3a2a22', 7, 0, 2, 2); R(x, '#ffd23a', 4, 2, 8, 2); ell(x, '#e2574c', 8, 8, 6, 5); R(x, '#ff8f7a', 5, 6, 2, 4); R(x, '#ffd23a', 4, 12, 8, 2); R(x, '#ffd23a', 7, 14, 2, 2); }
+  else if (id === 'lixi') { R(x, '#d9534f', 3, 1, 10, 14); R(x, '#b23b3b', 3, 1, 10, 4); R(x, '#ffd23a', 6, 6, 4, 4); R(x, '#d9534f', 7, 7, 2, 2); R(x, '#ffd23a', 4, 12, 8, 1); }
+  else if (id === 'cup') { R(x, '#e8b83a', 4, 2, 8, 6); R(x, '#ffd23a', 5, 2, 3, 5); R(x, '#e8b83a', 1, 3, 3, 1); R(x, '#e8b83a', 1, 3, 1, 3); R(x, '#e8b83a', 12, 3, 3, 1); R(x, '#e8b83a', 14, 3, 1, 3); R(x, '#c9962a', 6, 8, 4, 3); R(x, '#8a5a3a', 4, 11, 8, 4); R(x, '#ffd23a', 6, 12, 4, 1); }
+  else if (id === 'photo') { R(x, '#fffaf0', 1, 2, 14, 12); R(x, '#8fc1e3', 2, 3, 12, 7); for (let i = 0; i < 4; i++) { ell(x, '#f8d0a8', 4 + i * 3, 7, 1.2, 1.2); R(x, ['#2c2733', '#6b4429', '#3a2a2a', '#1f1f29'][i], 3 + i * 3, 5, 3, 1); R(x, '#f6f6f2', 3 + i * 3, 9, 3, 1); } R(x, '#e8b83a', 7, 4, 2, 2); }
+  else if (id === 'que' || id === 'sc_xinxam') { R(x, '#8a5a3a', 4, 6, 8, 10); R(x, '#a9703f', 4, 6, 2, 10); R(x, '#5b3d27', 4, 6, 8, 1); for (const a of [5, 7, 9, 11]) R(x, '#e8c27a', a, 1 + (a % 3), 1, 6); R(x, '#d9534f', 7, 1, 2, 2); }
+  else if (id === 'nhang') { for (const a of [5, 8, 11]) { R(x, '#c8583f', a, 4, 1, 11); R(x, '#ffb03a', a, 4, 1, 1); } R(x, 'rgba(200,200,200,.8)', 8, 0, 1, 3); }
+  else if (id === 'm_memo') { R(x, '#7a5fc9', 2, 1, 12, 14); R(x, '#5f47a8', 2, 1, 2, 14); R(x, '#fffaf0', 13, 2, 1, 12); ell(x, '#ff9fc0', 8, 7, 2.6, 2.4); ell(x, '#ff9fc0', 11, 7, 2.6, 2.4); tri(x, '#ff9fc0', 9.5, 8, 4, 4); }
+  else if (id === 'sc_giaothua') { R(x, '#24406b', 0, 0, 16, 16); for (const [a, b, c2] of [[5, 5, '#ffd23a'], [11, 8, '#ff7fa8'], [7, 11, '#5fe0f0']]) { R(x, c2, a, b - 3, 1, 7); R(x, c2, a - 3, b, 7, 1); R(x, c2, a - 2, b - 2, 1, 1); R(x, c2, a + 2, b + 2, 1, 1); R(x, c2, a + 2, b - 2, 1, 1); R(x, c2, a - 2, b + 2, 1, 1); } }
+  else if (id === 'sc_chua') { R(x, '#8a3a2a', 2, 3, 12, 3); R(x, '#8a3a2a', 0, 7, 16, 3); R(x, '#e8b83a', 0, 9, 16, 1); R(x, '#f1d9a0', 2, 10, 12, 5); R(x, '#b23b3b', 3, 10, 1, 5); R(x, '#b23b3b', 12, 10, 1, 5); R(x, '#5b3d27', 6, 11, 4, 4); R(x, '#e8b83a', 4, 2, 8, 1); }
+  else if (id === 'sc_tet') { line(x, '#6f472c', 2, 14, 13, 3); line(x, '#6f472c', 7, 9, 3, 4); for (const [a, b] of [[12, 2], [10, 5], [13, 6], [6, 7], [3, 3], [8, 10], [4, 12]]) { R(x, '#ffd23a', a, b, 2, 2); R(x, '#f2a93b', a, b + 1, 1, 1); } }
+  else if (id === 'sc_skip') { R(x, '#e9c46a', 0, 6, 16, 10); for (let i = 0; i < 16; i += 4) R(x, '#c9a24a', i, 6, 1, 10); R(x, '#c9a24a', 0, 10, 16, 1); R(x, '#8a5a3a', 4, 1, 1, 15); R(x, '#8a5a3a', 8, 1, 1, 15); for (let j = 2; j < 16; j += 3) R(x, '#8a5a3a', 4, j, 5, 1); }
+  else if (id === 'sc_picnic') { R(x, '#e2574c', 1, 8, 14, 7); for (let i = 1; i < 15; i += 4) R(x, '#fffaf0', i, 8, 2, 7); R(x, '#a9703f', 5, 3, 7, 6); R(x, '#8a5a3a', 6, 1, 5, 2); }
+  else if (id === 'sc_bien') { R(x, '#8fd0f0', 0, 0, 16, 9); ell(x, '#ffd23a', 11, 4, 3, 3); R(x, '#3b82c4', 0, 9, 16, 3); R(x, '#fffaf0', 2, 9, 4, 1); R(x, '#fffaf0', 9, 10, 4, 1); R(x, '#f4e2b0', 0, 12, 16, 4); }
+  else if (id === 'sc_movie') { R(x, '#2a2136', 1, 3, 14, 10); R(x, '#fffaf0', 2, 4, 1, 1); R(x, '#fffaf0', 2, 11, 1, 1); R(x, '#fffaf0', 13, 4, 1, 1); R(x, '#fffaf0', 13, 11, 1, 1); R(x, '#5fe0f0', 4, 5, 8, 6); ell(x, '#ffd23a', 8, 8, 2, 2); }
+  else if (id === 'sc_faint') { R(x, '#c9ccd4', 1, 7, 14, 6); R(x, '#fbfdff', 2, 8, 12, 4); R(x, '#9fd6c4', 6, 8, 8, 4); ell(x, '#f8d0a8', 4, 9, 1.6, 1.6); R(x, '#fffaf0', 10, 1, 5, 5); R(x, '#d9534f', 12, 2, 1, 3); R(x, '#d9534f', 11, 3, 3, 1); }
+  else if (id === 'sc_caught') { ell(x, '#c9ccd4', 7, 9, 5, 4); R(x, '#8b8f9c', 10, 6, 5, 2); R(x, '#2a2136', 6, 9, 2, 2); R(x, '#ffde59', 1, 1, 2, 3); R(x, '#ffde59', 4, 0, 1, 3); R(x, '#ffde59', 13, 1, 2, 2); }
+  else if (id === 'sc_ngu') { ell(x, '#ffe066', 11, 5, 4, 4); ell(x, '#24406b', 13, 4, 3, 3); R(x, '#8fb0d8', 1, 9, 14, 6); R(x, '#fffaf0', 2, 9, 5, 4); }
+  else if (id === 'sc_totnghiep') { R(x, '#2a2136', 1, 5, 14, 3); R(x, '#2a2136', 4, 8, 8, 4); R(x, '#3a3f55', 4, 8, 8, 1); R(x, '#ffd23a', 12, 6, 1, 6); R(x, '#ffd23a', 11, 12, 3, 2); }
+  else if (id === 'sc_tetvisit') { R(x, '#d9534f', 2, 3, 6, 9); R(x, '#ffd23a', 4, 6, 2, 2); R(x, '#d9534f', 8, 4, 6, 9); R(x, '#ffd23a', 10, 7, 2, 2); R(x, '#ffd23a', 2, 13, 12, 1); }
   else if (id === 'm_map') { R(x, '#fffaf0', 1, 3, 14, 11); R(x, '#cfe8b8', 1, 3, 4, 11); R(x, '#bfe3f2', 10, 3, 5, 11); R(x, '#d9ccb2', 5, 3, 1, 11); R(x, '#d9ccb2', 10, 3, 1, 11); R(x, '#e2574c', 6, 5, 3, 3); R(x, '#e2574c', 7, 8, 1, 2); R(x, '#8b8f9c', 2, 10, 6, 1); }
   else if (id === 'm_menu') { for (const b2 of [3, 7, 11]) { R(x, '#2a2136', 2, b2, 12, 2); R(x, '#5f656f', 2, b2, 12, 1); } }
   else if (id === 'm_phone') { R(x, '#2a2136', 4, 1, 8, 14); R(x, '#8fd0f0', 5, 3, 6, 8); R(x, '#cfeefa', 5, 3, 6, 2); R(x, '#fff6e3', 7, 12, 2, 1); }

@@ -30,11 +30,14 @@ const LINKS = {
   'pho>song': { at: ['song', 320, 24, 0], hop: 0 }, 'song>pho': { at: ['pho', 440, 396, 3], hop: 0 },
   'school>nui': { at: ['nui', 320, 456, 3], hop: HILL_CLIMB, foot: true, hours: HILL_HOURS, label: 'Theo lối mòn sau trường lên núi…' },
   'nui>school': { at: ['school', 736, 26, 0], hop: HILL_CLIMB, foot: true, label: 'Xuống núi…' },
+  'town>chua': { at: ['chua', 176, 24, 0], hop: WALK_HOP, label: 'Đi xuống chùa…' }, 'chua>town': { at: ['town', 176, 396, 3], hop: WALK_HOP, label: 'Về khu phố nhà mình…' },
+  'song>chua': { at: ['chua', 620, 176, 1], hop: WALK_HOP, label: 'Đi sang chùa…' }, 'chua>song': { at: ['song', 20, 70, 2], hop: WALK_HOP, label: 'Ra bờ sông…' },
 };
 ACT.go = (from, to) => {
   if (RT.lock) return;
   const L = LINKS[from + '>' + to];
-  if (L.hours && !inWin(G.time, L.hours[0], L.hours[1])) return UI.say('Đường lên núi', `Trời tối rồi, đường núi nguy hiểm lắm.<p class="dim">Chỉ lên núi được từ ${fmtTime(L.hours[0])} đến ${fmtTime(L.hours[1])}.</p>`);
+  if (from === 'nui' && RT.fest) return leaveFest();               // đang trong hội giao thừa: hỏi lại trước khi về
+  if (L.hours && !inWin(G.time, L.hours[0], L.hours[1]) && !(to === 'nui' && eveOk())) return UI.say('Đường lên núi', `Trời tối rồi, đường núi nguy hiểm lắm.<p class="dim">Chỉ lên núi được từ ${fmtTime(L.hours[0])} đến ${fmtTime(L.hours[1])}.</p>`);
   if (L.foot && G.ride) dismount(true);
   goPlace(L.at[0], L.at[1], L.at[2], L.at[3], G.ride ? 0 : L.hop, L.label).then(() => {
     if (G.ride && !rideOk(MAPS[G.map], G.x, G.y)) { dismount(true); UI.toast('Chỗ này không có đường cho xe chạy — dựng xe lại đây.', 'info'); }
@@ -146,13 +149,13 @@ ACT.train = async from => {
   advanceTime(T.mins); if (out) setMap('bien', 330, 70, 0); else setMap('ga', 300, 70, 0); RT.snapNpcs = true;
   await UI.fade(false);
   RT.lock = false; UI.hud();
-  if (out) UI.toast('Tới biển rồi! Tắm biển, xây lâu đài cát, nhặt vỏ sò, ăn hải sản…', 'good');
+  if (out) { UI.toast('Tới biển rồi! Tắm biển, xây lâu đài cát, nhặt vỏ sò, ăn hải sản…', 'good'); addMemo('scene', 'bien'); }
 };
 ACT.beach = async kind => {
   const B = BEACH, d = G.daily.beach, fid = palAt('bien'), wf = fid ? ` cùng ${FRIENDS[fid].name}` : '';
   if (kind === 'shell') {
     if (G.daily.shells >= B.shell.perDay) return UI.toast('Hôm nay nhặt đủ vỏ sò đẹp rồi.');
-    await activity('Đang nhặt vỏ sò…', B.shell.mins, () => { G.daily.shells++; G.inv.voso++; UI.toast('Nhặt được một vỏ sò đẹp. Đem tặng bạn nhé.', 'good'); });
+    await activity('Đang nhặt vỏ sò…', B.shell.mins, () => { G.daily.shells++; G.inv.voso++; UI.toast('Nhặt được một vỏ sò đẹp. Đem tặng bạn nhé.', 'good'); addMemo('item', 'voso'); });
   } else if (kind === 'rest') {
     if (d.rest) return UI.toast('Hôm nay nằm nghỉ ở ghế dù rồi.');
     await activity('Nằm ghế dù nghe sóng vỗ…', B.rest.mins, () => { d.rest = true; gainStam(B.rest.stam); });
@@ -249,6 +252,7 @@ async function jointAct(label, mins, key, fid, fn) {
 function friendHome(fid) {
   if (!G || meetToday(fid) || isComp(fid)) return false;
   const t = G.time;
+  if (tetTime()) return inWin(t, 420, 1290);                        // Tết: bạn ở nhà cả ngày
   return schoolToday() ? inWin(t, 1210, 1290) : (inWin(t, 390, 480) || inWin(t, 1090, 1290));
 }
 function placeOpen(P) {
@@ -730,7 +734,7 @@ ACT.picnic = async () => {
   const gain = PICNIC.base + (best ? Math.round(FOODS[best].stam * 1.5) : 0);
   const c = await UI.ask('Bãi cỏ picnic', `<p>Bãi cỏ thoai thoải đầy hoa dại, gió thổi lồng lộng.${best ? ` Bạn mang theo ${FOODS[best].name.toLowerCase()}.` : ' Bạn không mang gì để ăn, chỉ nằm hóng gió được thôi.'}</p>`, [`Trải bạt picnic${wf}`, 'Thôi']);
   if (c !== 0) return;
-  await jointAct(`Đang picnic${wf}…`, PICNIC.mins, 'picnic', fid, () => { G.daily.hill.picnic = true; if (best) G.inv[best]--; gainStam(gain); addStat('giaotiep', fid ? 3 : 1); palGain('nui', PICNIC.friend); });
+  await jointAct(`Đang picnic${wf}…`, PICNIC.mins, 'picnic', fid, () => { G.daily.hill.picnic = true; if (best) G.inv[best]--; gainStam(gain); addStat('giaotiep', fid ? 3 : 1); palGain('nui', PICNIC.friend); addMemo('scene', 'picnic'); });
 };
 ACT.summit = async () => {
   if (G.daily.hill.view) return UI.toast('Hôm nay bạn ngắm cảnh trên đỉnh rồi.');
@@ -763,6 +767,7 @@ function rollCard(w) {
   return pick(pool.length ? pool : CARDS);
 }
 function gainCard(c) {
+  if (c.r === 3) setTimeout(() => addMemo('item', 'the'), 0);           // thẻ huyền thoại vào lưu bút
   const isNew = !G.cards[c.id];
   G.cards[c.id] = (G.cards[c.id] || 0) + 1;
   if (!G.cardDone && cardKinds() === CARDS.length) { G.cardDone = true; addMoney(CARD_SET_REWARD, true); UI.toast(`Đủ bộ ${CARDS.length} thẻ cầu thủ! Hãng bim bim Sao Vàng tặng thưởng ${fmtMoney(CARD_SET_REWARD)}.`, 'good'); }

@@ -45,6 +45,10 @@ function migrate() {
   def('visit', 'khoa');                                // đang ở trong nhà của bạn nào
   if (!G.phone.contacts) G.phone.contacts = Object.keys(FRIENDS).filter(f => (G.friends[f] || 0) >= 20 || (G.phone.msgs[f] || []).length);   // danh bạ: bạn đã cho số
   if (G.inv.xeng === undefined) G.inv.xeng = 0;       // xèng khu game
+  def('memo', { items: {}, scenes: {}, notes: null });  // lưu bút
+  def('tet', {});                                      // Tết: năm → { lixi, chua, f: {bạn đã chúc}, t: {thầy cô đã chúc} }
+  def('eve', null);                                    // lời rủ đón giao thừa: { day, who }
+  def('bc', {});                                       // hội thi gói bánh chưng: năm → { reg, done, won }
   def('fish', {});                                     // cá câu được: id → số con
   for (const k in G.bag) if (k.startsWith('vo_')) delete G.bag[k];   // đã bỏ cơ chế soạn vở
   for (const f in FRIENDS) if (G.friends[f] === undefined) G.friends[f] = 0;
@@ -146,6 +150,7 @@ function meetSoc(id) { if (G.daily.soc[id]) return; G.daily.soc[id] = true; G.so
 
 /* ---------- thời gian ---------- */
 function advanceTime(mins) {
+  if (RT.fest) { UI.hud(); return; }                // trong hội đón giao thừa: thời gian đứng yên
   const steps = Math.round(mins / CFG.TICK_MIN);
   if (mins >= 30) RT.snapNpcs = true;   // thời gian nhảy xa: bố mẹ có mặt luôn ở chỗ mới
   for (let i = 0; i < steps; i++) {
@@ -162,6 +167,7 @@ function tickEvents() {
   // Thứ 7, Chủ nhật, ngày nghỉ: về muộn hơn 20:00 cũng không sao.
   if (t === CFG.LATE_HOME) G.daily.outAt20 = schoolToday() && !atHome() && !G.daily.checkedIn && !G.daily.outPerm;
   socialTick(t);
+  if (t === EVE.ask && isEveDay(G.day) && !G.daily.eveAsked && !(G.eve && G.eve.day === G.day)) RT.pendingEve = true;   // rủ đón giao thừa
   if (G.comp && !G.comp.skip && t >= SKIP.endAt) endComp(`${FRIENDS[G.comp.fid].name} chào bạn rồi về nhà.`);
   if (!schoolToday()) return;
   if (!G.daily.arrived && !G.atSchool && !RT.skip) {   // nhắc giờ buổi sáng
@@ -175,6 +181,7 @@ function tickEvents() {
   // giờ nghỉ trưa: thỉnh thoảng có sự kiện
   if (t === 1140 && isSchoolDay(G.day + 1)) { const tm = G.tests.filter(x => x.day === G.day + 1 && !x.done); if (tm.length) UI.toast('Ngày mai kiểm tra: ' + tm.map(x => `${SUBJ[x.subj].name} (${TEST_NAME[x.type]})`).join(', ') + '. Ôn bài đi!', 'bad'); }
   if (t === LUNCH_EVENT_TIME && G.atSchool && !RT.skip && !G.daily.fainted && !G.daily.lunchEv && Math.random() < LUNCH_EVENT_CHANCE) RT.pendingEvent = rollLunchEvent();
+  if (t === CFG.SCHOOL_END && G.atSchool && !RT.skip && G.day === contestDay(cal(G.day).year) && bcY().reg && !bcY().done) RT.pendingBC = true;   // thi gói bánh chưng
   const p = PERIODS.find(p => p.start === t);
   if (p && !G.daily.done[p.n]) { if (G.atSchool) RT.pendingClass = p; else missPeriod(p); }
 }
@@ -265,6 +272,7 @@ async function goSleep(forced, note) {
   if (!forced) G.stamina = Math.min(mx, G.stamina + DECOR_SLEEP * ['d_poster', 'd_den', 'd_cay', 'd_tham'].filter(k => G.owned[k]).length);   // phòng ngủ có đồ trang trí: ngủ ngon hơn
   if (forced) RT.morning.push('Bạn thức quá 3 giờ sáng và ngủ gục. Sáng nay chỉ hồi được một nửa thể lực.');
   for (const r of reports) await showReport(r);
+  if (G.graduated && !G.memo.notes) await graduationDay();          // ngày tốt nghiệp: mọi người viết lưu bút
   beginDay(false);
   RT.scene = null; RT.outfit = null; RT.forceSleep = false; RT.pendingClass = null; RT.pendingInvite = null; RT.pendingBreak = null; RT.pendingEvent = null;
   await UI.fade(false);
@@ -469,11 +477,11 @@ function placeForClass(subj) {
     const of = subj === 'td' ? 'td' : 'qp';
     setMap('school', 572, 244, 3);
     RT.outfit = G.bag['dp_' + of] ? of : null;
-    RT.scene = { type: 'yard', map: 'school', kind: G.bag['dp_' + of] ? of : null, tw: [], props: [classProps], actors: formation(520, 220, 26, 24, 6, 4, 2, 1, of).concat([{ look: of === 'td' ? 'teacherM' : 'teacherQ', x: 585, y: 192, dir: 0 }]) };
+    RT.scene = { type: 'yard', map: 'school', kind: G.bag['dp_' + of] ? of : null, tw: [], props: [classProps], actors: formation(520, 220, 26, 24, 5, 3, 2, 1, of).concat([{ look: of === 'td' ? 'teacherM' : 'teacherQ', x: 585, y: 192, dir: 0 }]) };
   } else if (S.lab) {
     setMap('lab', LAB_SPOT.x, LAB_SPOT.y, 3);
     const actors = []; let k = 0;
-    for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) for (let sd = 0; sd < 2; sd++) { if (c === 1 && r === 1 && sd === 0) continue; actors.push({ look: MATE_LOOKS[k++ % MATE_LOOKS.length], x: LAB_X[c] + 12 + sd * 22, y: LAB_Y[r] + 34, dir: 3 }); }
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) for (let sd = 0; sd < 2; sd++) { if ((c === 1 && r === 1 && sd === 0) || (c + r + sd) % 2) continue; actors.push({ look: MATE_LOOKS[k++ % MATE_LOOKS.length], x: LAB_X[c] + 12 + sd * 22, y: LAB_Y[r] + 34, dir: 3 }); }
     actors.push({ look: TEACHER_OF[S.base] || 'teacherB', x: 200, y: 52, dir: 0 });
     RT.scene = { type: 'lab', map: 'lab', tw: [], actors, cam: { x: 160, y: 80 } };
   } else {
@@ -527,6 +535,7 @@ async function resolveClass(p, subj) {
     L.push(li(G.conductWeeks % 2 === 1 ? 'Cuối tuần này sẽ chốt hạnh kiểm 2 tuần và đặt lại về 10.' : 'Hạnh kiểm được chốt 2 tuần một lần.'));
     if (G.caughtCycle) L.push(li(`Kỳ này bạn đã bị bắt lỗi ${G.caughtCycle} lần — tái phạm sẽ bị phạt nặng hơn.`, 'warn'));
     else if (G.daily.missed === 0 && !G.daily.late) L.push(li('Tuần này bạn đi học đều — cô khen trước lớp.', 'good'));
+    if (bcCanRegister() && !bcY().asked) await bcAsk();           // đăng ký hội thi gói bánh chưng
     return wrap();
   }
   const co = coOf(subj), coG = `${co} giáo`, sc = RT.scene, who = { look: (sc && sc.actors && sc.actors.length && sc.actors[sc.actors.length - 1].look) || 'teacherA' };
@@ -750,6 +759,7 @@ ACT.mydesk = async () => {
 };
 /* ---------- thầy cô, bảo vệ ---------- */
 ACT.teacher = () => {
+  if (bcCanRegister()) return bcAsk();
   const up = upcomingTests(5);
   UI.say('Cô chủ nhiệm', '“Em nhớ xem lịch kiểm tra trên Lịch (phím L) nhé.”' + (up.length ? '<p class="dim">Sắp tới: ' + up.map(t => `${SUBJ[t.subj].short} — ${TEST_NAME[t.type]} (${dateLabel(t.day)})`).join(' · ') + '</p>' : ''));
 };
@@ -800,6 +810,7 @@ ACT.center = async () => {
 /* ---------- việc cần làm (gợi ý) ---------- */
 function todoList() {
   const t = [];
+  if (G.eve && eveOk()) t.push([RT.fest, RT.fest ? 'Đang dự hội đón giao thừa' : 'Lên núi sau trường đón giao thừa (trước 24:00)']);
   if (schoolToday()) {
     if (!G.daily.arrived && G.time < CFG.SCHOOL_END) {
       t.push([!!G.daily.meals.sang, 'Ăn sáng mẹ nấu']);
@@ -811,6 +822,7 @@ function todoList() {
     } else if (G.time < CFG.SCHOOL_END) {
       const np = nextPeriod(), cp = currentPeriod();
       for (const x of testsToday()) t.push([false, `${TEST_NAME[x.type]} ${SUBJ[x.subj].short} (tiết ${x.n})`]);
+      if (G.day === contestDay(cal(G.day).year) && bcY().reg && !bcY().done) t.push([false, 'Thi gói bánh chưng sau giờ tan học']);
       if (np) t.push([false, `Tiết ${np.n} · ${SUBJ[ttToday()[np.n - 1]].name} lúc ${fmtTime(np.start)}`]);
       else if (cp) t.push([false, `Đang học tiết ${cp.n}`]);
     } else {
@@ -825,6 +837,7 @@ function todoList() {
     }
   } else {
     t.push([false, 'Tự do: việc nhà · học thêm · đi chơi']);
+    if (tetTime()) t.push([false, 'Đi chúc Tết bạn bè (phố Hoa Phượng), thầy cô (khu phố nhà mình)']);
     const m = meetOn();
     if (m) t.push([m.n > 0, `Hẹn ${FRIENDS[m.fid].name} ở ${PLACES[m.place].name} (${meetTimeText(m)})`]);
     if (G.time >= 1080) t.push([false, 'Đi ngủ trước 03:00']);

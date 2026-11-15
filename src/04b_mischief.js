@@ -27,6 +27,7 @@ async function classFun() {
 }
 // Bị cô bắt: lỗi nhẹ lần đầu chỉ nhắc nhở; lỗi nặng hoặc tái phạm thì trừ hạnh kiểm và có thể báo phụ huynh
 function caughtInClass(ev) {
+  addMemo('scene', 'caught');
   const n = ++G.caughtCycle, L = [];
   if (ev.sev === 1 && n === 1) { L.push(li('Bị cô bắt gặp! Lỗi nhẹ, lần đầu nên cô chỉ nhắc nhở.', 'warn')); return L; }
   L.push(li(`Bị cô bắt quả tang${ev.id && ev.sev === 2 ? ' dùng điện thoại trong giờ' : ''}${n > 1 ? ` — lần thứ ${n} trong kỳ hạnh kiểm này` : ''}.`, 'bad'));
@@ -102,7 +103,7 @@ async function startSkip(fid) {
   await playCut(Math.random() < 0.5 ? wallCut(fid, false, false) : sneakCut(fid));
   G.atSchool = false; RT.skip = { missed: [], fid }; G.daily.skips++;
   setMap('school', 150, 404, 0); setComp(fid, true);
-  RT.lock = false; UI.hud();
+  RT.lock = false; UI.hud(); addMemo('scene', 'skip');
   UI.toast('Ra ngoài rồi! Đi chơi đâu thì đi. Khi nào quay lại, đi qua cổng trường là về lớp.', 'info');
 }
 const skipRisk = n => clamp(SKIP.risk + SKIP.perMissed * n + 0.04 * G.caughtCycle, 0.05, 0.9);
@@ -153,6 +154,7 @@ async function doMischief(id, fid) {
 }
 // Bị phát hiện: phạt hạnh kiểm, hoặc trừ điểm bài kiểm tra, hoặc báo về gia đình (càng nghiêm trọng càng nhiều hình phạt)
 function mischiefCaught(M, skipped, tt, fid) {
+  addMemo('scene', 'caught');
   const L = [], out = [], gradedSkipped = (tt ? skipped.map(n => SUBJ[tt[n - 1]].base || tt[n - 1]) : []).filter(s => GRADED.includes(s));
   G.caughtCycle++; addTeacher(TEACHER.caughtSkip, 'nghiem');
   if (M.sev >= 3) { out.push('hk'); if (Math.random() < 0.7) out.push('parents'); }

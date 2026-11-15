@@ -62,6 +62,9 @@ const LOOKS = {
   doctor: { hair: '#3b2a22', style: 'bun', shirt: '#fbfdff', pants: '#9fd6c4', aodai: true, shoe: '#fbfdff' },
   x1: { ...UNI, hair: '#3b2a22', style: 'spiky', skin: '#eab98c' }, x2: { ...UNI, hair: '#2c2733', style: 'pony', skirt: true, band: '#f2a93b' },
   x3: { ...UNI, hair: '#1f1f29', style: 'short' }, x4: { ...UNI, hair: '#5a3020', style: 'long', skirt: true, band: '#5fb0e8' },
+  sA: { ...UNI, hair: '#1f1f29', style: 'spiky', badge: '#d9534f', pants: '#2b3550' }, sB: { ...UNI, hair: '#3a2a2a', style: 'long', skirt: true, band: '#7a5fc9', badge: '#d9534f' },
+  sC: { ...UNI, hair: '#5a3a26', style: 'short', badge: '#2e9e86', skin: '#e3ae80' }, sD: { ...UNI, hair: '#2c2733', style: 'bun', skirt: true, badge: '#2e9e86' },
+  monk: { hair: '#f2c9a0', style: 'buzz', shirt: '#d98a2b', pants: '#b8701f', aodai: true, shoe: '#6f472c' },
   vendor: { hair: '#4a3328', style: 'bun', shirt: '#f2a93b', pants: '#5b4a6b', apron: '#ffffff' },
   c1: { ...UNI, hair: '#3b2a22', style: 'short' },
   c2: { ...UNI, hair: '#2c2733', style: 'long', skirt: true },
@@ -229,6 +232,7 @@ function buildSprites() {
   });
   tree('tree', '#5fae4a', null, 3); tree('tree2', '#4c9f58', null, 9);
   tree('treePink', '#f3a6c0', '#ffd6e4', 5); tree('treeRed', '#57a548', '#e8483a', 7); tree('treeOrange', '#e98a3c', '#f6c35a', 4);
+  tree('treeMai', '#6aa848', '#ffd23a', 11);                       // cây mai vàng ngày Tết
   def('bush', 20, 13, x => { ell(x, '#5fae4a', 9.5, 7, 9.5, 5.5); ell(x, '#7cc75f', 6, 5, 4, 2.5); ell(x, '#4a9340', 13, 9, 5, 2.5); R(x, '#ff8fa8', 4, 4, 1, 1); R(x, '#ffd84d', 12, 3, 1, 1); R(x, '#fff', 15, 6, 1, 1); });
   def('hedge', 16, 14, x => { R(x, '#4f9d48', 0, 2, 16, 12); R(x, '#69b85a', 0, 0, 16, 4); R(x, '#69b85a', 2, 4, 3, 1); R(x, '#69b85a', 9, 5, 4, 1); R(x, '#3f8a3e', 0, 11, 16, 3); R(x, '#3f8a3e', 5, 8, 2, 1); R(x, '#3f8a3e', 12, 9, 2, 1); });
   def('fence', 16, 14, x => { for (let i = 0; i < 3; i++) { const a = 1 + i * 5; R(x, '#fbf7ee', a, 1, 3, 13); R(x, '#fbf7ee', a + 1, 0, 1, 1); R(x, '#d8d2c2', a + 2, 2, 1, 12); } R(x, '#ece6d6', 0, 4, 16, 2); R(x, '#ece6d6', 0, 9, 16, 2); R(x, '#cfc8b6', 0, 5, 16, 1); R(x, '#cfc8b6', 0, 10, 16, 1); });

@@ -43,7 +43,7 @@ function buildFamily() {
   for (const who of ['mom', 'dad']) {
     const n = {
       id: who, fam: who, name: PNAME[who], look: who, map: 'home', x: 0, y: 0, cx: 376, cy: 60, cdir: 3, walk: -1,
-      vis: () => !FAM[who].hidden, label: () => `${PNAME[who]} — ${parentTxt(who)}`, act: () => ACT.parent(who),
+      vis: () => !FAM[who].hidden && !RT.famHide, label: () => `${PNAME[who]} — ${parentTxt(who)}`, act: () => ACT.parent(who),
     };
     n.outfit = who === 'mom' ? () => (n.map === 'town' ? 'noapron' : null) : () => (today().dow >= 5 || holidayOf(G.day) ? 'dadhome' : null);
     FAM[who].n = n; NPCS.push(n);
