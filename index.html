@@ -238,9 +238,9 @@ body.cut #hotbar{opacity:0;pointer-events:none}
 .pcard img{display:block;width:54px;height:72px;margin:2px auto 0;image-rendering:pixelated}
 .pcard .pc-n{font-weight:800;font-size:11.5px;line-height:1.15;min-height:27px;display:flex;align-items:center;justify-content:center}
 .pcard .pc-r{font-size:11px;font-weight:700;color:var(--rc);filter:brightness(.8)}
-.pcard .pc-s{display:flex;justify-content:space-between;gap:2px;margin-top:3px;font-size:10.5px;font-weight:600}
+.pcard .pc-s{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:3px;font-size:10px;font-weight:600}
 .pcard .pc-s span{flex:1;background:#efe6d2;border-radius:5px}
-.pcard .pc-s b{font-size:12.5px}
+.pcard .pc-s b{font-size:12px}
 .pcard .pc-t{position:absolute;top:-7px;right:-7px;padding:0 6px;border-radius:999px;background:var(--orange);border:2px solid var(--ink);font:800 10.5px/15px inherit;font-family:inherit;font-style:normal}
 .pcard .pc-q{height:74px;font-size:48px;font-weight:800;line-height:74px;color:var(--rc)}
 .pcard.back{background:repeating-linear-gradient(45deg,#f3e6c8,#f3e6c8 6px,#fff6e3 6px,#fff6e3 12px)}
@@ -347,7 +347,7 @@ button.ct{cursor:pointer}button.ct:hover{background:#fffbe8}
 .ct-pos{position:absolute;left:3px;top:2px;font-style:normal;font-size:10px;font-weight:800;padding:0 4px;border-radius:4px;color:#fff;background:#5f656f}
 .ct-pos.p-tm{background:#2a2136}.ct-pos.p-hv{background:#3b82c4}.ct-pos.p-tv{background:#2e9e86}.ct-pos.p-td{background:#d9534f}
 .ct-sal{position:absolute;right:3px;top:2px;font-style:normal;font-size:10px;font-weight:800}
-.ct-s{display:flex;gap:3px;font-size:10px;margin-top:2px}.ct-s span{padding:0 2px;border-radius:3px;white-space:nowrap}.ct-s .hl{background:#ffe066}.ct-s i{font-style:normal;color:#2f7d5b}
+.ct-s{display:grid;grid-template-columns:repeat(3,auto);gap:1px 4px;justify-content:center;font-size:10px;margin-top:2px}.ct-s span{padding:0 2px;border-radius:3px;white-space:nowrap}.ct-s .hl{background:#ffe066}.ct-s i{font-style:normal;color:#2f7d5b}
 .ct-tags{display:flex;gap:4px;align-items:center;margin-top:3px;min-height:14px}
 .bdg,.ct .bdg{width:12px;height:14px;image-rendering:pixelated;display:inline-block;vertical-align:middle;margin:0}.bdg.flag,.ct .bdg.flag{width:16px;height:11px}
 .bdg.in{width:10px;height:12px;margin:-2px 0 0}.bdg.in.flag{width:14px;height:10px}
@@ -371,6 +371,19 @@ b.bad{color:#d9534f}
 
 .tt-lantern{text-align:center}.tt-lantern img{width:72px;height:72px;image-rendering:pixelated}
 
+.btns.stats6{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.btn.used{text-decoration:line-through;opacity:.45}
+#h-money small.wage{font-size:10px;color:#2f7d5b;font-weight:700}
+
+/* việc thầy cô nhờ: bảng thông báo + danh sách nhiệm vụ */
+.tasks{display:flex;flex-direction:column;gap:8px;margin:6px 0}
+.task{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:#fffdf6;border:2px solid #c9b58a;border-radius:10px}
+.task.active{border-color:#e8b83a;background:#fff8e0}.task.late{border-color:#d9534f;background:#fdeeee}
+.task img{width:44px;height:46px;image-rendering:pixelated;flex:none;background:#cfe6f2;border:2px solid var(--ink);border-radius:8px}
+.task .tbody{flex:1;min-width:0}.task .tbody>b{display:block;font-size:15px}.task .tbody>small{display:block;color:#6b6170;margin:2px 0 4px}
+.task dl{display:grid;grid-template-columns:auto 1fr;gap:1px 8px;margin:0;font-size:12.5px}.task dt{font-weight:800;color:#8a7f6a}.task dd{margin:0}
+.task dd .ok{color:#2f7d5b}.task dd .cur{font-weight:800;color:#c9862f}.task dd.bad{color:#d9534f;font-weight:700}
+.task .btn{flex:none;align-self:center}
+
 </style>
 </head>
 <body>
@@ -386,6 +399,7 @@ b.bad{color:#d9534f}
 <div id="todo" class="card"></div>
 </div>
 <div id="menu">
+  <button data-m="quest" title="Nhiệm vụ (J)"><img id="ic-quest" alt="Nhiệm vụ"><i id="q-dot" class="dot"></i></button>
   <button data-m="map" title="Bản đồ (N)"><img id="ic-map" alt="Bản đồ"></button>
   <button data-m="menu" title="Menu (Esc / M)"><img id="ic-menu" alt="Menu"></button>
   <button data-m="phone" title="Điện thoại (P)"><img id="ic-phone" alt="Điện thoại"><i id="ph-dot" class="dot"></i></button>
@@ -543,11 +557,12 @@ const STAT_NAMES = {
 };
 
 /* ---------- Việc nhà ---------- */
+// Tiền công việc nhà (cũng như phụ bán, việc thầy cô nhờ) được cộng dồn và trả vào cuối ngày
 const CHORES = {
-  ruabat: { name: 'Rửa bát', mins: 10, pay: 3000, stam: 3, kt: 2 },
-  quetnha: { name: 'Quét và lau nhà', mins: 30, pay: 15000, stam: 8, kt: 4 },
-  nhoco: { name: 'Nhổ cỏ', mins: 40, pay: 30000, stam: 12, kt: 5 },
-  ruaxe: { name: 'Rửa xe', mins: 60, pay: 50000, stam: 15, kt: 6 },
+  ruabat: { name: 'Rửa bát', mins: 10, pay: 2000, stam: 3, kt: 2 },
+  quetnha: { name: 'Quét và lau nhà', mins: 30, pay: 5000, stam: 8, kt: 4 },
+  nhoco: { name: 'Nhổ cỏ', mins: 40, pay: 7000, stam: 12, kt: 5 },
+  ruaxe: { name: 'Rửa xe', mins: 60, pay: 10000, stam: 15, kt: 6 },
 };
 
 /* ---------- Tập thể dục ---------- */
@@ -680,11 +695,29 @@ const INFIRM = { mins: 30, stam: 15 };          // tự xuống trạm y tế n�
 const SMOKE = { mins: 10, stam: 12, risk: 0.3, perDay: 2, conduct: 1.5 };   // trốn trong buồng vệ sinh hút thuốc: hồi thể lực nhưng dễ bị giám thị bắt
 const TUTOR = { price: 50000, mins: 90, pts: 12, stam: 10 };
 const SELF_STUDY = { mins: 60, pts: 5, stam: 8 };
-const PART_TIME = { mins: 120, pay: 30000, payPerLv: 3000, pts: 10, stam: 12 };
+const PART_TIME = { mins: 120, pay: 20000, payPerLv: 2000, pts: 10, stam: 12 };
 const SELL = { cost: 5000, price: 8000, pricePerLv: 500, baseChance: 0.45, caught: 0.07 };
 // Bán đồ cho bạn: đồ ăn mang theo và thẻ cầu thủ (giá thẻ theo độ hiếm)
 const SELL_FOOD = { bimbim: 7000, banhmi: 13000, sua: 8000 };
 const SELL_CARD = [3000, 9000, 25000, 80000];
+
+/* ---------- Việc thầy cô nhờ (bảng thông báo ở sân trường, cạnh căn tin) ----------
+ * Mỗi ngày học thầy cô dán việc lên bảng; chỉ việc mình bấm "Nhận việc" mới vào danh sách nhiệm vụ.
+ * steps: các chỗ phải tới (1–2 chỗ: lấy đồ → mang tới) { map, x, y, do: việc làm ở đó, where: tên chỗ, win?: khung giờ riêng }
+ * mins: tổng thời gian làm · win: khung giờ làm được · days: số ngày từ lúc dán tới hạn chót · until: giờ hạn chót của ngày cuối
+ * pay: tiền công (trả cuối ngày) · aff: điểm thân thiết với thầy cô · stat: [chỉ số, điểm] */
+const TASK_BOARD = { open: 3, maxActive: 3, failAff: -3, dropAff: -1, stam: 4 };
+const TASKS = {
+  xepsach: { tid: 'lan', name: 'Xếp lại sách thư viện', desc: 'Sau giờ đọc, các kệ sách bị xáo trộn hết. Cô cần một bạn xếp lại sách theo từng môn.', steps: [{ map: 'thuvien', x: 92, y: 48, do: 'Xếp sách lên kệ theo môn', where: 'Thư viện (kệ sách)' }], mins: 40, win: [390, 1080], days: 3, until: 1080, pay: 6000, aff: 6, stat: ['kheotay', 2] },
+  laubang: { tid: 'hanh', name: 'Trực nhật lớp sau giờ học', desc: 'Tan học rồi em lau bảng, kê lại bàn ghế và quét lớp 10A1 giúp cô nhé.', steps: [{ map: 'class', x: 160, y: 54, do: 'Lau bảng, kê bàn ghế, quét lớp', where: 'Lớp 10A1 (trước bảng)' }], mins: 30, win: [1000, 1110], days: 2, until: 1110, pay: 5000, aff: 6, stat: ['kheotay', 1] },
+  tuoicay: { tid: 'tung', name: 'Tưới cây phượng sân trường', desc: 'Mấy hôm nay nắng to quá, thầy nhờ em tưới mấy gốc phượng trước sân trường.', steps: [{ map: 'school', x: 114, y: 194, do: 'Xách bình tưới các gốc phượng', where: 'Sân trường (gốc phượng bên trái)' }], mins: 20, win: [390, 1080], days: 2, until: 1080, pay: 4000, aff: 5, stat: ['thethao', 1] },
+  dungcu: { tid: 'manh', name: 'Dọn dụng cụ thể dục', desc: 'Sau giờ thể dục bóng, cầu, dây nhảy vương vãi khắp sân. Thầy nhờ em gom lại cất vào kho.', steps: [{ map: 'school', x: 600, y: 214, do: 'Gom bóng, cầu, dây nhảy cất vào kho', where: 'Sân thể dục' }], mins: 30, win: [1000, 1110], days: 3, until: 1110, pay: 6000, aff: 7, stat: ['thethao', 2] },
+  decuong: { tid: 'tung', name: 'Mang đề cương ôn tập về lớp', desc: 'Thầy để xấp đề cương ôn tập Toán ở bàn thủ thư. Em lấy giúp thầy rồi đặt lên bàn giáo viên lớp 10A1.', steps: [{ map: 'thuvien', x: 252, y: 154, do: 'Nhận xấp đề cương ở bàn thủ thư', where: 'Thư viện (bàn thủ thư)' }, { map: 'class', x: 56, y: 64, do: 'Đặt đề cương lên bàn giáo viên', where: 'Lớp 10A1 (bàn giáo viên)' }], mins: 16, win: [390, 1080], days: 2, until: 1080, pay: 4000, aff: 6 },
+  phan: { tid: 'hanh', name: 'Mua giúp cô hộp phấn', desc: 'Lớp mình hết phấn rồi. Em ghé tạp hoá Cô Ba mua giúp cô một hộp phấn trắng rồi để lên bàn giáo viên nhé, tiền phấn cô gửi lại.', steps: [{ map: 'town', x: 290, y: 150, do: 'Mua hộp phấn ở tạp hoá Cô Ba', where: 'Tạp hoá Cô Ba (khu phố nhà mình)', win: [360, 1260] }, { map: 'class', x: 56, y: 64, do: 'Để hộp phấn lên bàn giáo viên', where: 'Lớp 10A1 (bàn giáo viên)' }], mins: 20, win: [390, 1080], days: 3, until: 1080, pay: 5000, aff: 6 },
+  phongnhac: { tid: 'lan', name: 'Dọn phòng nhạc trước buổi văn nghệ', desc: 'Sắp có buổi văn nghệ, cô nhờ lau sân khấu nhỏ và cuộn gọn dây loa trong phòng nhạc.', steps: [{ map: 'nhac', x: 150, y: 132, do: 'Lau sân khấu, cuộn dây loa', where: 'Phòng nhạc' }], mins: 30, win: [390, 1110], days: 4, until: 1110, pay: 5000, aff: 5, stat: ['vannghe', 1] },
+  baotuong: { tid: 'hanh', name: 'Trang trí báo tường của lớp', desc: 'Sắp tới đợt thi đua, cô nhờ em vẽ tranh, cắt dán báo tường treo ở cuối lớp.', steps: [{ map: 'class', x: 230, y: 196, do: 'Vẽ tranh, cắt dán báo tường', where: 'Lớp 10A1 (cuối lớp)' }], mins: 45, win: [1000, 1140], days: 4, until: 1140, pay: 7000, aff: 7, stat: ['kheotay', 3] },
+  mohinh: { tid: 'quan', name: 'Kiểm đếm mô hình súng tập', desc: 'Thầy nhờ em đếm lại các mô hình súng tập ở góc sân thể dục và ghi vào sổ trước buổi Quốc phòng tới.', steps: [{ map: 'school', x: 586, y: 172, do: 'Đếm mô hình, ghi vào sổ', where: 'Góc sân thể dục' }], mins: 25, win: [390, 1080], days: 3, until: 1080, pay: 5000, aff: 6 },
+};
 
 /* ---------- Làm việc riêng trong giờ học (sev: 1 nhẹ, 2 nặng) ---------- */
 const CLASS_FUN_CHANCE = 0.22;
@@ -957,27 +990,29 @@ const CARD_RARITY = [
   { name: 'Thường', w: 62, col: '#8fa0ab' }, { name: 'Hiếm', w: 28, col: '#3b82c4' },
   { name: 'Siêu hiếm', w: 9, col: '#f2a93b' }, { name: 'Huyền thoại', w: 1, col: '#d9534f' },
 ];
-const CARD_STATS = [['atk', 'Tấn công', 'TC'], ['def', 'Phòng thủ', 'PT'], ['spd', 'Tốc độ', 'TĐ']];
+// 6 chỉ số: mỗi chỉ số chỉ được chọn so tài MỘT lần trong một trận (không spam một chỉ số mạnh nhất)
+const CARD_STATS = [['atk', 'Tấn công', 'TC'], ['def', 'Phòng thủ', 'PT'], ['spd', 'Tốc độ', 'TĐ'], ['str', 'Sức mạnh', 'SM'], ['tec', 'Kỹ thuật', 'KT'], ['iq', 'Tư duy', 'IQ']];
+const cardPower = c => CARD_STATS.reduce((s, [k]) => s + c[k], 0);
 const CARD_POS = { tm: 'Thủ môn', hv: 'Hậu vệ', tv: 'Tiền vệ', td: 'Tiền đạo' };
 const CARD_CLUBS = { HP: { name: 'Hoa Phượng FC', col: '#d9534f', kit: ['#d9534f', '#ffe066'] }, SX: { name: 'Sông Xanh', col: '#3b82c4', kit: ['#3b82c4', '#fffaf0'] }, CB: { name: 'Cảng Biển', col: '#2e9e86', kit: ['#2e9e86', '#fffaf0'] }, ND: { name: 'Núi Đá', col: '#8a5a3a', kit: ['#8a5a3a', '#f2c94c'] } };
 const CARD_NATS = { VN: { name: 'Việt Nam', col: '#da251d' }, NB: { name: 'Nhật Bản', col: '#ffffff', fg: '#bc002d' }, TH: { name: 'Thái Lan', col: '#2d2a4a' }, BR: { name: 'Brazil', col: '#009c3b', fg: '#ffdf00' } };
 const CARDS = [
-  ['Tùng “Tay Nhện”', 'tm', 0, 2, 6, 3, 'HP', 'VN'], ['Đức “Găng Sắt”', 'tm', 0, 1, 7, 3, 'SX', 'VN'],
-  ['Lâm “Lá Chắn”', 'hv', 0, 2, 6, 4, 'CB', 'VN'], ['Hùng “Xe Ủi”', 'hv', 0, 3, 6, 2, 'ND', 'VN'], ['Phong “Bóng Ma”', 'hv', 0, 3, 5, 5, 'HP', 'VN'],
-  ['Nam “Con Thoi”', 'tv', 0, 4, 4, 5, 'SX', 'VN'], ['Quân “Nhạc Trưởng”', 'tv', 0, 5, 4, 3, 'CB', 'VN'], ['Bảo “Máy Quét”', 'tv', 0, 3, 5, 4, 'ND', 'VN'], ['Tài “Ong Thợ”', 'tv', 0, 4, 5, 4, 'HP', 'VN'],
-  ['Minh “Chớp”', 'td', 0, 5, 2, 6, 'CB', 'VN'], ['Sơn “Búa Tạ”', 'td', 0, 6, 3, 2, 'ND', 'VN'], ['Việt “Cáo Già”', 'td', 0, 6, 2, 4, 'SX', 'VN'],
-  ['Khánh “Người Nhện”', 'tm', 1, 2, 9, 5, 'CB', 'VN'], ['Trung “Bức Tường”', 'hv', 1, 4, 9, 4, 'HP', 'VN'], ['Hải “Mũi Khoan”', 'hv', 1, 6, 7, 7, 'SX', 'VN'],
-  ['Long “Phù Thuỷ”', 'tv', 1, 8, 5, 6, 'ND', 'VN'], ['Kiên “La Bàn”', 'tv', 1, 7, 7, 5, 'HP', 'VN'], ['Duy “Tia Chớp”', 'td', 1, 7, 3, 9, 'SX', 'VN'], ['Thắng “Sát Thủ”', 'td', 1, 9, 3, 6, 'CB', 'VN'],
-  ['Vũ “Thần Giữ Cửa”', 'tm', 2, 3, 11, 7, 'ND', 'VN'], ['Cường “Đá Tảng”', 'hv', 2, 6, 11, 6, 'SX', 'VN'], ['An “Bậc Thầy”', 'tv', 2, 10, 8, 8, 'CB', 'VN'], ['Hoàng “Vua Phá Lưới”', 'td', 2, 11, 5, 9, 'HP', 'VN'],
-  ['Rồng Vàng “Số 10 huyền thoại”', 'tv', 3, 12, 10, 11, 'HP', 'VN'],
-  ['Kenji “Samurai”', 'tv', 1, 7, 6, 7, 'CB', 'NB'], ['Somchai “Voi Chiến”', 'hv', 1, 5, 9, 4, 'SX', 'TH'], ['Rafael “Vũ Công”', 'td', 2, 11, 4, 10, 'HP', 'BR'],
-  ['Takumi “Mũi Tên”', 'td', 0, 6, 2, 6, 'ND', 'NB'], ['Anan “Rắn Hổ Mang”', 'tv', 0, 5, 4, 4, 'CB', 'TH'], ['Lucas “Thần Đèn”', 'tm', 1, 2, 9, 6, 'ND', 'BR'],
-  ['Hiro “Lá Thép”', 'hv', 0, 2, 7, 3, 'HP', 'NB'], ['Chaiya “Cơn Lốc”', 'td', 1, 8, 3, 8, 'ND', 'TH'], ['Diego “Bò Tót”', 'hv', 2, 7, 11, 6, 'CB', 'BR'],
-  ['Yuto “Cánh Én”', 'tv', 0, 4, 3, 6, 'SX', 'NB'], ['Pedro “Pháp Sư”', 'tv', 3, 11, 9, 12, 'SX', 'BR'], ['Quang “Đội Trưởng”', 'hv', 1, 5, 8, 5, 'HP', 'VN'],
-].map(([name, pos, r, atk, def, spd, club, nat], i) => ({ id: 'c' + String(i + 1).padStart(2, '0'), no: i + 1, name, pos, r, atk, def, spd, club, nat }));
+  ['Tùng “Tay Nhện”', 'tm', 0, 2, 6, 3, 2, 2, 6, 'HP', 'VN'], ['Đức “Găng Sắt”', 'tm', 0, 1, 7, 3, 3, 2, 3, 'SX', 'VN'],
+  ['Lâm “Lá Chắn”', 'hv', 0, 2, 6, 4, 6, 1, 3, 'CB', 'VN'], ['Hùng “Xe Ủi”', 'hv', 0, 3, 6, 2, 6, 1, 4, 'ND', 'VN'], ['Phong “Bóng Ma”', 'hv', 0, 3, 5, 5, 4, 2, 2, 'HP', 'VN'],
+  ['Nam “Con Thoi”', 'tv', 0, 4, 4, 5, 2, 6, 4, 'SX', 'VN'], ['Quân “Nhạc Trưởng”', 'tv', 0, 5, 4, 3, 3, 4, 6, 'CB', 'VN'], ['Bảo “Máy Quét”', 'tv', 0, 3, 5, 4, 1, 4, 6, 'ND', 'VN'], ['Tài “Ong Thợ”', 'tv', 0, 4, 5, 4, 2, 6, 4, 'HP', 'VN'],
+  ['Minh “Chớp”', 'td', 0, 5, 2, 6, 4, 3, 2, 'CB', 'VN'], ['Sơn “Búa Tạ”', 'td', 0, 6, 3, 2, 5, 4, 4, 'ND', 'VN'], ['Việt “Cáo Già”', 'td', 0, 6, 2, 4, 2, 5, 1, 'SX', 'VN'],
+  ['Khánh “Người Nhện”', 'tm', 1, 2, 9, 5, 6, 5, 6, 'CB', 'VN'], ['Trung “Bức Tường”', 'hv', 1, 4, 9, 4, 8, 2, 6, 'HP', 'VN'], ['Hải “Mũi Khoan”', 'hv', 1, 6, 7, 7, 6, 4, 6, 'SX', 'VN'],
+  ['Long “Phù Thuỷ”', 'tv', 1, 8, 5, 6, 4, 8, 6, 'ND', 'VN'], ['Kiên “La Bàn”', 'tv', 1, 7, 7, 5, 4, 5, 7, 'HP', 'VN'], ['Duy “Tia Chớp”', 'td', 1, 7, 3, 9, 7, 6, 6, 'SX', 'VN'], ['Thắng “Sát Thủ”', 'td', 1, 9, 3, 6, 4, 7, 3, 'CB', 'VN'],
+  ['Vũ “Thần Giữ Cửa”', 'tm', 2, 3, 11, 7, 8, 8, 8, 'ND', 'VN'], ['Cường “Đá Tảng”', 'hv', 2, 6, 11, 6, 10, 5, 8, 'SX', 'VN'], ['An “Bậc Thầy”', 'tv', 2, 10, 8, 8, 5, 9, 11, 'CB', 'VN'], ['Hoàng “Vua Phá Lưới”', 'td', 2, 11, 5, 9, 8, 10, 6, 'HP', 'VN'],
+  ['Rồng Vàng “Số 10 huyền thoại”', 'tv', 3, 12, 10, 11, 10, 10, 12, 'HP', 'VN'],
+  ['Kenji “Samurai”', 'tv', 1, 7, 6, 7, 6, 6, 8, 'CB', 'NB'], ['Somchai “Voi Chiến”', 'hv', 1, 5, 9, 4, 6, 4, 4, 'SX', 'TH'], ['Rafael “Vũ Công”', 'td', 2, 11, 4, 10, 8, 10, 6, 'HP', 'BR'],
+  ['Takumi “Mũi Tên”', 'td', 0, 6, 2, 6, 4, 4, 3, 'ND', 'NB'], ['Anan “Rắn Hổ Mang”', 'tv', 0, 5, 4, 4, 1, 4, 6, 'CB', 'TH'], ['Lucas “Thần Đèn”', 'tm', 1, 2, 9, 6, 5, 4, 5, 'ND', 'BR'],
+  ['Hiro “Lá Thép”', 'hv', 0, 2, 7, 3, 6, 1, 3, 'HP', 'NB'], ['Chaiya “Cơn Lốc”', 'td', 1, 8, 3, 8, 7, 6, 6, 'ND', 'TH'], ['Diego “Bò Tót”', 'hv', 2, 7, 11, 6, 8, 6, 6, 'CB', 'BR'],
+  ['Yuto “Cánh Én”', 'tv', 0, 4, 3, 6, 2, 6, 4, 'SX', 'NB'], ['Pedro “Pháp Sư”', 'tv', 3, 11, 9, 12, 10, 10, 12, 'SX', 'BR'], ['Quang “Đội Trưởng”', 'hv', 1, 5, 8, 5, 6, 4, 6, 'HP', 'VN'],
+].map(([name, pos, r, atk, def, spd, str, tec, iq, club, nat], i) => ({ id: 'c' + String(i + 1).padStart(2, '0'), no: i + 1, name, pos, r, atk, def, spd, str, tec, iq, club, nat }));
 const CARD_BY_ID = {}; for (const c of CARDS) CARD_BY_ID[c.id] = c;
 // Lương cầu thủ: hiếm và mạnh thì lương cao — tổng lương đội hình không được vượt trần
-const cardSal = c => [3, 5, 8, 12][c.r] + Math.max(0, Math.floor((c.atk + c.def + c.spd - 12) / 6));
+const cardSal = c => [3, 5, 8, 12][c.r] + Math.max(0, Math.floor((cardPower(c) - 26) / 12));
 // Đội hình: đúng 11 người khác nhau, đúng 1 thủ môn, ít nhất 2 hậu vệ, 2 tiền vệ, 1 tiền đạo; tổng lương ≤ cap
 const SQUAD = { size: 11, cap: 55, need: { tm: [1, 1], hv: [2, 9], tv: [2, 9], td: [1, 9] } };
 // Trận đấu thẻ: 5 lượt, ai thắng 3 lượt trước thắng; người ra lệnh chọn chỉ số và 3–5 lá
@@ -1935,6 +1970,12 @@ function buildSprites2() {
   shopFront('fb_doan', '#f2a93b', x => { ell(x, '#5f656f', 12, 5, 8, 4); R(x, '#5f656f', 4, 5, 17, 4); ell(x, '#8b8f9c', 12, 4, 7, 2); R(x, 'rgba(240,240,240,.7)', 9, 0, 1, 2); R(x, 'rgba(240,240,240,.7)', 14, 0, 1, 2); for (let i = 0; i < 3; i++) { R(x, '#3f8f3a', 36 + i * 5, 3 - (i % 2), 5, 5); R(x, '#d9c690', 38 + i * 5, 3 - (i % 2), 1, 5); } R(x, '#d9534f', 0, 13, 54, 1); });
 
 
+  // bảng thông báo ở sân trường: khung gỗ, tấm bần, giấy ghim
+  def('bangtin', 36, 30, x => {
+    R(x, '#6f472c', 3, 18, 3, 12); R(x, '#6f472c', 30, 18, 3, 12);
+    R(x, '#6f472c', 0, 0, 36, 22); R(x, '#c9935a', 2, 6, 32, 14); R(x, '#3b6fb6', 2, 1, 32, 5);
+    for (const [a, b, c2] of [[4, 8, '#fffaf0'], [13, 7, '#fff6a8'], [23, 8, '#fffaf0'], [8, 13, '#ffd2e0'], [19, 13, '#fffaf0']]) { R(x, c2, a, b, 8, 6); R(x, '#8b8f9c', a + 1, b + 2, 6, 1); R(x, '#8b8f9c', a + 1, b + 4, 4, 1); R(x, '#e2574c', a + 3, b, 2, 1); }
+  });
   /* ---------- Tết Trung thu: sân khấu, lân, ông Địa, trống, niêu, đèn ông sao, sạp hàng ---------- */
   def('ttstage', 100, 46, x => {
     R(x, '#8a5a3a', 4, 0, 3, 31); R(x, '#8a5a3a', 93, 0, 3, 31);
@@ -2084,6 +2125,7 @@ function itemIcon(id) {
   else if (id === 'sc_tetvisit') { R(x, '#d9534f', 2, 3, 6, 9); R(x, '#ffd23a', 4, 6, 2, 2); R(x, '#d9534f', 8, 4, 6, 9); R(x, '#ffd23a', 10, 7, 2, 2); R(x, '#ffd23a', 2, 13, 12, 1); }
   else if (id === 'm_map') { R(x, '#fffaf0', 1, 3, 14, 11); R(x, '#cfe8b8', 1, 3, 4, 11); R(x, '#bfe3f2', 10, 3, 5, 11); R(x, '#d9ccb2', 5, 3, 1, 11); R(x, '#d9ccb2', 10, 3, 1, 11); R(x, '#e2574c', 6, 5, 3, 3); R(x, '#e2574c', 7, 8, 1, 2); R(x, '#8b8f9c', 2, 10, 6, 1); }
   else if (id === 'm_menu') { for (const b2 of [3, 7, 11]) { R(x, '#2a2136', 2, b2, 12, 2); R(x, '#5f656f', 2, b2, 12, 1); } }
+  else if (id === 'm_quest') { R(x, '#a9703f', 2, 2, 12, 14); R(x, '#fffaf0', 3, 4, 10, 11); R(x, '#5f656f', 5, 1, 6, 3); R(x, '#8b8f9c', 6, 1, 4, 1); for (const b of [6, 9, 12]) { R(x, '#3f8f3a', 4, b, 2, 1); R(x, '#8b8f9c', 7, b, 5, 1); } R(x, '#e2574c', 4, 12, 2, 1); }
   else if (id === 'm_phone') { R(x, '#2a2136', 4, 1, 8, 14); R(x, '#8fd0f0', 5, 3, 6, 8); R(x, '#cfeefa', 5, 3, 6, 2); R(x, '#fff6e3', 7, 12, 2, 1); }
   else if (id === 'denongsao' || id === 'sc_trungthu') {
     if (id === 'sc_trungthu') { R(x, '#24406b', 0, 0, 16, 16); ell(x, '#ffe9a0', 12, 4, 3, 3); ell(x, '#fff6c8', 11, 3, 1.5, 1.5); }
@@ -2409,8 +2451,8 @@ function buildHill() {
   m.solids.push([472, 258, 112, 64], [566, 322, 14, 158]);
   addObj(m, { s: 'rock', x: 448, y: 304, sol: [1, 3, 16, 9], label: () => 'Hồ nước — rửa mặt cho tỉnh táo', act: () => ACT.stream() });
   // đỉnh núi
-  addObj(m, { s: 'summit', x: 478, y: 58, sol: [3, 20, 12, 8], label: () => 'Đỉnh núi — ngắm cảnh', act: () => ACT.summit() });
-  addObj(m, { s: 'bench', x: 388, y: 66, sol: [1, 1, 28, 12] });
+  addObj(m, { s: 'summit', x: 478, y: 58, sol: [3, 20, 12, 8], vis: () => !sceneHides('nuiTop'), label: () => 'Đỉnh núi — ngắm cảnh', act: () => ACT.summit() });   // ẩn khi cả nhà đứng chụp ảnh bên lan can
+  addObj(m, { s: 'bench', x: 388, y: 66, sol: [1, 1, 28, 12], vis: () => !sceneHides('nuiTop') });
   addObj(m, { s: 'trailsign', x: 348, y: 432, sol: [9, 16, 6, 8], label: () => 'Đường mòn — chạy bộ leo dốc', act: () => ACT.hike() });
   // cây thông, đá
   for (let j = 0; j < 9; j++) { addObj(m, { s: j % 2 ? 'pine2' : 'pine', x: 0, y: 46 + j * 46, sol: [10, 36, 12, 14] }); addObj(m, { s: j % 2 ? 'pine' : 'pine2', x: 608, y: 40 + j * 46, sol: [10, 36, 12, 14] }); }
@@ -2822,7 +2864,7 @@ function buildRooms() {
   NPCS.push({ id: 'fh', name: 'Bạn', look: 'khoa', dynLook: () => G.visit || 'khoa', outfit: () => friendOutfit(G.visit || 'khoa'), map: 'fhome', x: 130, y: 110, dir: 0, wander: 18, vis: () => !sceneHides('fh'), label: () => FRIENDS[G.visit].name, act: () => ACT.friend(G.visit, 'in') });
   m.zones.push({ x: 272, y: 216, w: 32, h: 8, fn: () => ACT.leaveFh(), by: -8 });
 
-  buildFest(); buildBcFest(); buildTrungThu();
+  buildFest(); buildBcFest(); buildTrungThu(); buildTaskSpots();
   /* ---------- đồ trang trí phòng ngủ ở nhà (mua ở gian Nội thất, Nhạc cụ) ---------- */
   const h = MAPS.home, own = k => () => !!G && !!G.owned[k];
   addObj(h, { s: 'poster', x: 24, y: 8, base: 0, vis: own('d_poster') });
@@ -3065,6 +3107,8 @@ function migrate() {
   def('memo', { items: {}, scenes: {}, notes: null });  // lưu bút
   if (!G.memo.badges) G.memo.badges = {};             // danh hiệu / huy hiệu: id → ngày
   if (!G.memo.pics) G.memo.pics = {};                 // ảnh chụp thật (JPEG nhỏ) của kỷ vật dạng ảnh
+  def('wage', []);                                     // tiền công trong ngày (trả khi hết ngày): [{ what, amt }]
+  def('tasks', { board: [], active: [], done: 0, seq: 0 });   // bảng thông báo việc thầy cô nhờ · việc đã nhận · số việc đã xong
   def('tt', {});                                       // Trung thu: năm → { asked, fam, fid, done, lantern, nieu, keoco }
   def('tet', {});                                      // Tết: năm → { lixi, chua, f: {bạn đã chúc}, t: {thầy cô đã chúc} }
   def('eve', null);                                    // lời rủ đón giao thừa: { day, who }
@@ -3251,6 +3295,7 @@ function beginDay(first) {
   for (const t of G.tests) if (!t.q && t.day <= G.day && t.sem === k) { t.q = true; (G.pending[t.subj] = G.pending[t.subj] || []).push(t.type); }
   for (const s in G.review) if (G.review[s] < G.day) delete G.review[s];
   socialNewDay();
+  taskNewDay();                                                        // bảng thông báo: gỡ việc hết hạn, dán việc mới
   for (const n of cutPeriods(G.day)) G.daily.done[n] = true;          // tiết bị thay bằng sự kiện: nghỉ, không tính vắng
   if (c.dow === 0 && !first) { const a = parentInfo(G.parent).allowance; addMoney(a, true); RT.morning.push(`Mẹ cho tiền tiêu vặt đầu tuần: ${fmtMoney(a)}.`); }
   save();
@@ -3262,7 +3307,17 @@ function closeConduct() {
   if (hk === 'Tốt') addParent(PARENT.hkTot, '', true); else if (hk === 'Yếu') addParent(PARENT.hkYeu, '', true);
   G.conduct = 10; G.caughtCycle = 0;
 }
+// Tiền công (việc nhà, phụ bán, việc thầy cô nhờ): ghi lại trong ngày, cuối ngày mới trả một lần
+function addWage(what, amt) { if (!amt) return; G.wage.push({ what, amt }); UI.float(`+${fmtMoney(amt)} · trả cuối ngày`, '#ffd23a'); UI.hud(); }
+const wageTotal = () => (G && G.wage ? G.wage.reduce((s, w) => s + w.amt, 0) : 0);
+function payWages() {
+  const t = wageTotal(); if (!t) return;
+  const by = {}; for (const w of G.wage) by[w.what] = (by[w.what] || 0) + w.amt;
+  addMoney(t, true); G.wage = [];
+  if (RT.morning) RT.morning.push(`Nhận tiền công hôm qua: +${fmtMoney(t)} (${Object.entries(by).map(([k, v]) => `${k} ${fmtMoney(v)}`).join(' · ')}).`);
+}
 function endDay() {
+  payWages();
   const c = today(), reports = [];
   if (c.dow === 6) {
     let had = false; for (let d = G.day - 6; d <= G.day; d++) if (d >= 0 && isSchoolDay(d)) had = true;
@@ -3742,13 +3797,13 @@ async function eat(id) {
 
 /* ---------- việc nhà, tập luyện, học ---------- */
 const choreStam = c => Math.max(1, Math.round(c.stam * (1 - 0.05 * lv('kheotay'))));
-function choreLabel(id) { const c = CHORES[id]; if (G && G.daily.chores[id]) return c.name + ' — hôm nay làm rồi'; return `${c.name} — mẹ trả công ${fmtMoney(c.pay)}`; }
+function choreLabel(id) { const c = CHORES[id]; if (G && G.daily.chores[id]) return c.name + ' — hôm nay làm rồi'; return `${c.name} — mẹ trả công ${fmtMoney(c.pay)} vào cuối ngày`; }
 ACT.chore = async (id, ax) => {
   const c = CHORES[id];
   if (G.daily.chores[id]) return UI.toast('Việc này hôm nay bạn đã làm rồi.');
   const cost = choreStam(c);
   if (G.stamina < cost) return UI.toast('Không đủ thể lực. Ăn gì đó hoặc nghỉ ngơi đã!', 'bad');
-  const done = () => { G.daily.chores[id] = true; useStam(cost, true); addMoney(c.pay); addStat('kheotay', c.kt); addParent(PARENT.chore, '', true); };
+  const done = () => { G.daily.chores[id] = true; useStam(cost, true); addWage('Việc nhà', c.pay); addStat('kheotay', c.kt); addParent(PARENT.chore, '', true); };
   const label = `Đang ${c.name.toLowerCase()}…`;
   if (id === 'quetnha') await animActivity(label, c.mins, mopCut(), done);            // cầm cây lau đi quanh nhà
   else if (id === 'ruaxe') await animActivity(label, c.mins, washCut(ax || 133), done);   // xịt nước, cọ xe, bọt bay
@@ -3836,7 +3891,7 @@ async function partTime() {
   if (G.daily.partTime) return UI.toast('Hôm nay bạn đã phụ bán rồi.');
   if (G.stamina < PART_TIME.stam) return UI.toast('Không đủ thể lực.', 'bad');
   UI.close();
-  await activity('Đang phụ bán hàng…', PART_TIME.mins, () => { G.daily.partTime = true; useStam(PART_TIME.stam, true); addMoney(PART_TIME.pay + PART_TIME.payPerLv * lv('buonban')); addStat('buonban', PART_TIME.pts); });
+  await activity('Đang phụ bán hàng…', PART_TIME.mins, () => { G.daily.partTime = true; useStam(PART_TIME.stam, true); addWage('Phụ cô Ba bán hàng', PART_TIME.pay + PART_TIME.payPerLv * lv('buonban')); addStat('buonban', PART_TIME.pts); });
 }
 ACT.center = async () => {
   const ok = schoolToday() ? inWin(G.time, CFG.SCHOOL_END, 1200) : inWin(G.time, 480, 1140);
@@ -3855,6 +3910,7 @@ function todoList() {
   const t = [];
   for (const e of schoolEventsOn(G.day)) if (G.time < e.to && !(e.id === 'banhchung' && bcY().done)) t.push([false, RT.bcFest ? `${e.name} — gặp thầy hiệu trưởng để thi gói bánh` : `${e.name} ${fmtTime(e.from)}–${fmtTime(e.to)} (nghỉ tiết ${e.periods[0]}–${e.periods[e.periods.length - 1]})`]);
   if (eveOk()) t.push([RT.fest, RT.fest ? 'Đang dự hội đón giao thừa' : `Lễ hội đón giao thừa trên núi sau trường: ${fmtTime(EVE.from)}–24:00`]);
+  t.push(...taskTodo());
   if (ttOk() || RT.ttFest) t.push([false, RT.ttFest ? 'Đang dự hội Trung thu — gặp ông thị trưởng ở sân khấu để bắt đầu buổi lễ' : `Hội Trung thu ở phố Hoa Phượng: ${fmtTime(TT.from)}–${fmtTime(TT.until)}`]);
   if (ttMatOpen(G.day) && !ttY().lantern && !ttMatsHave() && G.time < TT.until) t.push([false, `Mua nguyên liệu làm đèn ông sao (còn thiếu: ${ttMatsMissing().map(m => m.name.toLowerCase()).join(', ')})`]);
   if (schoolToday()) {
@@ -6308,12 +6364,12 @@ function addMemo(kind, id) {
   return true;
 }
 // Chụp lại khung hình đang hiện (phần giữa màn hình, bỏ hai dải đen của cắt cảnh) làm ảnh lưu bút. Chụp lần sau đè ảnh cũ.
-// (wx, wy): điểm trên bản đồ đặt ở giữa ảnh
-function snapPhoto(id, wx, wy) {
+// (wx, wy): điểm trên bản đồ đặt ở giữa ảnh · ww: bề ngang khung ảnh (đơn vị bản đồ)
+function snapPhoto(id, wx, wy, ww) {
   try {
-    const W = cv.width, H = cv.height, S = VIEW.S, cw = Math.round(Math.min(W * 0.62, 150 * S)), ch = Math.round(Math.min(cw * 0.625, H * 0.8));
+    const W = cv.width, H = cv.height, S = VIEW.S, cw = Math.round(Math.min(W * 0.9, (ww || 150) * S)), ch = Math.round(Math.min(cw * 0.625, H * 0.8));
     const sx = Math.round(clamp(VIEW.ox + wx * S - cw / 2, 0, W - cw)), sy = Math.round(clamp(VIEW.oy + wy * S - ch / 2, H * 0.085, H * 0.915 - ch));
-    const c = mk(256, 160), x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.drawImage(cv, sx, sy, cw, ch, 0, 0, 256, 160);
+    const c = mk(256, 160), x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.filter = 'brightness(1.22) contrast(1.06) saturate(1.1)'; x.drawImage(cv, sx, sy, cw, ch, 0, 0, 256, 160);   // ánh đèn flash
     G.memo.pics[id] = c.toDataURL('image/jpeg', 0.72);
   } catch (e) { /* trình duyệt chặn đọc canvas: bỏ qua ảnh, vẫn ghi kỷ vật */ }
 }
@@ -6524,17 +6580,19 @@ async function leaveFest() {
   RT.lock = false; UI.hud();
   UI.toast(c === 0 ? 'Về tới nhà lúc 01:00. Ảnh đón giao thừa đã dán vào lưu bút. Ngủ một giấc là sang mùng 1 Tết!' : 'Về nhà sớm, ngủ một giấc là sang mùng 1 Tết.', 'info');
 }
-// Pháo hoa nửa đêm: đếm ngược, pháo nổ rực trời, rồi cả nhà và bạn bè đứng chụp chung một tấm. Trả về các bạn có trong ảnh.
+// Pháo hoa nửa đêm: đếm ngược, pháo nổ rực trời, rồi cả nhà và bạn bè ra đứng thành hàng bên lan can đỉnh núi,
+// pháo hoa nở trên trời phía sau, cùng nhìn vào máy ảnh chụp chung một tấm. Trả về các bạn có trong ảnh.
+const EVE_PHOTO = { x: 460, y: 72, gap: 18 };          // hàng người đứng sát lan can (lan can ở y 38–57, trời ở trên)
 async function fireworksCut() {
-  const fid = G.comp && G.comp.fid, cx0 = 440, cy0 = 124, t0 = { v: 0 }, bursts = [];
-  for (let i = 0; i < 16; i++) bursts.push({ x: (i % 2 ? 360 : 300) + Math.random() * (i % 2 ? 160 : 300), y: 24 + Math.random() * 60, at: 3400 + i * 330 + Math.random() * 200, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a', '#fffaf0'][i % 6], r: 14 + Math.random() * 14 });
+  const fid = G.comp && G.comp.fid, cx0 = 440, cy0 = 124, t0 = { v: 0 }, bursts = [], P = EVE_PHOTO;
+  for (let i = 0; i < 16; i++) bursts.push({ x: (i % 2 ? 380 : 330) + Math.random() * (i % 2 ? 180 : 260), y: 6 + Math.random() * 30, at: 3400 + i * 330 + Math.random() * 200, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a', '#fffaf0'][i % 6], r: 12 + Math.random() * 12 });
   const extra = [];                                                         // loạt pháo canh đúng lúc bấm máy chụp ảnh
   const glow = now => {
     const raw = now - t0.v; let t = raw; if (t > 3400) t = 3400 + (t - 3400) % 5600;        // pháo bắn liên tục suốt cảnh
     for (const b of bursts.concat(extra)) {
       const k = ((b.raw ? raw : t) - b.at) / 1100; if (k < -0.35 || k > 1) continue;
-      if (k < 0) { wRect('#ffe9a0', b.x, b.y + 120 * (-k / 0.35), 1, 4); continue; }        // pháo bay lên
-      for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283, r = b.r * Math.sqrt(k); wRect(k > 0.75 && i % 2 ? '#fff6e3' : b.col, b.x + Math.cos(a) * r, b.y + Math.sin(a) * r + k * k * 10, 2, 2); }
+      if (k < 0) { wRect('#ffe9a0', b.x, b.y + 90 * (-k / 0.35), 1, 4); continue; }        // pháo bay lên
+      for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283, r = b.r * Math.sqrt(k); wRect(k > 0.75 && i % 2 ? '#fff6e3' : b.col, b.x + Math.cos(a) * r, b.y + Math.sin(a) * r + k * k * 8, 2, 2); }
     }
   };
   // người trong ảnh: bố mẹ + bạn đi cùng + các bạn thân (từ 2 tim, không giận)
@@ -6543,22 +6601,22 @@ async function fireworksCut() {
   const fam = [{ look: 'mom', outfit: 'noapron', x: withPar ? cx0 - 22 : cx0 - 70, y: withPar ? cy0 + 2 : cy0 + 30, dir: 3 }, { look: 'dad', outfit: 'dadhome', x: withPar ? cx0 + 22 : cx0 - 56, y: withPar ? cy0 + 2 : cy0 + 34, dir: 3 }];
   const frs = friends.map((f, i) => ({ look: f, outfit: friendOutfit(f), x: f === fid ? cx0 + 18 : cx0 + 60 + i * 12, y: f === fid ? cy0 : cy0 + 28 + i * 4, dir: 3 }));
   const crowd = [['c2', 'cas_vy', cx0 - 48, cy0 + 6], ['c7', 'cas_dat', cx0 + 48, cy0 + 4], ['c4', 'cas_ngan', cx0 - 26, cy0 + 22], ['c3', 'cas_khoa', cx0 + 30, cy0 + 24]].map(([look, of, x, y]) => ({ look, outfit: of, x, y, dir: 3 }));
-  const cam = { look: 'c5', outfit: 'cas_khoa', x: cx0 + 90, y: cy0 + 50, dir: 1 };          // chú chụp ảnh giùm
+  const cam = { look: 'c5', outfit: 'cas_khoa', x: cx0 + 90, y: cy0 + 40, dir: 1 };          // chú chụp ảnh giùm
   const all = fam.concat(frs, crowd, [cam]), iF = 2, iC = 2 + frs.length, iCam = all.length - 1;
-  // xếp hàng chụp ảnh: mình đứng giữa, bố mẹ hai bên, các bạn đứng hàng sau
-  const slots = [[-20, 0], [20, 0], [-40, -14], [40, -14], [-16, -18], [16, -18]], order = [0, 1].concat(frs.map((_, i) => iF + i));
-  const line = order.map((k, j) => ({ move: [k, cx0 + slots[j][0], cy0 + 20 + slots[j][1], 700] }));
+  // hàng chụp ảnh sát lan can: mình đứng giữa, bố mẹ hai bên, các bạn đứng tiếp ra hai đầu
+  const order = [0, 1].concat(frs.map((_, i) => iF + i)), offs = [-1, 1, 2, -2, 3, -3];
+  const line = order.map((k, j) => ({ move: [k, P.x + offs[j] * P.gap, P.y, 900] }));
   const firstSay = fid ? { say: [iF, 'Năm mới tụi mình vẫn chơi thân như vầy nha!'] } : (withPar ? { say: [0, 'Năm mới chúc con luôn vui vẻ, mạnh khoẻ!'] } : { wait: 600 });
   await playCut({
-    map: 'nui', me: [cx0, cy0, 3], cam: { x: cx0, y: 92 }, title: 'Giao thừa', actors: all, hide: ['fh', 'f_mom', 'f_dad'],
+    map: 'nui', me: [cx0, cy0, 3], cam: { x: cx0, y: 92 }, title: 'Giao thừa', actors: all, hide: ['fh', 'f_mom', 'f_dad', 'nuiTop'],
     steps: [{ fn: sc => { t0.v = performance.now(); sc.glow = [glow]; } },
       { say: [iC, 'Mười… chín… tám…'] }, { say: [iC + 1, 'Ba… hai… một…'] },
       { fn: sc => { for (const a of sc.actors) a.dir = 3; } }, { say: ['me', 'CHÚC MỪNG NĂM MỚI!'] }, firstSay,
-      withPar ? { wait: 200 } : { say: [0, 'Bố mẹ cũng lên núi xem pháo hoa nè! Cả nhà chụp chung một tấm nhé!'] },
-      { par: [{ move: ['me', cx0, cy0 + 20, 500] }].concat(line, [{ move: [iCam, cx0, cy0 + 56, 900] }]) },
-      { fn: sc => { G.dir = 0; for (const k of order) sc.actors[k].dir = 0; sc.actors[iCam].dir = 3; const r0 = performance.now() - t0.v; for (let i = 0; i < 5; i++) extra.push({ raw: true, x: cx0 - 70 + i * 35 + Math.random() * 10, y: cy0 - 56 + (i % 2) * 14, at: r0 + 4300 + i * 160, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a'][i], r: 16 + Math.random() * 6 }); } },
-      { say: [iCam, 'Nhìn vào đây nào! Pháo hoa đang nở sau lưng đẹp lắm!'] }, { say: [iCam, 'Một, hai, ba… cười!'] }, { wait: 160 },
-      { fn: sc => { snapPhoto('anhgiaothua', cx0, cy0 - 16); sc.glow = [glow, flashGlow(performance.now())]; } }, { wait: 900 },
+      { say: [0, withPar ? 'Cả nhà ra đứng bên lan can chụp một tấm với pháo hoa nào!' : 'Bố mẹ cũng lên núi xem pháo hoa nè! Ra lan can chụp chung một tấm nào!'] },
+      { par: [{ move: ['me', P.x, P.y, 900] }].concat(line, [{ move: [iCam, P.x, P.y + 66, 1000] }, { move: [iC, cx0 - 80, cy0 + 20, 900] }, { move: [iC + 1, cx0 + 110, cy0 + 10, 900] }]) },
+      { fn: sc => { G.dir = 0; for (const k of order) sc.actors[k].dir = 0; sc.actors[iCam].dir = 3; sc.cam = { x: P.x, y: P.y - 14 }; const r0 = performance.now() - t0.v; for (let i = 0; i < 6; i++) extra.push({ raw: true, x: P.x - 80 + i * 32 + Math.random() * 8, y: 6 + (i % 2) * 14, at: r0 + 4200 + i * 150, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a', '#fffaf0'][i], r: 14 + Math.random() * 6 }); } },
+      { say: [iCam, 'Mọi người nhìn vào máy ảnh nào! Pháo hoa đang nở ngay sau lưng đó!'] }, { say: [iCam, 'Một, hai, ba… cười!'] }, { wait: 160 },
+      { fn: sc => { snapPhoto('anhgiaothua', P.x, P.y - 30, 128); sc.glow = [glow, flashGlow(performance.now())]; } }, { wait: 900 },
       { say: ['me', 'Tấm ảnh đẹp nhất năm luôn!'] }, { wait: 1200 }],
   });
   return friends;
@@ -6884,7 +6942,7 @@ function squadIssues(ids) {
 const squadOk = () => !!G.squad && G.squad.every(id => G.cards[id] > 0) && squadIssues(G.squad).length === 0;
 // Xếp đội hình tự động từ một kho thẻ: mạnh nhất có thể mà vẫn đủ vị trí, không vượt trần lương
 function autoSquad(pool) {
-  const val = c => c.atk + c.def + c.spd, by = p => pool.filter(c => c.pos === p).sort((a, b) => val(b) - val(a));
+  const val = cardPower, by = p => pool.filter(c => c.pos === p).sort((a, b) => val(b) - val(a));
   if (by('tm').length < 1 || by('hv').length < 2 || by('tv').length < 2 || by('td').length < 1 || pool.length < SQUAD.size) return null;
   let sq = [by('tm')[0], ...by('hv').slice(0, 2), ...by('tv').slice(0, 2), by('td')[0]];
   const rest = pool.filter(c => c.pos !== 'tm' && !sq.includes(c)).sort((a, b) => val(b) - val(a));
@@ -6935,14 +6993,14 @@ const rpsWin = (a, b) => (a === 'bua' && b === 'keo') || (a === 'keo' && b === '
 // o: { name, look, outfit, deck, album, tier, mine, borrowed, noPrize, smart } → Promise<{ res: 1 | 0 | -1 | null, took, lost }>
 function cardMatch(o) {
   return new Promise(resolve => {
-    const M = { round: 1, sc: [0, 0], cmd: null, stat: 'atk', n: 3, pick: [], opp: [], phase: 'rps', rps: null, log: [], took: null, lost: null }, my = cardsOf(o.mine), op = cardsOf(o.deck);
+    const M = { round: 1, sc: [0, 0], cmd: null, stat: 'atk', n: 3, pick: [], opp: [], phase: 'rps', rps: null, log: [], took: null, lost: null, used: [] }, my = cardsOf(o.mine), op = cardsOf(o.deck);
     const who = o.name, smart = o.smart || o.tier === 'caothu', noise = { 'gà': 0.4, lop: 0.15, kha: 0.06, caothu: 0 }[o.tier] || 0.1;
     let closed = false;
     const finish = res => { if (closed) return; closed = true; UI._res = null; if (UI.isOpen()) UI.close(-1); resolve({ res, took: M.took, lost: M.lost }); };
     const aiPick = (stat, n) => { const all = bestSets(op, stat, n), k = Math.min(all.length - 1, Math.floor(Math.random() * Math.max(1, all.length * noise))); return all[k].set; };
     const aiCommand = () => {
       let best = null;
-      for (const s of CARD_STATS) for (let n = MATCH.nMin; n <= MATCH.nMax; n++) {
+      for (const s of CARD_STATS.filter(x => !M.used.includes(x[0]))) for (let n = MATCH.nMin; n <= MATCH.nMax; n++) {
         const mine = bestSets(op, s[0], n)[0].v, theirs = smart ? bestSets(my, s[0], n)[0].v : n * 6.2, v = mine - theirs + Math.random() * 1.5;
         if (!best || v > best.v) best = { stat: s[0], n, v };
       }
@@ -6951,7 +7009,7 @@ function cardMatch(o) {
     const nextRound = () => {
       if (M.sc[0] >= MATCH.win || M.sc[1] >= MATCH.win || M.round > MATCH.rounds) return end();
       M.pick = []; M.opp = [];
-      if (M.cmd === 'opp') { aiCommand(); M.phase = 'oppcmd'; } else M.phase = 'cmd';
+      if (M.cmd === 'opp') { aiCommand(); M.phase = 'oppcmd'; } else { if (M.used.includes(M.stat)) M.stat = CARD_STATS.find(x => !M.used.includes(x[0]))[0]; M.phase = 'cmd'; }
     };
     const end = () => {
       M.res = M.sc[0] > M.sc[1] ? 1 : M.sc[0] < M.sc[1] ? -1 : 0;
@@ -6961,16 +7019,16 @@ function cardMatch(o) {
         G.cards[c.id]--; if (!G.cards[c.id]) { delete G.cards[c.id]; if (G.squad) G.squad = G.squad.filter(x => x !== c.id); }
       }
     };
-    const head = () => `<div class="cm-head"><img src="${faceOf(G.gender, null)}" alt=""><b>Bạn ${M.sc[0]}</b><span>Lượt ${Math.min(M.round, MATCH.rounds)}/${MATCH.rounds} · thắng ${MATCH.win} lượt là thắng trận</span><b>${M.sc[1]} ${who}</b><img src="${faceOf(o.look, o.outfit)}" alt=""></div>`;
+    const head = () => `<div class="cm-head"><img src="${faceOf(G.gender, null)}" alt=""><b>Bạn ${M.sc[0]}</b><span>Lượt ${Math.min(M.round, MATCH.rounds)}/${MATCH.rounds} · thắng ${MATCH.win} lượt là thắng trận${M.used.length ? `<br><small>Đã so: ${M.used.map(k => CARD_STATS.find(x => x[0] === k)[2]).join(' · ')}</small>` : ''}</span><b>${M.sc[1]} ${who}</b><img src="${faceOf(o.look, o.outfit)}" alt=""></div>`;
     const render = () => {
       let h = head();
       if (M.phase === 'rps') {
         h += `<p class="cm-big">Oẳn tù xì giành quyền <b>ra lệnh lượt đầu</b>!</p><div class="btns rps">${RPS.map(([k, e, n]) => `<button class="btn" data-act="rps" data-id="${k}"><span class="emo">${e}</span>${n}</button>`).join('')}</div>`;
         if (M.rps) { const [a, b] = M.rps, A = RPS.find(x => x[0] === a), B = RPS.find(x => x[0] === b); h += `<p class="cm-big"><span class="emo">${A[1]}</span> vs <span class="emo">${B[1]}</span> — ${a === b ? 'Hoà! Oẳn lại nào.' : rpsWin(a, b) ? 'Bạn thắng, bạn ra lệnh trước!' : `${who} thắng, ${who} ra lệnh trước.`}</p>`; if (a !== b) h += '<div class="btns"><button class="btn primary" data-act="go">Bắt đầu lượt 1</button></div>'; }
       } else if (M.phase === 'cmd') {
-        h += `<p class="cm-big">Bạn <b>ra lệnh</b>: chọn chỉ số so tài và số lá mỗi bên ra sân.</p><div class="btns">${CARD_STATS.map(([k, n, s]) => `<button class="btn ${M.stat === k ? 'primary' : ''}" data-act="stat" data-id="${k}">${s} · ${n}</button>`).join('')}</div>`;
+        h += `<p class="cm-big">Bạn <b>ra lệnh</b>: chọn chỉ số so tài và số lá mỗi bên ra sân.</p><p class="dim">Mỗi chỉ số chỉ được so <b>một lần</b> trong trận — chỉ số đã so thì gạch đi.</p><div class="btns stats6">${CARD_STATS.map(([k, n, s]) => `<button class="btn ${M.stat === k ? 'primary' : ''} ${M.used.includes(k) ? 'used' : ''}" data-act="stat" data-id="${k}" ${M.used.includes(k) ? 'disabled' : ''}>${s} · ${n}</button>`).join('')}</div>`;
         h += `<div class="btns">${[3, 4, 5].map(n => `<button class="btn ${M.n === n ? 'primary' : ''}" data-act="num" data-id="${n}">${n} lá</button>`).join('')}</div>`;
-        h += `<p class="dim">Mạnh nhất của bạn với ${M.n} lá: ${CARD_STATS.map(([k, , s]) => `${s} ${bestSets(my, k, M.n)[0].v}`).join(' · ')} (đã cộng màu áo)</p><div class="btns"><button class="btn primary" data-act="order">Ra lệnh: ${statName(M.stat)}, ${M.n} lá</button></div>`;
+        h += `<p class="dim">Mạnh nhất của bạn với ${M.n} lá: ${CARD_STATS.filter(([k]) => !M.used.includes(k)).map(([k, , s]) => `${s} ${bestSets(my, k, M.n)[0].v}`).join(' · ')} (đã cộng màu áo)</p><div class="btns"><button class="btn primary" data-act="order">Ra lệnh: ${statName(M.stat)}, ${M.n} lá</button></div>`;
       } else if (M.phase === 'oppcmd') {
         h += `<p class="cm-big">${who} <b>ra lệnh</b>: so <b>${statName(M.stat)}</b>, mỗi bên <b>${M.n} lá</b>.</p><div class="btns"><button class="btn primary" data-act="topick">Chọn cầu thủ</button></div>`;
       } else if (M.phase === 'pick') {
@@ -6999,7 +7057,7 @@ function cardMatch(o) {
     UI.panel(`Đấu thẻ với ${who}`, render, {
       rps: d => { const b = RPS[Math.floor(Math.random() * 3)][0]; M.rps = [d.id, b]; if (d.id !== b) M.cmd = rpsWin(d.id, b) ? 'me' : 'opp'; },
       go: () => nextRound(),
-      stat: d => { M.stat = d.id; }, num: d => { M.n = +d.id; },
+      stat: d => { if (!M.used.includes(d.id)) M.stat = d.id; }, num: d => { M.n = +d.id; },
       order: () => { M.phase = 'pick'; },
       topick: () => { M.phase = 'pick'; },
       pk: d => { const i = M.pick.indexOf(d.id); if (i >= 0) M.pick.splice(i, 1); else if (M.pick.length < M.n) M.pick.push(d.id); },
@@ -7009,7 +7067,7 @@ function cardMatch(o) {
         M.last = ta > tb ? 1 : ta < tb ? -1 : 0;
         if (M.last === 1) M.sc[0]++; else if (M.last === -1) M.sc[1]++;
         M.cmd = M.last === 1 ? 'opp' : M.last === -1 ? 'me' : (M.cmd === 'me' ? 'opp' : 'me');     // người thua lượt (hoà: đổi lượt) ra lệnh lượt sau
-        M.round++; M.phase = 'reveal';
+        M.used.push(M.stat); M.round++; M.phase = 'reveal';
       },
       next: () => nextRound(),
       take: d => { M.took = d.id; M.tookNew = gainCard(CARD_BY_ID[d.id]); if (o.onTake) o.onTake(d.id); },
@@ -7058,7 +7116,7 @@ async function cardGroupTalk(g, n) {
   }
   await page('“Em cũng mê thẻ cầu thủ à? Ngồi đây anh chỉ luật chơi mới cho. Không phải cứ rút một lá ra so là xong đâu!”');
   await page(`“Mỗi người xếp một <b>đội hình 11 người</b>: đúng 1 thủ môn, ít nhất 2 hậu vệ, 2 tiền vệ và 1 tiền đạo. Thẻ càng hiếm càng mạnh thì <b>lương</b> càng cao — tổng lương không được quá ${SQUAD.cap}, nên không ai nhồi toàn thẻ xịn được đâu.”`);
-  await page('“Trận đấu có <b>5 lượt</b>. Lượt đầu oẳn tù xì giành quyền <b>ra lệnh</b>. Người ra lệnh chọn so chỉ số nào (Tấn công, Phòng thủ hay Tốc độ) và mỗi bên ra sân mấy lá, từ 3 tới 5.”');
+  await page('“Trận đấu có <b>5 lượt</b>. Lượt đầu oẳn tù xì giành quyền <b>ra lệnh</b>. Người ra lệnh chọn so chỉ số nào và mỗi bên ra sân mấy lá, từ 3 tới 5. Có 6 chỉ số: Tấn công, Phòng thủ, Tốc độ, Sức mạnh, Kỹ thuật, Tư duy — <b>mỗi chỉ số chỉ được so một lần</b> trong trận, nên đừng dồn hết vào một chỉ số nha!”');
   await page('“Hai bên chọn đúng số lá đó, cộng tổng chỉ số, ai cao hơn thắng lượt. <b>Người thua lượt</b> được ra lệnh lượt sau — để còn gỡ lại. Ai thắng 3 lượt trước là thắng trận.”');
   await page('“Mẹo nè: cầu thủ <b>cùng câu lạc bộ</b> hoặc <b>cùng quốc tịch</b> ra sân chung thì ăn ý, mỗi người được cộng thêm. Hai người +1, ba người +2… càng đông càng mạnh. Thắng trận thì được mở album của người thua, chọn 1 thẻ mang về.”');
   await page('“Giờ em cầm tạm bộ thẻ này của anh, đấu thử với anh một trận cho quen tay nhé!”');
@@ -7290,7 +7348,7 @@ function processionCut(fid, fam) {
     { fn: sc => { G.dir = 0; for (let i = 0; i < nA; i++) sc.actors[i].dir = 0; sc.actors[0].dir = 2; sc.actors[1].dir = 2; } },
     { move: [iCam, L0 + dx + 80, Y + 46, 600] },
     { say: [iCam, 'Cả đoàn đứng lại chụp tấm ảnh kỷ niệm nào!'] }, { say: [iCam, 'Một, hai, ba… Trung thu vui vẻ!'] }, { wait: 160 },
-    { fn: sc => { snapPhoto('anhtrungthu', L0 + dx + 80, Y - 14); sc.glow = [ttMoon, ttLanternGlow, flashGlow(performance.now())]; } }, { wait: 900 },
+    { fn: sc => { snapPhoto('anhtrungthu', L0 + dx + 90, Y - 14, 190); sc.glow = [ttMoon, ttLanternGlow, flashGlow(performance.now())]; } }, { wait: 900 },
     fam ? { say: [actors.findIndex(a => a.look === 'mom'), 'Khuya rồi, cả nhà mình về thôi con!'] } : fid ? { say: [3, 'Vui ghê! Khuya rồi, mình về thôi!'] } : { say: ['me', 'Khuya rồi, về nhà thôi!'] }];
   return { map: 'pho', me: [meX, meY, 1], title: 'Rước đèn Trung thu', actors, hide, props: [prop], steps };
 }
@@ -7326,6 +7384,135 @@ function drawTTProps(now) {
   for (let i = -66; i <= 66; i++) wRect('#c9a467', kx + i + w, ky - 9, 1, 1);
   wRect('#e2574c', kx - 1 + w, ky - 12, 2, 6); wRect('#fffaf0', kx - 20, ky + 2, 1, 6); wRect('#fffaf0', kx + 20, ky + 2, 1, 6);
 }
+
+'use strict';
+/* ============================================================
+ *  04h. VIỆC THẦY CÔ NHỜ
+ *  - Bảng thông báo ở sân trường (cạnh căn tin): mỗi ngày học thầy cô dán thêm việc cần học sinh giúp
+ *  - Việc có hạn chót (ngày + giờ) và thời gian cần làm; chỉ việc đã bấm "Nhận việc" mới vào danh sách nhiệm vụ
+ *  - Danh sách nhiệm vụ: nút "Nhiệm vụ" cạnh menu (phím J) · chỗ cần tới có dấu chấm than vàng
+ *  - Làm xong: thêm điểm thân thiết với thầy cô + ít tiền công (trả cuối ngày) · nhận rồi mà quá hạn: thầy cô buồn
+ * ============================================================ */
+const tName = tid => TEACHERS[tid].name;
+const tLow = tid => tName(tid).replace(/^./, c => c.toLowerCase());          // “thầy Tùng”, “cô Lan” (giữa câu)
+const taskById = uid => G.tasks.active.find(t => t.uid === uid) || G.tasks.board.find(t => t.uid === uid);
+const taskWin = (T, k) => (T.steps[k] && T.steps[k].win) || T.win;
+const taskLate = t => G.day > t.exp || (G.day === t.exp && G.time > TASKS[t.id].until);
+const taskDeadline = t => `${dateLabel(t.exp)}, trước ${fmtTime(TASKS[t.id].until)}`;
+const stepMins = T => Math.round(T.mins / T.steps.length);
+const winText = (T, k) => { const w = taskWin(T, k || 0); return `làm được ${fmtTime(w[0])}–${fmtTime(w[1])}`; };
+const daysLeft = t => t.exp - G.day;
+
+// Đầu mỗi ngày: việc đã nhận mà quá hạn → thầy cô buồn; gỡ việc hết hạn; ngày học thì dán thêm việc mới
+function taskNewDay() {
+  const S = G.tasks;
+  for (const t of S.active.filter(t => t.exp < G.day)) {
+    const T = TASKS[t.id]; addTeacher(TASK_BOARD.failAff, T.tid, true);
+    if (RT.morning) RT.morning.push(`Không kịp làm việc “${T.name}” — ${tName(T.tid)} hơi buồn vì em đã nhận mà không làm.`);
+  }
+  S.active = S.active.filter(t => t.exp >= G.day);
+  S.board = S.board.filter(t => t.exp >= G.day);
+  if (!schoolToday()) return;
+  const busy = new Set(S.board.concat(S.active).map(t => t.id)), pool = Object.keys(TASKS).filter(k => !busy.has(k));
+  let added = 0;
+  while (S.board.length < TASK_BOARD.open && pool.length) {
+    const id = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+    S.board.push({ uid: ++S.seq, id, posted: G.day, exp: G.day + TASKS[id].days }); added++;
+  }
+  if (added && RT.morning) RT.morning.push(`Bảng thông báo ở sân trường có ${added} việc mới thầy cô cần giúp.`);
+}
+
+/* ---------- bảng thông báo ---------- */
+function taskCard(t, mode) {
+  const T = TASKS[t.id], tc = TEACHERS[T.tid], late = taskLate(t), dl = daysLeft(t);
+  const where = T.steps.map((s, i) => (mode === 'active' ? `<span class="${i < t.step ? 'ok' : i === t.step ? 'cur' : ''}">${i < t.step ? '✓ ' : ''}${s.where}</span>` : s.where)).join(' → ');
+  const due = `${taskDeadline(t)}${late ? ' — đã quá hạn' : dl === 0 ? ' — hôm nay!' : dl === 1 ? ' — còn 1 ngày' : ` — còn ${dl} ngày`}`;
+  const reward = `+${T.aff} thân thiết với ${tLow(T.tid)} · ${fmtMoney(T.pay)}${T.stat ? ` · +${T.stat[1]} ${STAT_NAMES[T.stat[0]]}` : ''}`;
+  const btn = mode === 'board' ? `<button class="btn sm primary" data-act="take" data-id="${t.uid}">Nhận việc</button>` : `<button class="btn sm ghost" data-act="drop" data-id="${t.uid}">Bỏ việc</button>`;
+  return `<div class="task ${mode} ${late ? 'late' : ''}"><img src="${faceOf(tc.look, null)}" alt=""><div class="tbody"><b>${T.name}</b><small>${tc.name}: “${T.desc}”</small>
+    <dl><dt>Ở đâu</dt><dd>${where}</dd><dt>Cần</dt><dd>khoảng ${T.mins} phút · ${winText(T, mode === 'active' ? t.step : 0)}</dd><dt>Hạn chót</dt><dd class="${late || dl === 0 ? 'bad' : ''}">${due}</dd><dt>Thưởng</dt><dd>${reward}</dd></dl></div>${btn}</div>`;
+}
+ACT.board = () => {
+  if (RT.lock) return;
+  UI.panel('Bảng thông báo — thầy cô cần giúp', () => {
+    const S = G.tasks;
+    let h = `<p class="dim">Việc thầy cô cần học sinh giúp. Chỉ việc bạn bấm <b>Nhận việc</b> mới vào danh sách nhiệm vụ (nút <b>Nhiệm vụ</b> cạnh menu, phím J). Làm xong được thầy cô quý hơn và ít tiền công (trả vào cuối ngày). Đã nhận mà để quá hạn thì thầy cô sẽ buồn.</p>`;
+    h += S.board.length ? `<div class="tasks">${S.board.map(t => taskCard(t, 'board')).join('')}</div>` : '<p class="okbox">Hôm nay chưa có việc mới. Ngày học nào thầy cô cũng dán thêm việc lên bảng.</p>';
+    h += `<p class="dim">Đang nhận ${S.active.length}/${TASK_BOARD.maxActive} việc · đã giúp thầy cô ${S.done} việc.</p>`;
+    return h;
+  }, { take: d => takeTask(+d.id) }, true);
+};
+async function takeTask(uid) {
+  const S = G.tasks, t = S.board.find(x => x.uid === uid); if (!t) return;
+  const T = TASKS[t.id];
+  if (S.active.length >= TASK_BOARD.maxActive) return UI.toast(`Đang nhận ${TASK_BOARD.maxActive} việc rồi — làm xong bớt rồi hãy nhận thêm.`, 'bad');
+  const c = await UI.ask(T.name, `<p>${tName(T.tid)} nhờ: “${T.desc}”</p><p>Cần khoảng <b>${T.mins} phút</b>, ${winText(T)}. Hạn chót: <b>${taskDeadline(t)}</b>.</p><p class="dim">Nhận rồi mà không làm kịp thì ${tLow(T.tid)} sẽ buồn đấy.</p>`, ['Em nhận việc này!', 'Thôi'], { who: { look: TEACHERS[T.tid].look } });
+  if (c !== 0) return ACT.board();
+  S.board = S.board.filter(x => x !== t);
+  S.active.push(Object.assign(t, { step: 0, took: G.day }));
+  UI.toast(`Đã nhận việc “${T.name}”. Xem trong danh sách Nhiệm vụ (cạnh menu).`, 'good');
+  UI.hud(); ACT.board();
+}
+
+/* ---------- danh sách nhiệm vụ (cạnh menu) ---------- */
+function questPanel() {
+  UI.panel('Nhiệm vụ', () => {
+    const S = G.tasks;
+    let h = S.active.length ? `<div class="tasks">${S.active.map(t => taskCard(t, 'active')).join('')}</div>` : '<p class="okbox">Chưa nhận việc nào. Ra <b>bảng thông báo</b> ở sân trường (cạnh căn tin) xem thầy cô cần giúp gì nhé.</p>';
+    h += `<p class="dim">Chỗ cần tới có dấu <b style="color:#c9962a">!</b> vàng nhấp nháy. Đi tới đó rồi bấm E (hoặc chuột phải) để làm. Đã giúp thầy cô ${S.done} việc.</p>`;
+    return h;
+  }, { drop: d => dropTask(+d.id) }, true);
+}
+async function dropTask(uid) {
+  const t = G.tasks.active.find(x => x.uid === uid); if (!t) return;
+  const T = TASKS[t.id];
+  const c = await UI.ask('Bỏ việc', `<p>Bỏ việc “${T.name}”? ${tName(T.tid)} sẽ hơi buồn.</p>`, ['Bỏ việc', 'Thôi, để em làm']);
+  if (c === 0) { G.tasks.active = G.tasks.active.filter(x => x !== t); addTeacher(TASK_BOARD.dropAff, T.tid, true); UI.toast(`Đã bỏ việc “${T.name}”.`, 'info'); UI.hud(); }
+  questPanel();
+}
+// việc đang chờ mình làm ở chỗ này
+const taskAt = (id, k) => G && G.tasks && G.tasks.active.find(t => t.id === id && t.step === k);
+async function doTaskStep(id, k) {
+  if (RT.lock) return;
+  const t = taskAt(id, k); if (!t) return;
+  const T = TASKS[id], s = T.steps[k], w = taskWin(T, k);
+  if (taskLate(t)) return UI.say(T.name, `Đã quá hạn chót (${taskDeadline(t)}) mất rồi…`);
+  if (!inWin(G.time, w[0], w[1])) return UI.say(T.name, `Việc này ${winText(T, k)}. Giờ chưa làm được.`);
+  if (G.stamina < TASK_BOARD.stam) return UI.toast('Mệt quá, ăn gì đó đã rồi hãy làm.', 'bad');
+  const last = k === T.steps.length - 1;
+  await activity(`${s.do}…`, stepMins(T), () => { useStam(TASK_BOARD.stam, true); if (last) { G.tasks.active = G.tasks.active.filter(x => x !== t); G.tasks.done++; } else t.step++; });
+  if (taskAt(id, k) === t) return;                 // bị chặn giữa chừng (đang bận việc khác)
+  if (!last) { const nx = T.steps[k + 1]; UI.toast(`Xong: ${s.do.toLowerCase()}. Tiếp theo: ${nx.do.toLowerCase()} — ${nx.where}.`, 'good'); UI.hud(); return; }
+  // hoàn thành
+  addTeacher(T.aff, T.tid); addWage(`Giúp ${tLow(T.tid)}`, T.pay);
+  if (T.stat) addStat(T.stat[0], T.stat[1]);
+  UI.hud();
+  const co = tName(T.tid).split(' ')[0].toLowerCase();
+  await UI.ask(tName(T.tid), `<p>“Cảm ơn em nhiều nhé! Việc này em làm chu đáo lắm. Tiền công ${fmtMoney(T.pay)} cuối ngày ${co} gửi em.”</p>`, ['Dạ, không có gì ạ!'], { who: { look: TEACHERS[T.tid].look } });
+}
+// chỗ làm việc trên bản đồ: chỉ hiện (và bấm được) khi đang có việc ở bước đó
+function buildTaskSpots() {
+  for (const id in TASKS) TASKS[id].steps.forEach((s, k) => {
+    const m = MAPS[s.map]; if (!m) return;
+    addObj(m, { s: 'blank', x: s.x, y: s.y, ir: [-14, -20, 28, 30], vis: () => !!taskAt(id, k), label: () => `Việc ${tLow(TASKS[id].tid)} nhờ: ${s.do.toLowerCase()} (${stepMins(TASKS[id])} phút)`, act: () => doTaskStep(id, k) });
+  });
+  const sch = MAPS.school;
+  addObj(sch, { s: 'bangtin', x: 144, y: 90, sol: [2, 24, 32, 6], label: () => `Bảng thông báo — thầy cô cần giúp${G.tasks.board.length ? ` (${G.tasks.board.length} việc)` : ''}`, act: () => ACT.board() });
+  sch.labels.push({ x: 162, y: 95.5, text: 'THÔNG BÁO', size: 4.2, col: '#fffaf0', maxw: 26 });
+}
+// dấu chấm than vàng trên chỗ cần tới (vẽ mỗi khung hình)
+function drawTaskMarkers(now) {
+  if (!G.tasks || !G.tasks.active.length || (RT.scene && RT.scene.type === 'cut')) return;
+  const b = Math.round(Math.sin(now / 180) * 2);
+  for (const t of G.tasks.active) {
+    const s = TASKS[t.id].steps[t.step]; if (!s || s.map !== G.map) continue;
+    wRect('#2a2136', s.x - 3, s.y - 32 + b, 7, 11); wRect('#ffd23a', s.x - 2, s.y - 31 + b, 5, 9); wRect('#2a2136', s.x, s.y - 30 + b, 1, 4); wRect('#2a2136', s.x, s.y - 25 + b, 1, 1);
+    if (Math.floor(now / 400) % 2) wRect('rgba(255,210,58,0.35)', s.x - 9, s.y - 2, 18, 5);
+  }
+  if (G.map === 'school' && G.tasks.board.length && schoolToday()) wRect(Math.floor(now / 500) % 2 ? '#e2574c' : '#ffd23a', 172, 86 + b, 4, 4);
+}
+// việc cần làm hôm nay (cho danh sách việc ở góc trái)
+const taskTodo = () => (G.tasks ? G.tasks.active.filter(t => TASKS[t.id].steps[t.step]).map(t => { const T = TASKS[t.id], s = T.steps[t.step]; return [false, `${T.name}: ${s.do.toLowerCase()} — ${s.where} (hạn ${daysLeft(t) <= 0 ? 'hôm nay ' + fmtTime(T.until) : dateLabel(t.exp)})`]; }) : []);
 
 'use strict';
 /* ============================================================
@@ -7500,9 +7687,10 @@ const UI = {
     $('h-stam').style.width = Math.round(100 * G.stamina / mx) + '%';
     $('h-stam').className = G.stamina < 15 ? 'low' : '';
     $('h-stamtx').textContent = `${Math.round(G.stamina)}/${mx}`;
-    $('h-money').textContent = fmtMoney(G.money);
+    $('h-money').innerHTML = fmtMoney(G.money) + (wageTotal() ? ` <small class="wage" title="Tiền công hôm nay — nhận vào cuối ngày">+${fmtMoney(wageTotal())}</small>` : '');
     $('h-conduct').textContent = fmtScore(G.conduct);
     const un = unreadCount(), dot = $('ph-dot'); dot.textContent = un || ''; dot.classList.toggle('on', un > 0);
+    const nq = G.tasks ? G.tasks.active.length : 0, qd = $('q-dot'); qd.textContent = nq || ''; qd.classList.toggle('on', nq > 0);
     this.hotbar();
     const td = todoList();
     $('todo').innerHTML = td.map(([ok, s]) => `<div class="${ok ? 'ok' : ''}"><i></i>${s}</div>`).join('');
@@ -7779,7 +7967,7 @@ MV.cards = {
     if (t === 'album') {
       h += `<p>Đã sưu tầm <b>${cardKinds()}/${CARDS.length}</b> loại · tổng <b>${cardCount()}</b> lá.${G.cardDone === CARDS.length ? ' <b class="tag">Đủ bộ!</b>' : ''}</p><div class="pcards">`;
       for (const c of CARDS) h += G.cards[c.id] ? cardHtml(c, '×' + G.cards[c.id]) : `<div class="pcard none" style="--rc:${CARD_RARITY[c.r].col}"><div class="pc-q">?</div><div class="pc-n">Số ${c.no}</div><div class="pc-r">${starsOf(c)} ${CARD_RARITY[c.r].name}</div></div>`;
-      return h + `</div><p class="dim">Mỗi gói bim bim Sao Vàng có 1 thẻ (hôm nào may mắn dễ ra thẻ hiếm). TC = Tấn công · PT = Phòng thủ · TĐ = Tốc độ. Đủ bộ ${CARDS.length} thẻ được thưởng ${fmtMoney(CARD_SET_REWARD)}.</p>`;
+      return h + `</div><p class="dim">Mỗi gói bim bim Sao Vàng có 1 thẻ (hôm nào may mắn dễ ra thẻ hiếm). ${CARD_STATS.map(([, n, sh]) => `${sh} = ${n}`).join(' · ')}. Đấu thẻ: mỗi chỉ số chỉ được so một lần trong trận. Đủ bộ ${CARDS.length} thẻ được thưởng ${fmtMoney(CARD_SET_REWARD)}.</p>`;
     }
     const s = UI._sq || (UI._sq = (G.squad || []).filter(id => G.cards[id] > 0)), cs = cardsOf(s), is = squadIssues(s), cnt = p => cs.filter(c => c.pos === p).length;
     h += `<p>Lương <b class="${squadSal(s) > SQUAD.cap ? 'bad' : ''}">${squadSal(s)}/${SQUAD.cap}</b> · ${cs.length}/${SQUAD.size} người · TM ${cnt('tm')} · HV ${cnt('hv')} · TV ${cnt('tv')} · TĐ ${cnt('td')}</p>`;
@@ -7960,7 +8148,7 @@ function timeTravel(day, time) {
 }
 
 function bindUI() {
-  $('ic-menu').src = itemIcon('m_menu'); $('ic-phone').src = itemIcon('m_phone'); $('ic-map').src = itemIcon('m_map');
+  $('ic-menu').src = itemIcon('m_menu'); $('ic-phone').src = itemIcon('m_phone'); $('ic-map').src = itemIcon('m_map'); $('ic-quest').src = itemIcon('m_quest');
   $('banner').addEventListener('click', () => turnToFriend());
   $('hint').addEventListener('click', () => { if (G && G.ride && !RT.lock && !UI.isOpen() && $('hint')._key === 'X') dismount(); });   // bấm vào nút “X Xuống xe”
   $('modal').addEventListener('click', UI._click);
@@ -7979,7 +8167,7 @@ function bindUI() {
 }
 function openMenu(k) {
   if (!G || RT.lock) return;
-  if (k === 'bag') UI.bag(); else if (k === 'phone') UI.phone(); else UI.menu(k === 'menu' ? null : k);
+  if (k === 'bag') UI.bag(); else if (k === 'phone') UI.phone(); else if (k === 'quest') questPanel(); else UI.menu(k === 'menu' ? null : k);
 }
 
 'use strict';
@@ -8390,7 +8578,7 @@ UI.shop = function () {
   UI.store('Tạp hoá Cô Ba', ttMatOpen(G.day) ? '“Mua gì con? Sắp Trung thu rồi, cô có nan tre, giấy bóng kính, nến làm đèn ông sao nè!”' : '“Mua gì con?”', () => SHOP.map(it => Object.assign({}, it, { owned: owned(it) })).concat(ttMatItems()), it => (it.mat ? buyMat(it) : buy(SHOP.find(x => x.id === it.id))), () => {
     let h = '';
     if (fishCount()) h += `<h4>Bán cá câu được</h4><div class="rowi"><span><b>${fishCount()} con cá</b> <small>${FISH.filter(f => G.fish[f.id]).map(f => `${f.name} ×${G.fish[f.id]}`).join(' · ')}</small></span><button class="btn sm" data-act="fish">Bán hết · ${fmtMoney(fishValue())}</button></div>`;
-    return h + `<h4>Phụ bán hàng (ngày nghỉ, 08:00–18:00)</h4><div class="rowi"><span><b>Phụ cô Ba 2 tiếng</b> <small>Cô Ba trả công ${fmtMoney(PART_TIME.pay + PART_TIME.payPerLv * lv('buonban'))}</small></span><button class="btn sm" data-act="pt">Nhận việc</button></div>`;
+    return h + `<h4>Phụ bán hàng (ngày nghỉ, 08:00–18:00)</h4><div class="rowi"><span><b>Phụ cô Ba 2 tiếng</b> <small>Cô Ba trả công ${fmtMoney(PART_TIME.pay + PART_TIME.payPerLv * lv('buonban'))} vào cuối ngày</small></span><button class="btn sm" data-act="pt">Nhận việc</button></div>`;
   }, { pt: () => { partTime(); }, fish: () => sellFish() });
 };
 
@@ -8895,7 +9083,7 @@ function render(now) {
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
   if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);
-  if (G) { drawFestProps(now); drawBcProps(now); drawTTProps(now); }
+  if (G) { drawFestProps(now); drawBcProps(now); drawTTProps(now); drawTaskMarkers(now); }
   if (G) drawHeld(now);                           // món đang cầm trên tay
   for (const o of m.objs) if (o.smoke && (!o.vis || o.vis())) smokeProp(now, o.x + o.smoke[0], o.y + o.smoke[1]);   // khói nhang        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
   // biển hiệu (chữ nét)
@@ -8951,7 +9139,7 @@ function bindInput() {
     if (e.repeat) return;
     if (k === 'q') turnToFriend();                  // trong giờ học: quay sang bạn
     if (k === 'e' || k === ' ' || k === 'enter') { scanTargets(); doInteract(RT.near || RT.hover); }
-    else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 'f') openMenu('friends'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'k') openMenu('cards'); else if (k === 'n') openMenu('map');
+    else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 'f') openMenu('friends'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'k') openMenu('cards'); else if (k === 'n') openMenu('map'); else if (k === 'j') openMenu('quest');
     else if (k === 'p') openMenu('phone'); else if (k === 'l') openMenu('cal'); else if (k === 'x') { if (G.ride && !RT.lock) dismount(); } else if (k === 'escape' || k === 'm') openMenu('menu');
   });
   window.addEventListener('keyup', e => { KEYS[e.key.toLowerCase()] = false; if (e.code && /^Key[A-Z]$/.test(e.code)) KEYS[e.code.slice(3).toLowerCase()] = false; });

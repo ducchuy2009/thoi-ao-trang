@@ -387,6 +387,12 @@ function buildSprites2() {
   shopFront('fb_doan', '#f2a93b', x => { ell(x, '#5f656f', 12, 5, 8, 4); R(x, '#5f656f', 4, 5, 17, 4); ell(x, '#8b8f9c', 12, 4, 7, 2); R(x, 'rgba(240,240,240,.7)', 9, 0, 1, 2); R(x, 'rgba(240,240,240,.7)', 14, 0, 1, 2); for (let i = 0; i < 3; i++) { R(x, '#3f8f3a', 36 + i * 5, 3 - (i % 2), 5, 5); R(x, '#d9c690', 38 + i * 5, 3 - (i % 2), 1, 5); } R(x, '#d9534f', 0, 13, 54, 1); });
 
 
+  // bảng thông báo ở sân trường: khung gỗ, tấm bần, giấy ghim
+  def('bangtin', 36, 30, x => {
+    R(x, '#6f472c', 3, 18, 3, 12); R(x, '#6f472c', 30, 18, 3, 12);
+    R(x, '#6f472c', 0, 0, 36, 22); R(x, '#c9935a', 2, 6, 32, 14); R(x, '#3b6fb6', 2, 1, 32, 5);
+    for (const [a, b, c2] of [[4, 8, '#fffaf0'], [13, 7, '#fff6a8'], [23, 8, '#fffaf0'], [8, 13, '#ffd2e0'], [19, 13, '#fffaf0']]) { R(x, c2, a, b, 8, 6); R(x, '#8b8f9c', a + 1, b + 2, 6, 1); R(x, '#8b8f9c', a + 1, b + 4, 4, 1); R(x, '#e2574c', a + 3, b, 2, 1); }
+  });
   /* ---------- Tết Trung thu: sân khấu, lân, ông Địa, trống, niêu, đèn ông sao, sạp hàng ---------- */
   def('ttstage', 100, 46, x => {
     R(x, '#8a5a3a', 4, 0, 3, 31); R(x, '#8a5a3a', 93, 0, 3, 31);
@@ -536,6 +542,7 @@ function itemIcon(id) {
   else if (id === 'sc_tetvisit') { R(x, '#d9534f', 2, 3, 6, 9); R(x, '#ffd23a', 4, 6, 2, 2); R(x, '#d9534f', 8, 4, 6, 9); R(x, '#ffd23a', 10, 7, 2, 2); R(x, '#ffd23a', 2, 13, 12, 1); }
   else if (id === 'm_map') { R(x, '#fffaf0', 1, 3, 14, 11); R(x, '#cfe8b8', 1, 3, 4, 11); R(x, '#bfe3f2', 10, 3, 5, 11); R(x, '#d9ccb2', 5, 3, 1, 11); R(x, '#d9ccb2', 10, 3, 1, 11); R(x, '#e2574c', 6, 5, 3, 3); R(x, '#e2574c', 7, 8, 1, 2); R(x, '#8b8f9c', 2, 10, 6, 1); }
   else if (id === 'm_menu') { for (const b2 of [3, 7, 11]) { R(x, '#2a2136', 2, b2, 12, 2); R(x, '#5f656f', 2, b2, 12, 1); } }
+  else if (id === 'm_quest') { R(x, '#a9703f', 2, 2, 12, 14); R(x, '#fffaf0', 3, 4, 10, 11); R(x, '#5f656f', 5, 1, 6, 3); R(x, '#8b8f9c', 6, 1, 4, 1); for (const b of [6, 9, 12]) { R(x, '#3f8f3a', 4, b, 2, 1); R(x, '#8b8f9c', 7, b, 5, 1); } R(x, '#e2574c', 4, 12, 2, 1); }
   else if (id === 'm_phone') { R(x, '#2a2136', 4, 1, 8, 14); R(x, '#8fd0f0', 5, 3, 6, 8); R(x, '#cfeefa', 5, 3, 6, 2); R(x, '#fff6e3', 7, 12, 2, 1); }
   else if (id === 'denongsao' || id === 'sc_trungthu') {
     if (id === 'sc_trungthu') { R(x, '#24406b', 0, 0, 16, 16); ell(x, '#ffe9a0', 12, 4, 3, 3); ell(x, '#fff6c8', 11, 3, 1.5, 1.5); }

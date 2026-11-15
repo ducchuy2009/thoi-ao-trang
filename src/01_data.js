@@ -125,11 +125,12 @@ const STAT_NAMES = {
 };
 
 /* ---------- Việc nhà ---------- */
+// Tiền công việc nhà (cũng như phụ bán, việc thầy cô nhờ) được cộng dồn và trả vào cuối ngày
 const CHORES = {
-  ruabat: { name: 'Rửa bát', mins: 10, pay: 3000, stam: 3, kt: 2 },
-  quetnha: { name: 'Quét và lau nhà', mins: 30, pay: 15000, stam: 8, kt: 4 },
-  nhoco: { name: 'Nhổ cỏ', mins: 40, pay: 30000, stam: 12, kt: 5 },
-  ruaxe: { name: 'Rửa xe', mins: 60, pay: 50000, stam: 15, kt: 6 },
+  ruabat: { name: 'Rửa bát', mins: 10, pay: 2000, stam: 3, kt: 2 },
+  quetnha: { name: 'Quét và lau nhà', mins: 30, pay: 5000, stam: 8, kt: 4 },
+  nhoco: { name: 'Nhổ cỏ', mins: 40, pay: 7000, stam: 12, kt: 5 },
+  ruaxe: { name: 'Rửa xe', mins: 60, pay: 10000, stam: 15, kt: 6 },
 };
 
 /* ---------- Tập thể dục ---------- */
@@ -262,11 +263,29 @@ const INFIRM = { mins: 30, stam: 15 };          // tự xuống trạm y tế n�
 const SMOKE = { mins: 10, stam: 12, risk: 0.3, perDay: 2, conduct: 1.5 };   // trốn trong buồng vệ sinh hút thuốc: hồi thể lực nhưng dễ bị giám thị bắt
 const TUTOR = { price: 50000, mins: 90, pts: 12, stam: 10 };
 const SELF_STUDY = { mins: 60, pts: 5, stam: 8 };
-const PART_TIME = { mins: 120, pay: 30000, payPerLv: 3000, pts: 10, stam: 12 };
+const PART_TIME = { mins: 120, pay: 20000, payPerLv: 2000, pts: 10, stam: 12 };
 const SELL = { cost: 5000, price: 8000, pricePerLv: 500, baseChance: 0.45, caught: 0.07 };
 // Bán đồ cho bạn: đồ ăn mang theo và thẻ cầu thủ (giá thẻ theo độ hiếm)
 const SELL_FOOD = { bimbim: 7000, banhmi: 13000, sua: 8000 };
 const SELL_CARD = [3000, 9000, 25000, 80000];
+
+/* ---------- Việc thầy cô nhờ (bảng thông báo ở sân trường, cạnh căn tin) ----------
+ * Mỗi ngày học thầy cô dán việc lên bảng; chỉ việc mình bấm "Nhận việc" mới vào danh sách nhiệm vụ.
+ * steps: các chỗ phải tới (1–2 chỗ: lấy đồ → mang tới) { map, x, y, do: việc làm ở đó, where: tên chỗ, win?: khung giờ riêng }
+ * mins: tổng thời gian làm · win: khung giờ làm được · days: số ngày từ lúc dán tới hạn chót · until: giờ hạn chót của ngày cuối
+ * pay: tiền công (trả cuối ngày) · aff: điểm thân thiết với thầy cô · stat: [chỉ số, điểm] */
+const TASK_BOARD = { open: 3, maxActive: 3, failAff: -3, dropAff: -1, stam: 4 };
+const TASKS = {
+  xepsach: { tid: 'lan', name: 'Xếp lại sách thư viện', desc: 'Sau giờ đọc, các kệ sách bị xáo trộn hết. Cô cần một bạn xếp lại sách theo từng môn.', steps: [{ map: 'thuvien', x: 92, y: 48, do: 'Xếp sách lên kệ theo môn', where: 'Thư viện (kệ sách)' }], mins: 40, win: [390, 1080], days: 3, until: 1080, pay: 6000, aff: 6, stat: ['kheotay', 2] },
+  laubang: { tid: 'hanh', name: 'Trực nhật lớp sau giờ học', desc: 'Tan học rồi em lau bảng, kê lại bàn ghế và quét lớp 10A1 giúp cô nhé.', steps: [{ map: 'class', x: 160, y: 54, do: 'Lau bảng, kê bàn ghế, quét lớp', where: 'Lớp 10A1 (trước bảng)' }], mins: 30, win: [1000, 1110], days: 2, until: 1110, pay: 5000, aff: 6, stat: ['kheotay', 1] },
+  tuoicay: { tid: 'tung', name: 'Tưới cây phượng sân trường', desc: 'Mấy hôm nay nắng to quá, thầy nhờ em tưới mấy gốc phượng trước sân trường.', steps: [{ map: 'school', x: 114, y: 194, do: 'Xách bình tưới các gốc phượng', where: 'Sân trường (gốc phượng bên trái)' }], mins: 20, win: [390, 1080], days: 2, until: 1080, pay: 4000, aff: 5, stat: ['thethao', 1] },
+  dungcu: { tid: 'manh', name: 'Dọn dụng cụ thể dục', desc: 'Sau giờ thể dục bóng, cầu, dây nhảy vương vãi khắp sân. Thầy nhờ em gom lại cất vào kho.', steps: [{ map: 'school', x: 600, y: 214, do: 'Gom bóng, cầu, dây nhảy cất vào kho', where: 'Sân thể dục' }], mins: 30, win: [1000, 1110], days: 3, until: 1110, pay: 6000, aff: 7, stat: ['thethao', 2] },
+  decuong: { tid: 'tung', name: 'Mang đề cương ôn tập về lớp', desc: 'Thầy để xấp đề cương ôn tập Toán ở bàn thủ thư. Em lấy giúp thầy rồi đặt lên bàn giáo viên lớp 10A1.', steps: [{ map: 'thuvien', x: 252, y: 154, do: 'Nhận xấp đề cương ở bàn thủ thư', where: 'Thư viện (bàn thủ thư)' }, { map: 'class', x: 56, y: 64, do: 'Đặt đề cương lên bàn giáo viên', where: 'Lớp 10A1 (bàn giáo viên)' }], mins: 16, win: [390, 1080], days: 2, until: 1080, pay: 4000, aff: 6 },
+  phan: { tid: 'hanh', name: 'Mua giúp cô hộp phấn', desc: 'Lớp mình hết phấn rồi. Em ghé tạp hoá Cô Ba mua giúp cô một hộp phấn trắng rồi để lên bàn giáo viên nhé, tiền phấn cô gửi lại.', steps: [{ map: 'town', x: 290, y: 150, do: 'Mua hộp phấn ở tạp hoá Cô Ba', where: 'Tạp hoá Cô Ba (khu phố nhà mình)', win: [360, 1260] }, { map: 'class', x: 56, y: 64, do: 'Để hộp phấn lên bàn giáo viên', where: 'Lớp 10A1 (bàn giáo viên)' }], mins: 20, win: [390, 1080], days: 3, until: 1080, pay: 5000, aff: 6 },
+  phongnhac: { tid: 'lan', name: 'Dọn phòng nhạc trước buổi văn nghệ', desc: 'Sắp có buổi văn nghệ, cô nhờ lau sân khấu nhỏ và cuộn gọn dây loa trong phòng nhạc.', steps: [{ map: 'nhac', x: 150, y: 132, do: 'Lau sân khấu, cuộn dây loa', where: 'Phòng nhạc' }], mins: 30, win: [390, 1110], days: 4, until: 1110, pay: 5000, aff: 5, stat: ['vannghe', 1] },
+  baotuong: { tid: 'hanh', name: 'Trang trí báo tường của lớp', desc: 'Sắp tới đợt thi đua, cô nhờ em vẽ tranh, cắt dán báo tường treo ở cuối lớp.', steps: [{ map: 'class', x: 230, y: 196, do: 'Vẽ tranh, cắt dán báo tường', where: 'Lớp 10A1 (cuối lớp)' }], mins: 45, win: [1000, 1140], days: 4, until: 1140, pay: 7000, aff: 7, stat: ['kheotay', 3] },
+  mohinh: { tid: 'quan', name: 'Kiểm đếm mô hình súng tập', desc: 'Thầy nhờ em đếm lại các mô hình súng tập ở góc sân thể dục và ghi vào sổ trước buổi Quốc phòng tới.', steps: [{ map: 'school', x: 586, y: 172, do: 'Đếm mô hình, ghi vào sổ', where: 'Góc sân thể dục' }], mins: 25, win: [390, 1080], days: 3, until: 1080, pay: 5000, aff: 6 },
+};
 
 /* ---------- Làm việc riêng trong giờ học (sev: 1 nhẹ, 2 nặng) ---------- */
 const CLASS_FUN_CHANCE = 0.22;
@@ -539,27 +558,29 @@ const CARD_RARITY = [
   { name: 'Thường', w: 62, col: '#8fa0ab' }, { name: 'Hiếm', w: 28, col: '#3b82c4' },
   { name: 'Siêu hiếm', w: 9, col: '#f2a93b' }, { name: 'Huyền thoại', w: 1, col: '#d9534f' },
 ];
-const CARD_STATS = [['atk', 'Tấn công', 'TC'], ['def', 'Phòng thủ', 'PT'], ['spd', 'Tốc độ', 'TĐ']];
+// 6 chỉ số: mỗi chỉ số chỉ được chọn so tài MỘT lần trong một trận (không spam một chỉ số mạnh nhất)
+const CARD_STATS = [['atk', 'Tấn công', 'TC'], ['def', 'Phòng thủ', 'PT'], ['spd', 'Tốc độ', 'TĐ'], ['str', 'Sức mạnh', 'SM'], ['tec', 'Kỹ thuật', 'KT'], ['iq', 'Tư duy', 'IQ']];
+const cardPower = c => CARD_STATS.reduce((s, [k]) => s + c[k], 0);
 const CARD_POS = { tm: 'Thủ môn', hv: 'Hậu vệ', tv: 'Tiền vệ', td: 'Tiền đạo' };
 const CARD_CLUBS = { HP: { name: 'Hoa Phượng FC', col: '#d9534f', kit: ['#d9534f', '#ffe066'] }, SX: { name: 'Sông Xanh', col: '#3b82c4', kit: ['#3b82c4', '#fffaf0'] }, CB: { name: 'Cảng Biển', col: '#2e9e86', kit: ['#2e9e86', '#fffaf0'] }, ND: { name: 'Núi Đá', col: '#8a5a3a', kit: ['#8a5a3a', '#f2c94c'] } };
 const CARD_NATS = { VN: { name: 'Việt Nam', col: '#da251d' }, NB: { name: 'Nhật Bản', col: '#ffffff', fg: '#bc002d' }, TH: { name: 'Thái Lan', col: '#2d2a4a' }, BR: { name: 'Brazil', col: '#009c3b', fg: '#ffdf00' } };
 const CARDS = [
-  ['Tùng “Tay Nhện”', 'tm', 0, 2, 6, 3, 'HP', 'VN'], ['Đức “Găng Sắt”', 'tm', 0, 1, 7, 3, 'SX', 'VN'],
-  ['Lâm “Lá Chắn”', 'hv', 0, 2, 6, 4, 'CB', 'VN'], ['Hùng “Xe Ủi”', 'hv', 0, 3, 6, 2, 'ND', 'VN'], ['Phong “Bóng Ma”', 'hv', 0, 3, 5, 5, 'HP', 'VN'],
-  ['Nam “Con Thoi”', 'tv', 0, 4, 4, 5, 'SX', 'VN'], ['Quân “Nhạc Trưởng”', 'tv', 0, 5, 4, 3, 'CB', 'VN'], ['Bảo “Máy Quét”', 'tv', 0, 3, 5, 4, 'ND', 'VN'], ['Tài “Ong Thợ”', 'tv', 0, 4, 5, 4, 'HP', 'VN'],
-  ['Minh “Chớp”', 'td', 0, 5, 2, 6, 'CB', 'VN'], ['Sơn “Búa Tạ”', 'td', 0, 6, 3, 2, 'ND', 'VN'], ['Việt “Cáo Già”', 'td', 0, 6, 2, 4, 'SX', 'VN'],
-  ['Khánh “Người Nhện”', 'tm', 1, 2, 9, 5, 'CB', 'VN'], ['Trung “Bức Tường”', 'hv', 1, 4, 9, 4, 'HP', 'VN'], ['Hải “Mũi Khoan”', 'hv', 1, 6, 7, 7, 'SX', 'VN'],
-  ['Long “Phù Thuỷ”', 'tv', 1, 8, 5, 6, 'ND', 'VN'], ['Kiên “La Bàn”', 'tv', 1, 7, 7, 5, 'HP', 'VN'], ['Duy “Tia Chớp”', 'td', 1, 7, 3, 9, 'SX', 'VN'], ['Thắng “Sát Thủ”', 'td', 1, 9, 3, 6, 'CB', 'VN'],
-  ['Vũ “Thần Giữ Cửa”', 'tm', 2, 3, 11, 7, 'ND', 'VN'], ['Cường “Đá Tảng”', 'hv', 2, 6, 11, 6, 'SX', 'VN'], ['An “Bậc Thầy”', 'tv', 2, 10, 8, 8, 'CB', 'VN'], ['Hoàng “Vua Phá Lưới”', 'td', 2, 11, 5, 9, 'HP', 'VN'],
-  ['Rồng Vàng “Số 10 huyền thoại”', 'tv', 3, 12, 10, 11, 'HP', 'VN'],
-  ['Kenji “Samurai”', 'tv', 1, 7, 6, 7, 'CB', 'NB'], ['Somchai “Voi Chiến”', 'hv', 1, 5, 9, 4, 'SX', 'TH'], ['Rafael “Vũ Công”', 'td', 2, 11, 4, 10, 'HP', 'BR'],
-  ['Takumi “Mũi Tên”', 'td', 0, 6, 2, 6, 'ND', 'NB'], ['Anan “Rắn Hổ Mang”', 'tv', 0, 5, 4, 4, 'CB', 'TH'], ['Lucas “Thần Đèn”', 'tm', 1, 2, 9, 6, 'ND', 'BR'],
-  ['Hiro “Lá Thép”', 'hv', 0, 2, 7, 3, 'HP', 'NB'], ['Chaiya “Cơn Lốc”', 'td', 1, 8, 3, 8, 'ND', 'TH'], ['Diego “Bò Tót”', 'hv', 2, 7, 11, 6, 'CB', 'BR'],
-  ['Yuto “Cánh Én”', 'tv', 0, 4, 3, 6, 'SX', 'NB'], ['Pedro “Pháp Sư”', 'tv', 3, 11, 9, 12, 'SX', 'BR'], ['Quang “Đội Trưởng”', 'hv', 1, 5, 8, 5, 'HP', 'VN'],
-].map(([name, pos, r, atk, def, spd, club, nat], i) => ({ id: 'c' + String(i + 1).padStart(2, '0'), no: i + 1, name, pos, r, atk, def, spd, club, nat }));
+  ['Tùng “Tay Nhện”', 'tm', 0, 2, 6, 3, 2, 2, 6, 'HP', 'VN'], ['Đức “Găng Sắt”', 'tm', 0, 1, 7, 3, 3, 2, 3, 'SX', 'VN'],
+  ['Lâm “Lá Chắn”', 'hv', 0, 2, 6, 4, 6, 1, 3, 'CB', 'VN'], ['Hùng “Xe Ủi”', 'hv', 0, 3, 6, 2, 6, 1, 4, 'ND', 'VN'], ['Phong “Bóng Ma”', 'hv', 0, 3, 5, 5, 4, 2, 2, 'HP', 'VN'],
+  ['Nam “Con Thoi”', 'tv', 0, 4, 4, 5, 2, 6, 4, 'SX', 'VN'], ['Quân “Nhạc Trưởng”', 'tv', 0, 5, 4, 3, 3, 4, 6, 'CB', 'VN'], ['Bảo “Máy Quét”', 'tv', 0, 3, 5, 4, 1, 4, 6, 'ND', 'VN'], ['Tài “Ong Thợ”', 'tv', 0, 4, 5, 4, 2, 6, 4, 'HP', 'VN'],
+  ['Minh “Chớp”', 'td', 0, 5, 2, 6, 4, 3, 2, 'CB', 'VN'], ['Sơn “Búa Tạ”', 'td', 0, 6, 3, 2, 5, 4, 4, 'ND', 'VN'], ['Việt “Cáo Già”', 'td', 0, 6, 2, 4, 2, 5, 1, 'SX', 'VN'],
+  ['Khánh “Người Nhện”', 'tm', 1, 2, 9, 5, 6, 5, 6, 'CB', 'VN'], ['Trung “Bức Tường”', 'hv', 1, 4, 9, 4, 8, 2, 6, 'HP', 'VN'], ['Hải “Mũi Khoan”', 'hv', 1, 6, 7, 7, 6, 4, 6, 'SX', 'VN'],
+  ['Long “Phù Thuỷ”', 'tv', 1, 8, 5, 6, 4, 8, 6, 'ND', 'VN'], ['Kiên “La Bàn”', 'tv', 1, 7, 7, 5, 4, 5, 7, 'HP', 'VN'], ['Duy “Tia Chớp”', 'td', 1, 7, 3, 9, 7, 6, 6, 'SX', 'VN'], ['Thắng “Sát Thủ”', 'td', 1, 9, 3, 6, 4, 7, 3, 'CB', 'VN'],
+  ['Vũ “Thần Giữ Cửa”', 'tm', 2, 3, 11, 7, 8, 8, 8, 'ND', 'VN'], ['Cường “Đá Tảng”', 'hv', 2, 6, 11, 6, 10, 5, 8, 'SX', 'VN'], ['An “Bậc Thầy”', 'tv', 2, 10, 8, 8, 5, 9, 11, 'CB', 'VN'], ['Hoàng “Vua Phá Lưới”', 'td', 2, 11, 5, 9, 8, 10, 6, 'HP', 'VN'],
+  ['Rồng Vàng “Số 10 huyền thoại”', 'tv', 3, 12, 10, 11, 10, 10, 12, 'HP', 'VN'],
+  ['Kenji “Samurai”', 'tv', 1, 7, 6, 7, 6, 6, 8, 'CB', 'NB'], ['Somchai “Voi Chiến”', 'hv', 1, 5, 9, 4, 6, 4, 4, 'SX', 'TH'], ['Rafael “Vũ Công”', 'td', 2, 11, 4, 10, 8, 10, 6, 'HP', 'BR'],
+  ['Takumi “Mũi Tên”', 'td', 0, 6, 2, 6, 4, 4, 3, 'ND', 'NB'], ['Anan “Rắn Hổ Mang”', 'tv', 0, 5, 4, 4, 1, 4, 6, 'CB', 'TH'], ['Lucas “Thần Đèn”', 'tm', 1, 2, 9, 6, 5, 4, 5, 'ND', 'BR'],
+  ['Hiro “Lá Thép”', 'hv', 0, 2, 7, 3, 6, 1, 3, 'HP', 'NB'], ['Chaiya “Cơn Lốc”', 'td', 1, 8, 3, 8, 7, 6, 6, 'ND', 'TH'], ['Diego “Bò Tót”', 'hv', 2, 7, 11, 6, 8, 6, 6, 'CB', 'BR'],
+  ['Yuto “Cánh Én”', 'tv', 0, 4, 3, 6, 2, 6, 4, 'SX', 'NB'], ['Pedro “Pháp Sư”', 'tv', 3, 11, 9, 12, 10, 10, 12, 'SX', 'BR'], ['Quang “Đội Trưởng”', 'hv', 1, 5, 8, 5, 6, 4, 6, 'HP', 'VN'],
+].map(([name, pos, r, atk, def, spd, str, tec, iq, club, nat], i) => ({ id: 'c' + String(i + 1).padStart(2, '0'), no: i + 1, name, pos, r, atk, def, spd, str, tec, iq, club, nat }));
 const CARD_BY_ID = {}; for (const c of CARDS) CARD_BY_ID[c.id] = c;
 // Lương cầu thủ: hiếm và mạnh thì lương cao — tổng lương đội hình không được vượt trần
-const cardSal = c => [3, 5, 8, 12][c.r] + Math.max(0, Math.floor((c.atk + c.def + c.spd - 12) / 6));
+const cardSal = c => [3, 5, 8, 12][c.r] + Math.max(0, Math.floor((cardPower(c) - 26) / 12));
 // Đội hình: đúng 11 người khác nhau, đúng 1 thủ môn, ít nhất 2 hậu vệ, 2 tiền vệ, 1 tiền đạo; tổng lương ≤ cap
 const SQUAD = { size: 11, cap: 55, need: { tm: [1, 1], hv: [2, 9], tv: [2, 9], td: [1, 9] } };
 // Trận đấu thẻ: 5 lượt, ai thắng 3 lượt trước thắng; người ra lệnh chọn chỉ số và 3–5 lá

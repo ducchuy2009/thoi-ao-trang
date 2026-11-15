@@ -277,7 +277,7 @@ function render(now) {
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
   if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);
-  if (G) { drawFestProps(now); drawBcProps(now); drawTTProps(now); }
+  if (G) { drawFestProps(now); drawBcProps(now); drawTTProps(now); drawTaskMarkers(now); }
   if (G) drawHeld(now);                           // món đang cầm trên tay
   for (const o of m.objs) if (o.smoke && (!o.vis || o.vis())) smokeProp(now, o.x + o.smoke[0], o.y + o.smoke[1]);   // khói nhang        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
   // biển hiệu (chữ nét)
@@ -333,7 +333,7 @@ function bindInput() {
     if (e.repeat) return;
     if (k === 'q') turnToFriend();                  // trong giờ học: quay sang bạn
     if (k === 'e' || k === ' ' || k === 'enter') { scanTargets(); doInteract(RT.near || RT.hover); }
-    else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 'f') openMenu('friends'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'k') openMenu('cards'); else if (k === 'n') openMenu('map');
+    else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 'f') openMenu('friends'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'k') openMenu('cards'); else if (k === 'n') openMenu('map'); else if (k === 'j') openMenu('quest');
     else if (k === 'p') openMenu('phone'); else if (k === 'l') openMenu('cal'); else if (k === 'x') { if (G.ride && !RT.lock) dismount(); } else if (k === 'escape' || k === 'm') openMenu('menu');
   });
   window.addEventListener('keyup', e => { KEYS[e.key.toLowerCase()] = false; if (e.code && /^Key[A-Z]$/.test(e.code)) KEYS[e.code.slice(3).toLowerCase()] = false; });

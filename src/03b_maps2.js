@@ -157,7 +157,7 @@ function buildRooms() {
   NPCS.push({ id: 'fh', name: 'Bạn', look: 'khoa', dynLook: () => G.visit || 'khoa', outfit: () => friendOutfit(G.visit || 'khoa'), map: 'fhome', x: 130, y: 110, dir: 0, wander: 18, vis: () => !sceneHides('fh'), label: () => FRIENDS[G.visit].name, act: () => ACT.friend(G.visit, 'in') });
   m.zones.push({ x: 272, y: 216, w: 32, h: 8, fn: () => ACT.leaveFh(), by: -8 });
 
-  buildFest(); buildBcFest(); buildTrungThu();
+  buildFest(); buildBcFest(); buildTrungThu(); buildTaskSpots();
   /* ---------- đồ trang trí phòng ngủ ở nhà (mua ở gian Nội thất, Nhạc cụ) ---------- */
   const h = MAPS.home, own = k => () => !!G && !!G.owned[k];
   addObj(h, { s: 'poster', x: 24, y: 8, base: 0, vis: own('d_poster') });

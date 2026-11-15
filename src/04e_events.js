@@ -17,12 +17,12 @@ function addMemo(kind, id) {
   return true;
 }
 // Chụp lại khung hình đang hiện (phần giữa màn hình, bỏ hai dải đen của cắt cảnh) làm ảnh lưu bút. Chụp lần sau đè ảnh cũ.
-// (wx, wy): điểm trên bản đồ đặt ở giữa ảnh
-function snapPhoto(id, wx, wy) {
+// (wx, wy): điểm trên bản đồ đặt ở giữa ảnh · ww: bề ngang khung ảnh (đơn vị bản đồ)
+function snapPhoto(id, wx, wy, ww) {
   try {
-    const W = cv.width, H = cv.height, S = VIEW.S, cw = Math.round(Math.min(W * 0.62, 150 * S)), ch = Math.round(Math.min(cw * 0.625, H * 0.8));
+    const W = cv.width, H = cv.height, S = VIEW.S, cw = Math.round(Math.min(W * 0.9, (ww || 150) * S)), ch = Math.round(Math.min(cw * 0.625, H * 0.8));
     const sx = Math.round(clamp(VIEW.ox + wx * S - cw / 2, 0, W - cw)), sy = Math.round(clamp(VIEW.oy + wy * S - ch / 2, H * 0.085, H * 0.915 - ch));
-    const c = mk(256, 160), x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.drawImage(cv, sx, sy, cw, ch, 0, 0, 256, 160);
+    const c = mk(256, 160), x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.filter = 'brightness(1.22) contrast(1.06) saturate(1.1)'; x.drawImage(cv, sx, sy, cw, ch, 0, 0, 256, 160);   // ánh đèn flash
     G.memo.pics[id] = c.toDataURL('image/jpeg', 0.72);
   } catch (e) { /* trình duyệt chặn đọc canvas: bỏ qua ảnh, vẫn ghi kỷ vật */ }
 }
@@ -233,17 +233,19 @@ async function leaveFest() {
   RT.lock = false; UI.hud();
   UI.toast(c === 0 ? 'Về tới nhà lúc 01:00. Ảnh đón giao thừa đã dán vào lưu bút. Ngủ một giấc là sang mùng 1 Tết!' : 'Về nhà sớm, ngủ một giấc là sang mùng 1 Tết.', 'info');
 }
-// Pháo hoa nửa đêm: đếm ngược, pháo nổ rực trời, rồi cả nhà và bạn bè đứng chụp chung một tấm. Trả về các bạn có trong ảnh.
+// Pháo hoa nửa đêm: đếm ngược, pháo nổ rực trời, rồi cả nhà và bạn bè ra đứng thành hàng bên lan can đỉnh núi,
+// pháo hoa nở trên trời phía sau, cùng nhìn vào máy ảnh chụp chung một tấm. Trả về các bạn có trong ảnh.
+const EVE_PHOTO = { x: 460, y: 72, gap: 18 };          // hàng người đứng sát lan can (lan can ở y 38–57, trời ở trên)
 async function fireworksCut() {
-  const fid = G.comp && G.comp.fid, cx0 = 440, cy0 = 124, t0 = { v: 0 }, bursts = [];
-  for (let i = 0; i < 16; i++) bursts.push({ x: (i % 2 ? 360 : 300) + Math.random() * (i % 2 ? 160 : 300), y: 24 + Math.random() * 60, at: 3400 + i * 330 + Math.random() * 200, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a', '#fffaf0'][i % 6], r: 14 + Math.random() * 14 });
+  const fid = G.comp && G.comp.fid, cx0 = 440, cy0 = 124, t0 = { v: 0 }, bursts = [], P = EVE_PHOTO;
+  for (let i = 0; i < 16; i++) bursts.push({ x: (i % 2 ? 380 : 330) + Math.random() * (i % 2 ? 180 : 260), y: 6 + Math.random() * 30, at: 3400 + i * 330 + Math.random() * 200, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a', '#fffaf0'][i % 6], r: 12 + Math.random() * 12 });
   const extra = [];                                                         // loạt pháo canh đúng lúc bấm máy chụp ảnh
   const glow = now => {
     const raw = now - t0.v; let t = raw; if (t > 3400) t = 3400 + (t - 3400) % 5600;        // pháo bắn liên tục suốt cảnh
     for (const b of bursts.concat(extra)) {
       const k = ((b.raw ? raw : t) - b.at) / 1100; if (k < -0.35 || k > 1) continue;
-      if (k < 0) { wRect('#ffe9a0', b.x, b.y + 120 * (-k / 0.35), 1, 4); continue; }        // pháo bay lên
-      for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283, r = b.r * Math.sqrt(k); wRect(k > 0.75 && i % 2 ? '#fff6e3' : b.col, b.x + Math.cos(a) * r, b.y + Math.sin(a) * r + k * k * 10, 2, 2); }
+      if (k < 0) { wRect('#ffe9a0', b.x, b.y + 90 * (-k / 0.35), 1, 4); continue; }        // pháo bay lên
+      for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283, r = b.r * Math.sqrt(k); wRect(k > 0.75 && i % 2 ? '#fff6e3' : b.col, b.x + Math.cos(a) * r, b.y + Math.sin(a) * r + k * k * 8, 2, 2); }
     }
   };
   // người trong ảnh: bố mẹ + bạn đi cùng + các bạn thân (từ 2 tim, không giận)
@@ -252,22 +254,22 @@ async function fireworksCut() {
   const fam = [{ look: 'mom', outfit: 'noapron', x: withPar ? cx0 - 22 : cx0 - 70, y: withPar ? cy0 + 2 : cy0 + 30, dir: 3 }, { look: 'dad', outfit: 'dadhome', x: withPar ? cx0 + 22 : cx0 - 56, y: withPar ? cy0 + 2 : cy0 + 34, dir: 3 }];
   const frs = friends.map((f, i) => ({ look: f, outfit: friendOutfit(f), x: f === fid ? cx0 + 18 : cx0 + 60 + i * 12, y: f === fid ? cy0 : cy0 + 28 + i * 4, dir: 3 }));
   const crowd = [['c2', 'cas_vy', cx0 - 48, cy0 + 6], ['c7', 'cas_dat', cx0 + 48, cy0 + 4], ['c4', 'cas_ngan', cx0 - 26, cy0 + 22], ['c3', 'cas_khoa', cx0 + 30, cy0 + 24]].map(([look, of, x, y]) => ({ look, outfit: of, x, y, dir: 3 }));
-  const cam = { look: 'c5', outfit: 'cas_khoa', x: cx0 + 90, y: cy0 + 50, dir: 1 };          // chú chụp ảnh giùm
+  const cam = { look: 'c5', outfit: 'cas_khoa', x: cx0 + 90, y: cy0 + 40, dir: 1 };          // chú chụp ảnh giùm
   const all = fam.concat(frs, crowd, [cam]), iF = 2, iC = 2 + frs.length, iCam = all.length - 1;
-  // xếp hàng chụp ảnh: mình đứng giữa, bố mẹ hai bên, các bạn đứng hàng sau
-  const slots = [[-20, 0], [20, 0], [-40, -14], [40, -14], [-16, -18], [16, -18]], order = [0, 1].concat(frs.map((_, i) => iF + i));
-  const line = order.map((k, j) => ({ move: [k, cx0 + slots[j][0], cy0 + 20 + slots[j][1], 700] }));
+  // hàng chụp ảnh sát lan can: mình đứng giữa, bố mẹ hai bên, các bạn đứng tiếp ra hai đầu
+  const order = [0, 1].concat(frs.map((_, i) => iF + i)), offs = [-1, 1, 2, -2, 3, -3];
+  const line = order.map((k, j) => ({ move: [k, P.x + offs[j] * P.gap, P.y, 900] }));
   const firstSay = fid ? { say: [iF, 'Năm mới tụi mình vẫn chơi thân như vầy nha!'] } : (withPar ? { say: [0, 'Năm mới chúc con luôn vui vẻ, mạnh khoẻ!'] } : { wait: 600 });
   await playCut({
-    map: 'nui', me: [cx0, cy0, 3], cam: { x: cx0, y: 92 }, title: 'Giao thừa', actors: all, hide: ['fh', 'f_mom', 'f_dad'],
+    map: 'nui', me: [cx0, cy0, 3], cam: { x: cx0, y: 92 }, title: 'Giao thừa', actors: all, hide: ['fh', 'f_mom', 'f_dad', 'nuiTop'],
     steps: [{ fn: sc => { t0.v = performance.now(); sc.glow = [glow]; } },
       { say: [iC, 'Mười… chín… tám…'] }, { say: [iC + 1, 'Ba… hai… một…'] },
       { fn: sc => { for (const a of sc.actors) a.dir = 3; } }, { say: ['me', 'CHÚC MỪNG NĂM MỚI!'] }, firstSay,
-      withPar ? { wait: 200 } : { say: [0, 'Bố mẹ cũng lên núi xem pháo hoa nè! Cả nhà chụp chung một tấm nhé!'] },
-      { par: [{ move: ['me', cx0, cy0 + 20, 500] }].concat(line, [{ move: [iCam, cx0, cy0 + 56, 900] }]) },
-      { fn: sc => { G.dir = 0; for (const k of order) sc.actors[k].dir = 0; sc.actors[iCam].dir = 3; const r0 = performance.now() - t0.v; for (let i = 0; i < 5; i++) extra.push({ raw: true, x: cx0 - 70 + i * 35 + Math.random() * 10, y: cy0 - 56 + (i % 2) * 14, at: r0 + 4300 + i * 160, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a'][i], r: 16 + Math.random() * 6 }); } },
-      { say: [iCam, 'Nhìn vào đây nào! Pháo hoa đang nở sau lưng đẹp lắm!'] }, { say: [iCam, 'Một, hai, ba… cười!'] }, { wait: 160 },
-      { fn: sc => { snapPhoto('anhgiaothua', cx0, cy0 - 16); sc.glow = [glow, flashGlow(performance.now())]; } }, { wait: 900 },
+      { say: [0, withPar ? 'Cả nhà ra đứng bên lan can chụp một tấm với pháo hoa nào!' : 'Bố mẹ cũng lên núi xem pháo hoa nè! Ra lan can chụp chung một tấm nào!'] },
+      { par: [{ move: ['me', P.x, P.y, 900] }].concat(line, [{ move: [iCam, P.x, P.y + 66, 1000] }, { move: [iC, cx0 - 80, cy0 + 20, 900] }, { move: [iC + 1, cx0 + 110, cy0 + 10, 900] }]) },
+      { fn: sc => { G.dir = 0; for (const k of order) sc.actors[k].dir = 0; sc.actors[iCam].dir = 3; sc.cam = { x: P.x, y: P.y - 14 }; const r0 = performance.now() - t0.v; for (let i = 0; i < 6; i++) extra.push({ raw: true, x: P.x - 80 + i * 32 + Math.random() * 8, y: 6 + (i % 2) * 14, at: r0 + 4200 + i * 150, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a', '#fffaf0'][i], r: 14 + Math.random() * 6 }); } },
+      { say: [iCam, 'Mọi người nhìn vào máy ảnh nào! Pháo hoa đang nở ngay sau lưng đó!'] }, { say: [iCam, 'Một, hai, ba… cười!'] }, { wait: 160 },
+      { fn: sc => { snapPhoto('anhgiaothua', P.x, P.y - 30, 128); sc.glow = [glow, flashGlow(performance.now())]; } }, { wait: 900 },
       { say: ['me', 'Tấm ảnh đẹp nhất năm luôn!'] }, { wait: 1200 }],
   });
   return friends;

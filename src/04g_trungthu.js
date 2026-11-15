@@ -212,7 +212,7 @@ function processionCut(fid, fam) {
     { fn: sc => { G.dir = 0; for (let i = 0; i < nA; i++) sc.actors[i].dir = 0; sc.actors[0].dir = 2; sc.actors[1].dir = 2; } },
     { move: [iCam, L0 + dx + 80, Y + 46, 600] },
     { say: [iCam, 'Cả đoàn đứng lại chụp tấm ảnh kỷ niệm nào!'] }, { say: [iCam, 'Một, hai, ba… Trung thu vui vẻ!'] }, { wait: 160 },
-    { fn: sc => { snapPhoto('anhtrungthu', L0 + dx + 80, Y - 14); sc.glow = [ttMoon, ttLanternGlow, flashGlow(performance.now())]; } }, { wait: 900 },
+    { fn: sc => { snapPhoto('anhtrungthu', L0 + dx + 90, Y - 14, 190); sc.glow = [ttMoon, ttLanternGlow, flashGlow(performance.now())]; } }, { wait: 900 },
     fam ? { say: [actors.findIndex(a => a.look === 'mom'), 'Khuya rồi, cả nhà mình về thôi con!'] } : fid ? { say: [3, 'Vui ghê! Khuya rồi, mình về thôi!'] } : { say: ['me', 'Khuya rồi, về nhà thôi!'] }];
   return { map: 'pho', me: [meX, meY, 1], title: 'Rước đèn Trung thu', actors, hide, props: [prop], steps };
 }

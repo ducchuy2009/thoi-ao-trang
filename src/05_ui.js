@@ -171,9 +171,10 @@ const UI = {
     $('h-stam').style.width = Math.round(100 * G.stamina / mx) + '%';
     $('h-stam').className = G.stamina < 15 ? 'low' : '';
     $('h-stamtx').textContent = `${Math.round(G.stamina)}/${mx}`;
-    $('h-money').textContent = fmtMoney(G.money);
+    $('h-money').innerHTML = fmtMoney(G.money) + (wageTotal() ? ` <small class="wage" title="Tiền công hôm nay — nhận vào cuối ngày">+${fmtMoney(wageTotal())}</small>` : '');
     $('h-conduct').textContent = fmtScore(G.conduct);
     const un = unreadCount(), dot = $('ph-dot'); dot.textContent = un || ''; dot.classList.toggle('on', un > 0);
+    const nq = G.tasks ? G.tasks.active.length : 0, qd = $('q-dot'); qd.textContent = nq || ''; qd.classList.toggle('on', nq > 0);
     this.hotbar();
     const td = todoList();
     $('todo').innerHTML = td.map(([ok, s]) => `<div class="${ok ? 'ok' : ''}"><i></i>${s}</div>`).join('');
@@ -450,7 +451,7 @@ MV.cards = {
     if (t === 'album') {
       h += `<p>Đã sưu tầm <b>${cardKinds()}/${CARDS.length}</b> loại · tổng <b>${cardCount()}</b> lá.${G.cardDone === CARDS.length ? ' <b class="tag">Đủ bộ!</b>' : ''}</p><div class="pcards">`;
       for (const c of CARDS) h += G.cards[c.id] ? cardHtml(c, '×' + G.cards[c.id]) : `<div class="pcard none" style="--rc:${CARD_RARITY[c.r].col}"><div class="pc-q">?</div><div class="pc-n">Số ${c.no}</div><div class="pc-r">${starsOf(c)} ${CARD_RARITY[c.r].name}</div></div>`;
-      return h + `</div><p class="dim">Mỗi gói bim bim Sao Vàng có 1 thẻ (hôm nào may mắn dễ ra thẻ hiếm). TC = Tấn công · PT = Phòng thủ · TĐ = Tốc độ. Đủ bộ ${CARDS.length} thẻ được thưởng ${fmtMoney(CARD_SET_REWARD)}.</p>`;
+      return h + `</div><p class="dim">Mỗi gói bim bim Sao Vàng có 1 thẻ (hôm nào may mắn dễ ra thẻ hiếm). ${CARD_STATS.map(([, n, sh]) => `${sh} = ${n}`).join(' · ')}. Đấu thẻ: mỗi chỉ số chỉ được so một lần trong trận. Đủ bộ ${CARDS.length} thẻ được thưởng ${fmtMoney(CARD_SET_REWARD)}.</p>`;
     }
     const s = UI._sq || (UI._sq = (G.squad || []).filter(id => G.cards[id] > 0)), cs = cardsOf(s), is = squadIssues(s), cnt = p => cs.filter(c => c.pos === p).length;
     h += `<p>Lương <b class="${squadSal(s) > SQUAD.cap ? 'bad' : ''}">${squadSal(s)}/${SQUAD.cap}</b> · ${cs.length}/${SQUAD.size} người · TM ${cnt('tm')} · HV ${cnt('hv')} · TV ${cnt('tv')} · TĐ ${cnt('td')}</p>`;
@@ -631,7 +632,7 @@ function timeTravel(day, time) {
 }
 
 function bindUI() {
-  $('ic-menu').src = itemIcon('m_menu'); $('ic-phone').src = itemIcon('m_phone'); $('ic-map').src = itemIcon('m_map');
+  $('ic-menu').src = itemIcon('m_menu'); $('ic-phone').src = itemIcon('m_phone'); $('ic-map').src = itemIcon('m_map'); $('ic-quest').src = itemIcon('m_quest');
   $('banner').addEventListener('click', () => turnToFriend());
   $('hint').addEventListener('click', () => { if (G && G.ride && !RT.lock && !UI.isOpen() && $('hint')._key === 'X') dismount(); });   // bấm vào nút “X Xuống xe”
   $('modal').addEventListener('click', UI._click);
@@ -650,5 +651,5 @@ function bindUI() {
 }
 function openMenu(k) {
   if (!G || RT.lock) return;
-  if (k === 'bag') UI.bag(); else if (k === 'phone') UI.phone(); else UI.menu(k === 'menu' ? null : k);
+  if (k === 'bag') UI.bag(); else if (k === 'phone') UI.phone(); else if (k === 'quest') questPanel(); else UI.menu(k === 'menu' ? null : k);
 }

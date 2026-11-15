@@ -243,8 +243,8 @@ function buildHill() {
   m.solids.push([472, 258, 112, 64], [566, 322, 14, 158]);
   addObj(m, { s: 'rock', x: 448, y: 304, sol: [1, 3, 16, 9], label: () => 'Hồ nước — rửa mặt cho tỉnh táo', act: () => ACT.stream() });
   // đỉnh núi
-  addObj(m, { s: 'summit', x: 478, y: 58, sol: [3, 20, 12, 8], label: () => 'Đỉnh núi — ngắm cảnh', act: () => ACT.summit() });
-  addObj(m, { s: 'bench', x: 388, y: 66, sol: [1, 1, 28, 12] });
+  addObj(m, { s: 'summit', x: 478, y: 58, sol: [3, 20, 12, 8], vis: () => !sceneHides('nuiTop'), label: () => 'Đỉnh núi — ngắm cảnh', act: () => ACT.summit() });   // ẩn khi cả nhà đứng chụp ảnh bên lan can
+  addObj(m, { s: 'bench', x: 388, y: 66, sol: [1, 1, 28, 12], vis: () => !sceneHides('nuiTop') });
   addObj(m, { s: 'trailsign', x: 348, y: 432, sol: [9, 16, 6, 8], label: () => 'Đường mòn — chạy bộ leo dốc', act: () => ACT.hike() });
   // cây thông, đá
   for (let j = 0; j < 9; j++) { addObj(m, { s: j % 2 ? 'pine2' : 'pine', x: 0, y: 46 + j * 46, sol: [10, 36, 12, 14] }); addObj(m, { s: j % 2 ? 'pine' : 'pine2', x: 608, y: 40 + j * 46, sol: [10, 36, 12, 14] }); }
