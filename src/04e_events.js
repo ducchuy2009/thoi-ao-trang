@@ -323,22 +323,74 @@ function eventTick() {
   if (isTetDay1() && G.map === 'home' && G.time < 720 && !tetYear().ask) { tetMorning(); return true; }
   if (isEveDay(G.day) && !G.daily.eveAsked && !RT.fest && G.time < EVE.from) { eveInvite(); return true; }   // sáng ngày cuối năm: được rủ đón giao thừa
   if (G.map === 'nui' && !RT.fest && eveOk() && G.time < EVE.from && !G.daily.eveEarly) { G.daily.eveEarly = true; UI.toast(`Lễ hội đón giao thừa bắt đầu lúc ${fmtTime(EVE.from)}. Mọi người đang dựng sạp, treo lồng đèn…`, 'info'); }
-  if (RT.pendingBC) { RT.pendingBC = false; if (G.atSchool) { bcContest(); return true; } }
+  if (!RT.bcFest && G.atSchool && G.day === contestDay(cal(G.day).year) && !bcY().done && inWin(G.time, PM_START, BANHCHUNG.end)) { startBcFest(); return true; }   // 13:30 ngày học cuối mùa đông
   if (G.map === 'nui' && !RT.fest && eveOk() && G.time >= EVE.from) { startFest(); return true; }
   return false;
 }
 
 /* ============================================================
- *  HỘI THI GÓI BÁNH CHƯNG: chiều ngày học cuối cùng trước Tết (sau giờ tan học)
- *  Đăng ký ở buổi sinh hoạt lớp trước đó (hoặc gặp cô chủ nhiệm trong lớp)
+ *  HỘI GÓI BÁNH CHƯNG: chiều ngày học cuối cùng của mùa đông, thay các tiết buổi chiều
+ *  Từ 13:30 sân trường thành hội — thời gian đứng yên; nhiều tụ ngồi gói bánh, thầy cô và bạn bè đi lại trò chuyện
+ *  Gặp thầy hiệu trưởng: tham gia thi (mini-game) hoặc chỉ xem → trao giải → 17:00, đứng ở sân trường
  * ============================================================ */
-const contestDay = year => { const x = year * YEAR_DAYS + 2 * CFG.DAYS_PER_SEASON; for (let d = x - 1; d > x - 25; d--) if (isSchoolDay(d)) return d; return -1; };
+// ngày học cuối cùng của mùa đông
+const contestDay = year => { const x = year * YEAR_DAYS + 2 * CFG.DAYS_PER_SEASON; for (let d = x - 1; d >= x - CFG.DAYS_PER_SEASON; d--) if (isSchoolDay(d)) return d; return -1; };
 const bcY = () => { const y = cal(G.day).year; return (G.bc[y] = G.bc[y] || {}); };
-function bcCanRegister() { const d = contestDay(cal(G.day).year); return !bcY().reg && d >= G.day && d - G.day <= BANHCHUNG.regDays; }
-async function bcAsk() {
-  const d = contestDay(cal(G.day).year), B = bcY(); B.asked = true;
-  const c = await UI.ask('Cô chủ nhiệm', `<p>“Chiều ${dateLabel(d)} — ngày học cuối cùng trước Tết — Đoàn trường tổ chức <b>Hội thi gói bánh chưng</b>. Lớp mình cần người dự thi. Em có muốn đăng ký không?”</p><p class="dim">Thi ngay sau giờ tan học, ở sân trường. Ai gói được nhiều bánh nhất sẽ được tặng cúp.</p>`, ['Em đăng ký ạ!', 'Thôi ạ'], { who: { look: 'teacherA' } });
-  if (c === 0) { B.reg = true; UI.toast(`Đã đăng ký thi gói bánh chưng: chiều ${dateLabel(d)}, sau giờ tan học.`, 'good'); }
+// sự kiện của trường diễn ra trong ngày, và các tiết bị thay
+const schoolEventsOn = day => SCHOOL_EVENTS.filter(e => isSchoolDay(day) && e.when(cal(day).year) === day);
+function cutPeriods(day) { const s = new Set(); for (const e of schoolEventsOn(day)) for (const n of e.periods) s.add(n); return s; }
+const bcDecor = () => !!G && G.day === contestDay(cal(G.day).year) && (RT.bcFest || (G.time >= AM_END && !bcY().done));
+const bcWho = { look: 'principal' };
+function startBcFest() {
+  RT.bcFest = true;
+  const indoor = MAPS[G.map].indoor;
+  if (indoor) { setMap('school', 300, 250, 3); RT.snapNpcs = true; }
+  UI.toast('Chiều nay nghỉ học — cả trường ra sân gói bánh chưng! Trong hội thời gian tạm dừng. Gặp thầy hiệu trưởng (trước bàn trao giải) khi muốn thi.', 'good');
+}
+async function endBcFest(winner) {
+  const B = bcY(); B.done = true;
+  await UI.fade(true);
+  RT.bcFest = false; G.time = BANHCHUNG.end;
+  for (const q of PERIODS) G.daily.done[q.n] = true;
+  setMap('school', 300, 250, 0); RT.snapNpcs = true;
+  addMemo('scene', 'banhchung');
+  await UI.fade(false);
+  UI.hud();
+  UI.toast(`Hội gói bánh chưng khép lại (${winner} là Vua gói bánh chưng). 17:00 rồi — ra cổng về nhà được rồi.`, 'info');
+}
+// Thầy hiệu trưởng hỏi có tham gia thi không (không cần đăng ký trước)
+ACT.principal = async () => {
+  if (RT.lock) return;
+  meetSoc('hieutruong');
+  if (!RT.bcFest) return UI.ask('Thầy hiệu trưởng', '<p>“Chào em. Học hành chăm chỉ nhé! Cuối năm trường có hội gói bánh chưng, nhớ tham gia đấy.”</p>', ['Dạ'], { who: bcWho });
+  const c = await UI.ask('Thầy hiệu trưởng', '<p>“Chào em! Chiều nay cả trường nghỉ học để gói bánh chưng đón Tết. Cuối buổi có <b>thi gói bánh chưng</b>: trong một phút, ai gói được nhiều bánh nhất sẽ được nhận cúp. Em có muốn tham gia thi không?”</p><p class="dim">Thi xong (hoặc chỉ xem) là trao giải, hội kết thúc lúc 17:00. Muốn đi chơi với các bạn trước thì cứ đi một vòng đã.</p>', ['Em tham gia thi ạ!', 'Em chỉ xem thôi', 'Để em đi chơi một vòng đã'], { who: bcWho });
+  if (c === 0) return bcContest(true);
+  if (c === 1) return bcContest(false);
+};
+// Ngồi vào một tụ gói bánh cùng mọi người: hoạt cảnh tay gói lá dong, thêm thân với bạn trong tụ
+ACT.bcTable = async i => {
+  if (RT.lock) return;
+  const T = BC_GROUPS[i], key = 'bct' + i;
+  if (G.daily[key]) return UI.toast('Vừa gói xong một mẻ với tụ này rồi.');
+  const c = await UI.ask(T.name, `<p>“${T.ask}”</p>`, ['Ngồi xuống gói cùng', 'Thôi'], { who: { look: T.mem[0].look, outfit: T.mem[0].of } });
+  if (c !== 0) return;
+  RT.lock = true; G.daily[key] = true;
+  const [cx, cy] = T.at, t0 = { v: performance.now() };
+  await playCut({
+    inPlace: true, title: 'Gói bánh chưng cùng các bạn',
+    steps: [{ move: ['me', cx, cy - 16, 450] }, { fn: () => { G.dir = 0; t0.v = performance.now(); } }, { wait: 900 }, { say: ['me', T.me] }, { wait: 500 }],
+    props: [now => { const k = Math.floor((now - t0.v) / 300) % 4; wRect('#3f8f3a', G.x - 4 + (k % 2) * 2, G.y - 10, 7, 5); if (k > 1) wRect('#fbf7ee', G.x - 2, G.y - 9, 3, 3); }],
+  });
+  for (const m of T.mem) if (m.fid) addFriend(m.fid, 4);
+  addStat('kheotay', 1); addStat('giaotiep', 1);
+  RT.lock = false; UI.hud();
+  UI.toast('Gói xong một chiếc bánh vuông vức! Cả tụ khen khéo tay.', 'good');
+};
+// Thầy cô đi lại trong hội: trò chuyện (lần đầu trong ngày thầy cô quý hơn)
+function bcTeacherTalk(tid, line) {
+  const Tc = TEACHERS[tid];
+  if (!G.daily['bcte' + tid]) { G.daily['bcte' + tid] = true; addTeacher(1, tid); }
+  UI.ask(Tc.name, `<p>“${line}”</p>`, ['Dạ!'], { who: { look: Tc.look } });
 }
 const BC_STEPS = [['la', 'Lót lá dong'], ['gao', 'Đổ gạo nếp'], ['dau', 'Rải đậu xanh'], ['thit', 'Đặt thịt'], ['dau', 'Rải thêm đậu xanh'], ['gao', 'Phủ gạo nếp'], ['gap', 'Gấp lá'], ['lat', 'Buộc lạt']];
 const BC_ING = { la: ['Lá dong', '#3f8f3a'], gao: ['Gạo nếp', '#fbf7ee'], dau: ['Đậu xanh', '#f2c94c'], thit: ['Thịt ba chỉ', '#e98fa5'], gap: ['Gấp lá', '#5fae4a'], lat: ['Lạt tre', '#d9c690'] };
@@ -394,35 +446,62 @@ function bcGame() {
     },
   }).then(r => ({ cakes: ref ? ref.cakes : 0, npc: ref ? ref.npc : [], skipped: r.skipped }));
 }
-const BC_TABLES = [[260, 262], [300, 262], [340, 262], [380, 262]];
+const BC_TABLES = [[220, 204], [260, 204], [300, 204], [340, 204]];          // hàng bàn thi trước bàn trao giải
+const BC_HIDE = ['bc_c1', 'bc_x1', 'bc_x3', 'bc_principal'];               // người đang diễn trong cảnh thi thì ẩn khỏi tụ
 const bcTableProp = () => { for (const [x, y] of BC_TABLES) { wRect('#8a5a3a', x - 13, y - 14, 26, 8); wRect('#a9703f', x - 13, y - 14, 26, 2); wRect('#3f8f3a', x - 10, y - 13, 7, 5); wRect('#fbf7ee', x - 1, y - 13, 5, 4); wRect('#f2c94c', x + 6, y - 12, 4, 3); } };
-async function bcContest() {
-  const B = bcY(); if (B.done) return; B.done = true;
+async function bcContest(join) {
+  const B = bcY(); if (B.done || RT.lock) return;
   RT.lock = true;
-  const looks = { m1: 'c1', x1: 'x1', x3: 'x3' };
-  await playCut({
-    map: 'school', me: [BC_TABLES[0][0], BC_TABLES[0][1], 0], cam: { x: 320, y: 240 }, title: 'Hội thi gói bánh chưng chào xuân',
-    actors: BANHCHUNG.npc.map(([sid], i) => ({ look: looks[sid] || 'c1', x: BC_TABLES[i + 1][0], y: BC_TABLES[i + 1][1], dir: 0 })).concat([{ look: 'teacherA', x: 320, y: 300, dir: 3 }]),
-    props: [bcTableProp],
-    steps: [{ say: [3, 'Hội thi gói bánh chưng chào xuân bắt đầu! Trong một phút, ai gói được nhiều bánh nhất sẽ thắng!'] }, { say: ['me', 'Lá dong, gạo nếp, đậu xanh, thịt… nhớ rồi!'] }, { say: [2, 'Tớ không nhường đâu nhé!'] }],
-  });
-  const r = await bcGame();
-  const board = [{ name: G.name, n: r.cakes, me: true }].concat(r.npc.map(n => ({ name: n.name, n: n.made }))).sort((a, b) => b.n - a.n || (a.me ? 1 : -1));   // bằng nhau thì xếp đối thủ lên trước
-  const win = board[0].me && (board.length < 2 || board[0].n > board[1].n);
+  const looks = { m1: 'c1', x1: 'x1', x3: 'x3' }, comp = BANHCHUNG.npc.map(([sid], i) => ({ look: looks[sid] || 'c1', x: BC_TABLES[i + 1][0], y: BC_TABLES[i + 1][1], dir: 0 }));
+  const judge = { look: 'principal', x: 280, y: 236, dir: 3 };
+  let board;
+  if (join) {
+    await playCut({
+      map: 'school', me: [BC_TABLES[0][0], BC_TABLES[0][1], 0], cam: { x: 290, y: 200 }, title: 'Thi gói bánh chưng', hide: BC_HIDE,
+      actors: comp.concat([judge]), props: [bcTableProp],
+      steps: [{ say: [3, 'Phần thi gói bánh chưng bắt đầu! Trong một phút, ai gói được nhiều bánh nhất sẽ thắng!'] }, { say: ['me', 'Lá dong, gạo nếp, đậu xanh, thịt… nhớ rồi!'] }, { say: [2, 'Tớ không nhường đâu nhé!'] }],
+    });
+    const r = await bcGame();
+    board = [{ name: G.name, n: r.cakes, me: true }].concat(r.npc.map(n => ({ name: n.name, n: n.made })));
+  } else {
+    const t0 = { v: 0 };
+    await playCut({
+      map: 'school', me: [280, 262, 3], cam: { x: 290, y: 200 }, title: 'Xem thi gói bánh chưng', hide: BC_HIDE,
+      actors: comp.concat([judge]), props: [bcTableProp, now => { const k = Math.floor((now - t0.v) / 250); for (let i = 1; i < 4; i++) if ((k + i) % 3) wRect('#3f8f3a', BC_TABLES[i][0] - 3, BC_TABLES[i][1] - 10, 6, 5); }],
+      steps: [{ fn: () => { t0.v = performance.now(); } }, { say: [3, 'Ba bạn vào thi nào! Chuẩn bị… bắt đầu!'] }, { wait: 1800 }, { say: ['me', 'Cố lên! Cố lên!'] }],
+    });
+    board = BANHCHUNG.npc.map(([, name, rate]) => ({ name, n: Math.max(1, Math.round(rate * (0.8 + Math.random() * 0.45))) }));
+  }
+  board.sort((a, b) => b.n - a.n || (a.me ? 1 : -1));                     // bằng nhau thì xếp đối thủ lên trước
+  const win = !!board[0].me && (board.length < 2 || board[0].n > board[1].n), winner = win ? G.name : board[0].name;
   const html = '<ol class="bc-board">' + board.map(b => `<li class="${b.me ? 'me' : ''}"><b>${b.name}</b> — ${b.n} bánh</li>`).join('') + '</ol>';
-  await UI.ask('Cô chủ nhiệm', `<p>“Kết quả hội thi đây!”</p>${html}<p>${win ? `“Chúc mừng ${G.name} — <b>Vua gói bánh chưng</b> năm nay!”` : (board.find(b => b.me).n === board[0].n ? `“Em bằng số bánh với ${board[0].name} rồi — phải gói nhiều hơn mới vô địch được. Tiếc ghê!”` : '“Các em đều gói rất khéo. Năm sau cố gắng hơn nhé!”')}</p>`, [win ? 'Nhận cúp!' : 'Dạ'], { who: { look: 'teacherA' } });
-  addMemo('scene', 'banhchung'); addStat('kheotay', win ? 5 : 2); addStat('giaotiep', 2);
+  const meRow = board.find(b => b.me);
+  await UI.ask('Thầy hiệu trưởng', `<p>“Kết quả phần thi gói bánh chưng!”</p>${html}<p>${win ? `“Chúc mừng ${G.name} — <b>Vua gói bánh chưng</b> năm nay!”` : meRow && meRow.n === board[0].n ? `“Em bằng số bánh với ${board[0].name} rồi — phải gói nhiều hơn mới vô địch được. Tiếc ghê!”` : `“Chúc mừng ${board[0].name}!${join ? ' Các em đều gói rất khéo.' : ''}”`}</p>`, [win ? 'Lên nhận cúp!' : 'Vỗ tay!'], { who: bcWho });
+  await awardCut(win, board[0]);
+  if (join) { addStat('kheotay', win ? 5 : 2); addStat('giaotiep', 2); }
   if (win) { B.won = true; addTeacher(5, 'hanh'); await winPhotoCut(); addMemo('item', 'cup'); addMemo('item', 'photo'); }
-  advanceTime(60);
-  RT.lock = false; UI.hud();
+  RT.lock = false;
+  await endBcFest(winner);
+}
+// Trao giải: người thắng lên bục nhận cúp từ thầy hiệu trưởng
+function awardCut(win, top) {
+  const looks = { 'Minh (10A1)': 'c1', 'Tú (10A2)': 'x1', 'Bảo (10A3)': 'x3' }, P = { look: 'principal', x: 272, y: 174, dir: 0 }, t0 = { v: 1e12 };
+  const actors = [P].concat(win ? [] : [{ look: looks[top.name] || 'c1', x: 250, y: 236, dir: 3 }]);
+  const winnerWho = win ? 'me' : 1;
+  return playCut({
+    map: 'school', me: win ? [250, 236, 3] : [310, 250, 3], cam: { x: 280, y: 190 }, title: 'Trao giải Vua gói bánh chưng', hide: BC_HIDE, actors,
+    props: [now => { if (now < t0.v) return; const a = winnerWho === 'me' ? G : RT.scene.actors[1]; drawSpr(iconCv('cup'), a.x - 9, a.y - 44 + Math.round(Math.sin(now / 200))); }],
+    steps: [{ say: [0, `Xin mời ${win ? G.name : top.name} lên nhận cúp Vua gói bánh chưng!`] }, { move: [winnerWho, 272, 194, 900] }, { fn: () => { t0.v = performance.now(); } },
+      { say: [0, 'Chúc mừng em! Chúc cả trường ăn Tết thật vui!'] }, { hop: winnerWho }, { say: [winnerWho, win ? 'Em cảm ơn thầy ạ!' : 'Em cảm ơn thầy!'] }],
+  });
 }
 // Chụp ảnh cả lớp ăn mừng quanh chiếc cúp
 function winPhotoCut() {
-  const t0 = { v: -1e9 }, cx0 = 320, cy0 = 262;
+  const t0 = { v: -1e9 }, cx0 = 300, cy0 = 222;
   const row = [['khoa', -44, -16], ['vy', -22, -18], ['dat', 22, -18], ['ngan', 44, -16], ['c3', -60, 2], ['c4', 60, 2], ['c5', -34, 4], ['c8', 34, 4]];
   const actors = row.map(([look, dx, dy]) => ({ look, x: cx0 + dx, y: cy0 + dy, dir: 0 })).concat([{ look: 'teacherA', x: cx0, y: cy0 + 50, dir: 3 }]);
   return playCut({
-    map: 'school', me: [cx0, cy0, 0], cam: { x: cx0, y: cy0 - 10 }, title: 'Ảnh lưu niệm — Vua gói bánh chưng', actors,
+    map: 'school', me: [cx0, cy0, 0], cam: { x: cx0, y: cy0 - 10 }, title: 'Ảnh lưu niệm — Vua gói bánh chưng', actors, hide: BC_ALL.concat(['bc_principal']),
     props: [() => drawSpr(iconCv('cup'), G.x - 9, G.y - 44 + Math.round(Math.sin(performance.now() / 200)))],
     steps: [{ say: [8, 'Cả lớp đứng vào chụp ảnh nào! Nhìn vào đây!'] }, { par: actors.slice(0, 8).map((a, i) => ({ hop: i })) }, { say: [0, 'Lớp mình vô địch rồi!'] },
       { say: [8, 'Một, hai, ba… cười!'] }, { fn: sc => { t0.v = performance.now(); sc.glow = [now => { const k = (now - t0.v) / 600; if (k >= 0 && k < 1) { ctx.fillStyle = `rgba(255,255,255,${1 - k})`; ctx.fillRect(0, 0, cv.width, cv.height); } }]; } }, { wait: 1200 }],

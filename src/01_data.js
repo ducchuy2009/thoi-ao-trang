@@ -368,6 +368,7 @@ const SOCIETY = {
   a_phong: { name: 'Anh Phong', note: 'Khoá trên · 11A1, đội trưởng đội bóng', look: 'sC' },
   c_thao: { name: 'Chị Thảo', note: 'Khoá trên · 11A3, lớp phó học tập', look: 'sD' },
   su: { name: 'Sư thầy', note: 'Trụ trì chùa Hoa Phượng', look: 'monk' },
+  hieutruong: { name: 'Thầy hiệu trưởng', note: 'Hiệu trưởng trường THPT Hoa Phượng', look: 'principal' },
 };
 const SOC_GAIN = 2;
 // Mã thử nghiệm (dán vào ô "Dán mã" trong Cài đặt, không phân biệt hoa thường)
@@ -425,8 +426,13 @@ const FEST_FOOD = [
   { id: 'xoi', name: 'Xôi gấc', price: 10000, stam: 15, desc: 'Đỏ may mắn đầu năm' },
   { id: 'keobong', name: 'Kẹo bông', price: 8000, stam: 6, desc: 'Ngọt lịm, tan ngay trong miệng' },
 ];
-// Thi gói bánh chưng: đăng ký ở buổi sinh hoạt lớp trước đó; time: giây chơi; npc: số bánh trung bình các đối thủ gói được trong thời gian đó
-const BANHCHUNG = { time: 60, npc: [['m1', 'Minh (10A1)', 4.6], ['x1', 'Tú (10A2)', 5.4], ['x3', 'Bảo (10A3)', 6.2]], regDays: 14 };
+// Hội gói bánh chưng (chiều ngày học cuối cùng của mùa đông): time: giây chơi mini-game thi · npc: [mã, tên, số bánh trung bình gói được] của 3 đối thủ
+const BANHCHUNG = { time: 60, npc: [['m1', 'Minh (10A1)', 4.6], ['x1', 'Tú (10A2)', 5.4], ['x3', 'Bảo (10A3)', 6.2]], end: 1020 };
+// Sự kiện của trường thay cho một số tiết: các tiết đó nghỉ (không tính vắng), thời khoá biểu, bảng tin, soạn cặp tự cập nhật
+// when(năm) → ngày diễn ra · periods: các tiết bị thay · from/to: giờ sự kiện
+const SCHOOL_EVENTS = [
+  { id: 'banhchung', name: 'Hội gói bánh chưng', short: 'Gói bánh chưng', col: '#3f8f3a', when: y => contestDay(y), periods: [5, 6, 7, 8, 9], from: 810, to: 1020 },
+];
 /* ---------- Lưu bút: kỷ vật, khoảnh khắc, lời lưu bút (viết vào ngày tốt nghiệp) ---------- */
 const MEMO_ITEMS = {
   cup: { name: 'Cúp Vua gói bánh chưng', desc: 'Vô địch hội thi gói bánh chưng của trường.', hint: 'Thắng hội thi gói bánh chưng trước Tết' },
@@ -442,7 +448,7 @@ const MEMO_SCENES = {
   giaothua: { name: 'Đón giao thừa trên núi', icon: 'sc_giaothua', desc: 'Pháo hoa nở rực trời lúc nửa đêm, cả thành phố chào năm mới.' },
   chuatet: { name: 'Đi chùa đầu năm', icon: 'sc_chua', desc: 'Sáng mùng 1 cùng bố mẹ thắp nhang cầu may.' },
   tetvisit: { name: 'Đi chúc Tết', icon: 'sc_tetvisit', desc: 'Đi chúc Tết bạn bè, thầy cô và nhận lì xì.' },
-  banhchung: { name: 'Hội thi gói bánh chưng', icon: 'sc_banhchung', desc: 'Tay lấm lá dong, gạo nếp — một buổi chiều cuối năm thật vui.' },
+  banhchung: { name: 'Hội gói bánh chưng', icon: 'sc_banhchung', desc: 'Cả trường nghỉ học buổi chiều, ngồi quanh mâm lá dong gói bánh đón Tết.' },
   xinxam: { name: 'Xin xăm ở chùa', icon: 'sc_xinxam', desc: 'Lắc ống xăm, hồi hộp chờ thẻ rơi ra.' },
   skip: { name: 'Lần đầu trốn học', icon: 'sc_skip', desc: 'Trèo tường trốn ra ngoài cùng bạn — tim đập thình thịch.' },
   picnic: { name: 'Picnic trên núi', icon: 'sc_picnic', desc: 'Trải tấm bạt trên bãi cỏ, nhìn xuống ngôi trường bé tí.' },

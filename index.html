@@ -771,6 +771,7 @@ const SOCIETY = {
   a_phong: { name: 'Anh Phong', note: 'Khoá trên · 11A1, đội trưởng đội bóng', look: 'sC' },
   c_thao: { name: 'Chị Thảo', note: 'Khoá trên · 11A3, lớp phó học tập', look: 'sD' },
   su: { name: 'Sư thầy', note: 'Trụ trì chùa Hoa Phượng', look: 'monk' },
+  hieutruong: { name: 'Thầy hiệu trưởng', note: 'Hiệu trưởng trường THPT Hoa Phượng', look: 'principal' },
 };
 const SOC_GAIN = 2;
 // Mã thử nghiệm (dán vào ô "Dán mã" trong Cài đặt, không phân biệt hoa thường)
@@ -828,8 +829,13 @@ const FEST_FOOD = [
   { id: 'xoi', name: 'Xôi gấc', price: 10000, stam: 15, desc: 'Đỏ may mắn đầu năm' },
   { id: 'keobong', name: 'Kẹo bông', price: 8000, stam: 6, desc: 'Ngọt lịm, tan ngay trong miệng' },
 ];
-// Thi gói bánh chưng: đăng ký ở buổi sinh hoạt lớp trước đó; time: giây chơi; npc: số bánh trung bình các đối thủ gói được trong thời gian đó
-const BANHCHUNG = { time: 60, npc: [['m1', 'Minh (10A1)', 4.6], ['x1', 'Tú (10A2)', 5.4], ['x3', 'Bảo (10A3)', 6.2]], regDays: 14 };
+// Hội gói bánh chưng (chiều ngày học cuối cùng của mùa đông): time: giây chơi mini-game thi · npc: [mã, tên, số bánh trung bình gói được] của 3 đối thủ
+const BANHCHUNG = { time: 60, npc: [['m1', 'Minh (10A1)', 4.6], ['x1', 'Tú (10A2)', 5.4], ['x3', 'Bảo (10A3)', 6.2]], end: 1020 };
+// Sự kiện của trường thay cho một số tiết: các tiết đó nghỉ (không tính vắng), thời khoá biểu, bảng tin, soạn cặp tự cập nhật
+// when(năm) → ngày diễn ra · periods: các tiết bị thay · from/to: giờ sự kiện
+const SCHOOL_EVENTS = [
+  { id: 'banhchung', name: 'Hội gói bánh chưng', short: 'Gói bánh chưng', col: '#3f8f3a', when: y => contestDay(y), periods: [5, 6, 7, 8, 9], from: 810, to: 1020 },
+];
 /* ---------- Lưu bút: kỷ vật, khoảnh khắc, lời lưu bút (viết vào ngày tốt nghiệp) ---------- */
 const MEMO_ITEMS = {
   cup: { name: 'Cúp Vua gói bánh chưng', desc: 'Vô địch hội thi gói bánh chưng của trường.', hint: 'Thắng hội thi gói bánh chưng trước Tết' },
@@ -845,7 +851,7 @@ const MEMO_SCENES = {
   giaothua: { name: 'Đón giao thừa trên núi', icon: 'sc_giaothua', desc: 'Pháo hoa nở rực trời lúc nửa đêm, cả thành phố chào năm mới.' },
   chuatet: { name: 'Đi chùa đầu năm', icon: 'sc_chua', desc: 'Sáng mùng 1 cùng bố mẹ thắp nhang cầu may.' },
   tetvisit: { name: 'Đi chúc Tết', icon: 'sc_tetvisit', desc: 'Đi chúc Tết bạn bè, thầy cô và nhận lì xì.' },
-  banhchung: { name: 'Hội thi gói bánh chưng', icon: 'sc_banhchung', desc: 'Tay lấm lá dong, gạo nếp — một buổi chiều cuối năm thật vui.' },
+  banhchung: { name: 'Hội gói bánh chưng', icon: 'sc_banhchung', desc: 'Cả trường nghỉ học buổi chiều, ngồi quanh mâm lá dong gói bánh đón Tết.' },
   xinxam: { name: 'Xin xăm ở chùa', icon: 'sc_xinxam', desc: 'Lắc ống xăm, hồi hộp chờ thẻ rơi ra.' },
   skip: { name: 'Lần đầu trốn học', icon: 'sc_skip', desc: 'Trèo tường trốn ra ngoài cùng bạn — tim đập thình thịch.' },
   picnic: { name: 'Picnic trên núi', icon: 'sc_picnic', desc: 'Trải tấm bạt trên bãi cỏ, nhìn xuống ngôi trường bé tí.' },
@@ -1036,6 +1042,7 @@ const LOOKS = {
   x3: { ...UNI, hair: '#1f1f29', style: 'short' }, x4: { ...UNI, hair: '#5a3020', style: 'long', skirt: true, band: '#5fb0e8' },
   sA: { ...UNI, hair: '#1f1f29', style: 'spiky', badge: '#d9534f', pants: '#2b3550' }, sB: { ...UNI, hair: '#3a2a2a', style: 'long', skirt: true, band: '#7a5fc9', badge: '#d9534f' },
   sC: { ...UNI, hair: '#5a3a26', style: 'short', badge: '#2e9e86', skin: '#e3ae80' }, sD: { ...UNI, hair: '#2c2733', style: 'bun', skirt: true, badge: '#2e9e86' },
+  principal: { hair: '#c9ccd4', style: 'short', shirt: '#3a3f55', pants: '#2a2136', tie: '#d9534f', mustache: true, skin: '#eab98c' },
   monk: { hair: '#f2c9a0', style: 'buzz', shirt: '#d98a2b', pants: '#b8701f', aodai: true, shoe: '#6f472c' },
   vendor: { hair: '#4a3328', style: 'bun', shirt: '#f2a93b', pants: '#5b4a6b', apron: '#ffffff' },
   c1: { ...UNI, hair: '#3b2a22', style: 'short' },
@@ -1887,6 +1894,26 @@ function buildSprites2() {
   def('eq_tatay', 18, 9, x => { for (const b of [0, 5]) { R(x, '#3a3f55', 0, b, 4, 4); R(x, '#3a3f55', 12, b, 4, 4); R(x, '#8b8f9c', 4, b + 1, 8, 2); R(x, '#5f656f', 0, b, 4, 1); R(x, '#5f656f', 12, b, 4, 1); } });
   def('eq_xadon', 28, 42, x => { R(x, '#5f656f', 2, 4, 3, 38); R(x, '#5f656f', 23, 4, 3, 38); R(x, '#8b8f9c', 2, 4, 1, 38); R(x, '#8b8f9c', 23, 4, 1, 38); R(x, '#c9ccd4', 0, 4, 28, 3); R(x, '#eceef2', 0, 4, 28, 1); R(x, '#3a3f55', 0, 39, 8, 3); R(x, '#3a3f55', 20, 39, 8, 3); R(x, '#e2574c', 6, 3, 3, 5); R(x, '#e2574c', 19, 3, 3, 5); });
 
+
+  /* ---------- hội gói bánh chưng ở sân trường ---------- */
+  def('bctable', 36, 18, x => {
+    R(x, '#c9a467', 0, 4, 36, 12); R(x, '#dcb878', 0, 4, 36, 2); R(x, '#a9853f', 0, 14, 36, 2); for (let i = 3; i < 36; i += 5) R(x, '#b8944f', i, 5, 1, 9);
+    for (let i = 0; i < 3; i++) R(x, ['#3f8f3a', '#4ea248', '#5fae4a'][i], 2 + i, 1 + i, 9, 5);
+    ell(x, '#fbfdff', 16, 7, 4, 2.5); ell(x, '#efe6d2', 16, 6, 3, 1.5); ell(x, '#f2c94c', 25, 7, 3.5, 2.2); R(x, '#e98fa5', 28, 10, 5, 3); R(x, '#d9c690', 12, 11, 8, 1); R(x, '#d9c690', 12, 13, 8, 1);
+    R(x, '#3f8f3a', 2, 9, 7, 6); R(x, '#d9c690', 5, 9, 1, 6); R(x, '#d9c690', 2, 11, 7, 1);
+  });
+  for (let f = 0; f < 2; f++) def('noibanh' + f, 34, 30, x => {
+    for (let i = 0; i < 3; i++) R(x, '#a8513a', 2 + i * 11, 22, 9, 8);
+    for (let i = 0; i < 4; i++) { const h = 4 + ((i + f) % 2) * 3; R(x, '#ff7a3a', 6 + i * 6, 24 - h, 3, h); R(x, '#ffd23a', 7 + i * 6, 25 - h + 2, 1, h - 2); }
+    R(x, '#8b8f9c', 3, 6, 28, 16); R(x, '#c9ccd4', 3, 6, 28, 3); R(x, '#5f656f', 3, 20, 28, 2); R(x, '#5f656f', 0, 8, 3, 3); R(x, '#5f656f', 31, 8, 3, 3);
+    R(x, '#3f8f3a', 6, 4, 22, 3); R(x, '#d9c690', 12, 4, 1, 3); R(x, '#d9c690', 21, 4, 1, 3);
+  });
+  def('bcbanner', 100, 34, x => {
+    R(x, '#8a5a3a', 0, 0, 4, 34); R(x, '#8a5a3a', 96, 0, 4, 34); R(x, '#a9703f', 1, 0, 1, 34); R(x, '#a9703f', 97, 0, 1, 34);
+    R(x, '#d9534f', 4, 2, 92, 14); R(x, '#ffd23a', 4, 2, 92, 1); R(x, '#ffd23a', 4, 15, 92, 1); R(x, '#b23b3b', 4, 16, 92, 1);
+    for (const a of [10, 86]) { R(x, '#ffd23a', a, 6, 4, 4); R(x, '#d9534f', a + 1, 7, 2, 2); }
+  });
+
 }
 
 /* ---------- biểu tượng vật phẩm cho thanh đồ (16×16 → dataURL) ---------- */
@@ -2654,7 +2681,7 @@ function buildRooms() {
   NPCS.push({ id: 'fh', name: 'Bạn', look: 'khoa', dynLook: () => G.visit || 'khoa', outfit: () => friendOutfit(G.visit || 'khoa'), map: 'fhome', x: 130, y: 110, dir: 0, wander: 18, vis: () => !sceneHides('fh'), label: () => FRIENDS[G.visit].name, act: () => ACT.friend(G.visit, 'in') });
   m.zones.push({ x: 272, y: 216, w: 32, h: 8, fn: () => ACT.leaveFh(), by: -8 });
 
-  buildFest();
+  buildFest(); buildBcFest();
   /* ---------- đồ trang trí phòng ngủ ở nhà (mua ở gian Nội thất, Nhạc cụ) ---------- */
   const h = MAPS.home, own = k => () => !!G && !!G.owned[k];
   addObj(h, { s: 'poster', x: 24, y: 8, base: 0, vis: own('d_poster') });
@@ -2747,6 +2774,48 @@ function buildFest() {
   [0, 1, 2].forEach(i => { const a = i / 3 * 6.283 + 0.6; NPCS.push({ id: 'fk_' + i, name: 'Bạn đá cầu', look: ['c1', 'c8', 'x3'][i], outfit: () => ['cas_dat', 'cas_vy', 'cas_khoa'][i], map: 'nui', x: Math.round(C0[0] + Math.cos(a) * 20), y: Math.round(C0[1] + Math.sin(a) * 13), dir: dirOf(-Math.cos(a), -Math.sin(a)), vis: festDecor, label: () => 'Đá cầu — xin vào đá cùng', act: () => ACT.festJoin('cau') }); });
   NPCS.push({ id: 'fs_0', name: 'Bạn ném đá', look: 'c5', outfit: () => 'cas_dat', map: 'nui', x: S0[0] - 14, y: S0[1] + 26, dir: 2, vis: festDecor, label: () => 'Ném đá thia lia xuống hồ', act: () => ACT.festSkip() });
   addObj(m, { s: 'blank', x: S0[0], y: S0[1], ir: [-10, -6, 20, 30], vis: festDecor, label: () => 'Bờ hồ — ném đá thia lia', act: () => ACT.festSkip() });
+}
+
+/* ============================================================
+ *  HỘI GÓI BÁNH CHƯNG ở sân trường (chiều ngày học cuối mùa đông): băng rôn, bàn trao giải, nồi luộc bánh, các tụ gói bánh
+ * ============================================================ */
+const BC_GROUPS = [
+  { name: 'Tụ 10A1', at: [190, 320], ask: 'Ngồi đây gói cùng tụi tớ nè, lá dong rửa sạch rồi!', me: 'Gấp mép lá cho vuông nè… xong một cái!', mem: [{ look: 'khoa', fid: 'khoa' }, { look: 'c1', name: 'Minh · 10A1' }, { look: 'x1', name: 'Tú · 10A2' }] },
+  { name: 'Tụ văn nghệ', at: [270, 300], ask: 'Vừa gói vừa hát cho vui nè, vào đây!', me: 'Một chiếc bánh xanh, buộc lạt thật chặt nào!', mem: [{ look: 'vy', fid: 'vy' }, { look: 'c4', name: 'Bạn lớp 10A1' }, { look: 'sB', soc: 'c_mai' }] },
+  { name: 'Tụ 10A3', at: [360, 320], ask: 'Thiếu người buộc lạt, giúp tụi tớ với!', me: 'Lạt chéo hình chữ thập… chặt rồi!', mem: [{ look: 'dat', fid: 'dat' }, { look: 'c3', name: 'Bạn lớp 10A1' }, { look: 'x3', name: 'Bảo · 10A3' }] },
+  { name: 'Tụ 10A2', at: [520, 190], ask: 'Ngồi xuống đi, tớ chỉ cách gấp lá cho đẹp!', me: 'Bánh này vuông nhất tụ luôn!', mem: [{ look: 'ngan', fid: 'ngan' }, { look: 'c6', name: 'Bạn lớp 10A1' }, { look: 'x2', name: 'Linh · 10A2' }] },
+  { name: 'Tụ khối 12', at: [640, 196], ask: 'Em lớp 10 hả? Vào đây anh chị chỉ gói!', me: 'Em gói xong rồi, anh chị xem có đẹp không!', mem: [{ look: 'sA', soc: 'a_hung' }, { look: 'c5', name: 'Anh lớp 12A1' }, { look: 'c8', name: 'Chị lớp 12A2' }] },
+  { name: 'Tụ khối 11', at: [600, 300], ask: 'Gói nhanh rồi còn đem luộc nữa, phụ chị với!', me: 'Thêm một chiếc nữa cho nồi bánh!', mem: [{ look: 'sD', soc: 'c_thao' }, { look: 'c7', name: 'Anh lớp 11A1' }, { look: 'x4', name: 'Nhi · 10A4' }] },
+];
+const BC_TEACHERS = [['hanh', 220, 296, 'Gói bánh chưng là nét đẹp ngày Tết đấy em. Lá phải gấp thật vuông mới đẹp.'], ['tung', 392, 300, 'Một chiếc bánh vuông có bốn góc vuông — Toán học ở khắp nơi, em thấy không?'], ['lan', 560, 176, 'In English, bánh chưng is a “square sticky rice cake”. Remember that!'], ['manh', 468, 344, 'Nồi bánh phải canh lửa cả đêm đấy. Nhìn thì nhẹ nhưng mệt lắm!']];
+const BC_ALL = ['bc_principal'];
+const bcFestOn = () => !!G && !!RT.bcFest && G.map === 'school';
+function buildBcFest() {
+  const m = MAPS.school;
+  SPR.bccup = iconCv('cup');
+  addObj(m, { s: 'bcbanner', x: 230, y: 112, sol: [0, 28, 4, 6], vis: bcDecor }); addObj(m, { s: 'blank', x: 326, y: 140, sol: [0, 0, 4, 6], vis: bcDecor });
+  m.labels.push({ x: 280, y: 121, text: 'HỘI GÓI BÁNH CHƯNG', size: 5.4, col: '#ffe066', maxw: 88, vis: bcDecor });
+  addObj(m, { s: 'tdesk', x: 290, y: 148, sol: [1, 2, 32, 19], vis: bcDecor }); addObj(m, { s: 'bccup', x: 297, y: 136, base: 175, vis: bcDecor });
+  addObj(m, { s: 'noibanh0', x: 420, y: 318, sol: [0, 20, 34, 10], smoke: [16, 0], dyn: () => 'noibanh' + (Math.floor(performance.now() / 260) % 2), vis: bcDecor, label: () => 'Nồi luộc bánh chưng', act: () => UI.toast('Nồi bánh sôi lục bục, thơm mùi lá dong. Phải luộc cả đêm mới chín!') });
+  for (const [a, b] of [[160, 236], [400, 236], [480, 150]]) addObj(m, { s: 'bunting', x: a, y: b, base: 900, vis: bcDecor });
+  BC_GROUPS.forEach((T, i) => {
+    const [cx, cy] = T.at;
+    addObj(m, { s: 'bctable', x: cx - 18, y: cy - 10, sol: [0, 4, 36, 12], vis: bcFestOn, label: () => `${T.name} — ngồi gói bánh cùng`, act: () => ACT.bcTable(i) });
+    T.mem.forEach((mm, k) => {
+      const key = 'bc_' + mm.look, F = mm.fid && FRIENDS[mm.fid], S = mm.soc && SOCIETY[mm.soc], name = F ? F.name : S ? S.name : mm.name;
+      const [x, y, d] = [[cx - 22, cy + 4, 2], [cx + 22, cy + 4, 1], [cx, cy + 16, 3]][k];
+      BC_ALL.push(key); mm.of = null;
+      NPCS.push({ id: key, sid: key, fid: mm.fid || null, soc: mm.soc, name, look: mm.look, map: 'school', x, y, dir: d, vis: () => bcFestOn() && !sceneHides(key), label: () => `${name} — đang gói bánh`, act: () => (F ? talkMenu(mm.fid, 'school') : S ? ACT.senior(mm.soc) : UI.ask(name, `<p>“${['Gói bánh vui ghê!', 'Lá dong phải lau khô mới gói được đó.', 'Chiếc này để biếu cô chủ nhiệm nè.'][k]}”</p>`, ['Ừ!'], { who: { look: mm.look } })) });
+    });
+  });
+  for (const [tid, x, y, line] of BC_TEACHERS) NPCS.push({ id: 'bct_' + tid, tid, name: TEACHERS[tid].name, look: TEACHERS[tid].look, map: 'school', x, y, dir: 0, wander: 8, vis: () => bcFestOn(), label: () => `${TEACHERS[tid].name} — trò chuyện`, act: () => bcTeacherTalk(tid, line) });
+  NPCS.push({ id: 'bc_principal', sid: 'bc_principal', soc: 'hieutruong', name: 'Thầy hiệu trưởng', look: 'principal', map: 'school', x: 272, y: 174, dir: 0, vis: () => bcFestOn() && !sceneHides('bc_principal'), label: () => 'Thầy hiệu trưởng — đăng ký thi gói bánh chưng', act: () => ACT.principal() });
+}
+// tay gói lá dong ở các tụ
+function drawBcProps(now) {
+  if (!bcFestOn() || (RT.scene && RT.scene.hide && RT.scene.hide.includes('bc_principal'))) return;
+  const f = Math.floor(now / 280);
+  BC_GROUPS.forEach((T, i) => { const [cx, cy] = T.at; for (let k = 0; k < 3; k++) if ((f + i + k) % 3) { const [x, y] = [[cx - 14, cy - 2], [cx + 12, cy - 2], [cx - 2, cy + 4]][k]; wRect('#3f8f3a', x, y, 4, 3); } });
 }
 
 'use strict';
@@ -2853,7 +2922,7 @@ function classSeated() { const t = G.time; return (RT.scene && RT.scene.type ===
 function teacherIn() { const t = G.time; if (RT.scene) return false; return (schoolToday() && (inWin(t, 460, AM_END) || inWin(t, PM_START - 20, CFG.SCHOOL_END))); }
 function parkTime() { const t = G.time; return schoolToday() ? inWin(t, AFTER_SCHOOL, 1210) : inWin(t, 480, 1090); }
 function nextPeriod() { return schoolToday() ? PERIODS.find(p => p.start > G.time && !G.daily.done[p.n]) || null : null; }
-function currentPeriod() { return schoolToday() ? PERIODS.find(p => inWin(G.time, p.start, p.start + PERIOD_LEN)) || null : null; }
+function currentPeriod() { return schoolToday() ? PERIODS.find(p => inWin(G.time, p.start, p.start + PERIOD_LEN) && !cutPeriods(G.day).has(p.n)) || null : null; }
 function phaseLabel() {
   if (!schoolToday()) { const h = holidayOf(G.day); return h ? 'Nghỉ lễ · ' + h.name : (SEASONS[today().season].school ? 'Cuối tuần · Tự do' : 'Nghỉ hè · Tự do'); }
   if (G.time >= CFG.SCHOOL_END) return 'Giai đoạn 3 · Sau giờ học';
@@ -2902,7 +2971,7 @@ function meetSoc(id) { if (G.daily.soc[id]) return; G.daily.soc[id] = true; G.so
 
 /* ---------- thời gian ---------- */
 function advanceTime(mins) {
-  if (RT.fest) { UI.hud(); return; }                // trong hội đón giao thừa: thời gian đứng yên
+  if (RT.fest || RT.bcFest) { UI.hud(); return; }   // trong hội đón giao thừa / hội gói bánh chưng: thời gian đứng yên
   const steps = Math.round(mins / CFG.TICK_MIN);
   if (mins >= 30) RT.snapNpcs = true;   // thời gian nhảy xa: bố mẹ có mặt luôn ở chỗ mới
   for (let i = 0; i < steps; i++) {
@@ -2930,9 +2999,9 @@ function tickEvents() {
   if (t === CFG.SCHOOL_END && RT.skip) RT.pendingSkipEnd = true;      // trốn học tới tận lúc tan trường
   if (G.atSchool && !RT.skip && !G.daily.fainted && INVITE_TIMES.includes(t) && G.daily.invites < INVITE_MAX_PER_DAY && Math.random() < INVITE_CHANCE) RT.pendingInvite = rollInvite();
   // giờ nghỉ trưa: thỉnh thoảng có sự kiện
+  if (t === 1140) for (const e of schoolEventsOn(G.day + 1)) UI.toast(`Ngày mai: ${e.name} ${fmtTime(e.from)}–${fmtTime(e.to)}, nghỉ tiết ${e.periods.join(', ')}.`, 'info');
   if (t === 1140 && isSchoolDay(G.day + 1)) { const tm = G.tests.filter(x => x.day === G.day + 1 && !x.done); if (tm.length) UI.toast('Ngày mai kiểm tra: ' + tm.map(x => `${SUBJ[x.subj].name} (${TEST_NAME[x.type]})`).join(', ') + '. Ôn bài đi!', 'bad'); }
   if (t === LUNCH_EVENT_TIME && G.atSchool && !RT.skip && !G.daily.fainted && !G.daily.lunchEv && Math.random() < LUNCH_EVENT_CHANCE) RT.pendingEvent = rollLunchEvent();
-  if (t === CFG.SCHOOL_END && G.atSchool && !RT.skip && G.day === contestDay(cal(G.day).year) && bcY().reg && !bcY().done) RT.pendingBC = true;   // thi gói bánh chưng
   const p = PERIODS.find(p => p.start === t);
   if (p && !G.daily.done[p.n]) { if (G.atSchool) RT.pendingClass = p; else missPeriod(p); }
 }
@@ -2983,6 +3052,7 @@ function beginDay(first) {
   for (const t of G.tests) if (!t.q && t.day <= G.day && t.sem === k) { t.q = true; (G.pending[t.subj] = G.pending[t.subj] || []).push(t.type); }
   for (const s in G.review) if (G.review[s] < G.day) delete G.review[s];
   socialNewDay();
+  for (const n of cutPeriods(G.day)) G.daily.done[n] = true;          // tiết bị thay bằng sự kiện: nghỉ, không tính vắng
   if (c.dow === 0 && !first) { const a = parentInfo(G.parent).allowance; addMoney(a, true); RT.morning.push(`Mẹ cho tiền tiêu vặt đầu tuần: ${fmtMoney(a)}.`); }
   save();
 }
@@ -3043,6 +3113,7 @@ function morningBrief() {
   if (h) UI.toast(`Hôm nay nghỉ lễ: ${h.name}`, 'good');
   else if (schoolToday()) {
     const tt = ttToday(), due = [...new Set(tt)].filter(s => (G.pending[s] || []).length);
+    for (const e of schoolEventsOn(G.day)) UI.toast(`Hôm nay có ${e.name} (${fmtTime(e.from)}–${fmtTime(e.to)}): nghỉ tiết ${e.periods.join(', ')}.`, 'good');
     if (due.length) UI.toast('HÔM NAY KIỂM TRA: ' + testsToday().map(x => `${SUBJ[x.subj].name} — ${TEST_NAME[x.type]} (tiết ${x.n})`).join(', '), 'bad');
   } else if (c.season === 3 && c.dos === 1) UI.toast('Nghỉ hè rồi! Tự do đi chơi, học thêm hoặc kiếm tiền.', 'good');
 }
@@ -3286,7 +3357,6 @@ async function resolveClass(p, subj) {
     L.push(li(G.conductWeeks % 2 === 1 ? 'Cuối tuần này sẽ chốt hạnh kiểm 2 tuần và đặt lại về 10.' : 'Hạnh kiểm được chốt 2 tuần một lần.'));
     if (G.caughtCycle) L.push(li(`Kỳ này bạn đã bị bắt lỗi ${G.caughtCycle} lần — tái phạm sẽ bị phạt nặng hơn.`, 'warn'));
     else if (G.daily.missed === 0 && !G.daily.late) L.push(li('Tuần này bạn đi học đều — cô khen trước lớp.', 'good'));
-    if (bcCanRegister() && !bcY().asked) await bcAsk();           // đăng ký hội thi gói bánh chưng
     return wrap();
   }
   const co = coOf(subj), coG = `${co} giáo`, sc = RT.scene, who = { look: (sc && sc.actors && sc.actors.length && sc.actors[sc.actors.length - 1].look) || 'teacherA' };
@@ -3409,6 +3479,7 @@ function gateCross() {
     if (G.time < CFG.SCHOOL_END && !G.daily.arrived) arriveSchool();
     const p = PERIODS.find(p => inWin(G.time, p.start, p.start + CFG.TICK_MIN) && !G.daily.done[p.n]); if (p) RT.pendingClass = p;   // vừa kịp chuông
   } else {
+    if (RT.bcFest) { G.y = GATE.yIn; return UI.say('Bác bảo vệ', '“Đang hội gói bánh chưng mà cháu, chơi cho vui đã! Hội tàn thì bác mở cổng.”<p class="dim">Gặp thầy hiệu trưởng để thi hoặc xem trao giải — hội kết thúc lúc 17:00.</p>'); }
     if (schoolToday() && G.time < CFG.SCHOOL_END && !G.daily.fainted) { G.y = GATE.yIn; return UI.say('Bác bảo vệ', '“Chưa tan học đâu cháu, quay vào lớp đi!”<p class="dim">Tan học cổng trường mới mở. Muốn ra ngoài trong giờ thì… phải rủ bạn (hoặc được bạn rủ) trèo tường trốn.</p>'); }
     G.atSchool = false; G.y = GATE.yOut;
   }
@@ -3422,7 +3493,7 @@ function packTargetDay() {
 }
 function neededItems(day) {
   if (day === null || !isSchoolDay(day)) return [];
-  const tt = TIMETABLE[cal(day).dow], need = ['hopbut', 'thehs'];
+  const cut = cutPeriods(day), tt = TIMETABLE[cal(day).dow].filter((s, i) => !cut.has(i + 1)), need = ['hopbut', 'thehs'];   // tiết bị thay bằng sự kiện thì không cần mang sách
   for (const s of BOOK_SUBJ) if (tt.includes(s)) need.push('sach_' + s);
   if (tt.includes('td')) need.push('dp_td');
   if (tt.includes('qp') || tt.includes('th_qp')) need.push('dp_qp');
@@ -3533,7 +3604,6 @@ ACT.mydesk = async () => {
 };
 /* ---------- thầy cô, bảo vệ ---------- */
 ACT.teacher = () => {
-  if (bcCanRegister()) return bcAsk();
   const up = upcomingTests(5);
   UI.say('Cô chủ nhiệm', '“Em nhớ xem lịch kiểm tra trên Lịch (phím L) nhé.”' + (up.length ? '<p class="dim">Sắp tới: ' + up.map(t => `${SUBJ[t.subj].short} — ${TEST_NAME[t.type]} (${dateLabel(t.day)})`).join(' · ') + '</p>' : ''));
 };
@@ -3583,6 +3653,7 @@ ACT.center = async () => {
 /* ---------- việc cần làm (gợi ý) ---------- */
 function todoList() {
   const t = [];
+  for (const e of schoolEventsOn(G.day)) if (G.time < e.to && !(e.id === 'banhchung' && bcY().done)) t.push([false, RT.bcFest ? `${e.name} — gặp thầy hiệu trưởng để thi gói bánh` : `${e.name} ${fmtTime(e.from)}–${fmtTime(e.to)} (nghỉ tiết ${e.periods[0]}–${e.periods[e.periods.length - 1]})`]);
   if (eveOk()) t.push([RT.fest, RT.fest ? 'Đang dự hội đón giao thừa' : `Lễ hội đón giao thừa trên núi sau trường: ${fmtTime(EVE.from)}–24:00`]);
   if (schoolToday()) {
     if (!G.daily.arrived && G.time < CFG.SCHOOL_END) {
@@ -3595,7 +3666,6 @@ function todoList() {
     } else if (G.time < CFG.SCHOOL_END) {
       const np = nextPeriod(), cp = currentPeriod();
       for (const x of testsToday()) t.push([false, `${TEST_NAME[x.type]} ${SUBJ[x.subj].short} (tiết ${x.n})`]);
-      if (G.day === contestDay(cal(G.day).year) && bcY().reg && !bcY().done) t.push([false, 'Thi gói bánh chưng sau giờ tan học']);
       if (np) t.push([false, `Tiết ${np.n} · ${SUBJ[ttToday()[np.n - 1]].name} lúc ${fmtTime(np.start)}`]);
       else if (cp) t.push([false, `Đang học tiết ${cp.n}`]);
     } else {
@@ -5805,6 +5875,7 @@ function giftTarget(t) {
   if (n.fid && FRIENDS[n.fid]) return { kind: 'friend', id: n.fid };
   if (n.fam) return { kind: 'parent', id: n.fam };
   if (n.id === 'teacher') return { kind: 'teacher', id: RT.tid || 'hanh' };
+  if (n.tid) return { kind: 'teacher', id: n.tid };
   const soc = n.soc || { guard: 'baove', su: 'su' }[n.id];
   if (soc && SOCIETY[soc]) return { kind: 'soc', id: soc };
   return { kind: 'other', id: n.id, name: n.name, look: n.dynLook ? n.dynLook() : n.look, outfit: n.outfit ? n.outfit() : null };
@@ -6209,22 +6280,74 @@ function eventTick() {
   if (isTetDay1() && G.map === 'home' && G.time < 720 && !tetYear().ask) { tetMorning(); return true; }
   if (isEveDay(G.day) && !G.daily.eveAsked && !RT.fest && G.time < EVE.from) { eveInvite(); return true; }   // sáng ngày cuối năm: được rủ đón giao thừa
   if (G.map === 'nui' && !RT.fest && eveOk() && G.time < EVE.from && !G.daily.eveEarly) { G.daily.eveEarly = true; UI.toast(`Lễ hội đón giao thừa bắt đầu lúc ${fmtTime(EVE.from)}. Mọi người đang dựng sạp, treo lồng đèn…`, 'info'); }
-  if (RT.pendingBC) { RT.pendingBC = false; if (G.atSchool) { bcContest(); return true; } }
+  if (!RT.bcFest && G.atSchool && G.day === contestDay(cal(G.day).year) && !bcY().done && inWin(G.time, PM_START, BANHCHUNG.end)) { startBcFest(); return true; }   // 13:30 ngày học cuối mùa đông
   if (G.map === 'nui' && !RT.fest && eveOk() && G.time >= EVE.from) { startFest(); return true; }
   return false;
 }
 
 /* ============================================================
- *  HỘI THI GÓI BÁNH CHƯNG: chiều ngày học cuối cùng trước Tết (sau giờ tan học)
- *  Đăng ký ở buổi sinh hoạt lớp trước đó (hoặc gặp cô chủ nhiệm trong lớp)
+ *  HỘI GÓI BÁNH CHƯNG: chiều ngày học cuối cùng của mùa đông, thay các tiết buổi chiều
+ *  Từ 13:30 sân trường thành hội — thời gian đứng yên; nhiều tụ ngồi gói bánh, thầy cô và bạn bè đi lại trò chuyện
+ *  Gặp thầy hiệu trưởng: tham gia thi (mini-game) hoặc chỉ xem → trao giải → 17:00, đứng ở sân trường
  * ============================================================ */
-const contestDay = year => { const x = year * YEAR_DAYS + 2 * CFG.DAYS_PER_SEASON; for (let d = x - 1; d > x - 25; d--) if (isSchoolDay(d)) return d; return -1; };
+// ngày học cuối cùng của mùa đông
+const contestDay = year => { const x = year * YEAR_DAYS + 2 * CFG.DAYS_PER_SEASON; for (let d = x - 1; d >= x - CFG.DAYS_PER_SEASON; d--) if (isSchoolDay(d)) return d; return -1; };
 const bcY = () => { const y = cal(G.day).year; return (G.bc[y] = G.bc[y] || {}); };
-function bcCanRegister() { const d = contestDay(cal(G.day).year); return !bcY().reg && d >= G.day && d - G.day <= BANHCHUNG.regDays; }
-async function bcAsk() {
-  const d = contestDay(cal(G.day).year), B = bcY(); B.asked = true;
-  const c = await UI.ask('Cô chủ nhiệm', `<p>“Chiều ${dateLabel(d)} — ngày học cuối cùng trước Tết — Đoàn trường tổ chức <b>Hội thi gói bánh chưng</b>. Lớp mình cần người dự thi. Em có muốn đăng ký không?”</p><p class="dim">Thi ngay sau giờ tan học, ở sân trường. Ai gói được nhiều bánh nhất sẽ được tặng cúp.</p>`, ['Em đăng ký ạ!', 'Thôi ạ'], { who: { look: 'teacherA' } });
-  if (c === 0) { B.reg = true; UI.toast(`Đã đăng ký thi gói bánh chưng: chiều ${dateLabel(d)}, sau giờ tan học.`, 'good'); }
+// sự kiện của trường diễn ra trong ngày, và các tiết bị thay
+const schoolEventsOn = day => SCHOOL_EVENTS.filter(e => isSchoolDay(day) && e.when(cal(day).year) === day);
+function cutPeriods(day) { const s = new Set(); for (const e of schoolEventsOn(day)) for (const n of e.periods) s.add(n); return s; }
+const bcDecor = () => !!G && G.day === contestDay(cal(G.day).year) && (RT.bcFest || (G.time >= AM_END && !bcY().done));
+const bcWho = { look: 'principal' };
+function startBcFest() {
+  RT.bcFest = true;
+  const indoor = MAPS[G.map].indoor;
+  if (indoor) { setMap('school', 300, 250, 3); RT.snapNpcs = true; }
+  UI.toast('Chiều nay nghỉ học — cả trường ra sân gói bánh chưng! Trong hội thời gian tạm dừng. Gặp thầy hiệu trưởng (trước bàn trao giải) khi muốn thi.', 'good');
+}
+async function endBcFest(winner) {
+  const B = bcY(); B.done = true;
+  await UI.fade(true);
+  RT.bcFest = false; G.time = BANHCHUNG.end;
+  for (const q of PERIODS) G.daily.done[q.n] = true;
+  setMap('school', 300, 250, 0); RT.snapNpcs = true;
+  addMemo('scene', 'banhchung');
+  await UI.fade(false);
+  UI.hud();
+  UI.toast(`Hội gói bánh chưng khép lại (${winner} là Vua gói bánh chưng). 17:00 rồi — ra cổng về nhà được rồi.`, 'info');
+}
+// Thầy hiệu trưởng hỏi có tham gia thi không (không cần đăng ký trước)
+ACT.principal = async () => {
+  if (RT.lock) return;
+  meetSoc('hieutruong');
+  if (!RT.bcFest) return UI.ask('Thầy hiệu trưởng', '<p>“Chào em. Học hành chăm chỉ nhé! Cuối năm trường có hội gói bánh chưng, nhớ tham gia đấy.”</p>', ['Dạ'], { who: bcWho });
+  const c = await UI.ask('Thầy hiệu trưởng', '<p>“Chào em! Chiều nay cả trường nghỉ học để gói bánh chưng đón Tết. Cuối buổi có <b>thi gói bánh chưng</b>: trong một phút, ai gói được nhiều bánh nhất sẽ được nhận cúp. Em có muốn tham gia thi không?”</p><p class="dim">Thi xong (hoặc chỉ xem) là trao giải, hội kết thúc lúc 17:00. Muốn đi chơi với các bạn trước thì cứ đi một vòng đã.</p>', ['Em tham gia thi ạ!', 'Em chỉ xem thôi', 'Để em đi chơi một vòng đã'], { who: bcWho });
+  if (c === 0) return bcContest(true);
+  if (c === 1) return bcContest(false);
+};
+// Ngồi vào một tụ gói bánh cùng mọi người: hoạt cảnh tay gói lá dong, thêm thân với bạn trong tụ
+ACT.bcTable = async i => {
+  if (RT.lock) return;
+  const T = BC_GROUPS[i], key = 'bct' + i;
+  if (G.daily[key]) return UI.toast('Vừa gói xong một mẻ với tụ này rồi.');
+  const c = await UI.ask(T.name, `<p>“${T.ask}”</p>`, ['Ngồi xuống gói cùng', 'Thôi'], { who: { look: T.mem[0].look, outfit: T.mem[0].of } });
+  if (c !== 0) return;
+  RT.lock = true; G.daily[key] = true;
+  const [cx, cy] = T.at, t0 = { v: performance.now() };
+  await playCut({
+    inPlace: true, title: 'Gói bánh chưng cùng các bạn',
+    steps: [{ move: ['me', cx, cy - 16, 450] }, { fn: () => { G.dir = 0; t0.v = performance.now(); } }, { wait: 900 }, { say: ['me', T.me] }, { wait: 500 }],
+    props: [now => { const k = Math.floor((now - t0.v) / 300) % 4; wRect('#3f8f3a', G.x - 4 + (k % 2) * 2, G.y - 10, 7, 5); if (k > 1) wRect('#fbf7ee', G.x - 2, G.y - 9, 3, 3); }],
+  });
+  for (const m of T.mem) if (m.fid) addFriend(m.fid, 4);
+  addStat('kheotay', 1); addStat('giaotiep', 1);
+  RT.lock = false; UI.hud();
+  UI.toast('Gói xong một chiếc bánh vuông vức! Cả tụ khen khéo tay.', 'good');
+};
+// Thầy cô đi lại trong hội: trò chuyện (lần đầu trong ngày thầy cô quý hơn)
+function bcTeacherTalk(tid, line) {
+  const Tc = TEACHERS[tid];
+  if (!G.daily['bcte' + tid]) { G.daily['bcte' + tid] = true; addTeacher(1, tid); }
+  UI.ask(Tc.name, `<p>“${line}”</p>`, ['Dạ!'], { who: { look: Tc.look } });
 }
 const BC_STEPS = [['la', 'Lót lá dong'], ['gao', 'Đổ gạo nếp'], ['dau', 'Rải đậu xanh'], ['thit', 'Đặt thịt'], ['dau', 'Rải thêm đậu xanh'], ['gao', 'Phủ gạo nếp'], ['gap', 'Gấp lá'], ['lat', 'Buộc lạt']];
 const BC_ING = { la: ['Lá dong', '#3f8f3a'], gao: ['Gạo nếp', '#fbf7ee'], dau: ['Đậu xanh', '#f2c94c'], thit: ['Thịt ba chỉ', '#e98fa5'], gap: ['Gấp lá', '#5fae4a'], lat: ['Lạt tre', '#d9c690'] };
@@ -6280,35 +6403,62 @@ function bcGame() {
     },
   }).then(r => ({ cakes: ref ? ref.cakes : 0, npc: ref ? ref.npc : [], skipped: r.skipped }));
 }
-const BC_TABLES = [[260, 262], [300, 262], [340, 262], [380, 262]];
+const BC_TABLES = [[220, 204], [260, 204], [300, 204], [340, 204]];          // hàng bàn thi trước bàn trao giải
+const BC_HIDE = ['bc_c1', 'bc_x1', 'bc_x3', 'bc_principal'];               // người đang diễn trong cảnh thi thì ẩn khỏi tụ
 const bcTableProp = () => { for (const [x, y] of BC_TABLES) { wRect('#8a5a3a', x - 13, y - 14, 26, 8); wRect('#a9703f', x - 13, y - 14, 26, 2); wRect('#3f8f3a', x - 10, y - 13, 7, 5); wRect('#fbf7ee', x - 1, y - 13, 5, 4); wRect('#f2c94c', x + 6, y - 12, 4, 3); } };
-async function bcContest() {
-  const B = bcY(); if (B.done) return; B.done = true;
+async function bcContest(join) {
+  const B = bcY(); if (B.done || RT.lock) return;
   RT.lock = true;
-  const looks = { m1: 'c1', x1: 'x1', x3: 'x3' };
-  await playCut({
-    map: 'school', me: [BC_TABLES[0][0], BC_TABLES[0][1], 0], cam: { x: 320, y: 240 }, title: 'Hội thi gói bánh chưng chào xuân',
-    actors: BANHCHUNG.npc.map(([sid], i) => ({ look: looks[sid] || 'c1', x: BC_TABLES[i + 1][0], y: BC_TABLES[i + 1][1], dir: 0 })).concat([{ look: 'teacherA', x: 320, y: 300, dir: 3 }]),
-    props: [bcTableProp],
-    steps: [{ say: [3, 'Hội thi gói bánh chưng chào xuân bắt đầu! Trong một phút, ai gói được nhiều bánh nhất sẽ thắng!'] }, { say: ['me', 'Lá dong, gạo nếp, đậu xanh, thịt… nhớ rồi!'] }, { say: [2, 'Tớ không nhường đâu nhé!'] }],
-  });
-  const r = await bcGame();
-  const board = [{ name: G.name, n: r.cakes, me: true }].concat(r.npc.map(n => ({ name: n.name, n: n.made }))).sort((a, b) => b.n - a.n || (a.me ? 1 : -1));   // bằng nhau thì xếp đối thủ lên trước
-  const win = board[0].me && (board.length < 2 || board[0].n > board[1].n);
+  const looks = { m1: 'c1', x1: 'x1', x3: 'x3' }, comp = BANHCHUNG.npc.map(([sid], i) => ({ look: looks[sid] || 'c1', x: BC_TABLES[i + 1][0], y: BC_TABLES[i + 1][1], dir: 0 }));
+  const judge = { look: 'principal', x: 280, y: 236, dir: 3 };
+  let board;
+  if (join) {
+    await playCut({
+      map: 'school', me: [BC_TABLES[0][0], BC_TABLES[0][1], 0], cam: { x: 290, y: 200 }, title: 'Thi gói bánh chưng', hide: BC_HIDE,
+      actors: comp.concat([judge]), props: [bcTableProp],
+      steps: [{ say: [3, 'Phần thi gói bánh chưng bắt đầu! Trong một phút, ai gói được nhiều bánh nhất sẽ thắng!'] }, { say: ['me', 'Lá dong, gạo nếp, đậu xanh, thịt… nhớ rồi!'] }, { say: [2, 'Tớ không nhường đâu nhé!'] }],
+    });
+    const r = await bcGame();
+    board = [{ name: G.name, n: r.cakes, me: true }].concat(r.npc.map(n => ({ name: n.name, n: n.made })));
+  } else {
+    const t0 = { v: 0 };
+    await playCut({
+      map: 'school', me: [280, 262, 3], cam: { x: 290, y: 200 }, title: 'Xem thi gói bánh chưng', hide: BC_HIDE,
+      actors: comp.concat([judge]), props: [bcTableProp, now => { const k = Math.floor((now - t0.v) / 250); for (let i = 1; i < 4; i++) if ((k + i) % 3) wRect('#3f8f3a', BC_TABLES[i][0] - 3, BC_TABLES[i][1] - 10, 6, 5); }],
+      steps: [{ fn: () => { t0.v = performance.now(); } }, { say: [3, 'Ba bạn vào thi nào! Chuẩn bị… bắt đầu!'] }, { wait: 1800 }, { say: ['me', 'Cố lên! Cố lên!'] }],
+    });
+    board = BANHCHUNG.npc.map(([, name, rate]) => ({ name, n: Math.max(1, Math.round(rate * (0.8 + Math.random() * 0.45))) }));
+  }
+  board.sort((a, b) => b.n - a.n || (a.me ? 1 : -1));                     // bằng nhau thì xếp đối thủ lên trước
+  const win = !!board[0].me && (board.length < 2 || board[0].n > board[1].n), winner = win ? G.name : board[0].name;
   const html = '<ol class="bc-board">' + board.map(b => `<li class="${b.me ? 'me' : ''}"><b>${b.name}</b> — ${b.n} bánh</li>`).join('') + '</ol>';
-  await UI.ask('Cô chủ nhiệm', `<p>“Kết quả hội thi đây!”</p>${html}<p>${win ? `“Chúc mừng ${G.name} — <b>Vua gói bánh chưng</b> năm nay!”` : (board.find(b => b.me).n === board[0].n ? `“Em bằng số bánh với ${board[0].name} rồi — phải gói nhiều hơn mới vô địch được. Tiếc ghê!”` : '“Các em đều gói rất khéo. Năm sau cố gắng hơn nhé!”')}</p>`, [win ? 'Nhận cúp!' : 'Dạ'], { who: { look: 'teacherA' } });
-  addMemo('scene', 'banhchung'); addStat('kheotay', win ? 5 : 2); addStat('giaotiep', 2);
+  const meRow = board.find(b => b.me);
+  await UI.ask('Thầy hiệu trưởng', `<p>“Kết quả phần thi gói bánh chưng!”</p>${html}<p>${win ? `“Chúc mừng ${G.name} — <b>Vua gói bánh chưng</b> năm nay!”` : meRow && meRow.n === board[0].n ? `“Em bằng số bánh với ${board[0].name} rồi — phải gói nhiều hơn mới vô địch được. Tiếc ghê!”` : `“Chúc mừng ${board[0].name}!${join ? ' Các em đều gói rất khéo.' : ''}”`}</p>`, [win ? 'Lên nhận cúp!' : 'Vỗ tay!'], { who: bcWho });
+  await awardCut(win, board[0]);
+  if (join) { addStat('kheotay', win ? 5 : 2); addStat('giaotiep', 2); }
   if (win) { B.won = true; addTeacher(5, 'hanh'); await winPhotoCut(); addMemo('item', 'cup'); addMemo('item', 'photo'); }
-  advanceTime(60);
-  RT.lock = false; UI.hud();
+  RT.lock = false;
+  await endBcFest(winner);
+}
+// Trao giải: người thắng lên bục nhận cúp từ thầy hiệu trưởng
+function awardCut(win, top) {
+  const looks = { 'Minh (10A1)': 'c1', 'Tú (10A2)': 'x1', 'Bảo (10A3)': 'x3' }, P = { look: 'principal', x: 272, y: 174, dir: 0 }, t0 = { v: 1e12 };
+  const actors = [P].concat(win ? [] : [{ look: looks[top.name] || 'c1', x: 250, y: 236, dir: 3 }]);
+  const winnerWho = win ? 'me' : 1;
+  return playCut({
+    map: 'school', me: win ? [250, 236, 3] : [310, 250, 3], cam: { x: 280, y: 190 }, title: 'Trao giải Vua gói bánh chưng', hide: BC_HIDE, actors,
+    props: [now => { if (now < t0.v) return; const a = winnerWho === 'me' ? G : RT.scene.actors[1]; drawSpr(iconCv('cup'), a.x - 9, a.y - 44 + Math.round(Math.sin(now / 200))); }],
+    steps: [{ say: [0, `Xin mời ${win ? G.name : top.name} lên nhận cúp Vua gói bánh chưng!`] }, { move: [winnerWho, 272, 194, 900] }, { fn: () => { t0.v = performance.now(); } },
+      { say: [0, 'Chúc mừng em! Chúc cả trường ăn Tết thật vui!'] }, { hop: winnerWho }, { say: [winnerWho, win ? 'Em cảm ơn thầy ạ!' : 'Em cảm ơn thầy!'] }],
+  });
 }
 // Chụp ảnh cả lớp ăn mừng quanh chiếc cúp
 function winPhotoCut() {
-  const t0 = { v: -1e9 }, cx0 = 320, cy0 = 262;
+  const t0 = { v: -1e9 }, cx0 = 300, cy0 = 222;
   const row = [['khoa', -44, -16], ['vy', -22, -18], ['dat', 22, -18], ['ngan', 44, -16], ['c3', -60, 2], ['c4', 60, 2], ['c5', -34, 4], ['c8', 34, 4]];
   const actors = row.map(([look, dx, dy]) => ({ look, x: cx0 + dx, y: cy0 + dy, dir: 0 })).concat([{ look: 'teacherA', x: cx0, y: cy0 + 50, dir: 3 }]);
   return playCut({
-    map: 'school', me: [cx0, cy0, 0], cam: { x: cx0, y: cy0 - 10 }, title: 'Ảnh lưu niệm — Vua gói bánh chưng', actors,
+    map: 'school', me: [cx0, cy0, 0], cam: { x: cx0, y: cy0 - 10 }, title: 'Ảnh lưu niệm — Vua gói bánh chưng', actors, hide: BC_ALL.concat(['bc_principal']),
     props: [() => drawSpr(iconCv('cup'), G.x - 9, G.y - 44 + Math.round(Math.sin(performance.now() / 200)))],
     steps: [{ say: [8, 'Cả lớp đứng vào chụp ảnh nào! Nhìn vào đây!'] }, { par: actors.slice(0, 8).map((a, i) => ({ hop: i })) }, { say: [0, 'Lớp mình vô địch rồi!'] },
       { say: [8, 'Một, hai, ba… cười!'] }, { fn: sc => { t0.v = performance.now(); sc.glow = [now => { const k = (now - t0.v) / 600; if (k >= 0 && k < 1) { ctx.fillStyle = `rgba(255,255,255,${1 - k})`; ctx.fillRect(0, 0, cv.width, cv.height); } }]; } }, { wait: 1200 }],
@@ -6913,12 +7063,14 @@ MV.friends = {
 /* ---------- Thời khoá biểu ---------- */
 MV.tt = {
   render() {
-    const c = today(), sd = schoolToday(), cp = currentPeriod();
-    let h = '<table class="tt"><tr><th></th>' + [0, 1, 2, 3, 4].map(d => `<th class="${sd && c.dow === d ? 'now' : ''}">${DOW[d]}</th>`).join('') + '</tr>';
+    const c = today(), sd = schoolToday(), cp = currentPeriod(), mon = G.day - c.dow, cut = [0, 1, 2, 3, 4].map(d => cutPeriods(mon + d)), evs = [0, 1, 2, 3, 4].map(d => schoolEventsOn(mon + d));
+    let h = '<table class="tt"><tr><th></th>' + [0, 1, 2, 3, 4].map(d => `<th class="${sd && c.dow === d ? 'now' : ''}">${DOW[d]}<small>${cal(mon + d).dos} ${cal(mon + d).sName}</small></th>`).join('') + '</tr>';
     for (let p = 0; p < 9; p++) {
       if (p === 4) h += `<tr class="gap"><td colspan="6">Nghỉ trưa · ${fmtTime(AM_END)} – ${fmtTime(PM_START)}</td></tr>`;
-      h += `<tr><td class="pn">Tiết ${p + 1}<small>${fmtTime(PERIODS[p].start)}</small></td>` + [0, 1, 2, 3, 4].map(d => { const s = TIMETABLE[d][p]; return `<td class="${sd && c.dow === d ? 'now' : ''} ${sd && c.dow === d && cp && cp.n === p + 1 ? 'cur' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td>`; }).join('') + '</tr>';
+      h += `<tr><td class="pn">Tiết ${p + 1}<small>${fmtTime(PERIODS[p].start)}</small></td>` + [0, 1, 2, 3, 4].map(d => { const s = TIMETABLE[d][p], ev = cut[d].has(p + 1) && evs[d].find(e => e.periods.includes(p + 1)); if (ev) return `<td class="${sd && c.dow === d ? 'now' : ''}"><span class="chip ev" style="background:${ev.col}">${ev.short}</span></td>`; return `<td class="${sd && c.dow === d ? 'now' : ''} ${sd && c.dow === d && cp && cp.n === p + 1 ? 'cur' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td>`; }).join('') + '</tr>';
     }
+    const up = []; for (let d = G.day; d < G.day + 14; d++) for (const e of schoolEventsOn(d)) up.push(`<b>${dateLabel(d)}</b>: ${e.name} ${fmtTime(e.from)}–${fmtTime(e.to)} — nghỉ tiết ${e.periods.join(', ')}`);
+    if (up.length) h += '</table><p class="okbox">Sự kiện của trường: ' + up.join(' · ') + '</p><table class="tt" style="display:none">';
     return h + `</table><p class="dim">Ô “TH” là buổi thực hành riêng. Mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 20'; tan học ${fmtTime(CFG.SCHOOL_END)}. Lịch kiểm tra xem ở tab Lịch.</p>`;
   },
 };
@@ -6972,7 +7124,7 @@ MV.cal = {
       if (sem && c.doy === sem.to) ev.push(`<span class="ev sem">Tổng kết ${sem.name}</span>`);
       if (hol) ev.push(`<span class="ev hol">${hol.name}</span>`);
       for (const f of FESTIVALS) if (f.season === se && f.day === d + 1) ev.push(`<span class="ev fes">${f.name}</span>`);
-      if (day === contestDay(yr)) ev.push('<span class="ev fes">Thi gói bánh chưng</span>');
+      for (const e of schoolEventsOn(day)) ev.push(`<span class="ev fes">${e.short}</span>`);
       for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, day)) ev.push(`<span class="ev bd">Sinh nhật ${FRIENDS[f].name}</span>`);
       for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], day)) ev.push(`<span class="ev bd">Sinh nhật ${PNAME[w].toLowerCase()}</span>`);
       for (const t of tests[day] || []) ev.push(`<span class="ev ts ${t.done ? 'done' : ''}" style="--c:${SUBJ[t.subj].color}" title="${TEST_NAME[t.type]} · ${SUBJ[t.subj].name}">${SUBJ[t.subj].short} · ${t.type === 'thi' ? 'thi' : '1 tiết'}</span>`);
@@ -7936,12 +8088,12 @@ function render(now) {
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
   if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);
-  if (G) drawFestProps(now);
+  if (G) { drawFestProps(now); drawBcProps(now); }
   if (G) drawHeld(now);                           // món đang cầm trên tay
   for (const o of m.objs) if (o.smoke && (!o.vis || o.vis())) smokeProp(now, o.x + o.smoke[0], o.y + o.smoke[1]);   // khói nhang        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
   // biển hiệu (chữ nét)
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  for (const l of m.labels) { ctx.font = `800 ${l.size * S}px "Baloo 2", system-ui, sans-serif`; ctx.fillStyle = l.col; ctx.fillText(l.text, VIEW.ox + l.x * S, VIEW.oy + l.y * S, l.maxw * S); }
+  for (const l of m.labels) { if (l.vis && !l.vis()) continue; ctx.font = `800 ${l.size * S}px "Baloo 2", system-ui, sans-serif`; ctx.fillStyle = l.col; ctx.fillText(l.text, VIEW.ox + l.x * S, VIEW.oy + l.y * S, l.maxw * S); }
   // sáng / tối theo giờ
   if (G) { const a = nightAlpha(G.time) * (m.indoor ? 0.4 : 1); if (a > 0.01) { ctx.fillStyle = `rgba(22,20,74,${a})`; ctx.fillRect(0, 0, cv.width, cv.height); } }
   // quầng sáng đèn đường ban đêm

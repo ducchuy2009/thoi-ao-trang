@@ -758,6 +758,7 @@ function giftTarget(t) {
   if (n.fid && FRIENDS[n.fid]) return { kind: 'friend', id: n.fid };
   if (n.fam) return { kind: 'parent', id: n.fam };
   if (n.id === 'teacher') return { kind: 'teacher', id: RT.tid || 'hanh' };
+  if (n.tid) return { kind: 'teacher', id: n.tid };
   const soc = n.soc || { guard: 'baove', su: 'su' }[n.id];
   if (soc && SOCIETY[soc]) return { kind: 'soc', id: soc };
   return { kind: 'other', id: n.id, name: n.name, look: n.dynLook ? n.dynLook() : n.look, outfit: n.outfit ? n.outfit() : null };

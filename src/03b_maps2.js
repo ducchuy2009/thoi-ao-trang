@@ -157,7 +157,7 @@ function buildRooms() {
   NPCS.push({ id: 'fh', name: 'Bạn', look: 'khoa', dynLook: () => G.visit || 'khoa', outfit: () => friendOutfit(G.visit || 'khoa'), map: 'fhome', x: 130, y: 110, dir: 0, wander: 18, vis: () => !sceneHides('fh'), label: () => FRIENDS[G.visit].name, act: () => ACT.friend(G.visit, 'in') });
   m.zones.push({ x: 272, y: 216, w: 32, h: 8, fn: () => ACT.leaveFh(), by: -8 });
 
-  buildFest();
+  buildFest(); buildBcFest();
   /* ---------- đồ trang trí phòng ngủ ở nhà (mua ở gian Nội thất, Nhạc cụ) ---------- */
   const h = MAPS.home, own = k => () => !!G && !!G.owned[k];
   addObj(h, { s: 'poster', x: 24, y: 8, base: 0, vis: own('d_poster') });
@@ -250,4 +250,46 @@ function buildFest() {
   [0, 1, 2].forEach(i => { const a = i / 3 * 6.283 + 0.6; NPCS.push({ id: 'fk_' + i, name: 'Bạn đá cầu', look: ['c1', 'c8', 'x3'][i], outfit: () => ['cas_dat', 'cas_vy', 'cas_khoa'][i], map: 'nui', x: Math.round(C0[0] + Math.cos(a) * 20), y: Math.round(C0[1] + Math.sin(a) * 13), dir: dirOf(-Math.cos(a), -Math.sin(a)), vis: festDecor, label: () => 'Đá cầu — xin vào đá cùng', act: () => ACT.festJoin('cau') }); });
   NPCS.push({ id: 'fs_0', name: 'Bạn ném đá', look: 'c5', outfit: () => 'cas_dat', map: 'nui', x: S0[0] - 14, y: S0[1] + 26, dir: 2, vis: festDecor, label: () => 'Ném đá thia lia xuống hồ', act: () => ACT.festSkip() });
   addObj(m, { s: 'blank', x: S0[0], y: S0[1], ir: [-10, -6, 20, 30], vis: festDecor, label: () => 'Bờ hồ — ném đá thia lia', act: () => ACT.festSkip() });
+}
+
+/* ============================================================
+ *  HỘI GÓI BÁNH CHƯNG ở sân trường (chiều ngày học cuối mùa đông): băng rôn, bàn trao giải, nồi luộc bánh, các tụ gói bánh
+ * ============================================================ */
+const BC_GROUPS = [
+  { name: 'Tụ 10A1', at: [190, 320], ask: 'Ngồi đây gói cùng tụi tớ nè, lá dong rửa sạch rồi!', me: 'Gấp mép lá cho vuông nè… xong một cái!', mem: [{ look: 'khoa', fid: 'khoa' }, { look: 'c1', name: 'Minh · 10A1' }, { look: 'x1', name: 'Tú · 10A2' }] },
+  { name: 'Tụ văn nghệ', at: [270, 300], ask: 'Vừa gói vừa hát cho vui nè, vào đây!', me: 'Một chiếc bánh xanh, buộc lạt thật chặt nào!', mem: [{ look: 'vy', fid: 'vy' }, { look: 'c4', name: 'Bạn lớp 10A1' }, { look: 'sB', soc: 'c_mai' }] },
+  { name: 'Tụ 10A3', at: [360, 320], ask: 'Thiếu người buộc lạt, giúp tụi tớ với!', me: 'Lạt chéo hình chữ thập… chặt rồi!', mem: [{ look: 'dat', fid: 'dat' }, { look: 'c3', name: 'Bạn lớp 10A1' }, { look: 'x3', name: 'Bảo · 10A3' }] },
+  { name: 'Tụ 10A2', at: [520, 190], ask: 'Ngồi xuống đi, tớ chỉ cách gấp lá cho đẹp!', me: 'Bánh này vuông nhất tụ luôn!', mem: [{ look: 'ngan', fid: 'ngan' }, { look: 'c6', name: 'Bạn lớp 10A1' }, { look: 'x2', name: 'Linh · 10A2' }] },
+  { name: 'Tụ khối 12', at: [640, 196], ask: 'Em lớp 10 hả? Vào đây anh chị chỉ gói!', me: 'Em gói xong rồi, anh chị xem có đẹp không!', mem: [{ look: 'sA', soc: 'a_hung' }, { look: 'c5', name: 'Anh lớp 12A1' }, { look: 'c8', name: 'Chị lớp 12A2' }] },
+  { name: 'Tụ khối 11', at: [600, 300], ask: 'Gói nhanh rồi còn đem luộc nữa, phụ chị với!', me: 'Thêm một chiếc nữa cho nồi bánh!', mem: [{ look: 'sD', soc: 'c_thao' }, { look: 'c7', name: 'Anh lớp 11A1' }, { look: 'x4', name: 'Nhi · 10A4' }] },
+];
+const BC_TEACHERS = [['hanh', 220, 296, 'Gói bánh chưng là nét đẹp ngày Tết đấy em. Lá phải gấp thật vuông mới đẹp.'], ['tung', 392, 300, 'Một chiếc bánh vuông có bốn góc vuông — Toán học ở khắp nơi, em thấy không?'], ['lan', 560, 176, 'In English, bánh chưng is a “square sticky rice cake”. Remember that!'], ['manh', 468, 344, 'Nồi bánh phải canh lửa cả đêm đấy. Nhìn thì nhẹ nhưng mệt lắm!']];
+const BC_ALL = ['bc_principal'];
+const bcFestOn = () => !!G && !!RT.bcFest && G.map === 'school';
+function buildBcFest() {
+  const m = MAPS.school;
+  SPR.bccup = iconCv('cup');
+  addObj(m, { s: 'bcbanner', x: 230, y: 112, sol: [0, 28, 4, 6], vis: bcDecor }); addObj(m, { s: 'blank', x: 326, y: 140, sol: [0, 0, 4, 6], vis: bcDecor });
+  m.labels.push({ x: 280, y: 121, text: 'HỘI GÓI BÁNH CHƯNG', size: 5.4, col: '#ffe066', maxw: 88, vis: bcDecor });
+  addObj(m, { s: 'tdesk', x: 290, y: 148, sol: [1, 2, 32, 19], vis: bcDecor }); addObj(m, { s: 'bccup', x: 297, y: 136, base: 175, vis: bcDecor });
+  addObj(m, { s: 'noibanh0', x: 420, y: 318, sol: [0, 20, 34, 10], smoke: [16, 0], dyn: () => 'noibanh' + (Math.floor(performance.now() / 260) % 2), vis: bcDecor, label: () => 'Nồi luộc bánh chưng', act: () => UI.toast('Nồi bánh sôi lục bục, thơm mùi lá dong. Phải luộc cả đêm mới chín!') });
+  for (const [a, b] of [[160, 236], [400, 236], [480, 150]]) addObj(m, { s: 'bunting', x: a, y: b, base: 900, vis: bcDecor });
+  BC_GROUPS.forEach((T, i) => {
+    const [cx, cy] = T.at;
+    addObj(m, { s: 'bctable', x: cx - 18, y: cy - 10, sol: [0, 4, 36, 12], vis: bcFestOn, label: () => `${T.name} — ngồi gói bánh cùng`, act: () => ACT.bcTable(i) });
+    T.mem.forEach((mm, k) => {
+      const key = 'bc_' + mm.look, F = mm.fid && FRIENDS[mm.fid], S = mm.soc && SOCIETY[mm.soc], name = F ? F.name : S ? S.name : mm.name;
+      const [x, y, d] = [[cx - 22, cy + 4, 2], [cx + 22, cy + 4, 1], [cx, cy + 16, 3]][k];
+      BC_ALL.push(key); mm.of = null;
+      NPCS.push({ id: key, sid: key, fid: mm.fid || null, soc: mm.soc, name, look: mm.look, map: 'school', x, y, dir: d, vis: () => bcFestOn() && !sceneHides(key), label: () => `${name} — đang gói bánh`, act: () => (F ? talkMenu(mm.fid, 'school') : S ? ACT.senior(mm.soc) : UI.ask(name, `<p>“${['Gói bánh vui ghê!', 'Lá dong phải lau khô mới gói được đó.', 'Chiếc này để biếu cô chủ nhiệm nè.'][k]}”</p>`, ['Ừ!'], { who: { look: mm.look } })) });
+    });
+  });
+  for (const [tid, x, y, line] of BC_TEACHERS) NPCS.push({ id: 'bct_' + tid, tid, name: TEACHERS[tid].name, look: TEACHERS[tid].look, map: 'school', x, y, dir: 0, wander: 8, vis: () => bcFestOn(), label: () => `${TEACHERS[tid].name} — trò chuyện`, act: () => bcTeacherTalk(tid, line) });
+  NPCS.push({ id: 'bc_principal', sid: 'bc_principal', soc: 'hieutruong', name: 'Thầy hiệu trưởng', look: 'principal', map: 'school', x: 272, y: 174, dir: 0, vis: () => bcFestOn() && !sceneHides('bc_principal'), label: () => 'Thầy hiệu trưởng — đăng ký thi gói bánh chưng', act: () => ACT.principal() });
+}
+// tay gói lá dong ở các tụ
+function drawBcProps(now) {
+  if (!bcFestOn() || (RT.scene && RT.scene.hide && RT.scene.hide.includes('bc_principal'))) return;
+  const f = Math.floor(now / 280);
+  BC_GROUPS.forEach((T, i) => { const [cx, cy] = T.at; for (let k = 0; k < 3; k++) if ((f + i + k) % 3) { const [x, y] = [[cx - 14, cy - 2], [cx + 12, cy - 2], [cx - 2, cy + 4]][k]; wRect('#3f8f3a', x, y, 4, 3); } });
 }

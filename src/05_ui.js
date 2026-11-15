@@ -356,12 +356,14 @@ MV.friends = {
 /* ---------- Thời khoá biểu ---------- */
 MV.tt = {
   render() {
-    const c = today(), sd = schoolToday(), cp = currentPeriod();
-    let h = '<table class="tt"><tr><th></th>' + [0, 1, 2, 3, 4].map(d => `<th class="${sd && c.dow === d ? 'now' : ''}">${DOW[d]}</th>`).join('') + '</tr>';
+    const c = today(), sd = schoolToday(), cp = currentPeriod(), mon = G.day - c.dow, cut = [0, 1, 2, 3, 4].map(d => cutPeriods(mon + d)), evs = [0, 1, 2, 3, 4].map(d => schoolEventsOn(mon + d));
+    let h = '<table class="tt"><tr><th></th>' + [0, 1, 2, 3, 4].map(d => `<th class="${sd && c.dow === d ? 'now' : ''}">${DOW[d]}<small>${cal(mon + d).dos} ${cal(mon + d).sName}</small></th>`).join('') + '</tr>';
     for (let p = 0; p < 9; p++) {
       if (p === 4) h += `<tr class="gap"><td colspan="6">Nghỉ trưa · ${fmtTime(AM_END)} – ${fmtTime(PM_START)}</td></tr>`;
-      h += `<tr><td class="pn">Tiết ${p + 1}<small>${fmtTime(PERIODS[p].start)}</small></td>` + [0, 1, 2, 3, 4].map(d => { const s = TIMETABLE[d][p]; return `<td class="${sd && c.dow === d ? 'now' : ''} ${sd && c.dow === d && cp && cp.n === p + 1 ? 'cur' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td>`; }).join('') + '</tr>';
+      h += `<tr><td class="pn">Tiết ${p + 1}<small>${fmtTime(PERIODS[p].start)}</small></td>` + [0, 1, 2, 3, 4].map(d => { const s = TIMETABLE[d][p], ev = cut[d].has(p + 1) && evs[d].find(e => e.periods.includes(p + 1)); if (ev) return `<td class="${sd && c.dow === d ? 'now' : ''}"><span class="chip ev" style="background:${ev.col}">${ev.short}</span></td>`; return `<td class="${sd && c.dow === d ? 'now' : ''} ${sd && c.dow === d && cp && cp.n === p + 1 ? 'cur' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td>`; }).join('') + '</tr>';
     }
+    const up = []; for (let d = G.day; d < G.day + 14; d++) for (const e of schoolEventsOn(d)) up.push(`<b>${dateLabel(d)}</b>: ${e.name} ${fmtTime(e.from)}–${fmtTime(e.to)} — nghỉ tiết ${e.periods.join(', ')}`);
+    if (up.length) h += '</table><p class="okbox">Sự kiện của trường: ' + up.join(' · ') + '</p><table class="tt" style="display:none">';
     return h + `</table><p class="dim">Ô “TH” là buổi thực hành riêng. Mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 20'; tan học ${fmtTime(CFG.SCHOOL_END)}. Lịch kiểm tra xem ở tab Lịch.</p>`;
   },
 };
@@ -415,7 +417,7 @@ MV.cal = {
       if (sem && c.doy === sem.to) ev.push(`<span class="ev sem">Tổng kết ${sem.name}</span>`);
       if (hol) ev.push(`<span class="ev hol">${hol.name}</span>`);
       for (const f of FESTIVALS) if (f.season === se && f.day === d + 1) ev.push(`<span class="ev fes">${f.name}</span>`);
-      if (day === contestDay(yr)) ev.push('<span class="ev fes">Thi gói bánh chưng</span>');
+      for (const e of schoolEventsOn(day)) ev.push(`<span class="ev fes">${e.short}</span>`);
       for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, day)) ev.push(`<span class="ev bd">Sinh nhật ${FRIENDS[f].name}</span>`);
       for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], day)) ev.push(`<span class="ev bd">Sinh nhật ${PNAME[w].toLowerCase()}</span>`);
       for (const t of tests[day] || []) ev.push(`<span class="ev ts ${t.done ? 'done' : ''}" style="--c:${SUBJ[t.subj].color}" title="${TEST_NAME[t.type]} · ${SUBJ[t.subj].name}">${SUBJ[t.subj].short} · ${t.type === 'thi' ? 'thi' : '1 tiết'}</span>`);
