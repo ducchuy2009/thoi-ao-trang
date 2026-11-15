@@ -799,6 +799,13 @@ const practicalReward = (d, win, perfect) => (win ? 3 + 3 * d + (perfect ? 2 : 0
 const COEF = { mieng: 1, p15: 1, tiet: 1, thi: 1 };   // đã bỏ hệ số nhân: điểm trung bình môn = trung bình cộng các con điểm
 const TEST_NAME = { mieng: 'Kiểm tra miệng', p15: "Kiểm tra 15'", tiet: 'Kiểm tra 1 tiết', thi: 'Thi học kỳ' };
 const TEST_DIFF = { mieng: 0.3, p15: 0, tiet: -0.3, thi: -0.5 };
+/* ---------- Cân bằng điểm học tập (đã kiểm chứng bằng mô phỏng) ----------
+ * điểm ≈ base + kLv·√(cấp môn) + kLt·√(cấp Lý thuyết TB) − gradeOff[khối] ± may rủi (+1 nếu tối trước đã ôn môn đó)
+ * Học đủ tiết (mang đủ sách) + tối nào cũng ôn 2 buổi → vừa đủ học sinh Giỏi ở lớp 10; lên lớp 11, 12 đề khó hơn (gradeOff),
+ * muốn chắc Giỏi / điểm cao phải học thêm vài buổi mỗi tuần và luyện thực hành ở phòng thí nghiệm.
+ * prac*: bài kiểm tra thực hành (Thể dục, Quốc phòng) — dựa vào kết quả mini-game + cấp môn + cấp Thực hành TB */
+const STUDY = { base: 5.3, kLv: 1.15, kLt: 0.45, comp: 0.04, gradeOff: [0, 1.25, 1.95], roll: [0.5, 0.8, 1.4], tutor: 0.2, tutorMax: 0.8, pracBase: 3.8, pracProg: 4.0, pracLv: 0.25, pracTh: 0.08, pracGrade: [0, 0.5, 0.9] };
+// học thêm: mỗi buổi học thêm một môn được cộng STUDY.tutor vào bài kiểm tra môn đó trong cùng học kỳ (tối đa STUDY.tutorMax)
 
 /* ---------- Bạn bè ---------- */
 const FRIENDS = {
@@ -3788,11 +3795,12 @@ function testPenalties(subj, type, notes) {
 function testScore(subj, type, o) {
   o = o || {};
   const li0 = lvlInfo(G.stats[statOfSubj(subj)]), notes = [], comp = compOf(subj), style = o.style === undefined ? 1 : o.style;
-  // đề khó dần theo khối lớp: mỗi năm đòi hỏi thêm 2 cấp
-  let s = 4.5 + li0.lv + li0.frac + 0.08 * comp - 2 * (G.grade - 10);
+  // đề khó dần theo khối lớp (STUDY.gradeOff); cấp môn và nền tảng lý thuyết chung đều góp phần
+  const gi = clamp(G.grade - 10, 0, 2);
+  let s = STUDY.base + STUDY.kLv * Math.sqrt(li0.lv + li0.frac) + STUDY.kLt * Math.sqrt(lyThuyet()) + STUDY.comp * comp - STUDY.gradeOff[gi];
   let roll = rnd(-1, 1);
   if (Math.random() < Math.min(0.85, 0.1 + comp * 0.12)) roll = Math.max(roll, rnd(-1, 1));
-  s += roll * [0.5, 0.9, 1.6][style];
+  s += roll * STUDY.roll[style];
   const L = luckK(), lp = Math.round(LUCK.test * L * 4) / 4;            // điểm may mắn hôm nay
   s += LUCK.test * L;
   if (G.daily.luckSeen && lp) notes.push(lp > 0 ? `Ngày may mắn: +${fmtScore(lp)}` : `Ngày xui xẻo: −${fmtScore(-lp)}`);
@@ -3800,6 +3808,7 @@ function testScore(subj, type, o) {
   if (lk < 0.06 * k * (1 - LUCK.tu * L)) { const d = Math.round(rnd(1.5, 2.5) * 4) / 4; s -= d; notes.push(`Học tài thi phận — đề rơi đúng phần chưa ôn: −${fmtScore(d)}`); }
   else if (lk > 1 - (0.05 + comp * 0.01) * k * (1 + LUCK.tu * L)) { const d = Math.round(rnd(1, 1.75) * 4) / 4; s += d; notes.push(`Trúng tủ: +${fmtScore(d)}`); }
   if (G.review[subj] !== undefined && G.review[subj] >= G.day) { s += 1; notes.push('Đã ôn bài: +1,0'); delete G.review[subj]; }
+  const tut = Math.min(STUDY.tutorMax, STUDY.tutor * (((G.tutor || {})[semKey(G.day)] || {})[subj] || 0)); if (tut) { s += tut; notes.push(`Đi học thêm môn này: +${fmtScore(tut)}`); }
   if (BOOK_SUBJ.includes(subj) && !G.bag.hopbut && type !== 'mieng') { s -= 1; notes.push('Quên hộp bút: −1,0'); }
   if (o.bonus) { s += o.bonus; notes.push('Xung phong: +' + fmtScore(o.bonus)); }
   s += testPenalties(subj, type, notes) + TEST_DIFF[type] + teacherGrading(notes, subj);
@@ -3831,7 +3840,7 @@ function cheatTest(subj, type, L) {
 // Bài kiểm tra thực hành (Quốc phòng): điểm dựa vào kết quả minigame
 function practicalTestScore(subj, type, r) {
   const notes = [];
-  let s = 3 + 4.2 * r.progress + 0.3 * lv(statOfSubj(subj)) + 0.08 * thucHanh() + (r.perfect ? 0.8 : 0) + rnd(-0.3, 0.3) - 0.6 * (G.grade - 10) + LUCK.test * luckK();
+  let s = STUDY.pracBase + STUDY.pracProg * r.progress + STUDY.pracLv * lv(statOfSubj(subj)) + STUDY.pracTh * thucHanh() + (r.perfect ? 0.6 : 0) + rnd(-0.3, 0.3) - STUDY.pracGrade[clamp(G.grade - 10, 0, 2)] + LUCK.test * luckK();
   notes.push(r.win ? (r.perfect ? 'Thao tác hoàn hảo.' : 'Hoàn thành bài thực hành.') : `Chưa hoàn thành (được ${Math.round(r.progress * 100)}%).`);
   if (subj === 'qp' && !G.bag.dp_qp) { s -= 1; notes.push('Sai trang phục: −1,0'); }
   s += testPenalties(subj, type, notes) + teacherGrading(notes, subj);
@@ -4255,7 +4264,9 @@ ACT.center = async () => {
   const c = await UI.ask('Đăng ký học thêm', `<p>Học phí mỗi buổi ${fmtMoney(TUTOR.price)}. Em đăng ký môn nào?</p>`, BOOK_SUBJ.map(s => SUBJ[s].name).concat('Thôi'), { grid: true });
   if (c < 0 || c >= BOOK_SUBJ.length) return;
   const s = BOOK_SUBJ[c];
-  await activity(`Đang học thêm ${SUBJ[s].name}…`, TUTOR.mins, () => { addMoney(-TUTOR.price); useStam(TUTOR.stam); addStat(s, TUTOR.pts); });
+  await activity(`Đang học thêm ${SUBJ[s].name}…`, TUTOR.mins, () => { addMoney(-TUTOR.price); useStam(TUTOR.stam); addStat(s, TUTOR.pts); const k = semKey(G.day) || 'x', T = ((G.tutor = G.tutor || {})[k] = G.tutor[k] || {}); T[s] = (T[s] || 0) + 1; });
+  const n = ((G.tutor || {})[semKey(G.day)] || {})[s] || 0;
+  UI.toast(`Đã học thêm ${n} buổi ${SUBJ[s].name} học kỳ này: bài kiểm tra môn này +${fmtScore(Math.min(STUDY.tutorMax, STUDY.tutor * n))} điểm (tối đa +${fmtScore(STUDY.tutorMax)}).`, 'good');
 };
 // ACT.canteen: xem 04d_life.js (cửa hàng dạng icon)
 
@@ -4482,6 +4493,8 @@ const MOM_TIPS = [
   'Câu được cá ngoài sông thì mang về, mẹ nấu canh chua cho.',
   'Tan học về nhà đã rồi muốn đi chơi tiếp thì xin phép, mẹ cho ít tiền mà đi.',
   'Toán hoặc Văn phải từ 8,0 thì mới được học sinh Giỏi đó.',
+  'Chăm học trên lớp, tối nào cũng ôn bài thì học sinh Giỏi không khó đâu con.',
+  'Lên lớp 11, 12 đề khó hơn nhiều. Muốn chắc học sinh Giỏi thì đi học thêm vài buổi ở trung tâm Sao Mai.',
 ];
 const DAD_TIPS = [
   'Học thực hành cho chắc tay vào, sau này đi làm mới thấy quý.',

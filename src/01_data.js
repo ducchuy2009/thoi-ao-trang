@@ -359,6 +359,13 @@ const practicalReward = (d, win, perfect) => (win ? 3 + 3 * d + (perfect ? 2 : 0
 const COEF = { mieng: 1, p15: 1, tiet: 1, thi: 1 };   // đã bỏ hệ số nhân: điểm trung bình môn = trung bình cộng các con điểm
 const TEST_NAME = { mieng: 'Kiểm tra miệng', p15: "Kiểm tra 15'", tiet: 'Kiểm tra 1 tiết', thi: 'Thi học kỳ' };
 const TEST_DIFF = { mieng: 0.3, p15: 0, tiet: -0.3, thi: -0.5 };
+/* ---------- Cân bằng điểm học tập (đã kiểm chứng bằng mô phỏng) ----------
+ * điểm ≈ base + kLv·√(cấp môn) + kLt·√(cấp Lý thuyết TB) − gradeOff[khối] ± may rủi (+1 nếu tối trước đã ôn môn đó)
+ * Học đủ tiết (mang đủ sách) + tối nào cũng ôn 2 buổi → vừa đủ học sinh Giỏi ở lớp 10; lên lớp 11, 12 đề khó hơn (gradeOff),
+ * muốn chắc Giỏi / điểm cao phải học thêm vài buổi mỗi tuần và luyện thực hành ở phòng thí nghiệm.
+ * prac*: bài kiểm tra thực hành (Thể dục, Quốc phòng) — dựa vào kết quả mini-game + cấp môn + cấp Thực hành TB */
+const STUDY = { base: 5.3, kLv: 1.15, kLt: 0.45, comp: 0.04, gradeOff: [0, 1.25, 1.95], roll: [0.5, 0.8, 1.4], tutor: 0.2, tutorMax: 0.8, pracBase: 3.8, pracProg: 4.0, pracLv: 0.25, pracTh: 0.08, pracGrade: [0, 0.5, 0.9] };
+// học thêm: mỗi buổi học thêm một môn được cộng STUDY.tutor vào bài kiểm tra môn đó trong cùng học kỳ (tối đa STUDY.tutorMax)
 
 /* ---------- Bạn bè ---------- */
 const FRIENDS = {
