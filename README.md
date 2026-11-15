@@ -61,9 +61,13 @@ Trong `01_data.js`:
 - `CARDS`, `CARD_RARITY`, `DUEL_TIER`, `CARD_SET_REWARD` — bộ thẻ cầu thủ, tỉ lệ độ hiếm, trình của đối thủ khi đấu thẻ.
 - `DIFF_WEIGHTS`, `practicalReward()` — xác suất độ khó và điểm thưởng buổi thực hành. `PRACTICALS[*].game` — mỗi buổi thực hành dùng mini-game nào.
 - `LESSON_STAM`, `FAINT`, `INFIRM`, `NAP` — thể lực mất sau mỗi tiết; vào tiết mà thể lực ≤ `FAINT.at` thì ngất, được đưa xuống trạm y tế và nghỉ luôn buổi học. Ngủ trưa chỉ được ở phòng ngủ trưa.
-- `YARD_GAMES`, `YARD_JOIN` — các tụ chơi ngoài sân (số người, mini-game khi mình xin vào, điểm thân thiết). `SMOKE` — trốn trong buồng vệ sinh hút thuốc (hồi thể lực, nguy cơ bị giám thị bắt).
+- `YARD_GAMES`, `YARD_JOIN` — các tụ chơi ngoài sân (số người, điểm thân thiết khi vào chơi cùng). Nói chuyện với bất kỳ bạn nào trong tụ là bạn ấy rủ vào chơi; vào chơi là một hoạt cảnh chơi chung, không có mini-game. Lời thoại ở `YARD_ASK`, `YARD_LINES` (`04d_life.js`). `SMOKE` — trốn trong buồng vệ sinh hút thuốc (hồi thể lực, nguy cơ bị giám thị bắt).
 - `MUSIC` — phòng nhạc / micro ở nhà: số lần mỗi ngày, điểm Văn nghệ theo kết quả mini-game. `LIBRARY` — đọc sách ở tủ từng môn.
 - `MALL_STALLS`, `MALL_GOODS` — các gian hàng trong TTTM và hàng bán (đồ trang trí phòng `d_*`, micro, guitar, dụng cụ thể thao). `DECOR_SLEEP` — mỗi món trang trí giúp ngủ hồi thêm thể lực. `TOKENS`, `MACHINES` — giá xèng và số xèng mỗi máy.
+- `LUCK`, `LUCK_LV` — điểm may mắn: mỗi ngày quay ngẫu nhiên 0–100 (xem trên tivi, kênh “Vận may hôm nay”). May mắn cao thì bài kiểm tra được cộng thêm (tối đa `LUCK.test` điểm) và dễ “trúng tủ”; xui thì ngược lại.
+- `FESTIVALS` — lễ hội trên Lịch, dạng `{ season, day, name, desc }` (`desc` là câu bản tin đọc khi sắp tới lễ). Bản tin thời sự trên tivi tự thông báo lễ hội, ngày lễ (`HOLIDAYS`), thi học kỳ, nghỉ hè, khai giảng trong 10 ngày tới. Các tin ngẫu nhiên khác ở `NEWS_POOL`, `WEATHER` (`04d_life.js`).
+- `BED_NAP` — ban ngày nằm lên giường nào cũng chợp mắt được (giường ở nhà, giường nhà bạn, mọi chiếu trống trong phòng ngủ trưa). Tối ở nhà bạn thì ngủ lại được (chưa xin phép thì bố mẹ phiền lòng).
+- `RIDE_TILES` (`04c_social.js`) — xe chỉ chạy trên các ô nền này (lòng đường, vỉa hè) và trong sân nhà mình. Xe gửi ở nhà xe trường chỉ lấy được sau khi hết tiết (`CFG.SCHOOL_END`); đang đi chơi với bạn thì bấm vào xe để chở bạn.
 - `FRIEND_HOME_HEARTS`, `FRIEND_ROOM_HEARTS`, `PHONE_HEARTS`, `FH` — độ thân cần để vào nhà bạn, vào phòng riêng, xin số điện thoại.
 
 Trong `04_game.js`: `testScore()` là công thức làm bài kiểm tra (năng lực môn + may rủi, "trúng tủ", "học tài thi phận").
@@ -75,4 +79,4 @@ Trong `04c_social.js`: `LINKS` là ranh giới giữa các khu (đi tới đâu,
 
 ## Điều khiển
 
-`W` `A` `S` `D` di chuyển · chuột phải (hoặc `E`) tương tác · `Q` quay sang bạn trong giờ học · `X` xuống xe · `B` túi đồ · `Esc` / `M` menu (`C` chỉ số · `F` bạn bè · `T` thời khoá biểu · `G` học bạ · `L` lịch · `K` thẻ) · `P` điện thoại. Thanh đồ ở cạnh dưới cho biết đang mang gì; bấm vào đồ ăn để ăn. Game tự lưu mỗi khi đi ngủ.
+`W` `A` `S` `D` di chuyển · chuột phải (hoặc `E`) tương tác · `Q` quay sang bạn trong giờ học · `X` xuống xe (phím đọc theo vị trí nên bật bộ gõ tiếng Việt vẫn dùng được) · `B` túi đồ · `Esc` / `M` menu (`C` chỉ số · `F` bạn bè · `T` thời khoá biểu · `G` học bạ · `L` lịch · `K` thẻ) · `P` điện thoại. Thanh đồ ở cạnh dưới cho biết đang mang gì; bấm vào đồ ăn để ăn. Game tự lưu mỗi khi đi ngủ.

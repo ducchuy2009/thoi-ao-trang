@@ -250,14 +250,19 @@ function askOuting(name) {
   UI.say(name, `“Đi thì được, nhưng tuần này ${lc} cho tiền đi chơi ${OUTING.perWeek} lần rồi. Lấy tiền tiêu vặt mà tiêu nhé.”`);
 }
 function dadWatching() { const f = FAM.dad; return !!G && f.goal === 'sofaL' && !f.legs.length && !f.hidden && G.time >= 1200; }
-function tvLabel() { return dadWatching() && !G.daily.football ? 'Tivi — xem bóng đá cùng bố' : 'Tivi'; }
+function tvLabel() { return dadWatching() && !G.daily.football ? 'Tivi — xem bóng đá cùng bố' : 'Tivi — bản tin, vận may hôm nay'; }
 async function watchFootball() {
   await activity('Đang xem bóng đá cùng bố…', 30, () => { G.daily.football = true; G.daily.tv = true; gainStam(6); addParent(PARENT.football, 'xem bóng đá cùng bố'); });
 }
+// Tivi: bản tin thời sự hằng ngày, chương trình vận may (xem điểm may mắn hôm nay); tối có bố thì xem bóng đá cùng bố
 ACT.tv = async () => {
-  if (dadWatching() && !G.daily.football) return watchFootball();
-  if (G.daily.tv) return UI.toast('Hôm nay xem tivi đủ rồi.');
-  await activity('Đang xem tivi…', 30, () => { G.daily.tv = true; gainStam(6); });
+  if (RT.lock) return;
+  const opts = ['Bản tin thời sự hôm nay', 'Vận may hôm nay'], ids = ['news', 'luck'];
+  if (dadWatching() && !G.daily.football) { opts.unshift('Xem bóng đá cùng bố'); ids.unshift('ball'); }
+  opts.push('Thôi'); ids.push('x');
+  const c = ids[await UI.ask('Tivi', '<p>Bật kênh nào đây?</p>', opts)] || 'x';
+  if (c === 'ball') return watchFootball();
+  if (c === 'news' || c === 'luck') return tvWatch(c);
 };
 // Về nhà sau 20:00 mà trước đó chưa ghé nhà, cũng chưa xin phép: bố mẹ phiền lòng.
 // Đã về nhà trước 20:00 rồi mới đi chơi tiếp thì KHÔNG bị mắng.

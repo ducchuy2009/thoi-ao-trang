@@ -291,6 +291,27 @@ body.cut #hotbar{opacity:0;pointer-events:none}
 .tinfo img{width:36px;height:36px;image-rendering:pixelated;flex:none}
 .tinfo span{flex:1;min-width:0;display:flex;flex-direction:column}
 .tinfo small{color:#6b6170;font-size:12px}
+#hint.btnlike{cursor:pointer}
+.tinfo span.gains{display:flex;flex-direction:row;flex-wrap:wrap;gap:4px;margin-top:4px;flex:none}
+.gains i{font-style:normal;font-size:12px;font-weight:800;padding:1px 8px;border-radius:999px;background:#e9e2d2;color:#5b5163}
+.gains i.up{background:#d8f2c9;color:#2f7d5b}
+/* ---------- tivi ---------- */
+.tv{background:#2a2136;border-radius:16px;padding:10px;box-shadow:inset 0 0 0 3px #4a3f6b}
+.tv-scr{background:linear-gradient(#24406b,#16243f);border-radius:8px;color:#fff6e3;overflow:hidden}
+.tv-scr.luck{background:linear-gradient(#5a2d6b,#22163d)}
+.tv-top{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 12px;background:#d9534f;font-size:13px;letter-spacing:.5px}
+.tv-scr.luck .tv-top{background:#f2a93b;color:#2a2136}
+.tv-top span{font-size:12px;font-weight:700;opacity:.9}
+.tv-body{display:flex;gap:12px;padding:10px 12px;align-items:flex-start}
+.tv-body img{width:60px;height:60px;image-rendering:pixelated;background:#fff6e3;border-radius:8px;flex:none}
+.tv-body p{margin:0 0 7px;font-size:14px;line-height:1.4}
+.tv-body .tag{font-style:normal;display:inline-block;font-size:10px;font-weight:800;padding:0 6px;margin-right:6px;border-radius:4px;background:#ffe066;color:#2a2136;vertical-align:1px}
+.lk-stars{font-size:28px;color:#ffe066;letter-spacing:3px;line-height:1}
+.lk-stars i{font-style:normal;color:#6a5a86}
+.lk-name{font-size:15px}
+.tv-dim{opacity:.75;font-size:13px!important}
+.tv-tick{background:#15121f;color:#ffe066;font-size:12px;padding:4px 10px}
+@media (max-width:720px){.tv-body img{width:44px;height:44px}}
 
 </style>
 </head>
@@ -718,6 +739,17 @@ const BREAK_FUN_MIN_HEARTS = 1, BREAK_FUN_PER_DAY = 2, BREAK_FUN_MINS = 10;
 const LUNCH_EVENT_TIME = 660, LUNCH_EVENT_CHANCE = 0.55, CLASS_EVENT_CHANCE = 0.26;
 const LIBRARY = { mins: 30, pts: 3, stam: 3, perDay: 2 };
 const NAP = { mins: 40, stam: 18 };
+const BED_NAP = { mins: 30, stam: 12, perDay: 2 };       // ban ngày nằm lên giường nào cũng chợp mắt được
+/* ---------- Điểm may mắn: mỗi ngày quay ngẫu nhiên 0–100, xem trên tivi (kênh “Vận may hôm nay”) ---------- */
+// test: điểm cộng/trừ tối đa vào bài kiểm tra (may 100 → +test, xui 0 → −test) · tu: may thì dễ “trúng tủ”, xui thì dễ “học tài thi phận”
+const LUCK = { test: 0.8, tu: 0.7 };
+const LUCK_LV = [   // [ngưỡng dưới, tên, lời khuyên]
+  [0, 'Rất xui', 'Hôm nay sao xấu chiếu mệnh. Làm bài kiểm tra dễ gặp cảnh “học tài thi phận” — ôn bài thật kỹ vào nhé!'],
+  [20, 'Hơi xui', 'Vận hơi kém một chút. Cẩn thận khi làm bài, đọc kỹ đề trước khi trả lời.'],
+  [40, 'Bình thường', 'Một ngày bình thường. Học được bao nhiêu thì điểm phản ánh bấy nhiêu.'],
+  [60, 'May mắn', 'Hôm nay khá may! Làm bài kiểm tra dễ được điểm cao hơn mọi ngày.'],
+  [80, 'Đại cát', 'Ngày cực kỳ may mắn! Đề dễ “trúng tủ”, điểm kiểm tra cao hơn hẳn. Tranh thủ xung phong lên bảng đi!'],
+];
 
 /* ---------- Địa điểm vui chơi ---------- */
 // x, y: chỗ bạn bè đứng đợi khi đã hẹn · open: giờ mở cửa (phút)
@@ -1522,6 +1554,7 @@ function buildSprites2() {
     for (let j = 0; j < 3; j++) { R(x, '#5b3d27', 2, 11 + j * 9, 22, 7); for (let i = 0; i < 7; i++) R(x, i % 3 === 0 ? col : ['#fffaf0', shade(col, -25), '#e3ddd0'][(i + j) % 3], 3 + i * 3, 12 + j * 9 + ((i + j) % 2), 2, 6 - ((i + j) % 2)); }
   });
   for (const s of BOOK_SUBJ) bshelf('bs_' + s, SUBJ[s].color);
+  def('shelfsign', 26, 9, x => { R(x, '#2a2136', 0, 0, 26, 9); R(x, '#fffaf0', 1, 1, 24, 7); R(x, '#e3ddd0', 1, 7, 24, 1); }, true);   // biển tên môn trên đầu tủ sách
   def('napmat', 30, 18, x => { R(x, '#e6d096', 0, 0, 30, 18); R(x, '#c9b170', 0, 16, 30, 2); for (let i = 0; i < 30; i += 4) R(x, '#d9c27f', i, 0, 1, 16); R(x, '#fffaf0', 2, 3, 8, 11); R(x, '#e3ddd0', 2, 12, 8, 2); });
   def('sleeper', 30, 18, x => { x.drawImage(SPR.napmat, -1, -1); R(x, '#f8d0a8', 3, 5, 7, 7); R(x, '#2c2733', 2, 4, 5, 8); R(x, '#8fb0d8', 10, 3, 18, 12); R(x, '#6f8fb8', 10, 13, 18, 2); R(x, '#2a2136', 8, 8, 1, 1); });
   def('medbed', 34, 22, x => { R(x, '#c9ccd4', 0, 4, 34, 18); R(x, '#fbfdff', 1, 5, 32, 14); R(x, '#ffffff', 2, 6, 9, 11); R(x, '#9fd6c4', 12, 6, 20, 12); R(x, '#7fbfa9', 12, 16, 20, 2); R(x, '#8b8f9c', 0, 0, 2, 22); R(x, '#8b8f9c', 32, 2, 2, 20); });
@@ -1651,12 +1684,13 @@ function cardPortrait(c) {
 const MAPS = {};
 const NPCS = [];
 function mapNew(id, name, w, h, indoor) {
-  const m = { id, name, w, h, pw: w * 16, ph: h * 16, indoor, solid: new Uint8Array(w * h), g: mk(w * 16, h * 16), objs: [], warps: [], zones: [], labels: [], solids: [] };
+  const m = { id, name, w, h, pw: w * 16, ph: h * 16, indoor, solid: new Uint8Array(w * h), tile: new Array(w * h), g: mk(w * 16, h * 16), objs: [], warps: [], zones: [], labels: [], solids: [] };
   m.x = cx(m.g); MAPS[id] = m; return m;
 }
 function paint(m, kind, tx, ty, tw, th, solid) {
   for (let j = 0; j < th; j++) for (let i = 0; i < tw; i++) {
     GROUND[kind](m.x, (tx + i) * 16, (ty + j) * 16, tx + i, ty + j);
+    m.tile[(ty + j) * m.w + tx + i] = kind;
     if (solid !== undefined) m.solid[(ty + j) * m.w + tx + i] = solid ? 1 : 0;
   }
 }
@@ -2165,7 +2199,11 @@ function buildRooms() {
   sch.warps.push({ x: 342, y: 102, w: 20, h: 12, dir: 3, to: { map: 'thuvien', x: 289, y: 204, dir: 3 } });
   // thêm học sinh ra sân cho đông vui + cho mọi học sinh ngoài sân nhập vào các tụ chơi
   for (const [id, a, b] of [['x1', 150, 240], ['x2', 420, 300], ['x3', 260, 200], ['x4', 340, 330]]) NPCS.push({ id: 'y_' + id, sid: id, name: 'Bạn lớp bên', look: id, map: 'school', x: a, y: b, dir: 0, wander: 30, vis: () => yardTime() && !!yardPos(id), label: () => 'Bạn lớp bên', act: () => ACT.mate(id) });
-  for (const n of NPCS) if (n.id.startsWith('y_')) n.pos = () => yardPos(n.sid);
+  // học sinh ngoài sân: đứng theo tụ chơi; nói chuyện với bạn nào thì bạn đó hỏi có vào chơi cùng không
+  for (const n of NPCS) if (n.id.startsWith('y_')) {
+    n.pos = () => yardPos(n.sid); n.act0 = n.act; n.act = () => ACT.yardTalk(n);
+    n.label = () => { const st = yardState(), w = st && st.where[n.sid]; return w ? `${n.name} — đang ${yardVerb(w[0].kind)}` : n.name; };
+  }
 
   /* ---------- TRẠM Y TẾ ---------- */
   let m = roomBase('yte', 'Trạm y tế', '#eef6f3', '#9fd6c4', 'ltile');
@@ -2193,7 +2231,11 @@ function buildRooms() {
 
   /* ---------- THƯ VIỆN: mỗi môn một tủ sách ---------- */
   m = roomBase('thuvien', 'Thư viện', '#efe6d2', '#c9a467', 'wood');
-  BOOK_SUBJ.forEach((s, i) => addObj(m, { s: 'bs_' + s, x: 22 + i * 34, y: 2, sol: [1, 10, 26, 28], label: () => `Tủ sách ${SUBJ[s].name} — đọc sách`, act: () => ACT.readBook(s) }));
+  BOOK_SUBJ.forEach((s, i) => {
+    addObj(m, { s: 'bs_' + s, x: 22 + i * 34, y: 2, sol: [1, 10, 26, 28], label: () => `Tủ sách ${SUBJ[s].name} — đọc sách`, act: () => ACT.readBook(s) });
+    addObj(m, { s: 'shelfsign', x: 22 + i * 34, y: 0, base: 60 });                     // biển danh mục trên đầu tủ
+    m.labels.push({ x: 35 + i * 34, y: 4.6, text: SUBJ[s].short.toUpperCase(), size: 4.4, col: '#2a2136', maxw: 22 });
+  });
   for (const a of [44, 150]) { addObj(m, { s: 'table', x: a, y: 104, sol: [1, 2, 44, 26] }); addObj(m, { s: 'stool', x: a - 12, y: 114 }); addObj(m, { s: 'stool', x: a + 48, y: 114 }); }
   addObj(m, { s: 'tdesk', x: 236, y: 120, sol: [1, 2, 32, 19] }); addObj(m, { s: 'plant', x: 20, y: 180, sol: [2, 14, 12, 9] });
   NPCS.push({ id: 'thuthu', name: 'Cô thủ thư', look: 'teacherB', map: 'thuvien', x: 252, y: 154, dir: 0, label: () => 'Cô thủ thư', act: () => UI.say('Thư viện', '“Sách xếp theo từng môn trên các tủ sát tường. Em tới tủ nào thì đọc sách môn đó. Giữ trật tự nhé.”') });
@@ -2204,8 +2246,9 @@ function buildRooms() {
   drawWin(m.x, 60, 9, 22, 13); drawWin(m.x, 220, 9, 22, 13);
   for (let r = 0; r < 2; r++) for (let i = 0; i < 5; i++) {
     const a = 26 + i * 52, b = 52 + r * 62, mine = r === 1 && i === 2;
-    addObj(m, { s: 'napmat', x: a, y: b, flat: true, ir: mine ? [-4, -6, 40, 32] : undefined, label: mine ? () => 'Chiếu của bạn — ngủ trưa' : null, act: mine ? () => ACT.nap() : null });
-    if (!mine) addObj(m, { s: 'sleeper', x: a, y: b, sol: [1, 2, 30, 16], vis: () => napTime() && (i * 7 + r * 3 + G.day) % 5 < 3 });
+    const busy = () => !mine && napTime() && (i * 7 + r * 3 + G.day) % 5 < 3;           // chiếu đã có bạn nằm
+    addObj(m, { s: 'napmat', x: a, y: b, flat: true, ir: [-4, -6, 40, 32], label: () => (busy() ? 'Có bạn đang ngủ ở chiếu này' : 'Chiếu trống — ngủ trưa'), act: () => (busy() ? UI.toast('Có bạn đang ngủ rồi, tìm chiếu khác nhé.') : ACT.nap(a, b)) });
+    if (!mine) addObj(m, { s: 'sleeper', x: a, y: b, sol: [1, 2, 30, 16], vis: busy });
   }
   roomExit(m, { map: 'school', x: 430, y: 116, dir: 0 });
 
@@ -2249,7 +2292,7 @@ function buildRooms() {
   drawWin(m.x, 60, 9, 22, 13); drawWin(m.x, 240, 9, 20, 13);
   addObj(m, { s: 'rug', x: 70, y: 96, flat: true }); addObj(m, { s: 'tvcab', x: 78, y: 19, sol: [1, 12, 38, 17], label: () => 'Tivi — xem cùng bạn', act: () => ACT.fh('tv') });
   addObj(m, { s: 'sofa', x: 74, y: 140, sol: [1, 6, 46, 15] }); addObj(m, { s: 'plant', x: 22, y: 20, sol: [2, 14, 12, 9] }); addObj(m, { s: 'table', x: 24, y: 150, sol: [1, 2, 44, 26] });
-  addObj(m, { s: 'bed', x: 196, y: 24, sol: [1, 4, 32, 42] }); addObj(m, { s: 'desk', x: 262, y: 24, sol: [1, 2, 34, 25] }); addObj(m, { s: 'rugBlue', x: 220, y: 120, flat: true });
+  addObj(m, { s: 'bed', x: 196, y: 24, sol: [1, 4, 32, 42], label: () => `Giường của ${FRIENDS[G.visit].name} — nằm nghỉ`, act: () => ACT.fhBed() }); addObj(m, { s: 'desk', x: 262, y: 24, sol: [1, 2, 34, 25] }); addObj(m, { s: 'rugBlue', x: 220, y: 120, flat: true });
   addObj(m, { s: 'gameconsole', x: 232, y: 160, sol: [1, 8, 22, 10], label: () => 'Máy chơi game — chơi điện tử cùng bạn', act: () => ACT.fh('game') });
   addObj(m, { s: 'poster', x: 234, y: 8, base: 0 });
   // cửa phòng riêng: chưa đủ thân thì bị chặn lại
@@ -2362,7 +2405,7 @@ const grudge = fid => (G.grudge[fid] === undefined ? -1 : G.grudge[fid]) >= G.da
 const sceneHides = sid => !!(RT.scene && RT.scene.hide && RT.scene.hide.includes(sid));
 // "Đã về nhà" (ngày đi học): có mặt ở nhà trong khoảng tan học → 20:00. Sau đó có ra ngoài chơi tiếp thì bố mẹ không mắng.
 function checkIn() { if (schoolToday() && G.time >= CFG.SCHOOL_END && G.time < CFG.LATE_HOME && atHome()) G.daily.checkedIn = true; }
-function yardTime() { return schoolToday() && !RT.scene && YARD_WINDOWS.some(([a, b]) => inWin(G.time, a, b)); }
+function yardTime() { return schoolToday() && (!RT.scene || !!RT.scene.yard) && YARD_WINDOWS.some(([a, b]) => inWin(G.time, a, b)); }
 function classSeated() { const t = G.time; return (RT.scene && RT.scene.type === 'class') || (schoolToday() && (inWin(t, 420, AM_END) || inWin(t, PM_START - 20, CFG.SCHOOL_END))); }
 function teacherIn() { const t = G.time; if (RT.scene) return false; return (schoolToday() && (inWin(t, 460, AM_END) || inWin(t, PM_START - 20, CFG.SCHOOL_END))); }
 function parkTime() { const t = G.time; return schoolToday() ? inWin(t, AFTER_SCHOOL, 1210) : inWin(t, 480, 1090); }
@@ -2465,6 +2508,9 @@ async function activity(label, mins, fn) {
 }
 
 /* ---------- ngày mới / đi ngủ ---------- */
+const rollLuck = () => Math.round((Math.random() + Math.random()) * 50);       // 0–100, hay rơi vào khoảng giữa
+const luckK = () => clamp(((G.daily.luck === undefined ? 50 : G.daily.luck) - 50) / 50, -1, 1);   // −1 (rất xui) … +1 (rất may)
+const luckLv = () => { const v = G.daily.luck === undefined ? 50 : G.daily.luck; let k = 0; LUCK_LV.forEach((l, i) => { if (v >= l[0]) k = i; }); return k; };
 function resetDaily() {
   G.daily = {
     chores: {}, meals: {}, lunchbox: false, exercise: 0, done: {}, missed: 0, penalty: 0, late: false, arrived: false,
@@ -2475,7 +2521,8 @@ function resetDaily() {
     brk: {}, duel: {}, msg: {}, ask: {}, ru: {}, gift: {}, hill: {},          // giải lao, đấu thẻ, nhắn tin, rủ rê, quà, núi
     lib: 0, nap: false, lunchEv: false, tipVy: false, book: false,
     bday: {}, fishMom: false, shells: 0, beach: {}, soc: {}, skips: 0,
-    yard: {}, fh: {}, rest: 0, music: 0, smoke: 0, wash: false, fainted: false,   // tụ chơi, nhà bạn, trạm y tế, phòng nhạc…
+    yard: {}, fh: {}, rest: 0, music: 0, smoke: 0, wash: false, fainted: false,
+    luck: rollLuck(), tvSeen: {}, luckSeen: false, bedNap: 0,                   // điểm may mắn hôm nay (xem trên tivi)   // tụ chơi, nhà bạn, trạm y tế, phòng nhạc…
   };
 }
 function beginDay(first) {
@@ -2520,11 +2567,11 @@ function endDay() {
   G.day++;
   return reports;
 }
-async function goSleep(forced) {
+async function goSleep(forced, note) {
   RT.lock = true;
   await UI.fade(true);
   const hours = (CFG.DAY_START + 1440 - G.time) / 60, mx = maxStam();
-  RT.morning = [];
+  RT.morning = []; if (note) RT.morning.push(note);
   if (forced && G.map !== 'home') { addParent(PARENT.notHome, '', true); RT.morning.push('Cả đêm bạn không về nhà — bố mẹ rất lo và giận.'); }
   const reports = endDay();
   G.stamina = forced ? Math.round(mx * 0.5) : Math.min(mx, Math.round(G.stamina + mx * Math.min(1, hours / 7)));
@@ -2620,9 +2667,12 @@ function testScore(subj, type, o) {
   let roll = rnd(-1, 1);
   if (Math.random() < Math.min(0.85, 0.1 + comp * 0.12)) roll = Math.max(roll, rnd(-1, 1));
   s += roll * [0.5, 0.9, 1.6][style];
+  const L = luckK(), lp = Math.round(LUCK.test * L * 4) / 4;            // điểm may mắn hôm nay
+  s += LUCK.test * L;
+  if (G.daily.luckSeen && lp) notes.push(lp > 0 ? `Ngày may mắn: +${fmtScore(lp)}` : `Ngày xui xẻo: −${fmtScore(-lp)}`);
   const lk = Math.random(), k = [0.5, 1, 2][style];
-  if (lk < 0.06 * k) { const d = Math.round(rnd(1.5, 2.5) * 4) / 4; s -= d; notes.push(`Học tài thi phận — đề rơi đúng phần chưa ôn: −${fmtScore(d)}`); }
-  else if (lk > 1 - (0.05 + comp * 0.01) * k) { const d = Math.round(rnd(1, 1.75) * 4) / 4; s += d; notes.push(`Trúng tủ: +${fmtScore(d)}`); }
+  if (lk < 0.06 * k * (1 - LUCK.tu * L)) { const d = Math.round(rnd(1.5, 2.5) * 4) / 4; s -= d; notes.push(`Học tài thi phận — đề rơi đúng phần chưa ôn: −${fmtScore(d)}`); }
+  else if (lk > 1 - (0.05 + comp * 0.01) * k * (1 + LUCK.tu * L)) { const d = Math.round(rnd(1, 1.75) * 4) / 4; s += d; notes.push(`Trúng tủ: +${fmtScore(d)}`); }
   if (G.review[subj] !== undefined && G.review[subj] >= G.day) { s += 1; notes.push('Đã ôn bài: +1,0'); delete G.review[subj]; }
   if (BOOK_SUBJ.includes(subj) && !G.bag.hopbut && type !== 'mieng') { s -= 1; notes.push('Quên hộp bút: −1,0'); }
   if (o.bonus) { s += o.bonus; notes.push('Xung phong: +' + fmtScore(o.bonus)); }
@@ -2655,7 +2705,7 @@ function cheatTest(subj, type, L) {
 // Bài kiểm tra thực hành (Quốc phòng): điểm dựa vào kết quả minigame
 function practicalTestScore(subj, type, r) {
   const notes = [];
-  let s = 3 + 4.2 * r.progress + 0.3 * lv(statOfSubj(subj)) + 0.08 * thucHanh() + (r.perfect ? 0.8 : 0) + rnd(-0.3, 0.3) - 0.6 * (G.grade - 10);
+  let s = 3 + 4.2 * r.progress + 0.3 * lv(statOfSubj(subj)) + 0.08 * thucHanh() + (r.perfect ? 0.8 : 0) + rnd(-0.3, 0.3) - 0.6 * (G.grade - 10) + LUCK.test * luckK();
   notes.push(r.win ? (r.perfect ? 'Thao tác hoàn hảo.' : 'Hoàn thành bài thực hành.') : `Chưa hoàn thành (được ${Math.round(r.progress * 100)}%).`);
   if (subj === 'qp' && !G.bag.dp_qp) { s -= 1; notes.push('Sai trang phục: −1,0'); }
   s += testPenalties(subj, type, notes) + teacherGrading(notes, subj);
@@ -2997,7 +3047,7 @@ ACT.desk = async () => {
   if (c === 0) UI.pack(); else if (c === 1) studyMenu(SELF_STUDY.mins, SELF_STUDY.pts, SELF_STUDY.stam, true); else if (c === 2) UI.timetable(); else if (c === 3) UI.calendar();
 };
 ACT.bed = async () => {
-  if (G.time < CFG.SLEEP_FROM) return UI.say('Giường', `Trời còn sáng, chưa ngủ được.<p class="dim">Có thể đi ngủ từ ${fmtTime(CFG.SLEEP_FROM)}. Muộn nhất 03:00 sáng bạn sẽ tự ngủ gục.</p>`);
+  if (G.time < CFG.SLEEP_FROM && G.time >= CFG.DAY_START) return bedNap('Giường', 17, 24);       // ban ngày: chợp mắt một lát
   const c = await UI.ask('Đi ngủ?', `<p>Ngủ đến 05:00 sáng mai. Ngủ đủ 7 tiếng sẽ hồi đầy thể lực.</p><p class="dim">Game tự lưu mỗi khi bạn đi ngủ.</p>`, ['Đi ngủ', 'Chưa']);
   if (c === 0) goSleep(false);
 };
@@ -3347,14 +3397,19 @@ function askOuting(name) {
   UI.say(name, `“Đi thì được, nhưng tuần này ${lc} cho tiền đi chơi ${OUTING.perWeek} lần rồi. Lấy tiền tiêu vặt mà tiêu nhé.”`);
 }
 function dadWatching() { const f = FAM.dad; return !!G && f.goal === 'sofaL' && !f.legs.length && !f.hidden && G.time >= 1200; }
-function tvLabel() { return dadWatching() && !G.daily.football ? 'Tivi — xem bóng đá cùng bố' : 'Tivi'; }
+function tvLabel() { return dadWatching() && !G.daily.football ? 'Tivi — xem bóng đá cùng bố' : 'Tivi — bản tin, vận may hôm nay'; }
 async function watchFootball() {
   await activity('Đang xem bóng đá cùng bố…', 30, () => { G.daily.football = true; G.daily.tv = true; gainStam(6); addParent(PARENT.football, 'xem bóng đá cùng bố'); });
 }
+// Tivi: bản tin thời sự hằng ngày, chương trình vận may (xem điểm may mắn hôm nay); tối có bố thì xem bóng đá cùng bố
 ACT.tv = async () => {
-  if (dadWatching() && !G.daily.football) return watchFootball();
-  if (G.daily.tv) return UI.toast('Hôm nay xem tivi đủ rồi.');
-  await activity('Đang xem tivi…', 30, () => { G.daily.tv = true; gainStam(6); });
+  if (RT.lock) return;
+  const opts = ['Bản tin thời sự hôm nay', 'Vận may hôm nay'], ids = ['news', 'luck'];
+  if (dadWatching() && !G.daily.football) { opts.unshift('Xem bóng đá cùng bố'); ids.unshift('ball'); }
+  opts.push('Thôi'); ids.push('x');
+  const c = ids[await UI.ask('Tivi', '<p>Bật kênh nào đây?</p>', opts)] || 'x';
+  if (c === 'ball') return watchFootball();
+  if (c === 'news' || c === 'luck') return tvWatch(c);
 };
 // Về nhà sau 20:00 mà trước đó chưa ghé nhà, cũng chưa xin phép: bố mẹ phiền lòng.
 // Đã về nhà trước 20:00 rồi mới đi chơi tiếp thì KHÔNG bị mắng.
@@ -3642,17 +3697,33 @@ ACT.go = (from, to) => {
   const L = LINKS[from + '>' + to];
   if (L.hours && !inWin(G.time, L.hours[0], L.hours[1])) return UI.say('Đường lên núi', `Trời tối rồi, đường núi nguy hiểm lắm.<p class="dim">Chỉ lên núi được từ ${fmtTime(L.hours[0])} đến ${fmtTime(L.hours[1])}.</p>`);
   if (L.foot && G.ride) dismount(true);
-  goPlace(L.at[0], L.at[1], L.at[2], L.at[3], G.ride ? 0 : L.hop, L.label);
+  goPlace(L.at[0], L.at[1], L.at[2], L.at[3], G.ride ? 0 : L.hop, L.label).then(() => {
+    if (G.ride && !rideOk(MAPS[G.map], G.x, G.y)) { dismount(true); UI.toast('Chỗ này không có đường cho xe chạy — dựng xe lại đây.', 'info'); }
+  });
 };
 
 /* ---------- xe đạp / xe đạp điện / xe máy: bấm vào xe để lên, X để xuống ---------- */
 const vehAtHome = id => !!G && !!G.owned[VEHICLES[id].own] && G.ride !== id && !(G.park && G.park.id === id);
-ACT.mount = id => {
+// Xe chỉ chạy trên đường (lòng đường, vỉa hè) và trong sân nhà mình
+const RIDE_TILES = ['road', 'walk'];
+function rideOk(m, x, y) {
+  if (!m.tile || m.indoor) return !m.indoor;
+  if (m.id === 'town' && x < 272 && y < 160) return true;          // sân nhà mình: dắt xe ra cổng
+  if (m.id === 'school' && x >= GATE.x && x < GATE.x + GATE.w && y >= 368 && y < 400) return true;   // chạy tới cổng trường để gửi xe
+  return RIDE_TILES.includes(m.tile[(y >> 4) * m.w + (x >> 4)]);
+}
+ACT.mount = async id => {
   if (RT.lock) return;
   if (G.park && G.park.id !== id) return UI.toast(`Bạn đang để ${VEHICLES[G.park.id].name.toLowerCase()} ở chỗ khác. Mang xe đó về đã.`);
+  const V = VEHICLES[id];
+  if (G.comp) {          // đang đi chơi với bạn: chở bạn ngồi sau
+    const fid = G.comp.fid, F = FRIENDS[fid];
+    const c = await UI.ask(F.name, `<p>“${V.name} của cậu hả? Cho tớ ngồi sau với!”</p>`, [`Lên xe, chở ${F.name} đi cùng`, 'Thôi, đi bộ cùng nhau'], { who: { look: fid, outfit: friendOutfit(fid) } });
+    if (c !== 0) return;
+  }
   if (G.ride) dismount(true);
   G.ride = id; G.park = null;
-  UI.toast(`Lên ${VEHICLES[id].name.toLowerCase()}. Bấm X để xuống xe.`, 'good'); UI.hud();
+  UI.toast(G.comp ? `Chở ${FRIENDS[G.comp.fid].name} trên ${V.name.toLowerCase()}. Chỉ chạy xe trên đường · bấm X để xuống xe.` : `Lên ${V.name.toLowerCase()}. Chỉ chạy xe trên đường · bấm X để xuống xe.`, 'good'); UI.hud();
 };
 function dismount(quiet) {
   if (!G.ride) return;
@@ -3663,9 +3734,18 @@ function dismount(quiet) {
   UI.hud();
 }
 const shedLabel = () => (G && G.park && G.park.shed ? `Nhà xe — lấy ${VEHICLES[G.park.id].name.toLowerCase()}` : 'Nhà xe học sinh');
-ACT.shed = () => {
+// Xe gửi ở nhà xe trường: chỉ lấy được khi đã hết mọi tiết học (hoặc được cho về vì ngất); lấy xe thì dắt ra cổng rồi mới lên xe
+const classesOver = () => !schoolToday() || G.time >= CFG.SCHOOL_END || !!G.daily.fainted;
+ACT.shed = async () => {
+  if (RT.lock) return;
   if (!G.park || !G.park.shed) return UI.toast('Nhà xe học sinh. Đi xe đến trường thì xe gửi ở đây.');
-  G.ride = G.park.id; G.park = null; UI.toast(`Lấy ${VEHICLES[G.ride].name.toLowerCase()} ra khỏi nhà xe. Bấm X để xuống xe.`, 'good'); UI.hud();
+  const V = VEHICLES[G.park.id];
+  if (!classesOver()) return UI.ask('Bác bảo vệ', `<p>“Chưa tan học đâu cháu. Học hết các tiết (${fmtTime(CFG.SCHOOL_END)}) rồi hẵng ra lấy xe.”</p>`, ['Dạ'], { who: { look: 'guard' } });
+  RT.lock = true; await UI.fade(true);
+  G.ride = G.park.id; G.park = null; G.atSchool = false;
+  setMap('school', GATE.x + GATE.w / 2, GATE.yOut + 8, 0);
+  await UI.fade(false); RT.lock = false;
+  UI.toast(`Dắt ${V.name.toLowerCase()} ra khỏi cổng trường. Chỉ chạy xe trên đường · bấm X để xuống xe.`, 'good'); UI.hud();
 };
 
 /* ---------- hoạt cảnh đi xe: xe bus · bố mẹ chở · tàu hoả ---------- */
@@ -4533,10 +4613,10 @@ const YARD_KIDS = ['khoa', 'vy', 'dat', 'ngan', 'm1', 'm3', 'm4', 'm5', 'x1', 'x
 // chỗ đặt từng tụ: [x, y] tâm
 const YARD_SPOT = { chat: [250, 256], chat2: [168, 326], danhbai: [200, 206], conquay: [384, 216], dacau: [302, 236], duoibat: [352, 300], rongran: [232, 316], dabong: [584, 250], trontim: [448, 304], eat: [150, 192], eat2: [80, 116] };
 const HIDE_SPOTS = [[448, 174], [110, 284], [70, 203], [110, 174], [44, 240]];          // núp sau gốc cây, bụi rậm
-const EAT_SEATS = { eat: [[124, 187], [176, 187]], eat2: [[62, 112], [84, 113]] };          // hai bên ghế đá · trước quầy căn tin
+const EAT_SEATS = { eat: [[124, 187], [176, 187], [150, 199]], eat2: [[62, 112], [84, 113], [106, 112]] };          // hai bên ghế đá · trước quầy căn tin
 let YS = null;
 function yardState() {
-  if (!G || !schoolToday() || RT.scene) return null;
+  if (!G || !schoolToday() || (RT.scene && !RT.scene.yard)) return null;
   const wi = YARD_WINDOWS.findIndex(([a, b]) => inWin(G.time, a, b)); if (wi < 0) return null;
   const key = G.day * 10 + wi; if (YS && YS.key === key) return YS;
   const rnd01 = mulberry(key * 7919 + 13), sh = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd01() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -4603,38 +4683,100 @@ function drawYardProps(now) {
     else if (g.kind === 'trontim') { const c5 = 5 - Math.floor(t % 5); wRect('#2a2136', x - 3, y - 36, 7, 9); wRect('#fff6e3', x - 2, y - 35, 5, 7); for (let d = 0; d < c5; d++) wRect('#d9534f', x - 1 + (d % 2) * 2, y - 34 + Math.floor(d / 2) * 2, 1, 1); }
   }
 }
-// Điểm tương tác ở giữa mỗi tụ: bấm để xin vào chơi
-function yardTargets(a) {
-  if (G.map !== 'school') return;
-  const st = yardState(); if (!st) return;
-  for (const g of st.groups) {
-    const [x, y] = g.c, Y = YARD_GAMES[g.kind];
-    a.push({ x: x - 8, y: y - 8, w: 16, h: 14, rx: x - 5, ry: y - 4, rw: 10, rh: 6, base: y - 30, label: () => `Tụ ${Y.name} — xin vào chơi cùng`, act: () => ACT.yardJoin(g), range: 30 });
-  }
-}
 const kidName = k => (FRIENDS[k] ? FRIENDS[k].name : null);
-ACT.yardJoin = async g => {
+const yardVerb = kind => (['rongran', 'trontim', 'duoibat'].includes(kind) ? 'chơi ' : '') + YARD_GAMES[kind].name;
+const kidNpc = k => NPCS.find(n => n.id === 'y_' + k);
+// Câu mời khi mình lại gần một bạn trong tụ
+const YARD_ASK = {
+  chat: 'Ê, lại đây tám chung nè! Đang kể chuyện vui lắm.', eat: 'Ngồi xuống ăn trưa chung với bọn tớ không?',
+  danhbai: 'Thiếu một tay, vào đánh tiến lên không?', conquay: 'Có con quay không? Vào chọi với bọn tớ đi!',
+  rongran: 'Vào chơi rồng rắn lên mây không? Đang thiếu khúc đuôi nè!', trontim: 'Chơi trốn tìm không? Ván sau vào luôn nha!',
+  duoibat: 'Vào chơi đuổi bắt không? Chạy vui lắm!', dabong: 'Vào đá bóng không? Đội tớ đang thiếu người!', dacau: 'Vào đá cầu không? Đứng thành vòng tròn nè!',
+};
+// Hoạt cảnh khi vào chơi: t = bạn mình vừa nói chuyện, o = một bạn khác trong tụ, me = mình
+const YARD_LINES = {
+  chat: [['t', 'Hôm qua cậu xem tập phim mới chưa? Gay cấn lắm!'], ['me', 'Chưa! Kể nghe với, đừng tiết lộ đoạn cuối nha.'], ['o', 'Ha ha, để tớ kể từ đầu…']],
+  eat: [['t', 'Ngồi đây nè, tớ có trứng chiên, ăn chung đi.'], ['me', 'Cảm ơn nha! Ăn thử miếng chả mẹ tớ làm nè.']],
+  danhbai: [['t', 'Chia bài đi! Ba bích đi trước.'], ['me', 'Đôi heo nè, chặt luôn!'], ['o', 'Trời ơi, tới trắng rồi!']],
+  conquay: [['t', 'Quấn dây cho chặt rồi giật thật mạnh nha!'], ['me', 'Một… hai… ba… bung!'], ['o', 'Con của cậu quay lâu ghê!']],
+  rongran: [['t', 'Rồng rắn lên mây, có cây núc nắc…'], ['me', 'Có nhà điểm binh! Bám chặt vào nha!'], ['o', 'Khúc đuôi chạy lẹ lên, bị bắt bây giờ!']],
+  trontim: [['t', 'Tớ đếm tới mười nha, trốn lẹ đi!'], ['me', 'Suỵt… núp sau gốc cây là không ai thấy đâu.'], ['t', 'Mười! Tớ đi tìm đây!']],
+  duoibat: [['t', 'Cậu làm “mèo” đi, đuổi bọn tớ nè!'], ['me', 'Đứng lại! Bắt được cậu rồi nhé!'], ['o', 'Ha ha, hụt rồi!']],
+  dabong: [['t', 'Chuyền đây! Chuyền cho tớ!'], ['me', 'Đỡ này… sút nèee!'], ['o', 'Vàooo! Đẹp quá trời!']],
+  dacau: [['t', 'Tâng sang tớ nè! Đừng để rơi!'], ['me', 'Đỡ này! Má trong má ngoài!'], ['o', 'Được hai chục quả rồi!']],
+};
+// Nói chuyện với một bạn đang ở trong tụ chơi: bạn ấy hỏi có vào chơi cùng không (hội thoại dưới màn hình)
+ACT.yardTalk = async n => {
+  const st = yardState(), w = st && st.where[n.sid];
+  if (!w || RT.lock) return n.act0 && n.act0();
+  const g = w[0], Y = YARD_GAMES[g.kind], key = st.key + ':' + g.id, who = { look: n.dynLook ? n.dynLook() : n.look, outfit: n.outfit ? n.outfit() : null };
+  if (n.fid && grudge(n.fid)) return UI.ask(n.name, '<p>“Không chơi với đồ mách lẻo đâu. Đi chỗ khác đi!”</p>', ['…'], { who });
+  const done = !!G.daily.yard[key], opts = [], ids = [];
+  if (!done) { opts.push(g.kind === 'chat' || g.kind === 'eat' ? 'Ngồi xuống cùng' : 'Vào chơi cùng!'); ids.push('join'); }
+  if (n.fid || sellables().length || cardCount()) { opts.push('Nói chuyện riêng'); ids.push('talk'); }
+  opts.push('Thôi'); ids.push('x');
+  const line = done ? 'Vừa chơi xong mà, nghỉ tí đã. Sắp vào lớp rồi đó!' : YARD_ASK[g.kind];
+  const c = ids[await UI.ask(n.name, `<p>“${line}”</p>`, opts, { who })] || 'x';
+  if (c === 'join') ACT.yardJoin(g, n);
+  else if (c === 'talk' && n.act0) n.act0();
+};
+// Vào chơi: mình nhập vào tụ (đi tới chỗ, rồi chơi theo nhịp của cả tụ), có lời thoại; không có mini-game
+ACT.yardJoin = async (g, n) => {
   if (RT.lock) return;
-  const Y = YARD_GAMES[g.kind], st = yardState(), key = st.key + ':' + g.id, fr = g.mem.filter(k => FRIENDS[k] && !grudge(k) && !isComp(k));
+  const Y = YARD_GAMES[g.kind], st = yardState(); if (!st) return;
+  const key = st.key + ':' + g.id, fr = g.mem.filter(k => FRIENDS[k] && !grudge(k) && !isComp(k));
   if (G.daily.yard[key]) return UI.toast('Bạn vừa chơi với tụ này xong rồi.');
-  const names = fr.map(kidName), who = names.length ? names.join(', ') + (g.mem.length > fr.length ? ' và mấy bạn khác' : '') : 'Mấy bạn cùng khối';
   if (Y.sport && G.stamina < 6) return UI.toast('Mệt quá, chơi không nổi.', 'bad');
-  const c = await UI.ask(`Tụ ${Y.name}`, `<p>${who} đang ${Y.game && !Y.sport && g.kind !== 'danhbai' ? 'chơi ' : ''}${Y.name}. Xin vào cùng?</p>`, [Y.game ? 'Vào chơi cùng' : 'Ngồi xuống cùng', 'Thôi']);
-  if (c !== 0) return;
   RT.lock = true; G.daily.yard[key] = true;
-  let sc = 0.7;
-  if (Y.game) sc = (await playGame(Y.game, 2, Y.name.replace(/^./, x => x.toUpperCase()), Y.what)).score;
-  const win = sc >= 0.6;
-  for (const k of fr) addFriend(k, YARD_JOIN.friend + (win ? YARD_JOIN.bonus : 0), true);
-  if (fr.length) UI.float(`+${YARD_JOIN.friend + (win ? YARD_JOIN.bonus : 0)} thân thiết với ${names.join(', ')}`, '#ff9fc0');
+  const talker = n ? n.sid : g.mem[0], other = g.mem.find(k => k !== talker) || talker;
+  await yardScene(g, talker, other);
+  const names = fr.map(kidName);
+  for (const k of fr) addFriend(k, YARD_JOIN.friend, true);
+  if (fr.length) UI.float(`+${YARD_JOIN.friend} thân thiết với ${names.join(', ')}`, '#ff9fc0');
   addStat('giaotiep', fr.length ? 2 : 1);
-  if (Y.sport) { useStam(5, true); addStat('thethao', Y.sport + (win ? 1 : 0)); }
+  if (Y.sport) { useStam(5, true); addStat('thethao', Y.sport); }
   if (g.kind === 'conquay' || g.kind === 'danhbai') addStat('kheotay', 1);
   if (g.kind === 'eat') { const f = ['comhop', 'banhmi', 'sua'].find(k => G.inv[k]); if (f) eat(f); else gainStam(3); }
   advanceTime(YARD_JOIN.mins);
   RT.lock = false; UI.hud();
-  UI.toast(Y.game ? (win ? `Chơi ${Y.name} vui quá trời!` : `Chơi ${Y.name} hơi vụng, nhưng vui là chính.`) : 'Ngồi xuống góp chuyện cùng cả bọn.', win ? 'good' : 'info');
 };
+const ME_SID = '__me';
+async function yardScene(g, talker, other) {
+  const st = YS, lines = YARD_LINES[g.kind] || YARD_LINES.chat, Y = YARD_GAMES[g.kind], lunch = st.wi === 2;
+  g.mem.push(ME_SID); st.where[ME_SID] = [g, g.mem.length - 1];
+  const sc = RT.scene = { type: 'cut', yard: true, map: 'school', actors: [], props: [], hide: [], bubble: null, tw: [], title: `${lunch ? 'Nghỉ trưa' : 'Giờ ra chơi'} · ${yardVerb(g.kind)} cùng các bạn`, joined: false };
+  // mình đi tới chỗ trong tụ, tới nơi thì chơi theo nhịp chung (vị trí lấy từ yardPos giống các bạn)
+  sc.drive = dt => {
+    const p = yardPos(ME_SID); if (!p) return false;
+    if (!sc.joined) {
+      const dx = p.x - G.x, dy = p.y - G.y, d = Math.hypot(dx, dy), sp = 100 * dt;
+      if (d > sp + 1 && !UI._fast) { G.x += dx / d * sp; G.y += dy / d * sp; G.dir = dirOf(dx, dy); return true; }
+      sc.joined = true;
+    }
+    G.x = p.x; G.y = p.y; G.dir = p.dir; sc.meOy = p.oy || 0;
+    return p.walk !== undefined;
+  };
+  UI.hint(null); document.body.classList.add('cut');
+  for (let t = 0; !sc.joined && t < 60; t++) await new Promise(r => setTimeout(r, 50));
+  sc.joined = true;
+  const at = k => { if (k === 'me') return { x: G.x, y: G.y + (sc.meOy || 0) }; const q = kidNpc(k); return q && q.cx !== undefined ? { x: q.cx, y: q.cy + (q.coy || 0) } : { x: G.x, y: G.y }; };
+  for (const [w, text] of lines) {
+    const k = w === 'me' ? 'me' : w === 't' ? talker : other;
+    sc.bubbleOf = k;
+    sc.bubble = { text, ...at(k) }; sc.bubble.y -= 27;
+    await UI.wait(1300 + text.length * 28); sc.bubble = null; sc.bubbleOf = null;
+  }
+  await UI.wait(700);
+  g.mem.splice(g.mem.indexOf(ME_SID), 1); delete st.where[ME_SID];
+  RT.scene = null; document.body.classList.remove('cut');
+}
+// bong bóng thoại đi theo người nói (tụ đang chạy nhảy)
+function followBubble() {
+  const sc = RT.scene; if (!sc || !sc.yard || !sc.bubble || !sc.bubbleOf) return;
+  const k = sc.bubbleOf, q = k === 'me' ? null : kidNpc(k);
+  if (k === 'me') { sc.bubble.x = G.x; sc.bubble.y = G.y + (sc.meOy || 0) - 27; }
+  else if (q && q.cx !== undefined) { sc.bubble.x = q.cx; sc.bubble.y = q.cy + (q.coy || 0) - 27; }
+}
 
 /* ============================================================
  *  TRONG TIẾT HỌC: đạo cụ + hoạt ảnh
@@ -4715,13 +4857,14 @@ ACT.infirmary = async () => {
 /* ============================================================
  *  PHÒNG NGỦ TRƯA · THƯ VIỆN · PHÒNG NHẠC · KHU VỆ SINH
  * ============================================================ */
-ACT.nap = async () => {
+ACT.nap = async (mx, my) => {
+  mx = mx === undefined ? 130 : mx; my = my === undefined ? 114 : my;
   if (!schoolToday() || !inWin(G.time, AM_END, PM_START - 30)) return meSay(`<p>Phòng ngủ trưa chỉ mở giờ nghỉ trưa (${fmtTime(AM_END)}–${fmtTime(PM_START - 30)}).</p>`);
   if (G.daily.nap) return UI.toast('Hôm nay bạn ngủ trưa rồi.');
   if (RT.lock) return;
   RT.lock = true;
   UI.progress('Đang ngủ trưa…', 2400, '#8f7fd0');
-  await playCut({ inPlace: true, bars: false, hideMe: true, steps: [{ wait: 2400 }], props: [now => { drawSpr(SPR.sleeper, 130, 114); drawSpr(SPR.zzz, 150, 104 - Math.floor(now / 300) % 5); }] });
+  await playCut({ inPlace: true, bars: false, hideMe: true, steps: [{ wait: 2400 }], props: [now => { drawSpr(SPR.sleeper, mx, my); drawSpr(SPR.zzz, mx + 20, my - 10 - Math.floor(now / 300) % 5); }] });
   advanceTime(NAP.mins); G.daily.nap = true; gainStam(NAP.stam);
   RT.lock = false; UI.hud();
 };
@@ -4994,6 +5137,128 @@ function testsToday() {
   return out.sort((a, b) => a.n - b.n);
 }
 
+/* ============================================================
+ *  GIƯỜNG: ban ngày chợp mắt (giường nào cũng được) · tối ở nhà bạn thì ngủ lại
+ * ============================================================ */
+const sleepProp = (now, bx, by) => { wRect('#2c2733', bx + 11, by + 6, 10, 4); wRect('#f8d0a8', bx + 12, by + 9, 8, 6); wRect('#2a2136', bx + 14, by + 12, 1, 1); wRect('#2a2136', bx + 17, by + 12, 1, 1); drawSpr(SPR.zzz, bx + 22, by - 4 - Math.floor(now / 300) % 5); };
+async function bedNap(title, bx, by, after) {
+  if (RT.lock) return;
+  if (G.daily.bedNap >= BED_NAP.perDay) return meSay('<p>Nằm mãi mà không ngủ được nữa… dậy làm việc khác thôi.</p>');
+  const c = await meSay(`<p>Trời còn sáng. Nằm xuống chợp mắt ${BED_NAP.mins} phút cho lại sức?</p><p class="dim">Hồi ${BED_NAP.stam} thể lực · ngủ hẳn qua đêm từ ${fmtTime(CFG.SLEEP_FROM)}.</p>`, ['Chợp mắt một lát', 'Thôi']);
+  if (c !== 0) return;
+  RT.lock = true; UI.progress('Đang chợp mắt…', 2200, '#8f7fd0');
+  await playCut({ inPlace: true, bars: false, hideMe: true, steps: [{ wait: 2200 }], props: [now => sleepProp(now, bx, by)] });
+  advanceTime(BED_NAP.mins); G.daily.bedNap++; gainStam(BED_NAP.stam); if (after) after();
+  RT.lock = false; UI.hud();
+}
+ACT.fhBed = async () => {
+  const fid = G.visit, F = FRIENDS[fid], who = { look: fid, outfit: friendOutfit(fid) };
+  if (G.time >= CFG.SLEEP_FROM || G.time < CFG.DAY_START) {
+    const c = await UI.ask(F.name, `<p>“Muộn rồi, hay ngủ lại nhà tớ luôn đi? Mai dậy sớm về.”</p>` + (G.daily.outPerm ? '' : '<p class="dim">Chưa xin phép bố mẹ: ngủ lại nhà bạn sẽ làm bố mẹ phiền lòng.</p>'), [`Ngủ lại nhà ${F.name}`, 'Thôi, tớ về nhà ngủ'], { who });
+    if (c !== 0) return;
+    addFriend(fid, 6, true);
+    let note = `Tối qua bạn ngủ lại nhà ${F.name}, sáng sớm chào bạn rồi về nhà.`;
+    if (!G.daily.outPerm) { addParent(PARENT.lateHome, '', true); note += ' Bố mẹ gọi điện mãi — lần sau nhớ xin phép trước nhé.'; }
+    return goSleep(false, note);
+  }
+  return bedNap(`Giường của ${F.name}`, 196, 24, () => addFriend(fid, 2, true));
+};
+
+/* ============================================================
+ *  TIVI: bản tin thời sự hằng ngày · vận may hôm nay
+ * ============================================================ */
+const NEWS_POOL = [
+  'Thành phố Hoa Phượng trồng thêm 500 cây phượng dọc bờ sông, hứa hẹn mùa hè rực đỏ.',
+  'Tuyến xe bus nội thành tăng chuyến vào giờ tan học, học sinh đi lại thuận tiện hơn.',
+  'Giá rau xanh ở chợ Hoa Phượng giảm nhẹ sau đợt nắng ráo kéo dài.',
+  'TTTM Hoa Phượng Plaza mở thêm gian hàng nội thất, nhiều ưu đãi cho học sinh.',
+  'Khu game Arcade về thêm máy nhảy đời mới, các bạn trẻ xếp hàng chơi thử.',
+  'Đội tuyển học sinh giỏi của thành phố giành 3 huy chương vàng cấp quốc gia.',
+  'Ngư dân vùng biển Hoa Phượng trúng mẻ cá lớn đầu mùa.',
+  'Công viên khu phố lắp thêm đèn chiếu sáng, người dân yên tâm đi dạo buổi tối.',
+  'Bác sĩ khuyên học sinh ăn sáng đầy đủ và ngủ trưa 20 phút để học tập hiệu quả hơn.',
+  'Ga Hoa Phượng thêm chuyến tàu ra biển vào sáng thứ Bảy và Chủ nhật.',
+  'Phong trào “Mỗi ngày một trang sách” lan rộng ở các trường THPT trong thành phố.',
+  'Cảnh sát giao thông nhắc học sinh đội mũ bảo hiểm khi đi xe máy, xe đạp điện.',
+  'Tiệm trà sữa Mây ra mắt vị trà đào cam sả, khách xếp hàng dài cả buổi chiều.',
+  'Nhà sách trong TTTM giảm giá sách tham khảo cho học sinh suốt tuần này.',
+  'Bộ sưu tập thẻ cầu thủ trong bim bim Sao Vàng đang gây sốt, nhiều bạn săn thẻ huyền thoại.',
+  'Trường THPT Hoa Phượng phát động phong trào giữ gìn vệ sinh lớp học, sân trường.',
+];
+const WEATHER = [
+  ['Trời thu mát mẻ, chiều tối có mưa rào nhẹ. Nhiệt độ {a}–{b}°C.', 'Thu trong xanh, nắng nhẹ, rất hợp để đi dạo. Nhiệt độ {a}–{b}°C.', 23, 30],
+  ['Gió mùa đông bắc tràn về, trời rét {a}–{b}°C. Các bạn học sinh nhớ mặc ấm khi tới trường.', 'Trời âm u, rét đậm về đêm. Nhiệt độ {a}–{b}°C.', 11, 18],
+  ['Mưa phùn, nồm ẩm, đường trơn. Nhiệt độ {a}–{b}°C.', 'Xuân ấm áp, trời hửng nắng vào buổi trưa. Nhiệt độ {a}–{b}°C.', 17, 25],
+  ['Nắng nóng gay gắt, nhiệt độ {a}–{b}°C. Nhớ uống đủ nước và đội mũ khi ra đường.', 'Trời nóng, chiều có giông. Nhiệt độ {a}–{b}°C.', 30, 37],
+];
+const RIVALS = ['CLB Sông Xanh', 'CLB Đồi Thông', 'CLB Cảng Biển', 'CLB Núi Đá', 'CLB Phố Cổ'];
+// Sự kiện sắp tới trong `span` ngày: lễ hội (FESTIVALS), ngày lễ (HOLIDAYS), thi học kỳ, nghỉ hè, khai giảng
+function upcomingEvents(day, span) {
+  const out = [], add = (name, d, kind, desc) => { if (!out.some(o => o.name === name)) out.push({ name, d, kind, desc }); };
+  for (let d = 0; d <= span; d++) {
+    const dd = day + d, c = cal(dd), fe = FESTIVALS.find(f => isDate([f.season, f.day], dd)), h = holidayOf(dd);
+    if (fe) add(fe.name, d, 'fes', fe.desc); if (h) add(h.name, d, 'hol', h.desc);
+    if (d > 0 && c.season === 3 && c.dos === 1) add('kỳ nghỉ hè', d, 'summer');
+    if (d > 0 && c.doy === 0) add('ngày khai giảng năm học mới', d, 'school');
+  }
+  const thi = G.tests.filter(t => t.type === 'thi' && !t.done && t.day >= day && t.day <= day + span).sort((a, b) => a.day - b.day)[0];
+  if (thi) add('kỳ thi học kỳ', thi.day - day, 'exam');
+  return out.sort((a, b) => a.d - b.d);
+}
+function eventLine(e) {
+  if (e.kind === 'exam') return e.d === 0 ? 'Hôm nay các trường THPT bước vào <b>kỳ thi học kỳ</b>. Chúc các sĩ tử bình tĩnh, tự tin!' : `Còn <b>${e.d} ngày</b> nữa các trường THPT bước vào <b>kỳ thi học kỳ</b>. Học sinh nhớ ôn tập thật kỹ!`;
+  if (e.kind === 'summer') return `Còn <b>${e.d} ngày</b> nữa là tới <b>kỳ nghỉ hè</b>. Học sinh cả thành phố đang đếm ngược từng ngày!`;
+  if (e.kind === 'school') return `Còn <b>${e.d} ngày</b> nữa là <b>khai giảng năm học mới</b>. Các nhà sách đông nghịt phụ huynh mua sách vở.`;
+  const desc = e.desc ? ' ' + e.desc : '';
+  if (e.d === 0) return `Hôm nay là <b>${e.name}</b>!${desc || ' Chúc mọi người một ngày lễ thật vui vẻ.'}`;
+  if (e.d === 1) return `Ngày mai là <b>${e.name}</b>.${desc || ' Phố phường đang tất bật chuẩn bị.'}`;
+  return `Còn <b>${e.d} ngày</b> nữa là <b>${e.name}</b>.${desc || ' Phố phường bắt đầu trang hoàng rực rỡ.'}`;
+}
+function newsOf(day) {
+  const r = mulberry(day * 131 + 7), pk = a => a[Math.floor(r() * a.length)], c = cal(day), L = [], tag = t => `<i class="tag">${t}</i>`;
+  for (const e of upcomingEvents(day, 10)) L.push(tag(e.kind === 'exam' || e.kind === 'school' || e.kind === 'summer' ? 'GIÁO DỤC' : 'LỄ HỘI') + eventLine(e));
+  const W = WEATHER[c.season] || WEATHER[0], lo = W[2] + Math.floor(r() * 3), hi = W[3] - Math.floor(r() * 3);
+  L.push(tag('THỜI TIẾT') + pk([W[0], W[1]]).replace('{a}', lo).replace('{b}', hi));
+  const i1 = Math.floor(r() * NEWS_POOL.length), i2 = (i1 + 1 + Math.floor(r() * (NEWS_POOL.length - 1))) % NEWS_POOL.length;
+  L.push(tag('TIN NHANH') + NEWS_POOL[i1]);
+  if (L.length < 5) L.push(tag('TIN NHANH') + NEWS_POOL[i2]);
+  const a = Math.floor(r() * 4), b = Math.floor(r() * 4);
+  L.push(tag('THỂ THAO') + `CLB Hoa Phượng ${a > b ? 'thắng' : a < b ? 'để thua' : 'hoà'} ${pk(RIVALS)} với tỉ số ${a}–${b} ở vòng ${1 + (day % 26)} giải hạng Nhất.`);
+  return L;
+}
+function luckHtml() {
+  const r = mulberry(G.day * 977 + 3), v = G.daily.luck, k = luckLv(), lvl = LUCK_LV[k];
+  const col = ['đỏ', 'vàng', 'xanh lá', 'xanh dương', 'tím', 'trắng', 'hồng', 'cam'][Math.floor(r() * 8)], num = Math.floor(r() * 10);
+  return `<div class="tv"><div class="tv-scr luck"><div class="tv-top"><b>VẬN MAY HÔM NAY</b><span>${dateLabel(G.day)}</span></div>
+    <div class="tv-body"><img src="${faceOf('c6')}" alt=""><div>
+      <p class="lk-stars">${'★'.repeat(k + 1)}<i>${'★'.repeat(4 - k)}</i></p>
+      <p class="lk-name">Vận may của ${G.name}: <b>${lvl[1]}</b> · ${v}/100 điểm</p>
+      <p>${lvl[2]}</p>
+      <p class="tv-dim">Màu may mắn: ${col} · Con số may mắn: ${num}</p></div></div>
+    <div class="tv-tick">Điểm may mắn đổi mỗi ngày. May mắn cao thì bài kiểm tra dễ được điểm cao hơn.</div></div></div>`;
+}
+function newsHtml() {
+  return `<div class="tv"><div class="tv-scr news"><div class="tv-top"><b>THỜI SỰ HOA PHƯỢNG</b><span>${dateLabel(G.day)}</span></div>
+    <div class="tv-body"><img src="${faceOf('clerk')}" alt=""><div>${newsOf(G.day).map(t => `<p>${t}</p>`).join('')}</div></div>
+    <div class="tv-tick">Bản tin thay đổi mỗi ngày · gần tới lễ hội sẽ có thông báo</div></div></div>`;
+}
+const tvGlow = now => { const f = Math.floor(now / 220) % 4; wRect(['rgba(255,255,255,.28)', 'rgba(120,200,255,.32)', 'rgba(255,230,140,.28)', 'rgba(255,255,255,.12)'][f], 200, 21, 28, 12); };
+// Xem tivi: lần đầu mỗi kênh trong ngày thì ngồi xem (mất chút thời gian), xem lại thì chỉ bật lên coi
+async function tvWatch(kind) {
+  if (RT.lock) return;
+  if (!G.daily.tvSeen[kind]) {
+    RT.lock = true;
+    UI.progress(kind === 'news' ? 'Đang xem bản tin thời sự…' : 'Đang xem chương trình vận may…', 1800, '#3b82c4');
+    await playCut({ inPlace: true, bars: false, steps: [{ move: ['me', 214, 72, 500] }, { fn: () => { G.dir = 3; } }, { wait: 1300 }], props: [tvGlow] });
+    advanceTime(kind === 'news' ? 15 : 10);
+    G.daily.tvSeen[kind] = true;
+    if (!G.daily.tv) { G.daily.tv = true; gainStam(6); }
+    RT.lock = false; UI.hud();
+  }
+  if (kind === 'luck') G.daily.luckSeen = true;
+  await UI.ask('Tivi', kind === 'news' ? newsHtml() : luckHtml(), ['Tắt tivi']);
+}
+
 'use strict';
 /* ============================================================
  *  05. GIAO DIỆN — HUD, hộp thoại, cặp sách, chỉ số, TKB, sổ điểm
@@ -5193,10 +5458,10 @@ const UI = {
     $('hotbar').innerHTML = it.map(x => `<button class="slot" data-hb="${x.act}" data-id="${x.id}" title="${x.title}"><img src="${itemIcon(x.id)}" alt="">${x.n ? `<b>${x.n}</b>` : ''}${x.lab ? `<i>${x.lab}</i>` : ''}</button>`).join('')
       + (G.ride ? `<button class="slot txt" data-hb="off" title="Xuống xe">Xuống xe <kbd>X</kbd></button>` : '');
   },
-  hint(text, ok) {
+  hint(text, ok, key) {
     const h = $('hint');
     if (!text) { h.classList.remove('on'); return; }
-    if (h._t !== text || h._ok !== ok) { h._t = text; h._ok = ok; h.innerHTML = (ok ? '<kbd>Chuột phải</kbd><kbd>E</kbd>' : '<em>Lại gần hơn</em>') + '<span></span>'; h.lastChild.textContent = text; h.classList.toggle('far', !ok); }
+    if (h._t !== text || h._ok !== ok || h._key !== key) { h._t = text; h._ok = ok; h._key = key; h.innerHTML = (key ? `<kbd>${key}</kbd>` : ok ? '<kbd>Chuột phải</kbd><kbd>E</kbd>' : '<em>Lại gần hơn</em>') + '<span></span>'; h.lastChild.textContent = text; h.classList.toggle('far', !ok); h.classList.toggle('btnlike', key === 'X'); }
     h.classList.add('on');
   },
 
@@ -5505,6 +5770,7 @@ function timeTravel(day, time) {
 function bindUI() {
   $('ic-menu').src = itemIcon('m_menu'); $('ic-phone').src = itemIcon('m_phone');
   $('banner').addEventListener('click', () => turnToFriend());
+  $('hint').addEventListener('click', () => { if (G && G.ride && !RT.lock && !UI.isOpen() && $('hint')._key === 'X') dismount(); });   // bấm vào nút “X Xuống xe”
   $('modal').addEventListener('click', UI._click);
   $('m-x').addEventListener('click', () => UI.close(UI._res ? UI._esc : -1));
   $('modal-wrap').addEventListener('input', e => {
@@ -5579,26 +5845,58 @@ function gArrow(c, col, d, x, y, r) {
   c.fillStyle = col; c.beginPath(); c.moveTo(r, 0); c.lineTo(-r * 0.3, -r); c.lineTo(-r * 0.3, -r * 0.4); c.lineTo(-r, -r * 0.4); c.lineTo(-r, r * 0.4); c.lineTo(-r * 0.3, r * 0.4); c.lineTo(-r * 0.3, r); c.closePath(); c.fill(); c.restore();
 }
 const GAMES = {
-  /* ---------- tâng cầu: bấm vào quả cầu đang rơi (hoặc Space khi cầu xuống gần chân) ---------- */
+  /* ---------- tâng cầu: quả cầu ở giữa màn hình, bấm trúng quả cầu để tâng; bấm lệch bên nào thì cầu bay về phía ngược lại ---------- */
   keepup(diff, title) {
-    const need = 8 + diff * 2, T = 22;
+    const need = 8 + diff * 2, T = 32, BR = 6, HIT = 20, GR = 205 + 15 * diff;
     return {
-      title: title || 'Tâng cầu', bot: 0.8, help: `<p><b>Bấm vào quả cầu</b> đang rơi để tâng lên (hoặc <kbd>Space</kbd> khi cầu xuống gần chân). Tâng đủ <b>${need}</b> lần, rơi 3 lần là hết lượt.</p>`,
-      setup(S) { Object.assign(S, { x: S.W / 2, y: 40, vx: 20, vy: 0, kicks: 0, lives: 3 }); },
+      title: title || 'Tâng cầu', bot: 0.8, w: 260, h: 230,
+      help: `<p>Quả cầu đang ở giữa màn hình. <b>Bấm trúng quả cầu</b> để tâng lên.</p><p>Bấm vào <b>bên trái</b> quả cầu thì cầu bay sang phải, bấm <b>bên phải</b> thì cầu bay sang trái, bấm <b>chính giữa</b> thì cầu bay thẳng và cao nhất. Cầu chạm tường thì nảy lại.</p><p>Tâng đủ <b>${need}</b> lần. Cầu rơi xuống đất 3 lần là thua.</p>`,
+      setup(S) {
+        Object.assign(S, { kicks: 0, lives: 3, fx: [], cd: 0 });
+        S.reset = () => { S.x = S.W / 2; S.y = S.H / 2 - 16; S.vx = 0; S.vy = 0; S.hold = 1.2; };
+        S.reset();
+      },
       step(S, dt, inp) {
-        S.vy += (230 + 25 * diff) * dt; S.x += S.vx * dt; S.y += S.vy * dt;
-        if (S.x < 12 || S.x > S.W - 12) { S.vx *= -1; S.x = clamp(S.x, 12, S.W - 12); }
-        const kick = () => { S.vy = -(190 + Math.random() * 50); S.vx = rnd(-55, 55); S.kicks++; };
-        if (S.vy > 0 && ((inp.clicks.some(([a, b]) => Math.hypot(a - S.x, b - S.y) < 24)) || (inp.hit.includes('space') && S.y > S.H - 74 && S.y < S.H - 14))) kick();
-        if (S.y > S.H - 10) { S.lives--; S.x = S.W / 2; S.y = 30; S.vy = 0; S.vx = rnd(-30, 30); }
+        S.cd = Math.max(0, S.cd - dt);
+        for (const f of S.fx) f.t += dt; S.fx = S.fx.filter(f => f.t < 0.45);
+        if (S.hold > 0) S.hold -= dt;                                             // lúc đầu cầu lơ lửng chờ bấm
+        else { S.vy += GR * dt; S.vx *= 1 - 0.35 * dt; if (S.vy > 0) S.vy *= 1 - 0.9 * dt; S.x += S.vx * dt; S.y += S.vy * dt; }   // lông cầu cản gió: rơi chậm dần
+        if (S.x < BR) { S.x = BR; S.vx = Math.abs(S.vx) * 0.7; }
+        if (S.x > S.W - BR) { S.x = S.W - BR; S.vx = -Math.abs(S.vx) * 0.7; }
+        if (S.y < BR + 16) { S.y = BR + 16; S.vy = Math.abs(S.vy) * 0.25; }
+        for (const [a, b] of inp.clicks) {
+          const dx = S.x - a, dy = S.y - b, d = Math.hypot(dx, dy), ok = d < HIT && S.cd <= 0;
+          S.fx.push({ x: a, y: b, t: 0, ok });
+          if (!ok) continue;
+          const k = clamp(dx / HIT, -1, 1);                                        // lệch trái (dx > 0) → bay sang phải
+          S.vx = k * (125 + 8 * diff) + S.vx * 0.15;
+          S.vy = -(185 + 45 * (1 - Math.abs(k)) + 6 * diff);
+          S.hold = 0; S.kicks++; S.cd = 0.12;
+        }
+        if (S.y > S.H - 26 - BR) { S.lives--; S.fx.push({ x: S.x, y: S.H - 28, t: 0, drop: true }); if (S.lives > 0) S.reset(); }
         S.score = S.kicks / need; S.info = `Tâng: ${S.kicks}/${need} · còn ${S.lives} lượt rơi`;
         if (S.lives <= 0 || S.kicks >= need || S.t > T) S.done = true;
       },
       draw(c, S) {
-        gR(c, '#bfe6f7', 0, 0, S.W, S.H); gR(c, '#e6cfa6', 0, S.H - 22, S.W, 22); gR(c, '#5fae78', 0, S.H - 26, S.W, 4); gTime(c, S, T - S.t, T);
-        gR(c, 'rgba(95,174,74,.18)', 0, S.H - 74, S.W, 60);
-        gR(c, '#34425e', S.x - 9, S.H - 20, 18, 6); gR(c, '#2e2738', S.x - 9, S.H - 15, 22, 5);       // bàn chân chạy theo cầu
-        gR(c, '#fffaf0', S.x - 5, S.y - 12, 2, 10); gR(c, '#fffaf0', S.x - 1, S.y - 14, 2, 12); gR(c, '#fffaf0', S.x + 3, S.y - 12, 2, 10); gC(c, '#d9534f', S.x, S.y, 5); gC(c, '#f79a90', S.x - 1, S.y - 1, 2);
+        gR(c, '#bfe6f7', 0, 0, S.W, S.H); gR(c, '#e6cfa6', 0, S.H - 24, S.W, 24); gR(c, '#5fae78', 0, S.H - 28, S.W, 4); gTime(c, S, T - S.t, T);
+        gR(c, '#9fd0e6', 0, S.H - 28, 3, 1);
+        // bóng cầu dưới đất
+        c.fillStyle = 'rgba(42,33,54,.18)'; c.beginPath(); c.ellipse(S.x, S.H - 18, 7 + (S.y / S.H) * 4, 2.5, 0, 0, 6.3); c.fill();
+        // vùng bấm trúng
+        c.strokeStyle = S.hold > 0 ? `rgba(242,169,59,${0.5 + 0.4 * Math.sin(S.t * 8)})` : 'rgba(42,33,54,.14)'; c.lineWidth = 1.5; c.beginPath(); c.arc(S.x, S.y, HIT, 0, 6.3); c.stroke();
+        // quả cầu: đầu cao su bay trước, chùm lông phía sau
+        const ang = S.hold > 0 ? Math.PI / 2 : Math.atan2(S.vy, S.vx);
+        c.save(); c.translate(S.x, S.y); c.rotate(ang - Math.PI / 2);
+        c.fillStyle = '#fffaf0'; c.strokeStyle = '#2a2136'; c.lineWidth = 1; c.beginPath(); c.moveTo(-3, 1); c.lineTo(3, 1); c.lineTo(7, -13); c.lineTo(-7, -13); c.closePath(); c.fill(); c.stroke();
+        c.strokeStyle = '#c9ccd4'; for (const q of [-4, 0, 4]) { c.beginPath(); c.moveTo(q * 0.4, 0); c.lineTo(q, -12); c.stroke(); }
+        gC(c, '#d9534f', 0, 3, 4); gC(c, '#f79a90', -1, 2, 1.5);
+        c.restore();
+        for (const f of S.fx) {
+          const a = 1 - f.t / 0.45;
+          if (f.drop) { gT(c, `rgba(217,83,79,${a})`, 'Rơi rồi!', f.x, f.y - 10 - f.t * 30, 11); continue; }
+          c.strokeStyle = f.ok ? `rgba(95,174,74,${a})` : `rgba(139,143,156,${a})`; c.lineWidth = 2; c.beginPath(); c.arc(f.x, f.y, 4 + f.t * 30, 0, 6.3); c.stroke();
+        }
+        if (S.hold > 0 && S.kicks === 0) gT(c, '#2a2136', 'Bấm vào quả cầu!', S.W / 2, S.H / 2 + 32, 12);
       },
     };
   },
@@ -5861,6 +6159,26 @@ async function playGame(kind, diff, a, b) { return UI.game(GAMES[kind](diff || 2
  *  CỬA HÀNG DẠNG ICON: bấm vào món để xem tên, mô tả rồi mua
  * ============================================================ */
 // items: [{ id, icon, name, price, desc, owned, off }] · onBuy(item) · extra(): html thêm phía dưới · handlers thêm
+// Chỉ số món hàng mang lại (hiện khi bấm chọn món): thể lực, thẻ cầu thủ, điểm môn học…
+function storeGain(it) {
+  const g = [], ex = EXERCISES.find(e => e.need === it.own);
+  if (it.stam) g.push(`+${it.stam} thể lực`);
+  else if (it.inv && FOODS[it.inv]) g.push(`+${FOODS[it.inv].stam} thể lực khi ăn`);
+  if (it.mins) g.push(`ăn tại chỗ ${it.mins} phút`); else if (it.stam) g.push('dùng ngay');
+  if (it.pack) g.push(`+${it.pack} thẻ cầu thủ`);
+  if (it.act === 'movie') g.push(`+${MALL.movie.stam} thể lực`, '+Giao tiếp', `${MALL.movie.mins} phút`);
+  if (it.act === 'chicken') g.push(`+${MALL.chicken.stam} thể lực`, `${MALL.chicken.mins} phút`);
+  if (it.act === 'teamall') g.push('+12 thể lực', '20 phút');
+  if (it.act === 'book') g.push(`+${MALL.book.pts} điểm môn tự chọn`);
+  if (it.act === 'box') g.push(`+${MALL.box.n} thẻ cầu thủ`);
+  if (it.act === 'bim') g.push('+1 thẻ cầu thủ');
+  if (it.id && it.id.startsWith('d_')) g.push(`ngủ dậy +${DECOR_SLEEP} thể lực`);
+  if (it.own === 'micro') g.push('tập hát ở nhà: +Văn nghệ');
+  if (it.own === 'guitar') g.push('trang trí phòng ngủ');
+  if (ex) g.push(`tập ở nhà: +${ex.pts} Thể thao`);
+  if (it.id === 'xeng') g.push(`+${TOKENS.n} xèng`);
+  return g.length ? '<span class="gains">' + g.map(t => `<i class="${t[0] === '+' ? 'up' : ''}">${t}</i>`).join('') + '</span>' : '';
+}
 UI.store = function (title, greet, items, onBuy, extra, more) {
   let sel = null;
   const list = () => (typeof items === 'function' ? items() : items);
@@ -5869,7 +6187,7 @@ UI.store = function (title, greet, items, onBuy, extra, more) {
     let h = `<p>${greet} — Bạn đang có <b>${fmtMoney(G.money)}</b>.</p><div class="tiles">`;
     for (const x of L) h += `<button class="tile ${x.id === sel ? 'on' : ''} ${x.owned ? 'own' : ''}" data-act="sel" data-id="${x.id}" title="${x.name}"><img src="${itemIcon(x.icon || x.id)}" alt="${x.name}"><small>${x.owned ? 'Đã có' : fmtMoney(x.price)}</small></button>`;
     h += '</div>';
-    h += it ? `<div class="tinfo"><img src="${itemIcon(it.icon || it.id)}" alt=""><span><b>${it.name}</b><small>${it.desc || ''}</small></span><button class="btn sm primary" data-act="buy" ${it.owned || it.off || G.money < it.price ? 'disabled' : ''}>${it.owned ? 'Đã có' : 'Mua · ' + fmtMoney(it.price)}</button></div>`
+    h += it ? `<div class="tinfo"><img src="${itemIcon(it.icon || it.id)}" alt=""><span><b>${it.name}</b><small>${it.desc || ''}</small>${storeGain(it)}</span><button class="btn sm primary" data-act="buy" ${it.owned || it.off || G.money < it.price ? 'disabled' : ''}>${it.owned ? 'Đã có' : 'Mua · ' + fmtMoney(it.price)}</button></div>`
       : '<div class="tinfo dim">Bấm vào một món để xem.</div>';
     return h + (extra ? extra() : '');
   }, Object.assign({ sel: d => { sel = d.id; }, buy: () => { const it = list().find(x => x.id === sel); if (it) onBuy(it); } }, more || {}), true);
@@ -5900,6 +6218,7 @@ function resize() {
   VIEW.S = Math.max(2, Math.round(Math.min(cv.width / 320, cv.height / 190)));
 }
 function setMap(id, x, y, dir) {
+  if (G.ride && MAPS[id].indoor) { G.ride = null; G.park = null; }          // không bao giờ đi xe vào trong nhà
   G.map = id; if (x !== undefined) { G.x = x; G.y = y; } if (dir !== undefined) G.dir = dir;
   RT.hover = null; RT.near = null; RT.walkT = -1;
 }
@@ -5974,7 +6293,6 @@ function interactables() {
   // xe của mình đang dựng ở đâu đó: bấm vào để lên xe
   if (G.park && !G.park.shed && G.park.map === G.map) { const P = G.park; a.push({ x: P.x - 14, y: P.y - 18, w: 28, h: 20, rx: P.x - 12, ry: P.y - 8, rw: 24, rh: 8, base: P.y, label: () => `${VEHICLES[P.id].name} — lên xe`, act: () => ACT.mount(P.id), range: 20 }); }
   if (G.comp && RT.fol && !G.ride) { const f = RT.fol, fid = G.comp.fid; a.push({ x: f.x - 9, y: f.y - 24, w: 18, h: 25, rx: f.x - 4, ry: f.y - 5, rw: 8, rh: 5, base: f.y, label: () => `${FRIENDS[fid].name} — đang đi cùng bạn`, act: () => ACT.friend(fid, 'comp'), range: 24 }); }
-  yardTargets(a);       // tụ chơi ngoài sân: bấm vào giữa tụ để xin chơi cùng
   for (const n of npcsHere()) if (n.act && n.cx !== undefined && !(n.fam && FAM[n.fam].riding)) a.push({ x: n.cx - 9, y: n.cy - 24, w: 18, h: 25, rx: n.cx - 4, ry: n.cy - 5, rw: 8, rh: 5, base: n.cy, label: n.label, act: n.act, range: 24, npc: n });
   return a;
 }
@@ -6012,8 +6330,11 @@ function movePlayer(dt) {
   G.dir = Math.abs(vx) > Math.abs(vy) ? (vx < 0 ? 1 : 2) : (vy < 0 ? 3 : 0);
   if (G.dir === 1) RT.faceL = true; else if (G.dir === 2) RT.faceL = false;
   const m = MAPS[G.map];
-  if (vx && !blocked(m, G.x + vx, G.y)) G.x += vx;
-  if (vy && !blocked(m, G.x, G.y + vy)) G.y += vy;
+  // đang đi xe: không cho chạy từ đường vào chỗ không phải đường (sân, cỏ, công viên…)
+  const offRoad = (x, y) => G.ride && rideOk(m, G.x, G.y) && !rideOk(m, x, y);
+  const warn = () => { const t = performance.now(); if (t - (RT.rideWarn || 0) > 2500) { RT.rideWarn = t; UI.toast('Chỉ chạy xe trên đường. Bấm X để xuống xe rồi đi bộ vào.', 'info'); } };
+  if (vx) { if (offRoad(G.x + vx, G.y)) warn(); else if (!blocked(m, G.x + vx, G.y)) G.x += vx; }
+  if (vy) { if (offRoad(G.x, G.y + vy)) warn(); else if (!blocked(m, G.x, G.y + vy)) G.y += vy; }
   RT.walkT = (RT.walkT < 0 ? 0 : RT.walkT) + dt;
   for (const w of m.warps) if (G.dir === w.dir && G.x >= w.x && G.x < w.x + w.w && G.y >= w.y && G.y < w.y + w.h) { doWarp(w); return; }
   for (const z of m.zones) if (G.x >= z.x && G.x < z.x + z.w && G.y >= z.y && G.y < z.y + z.h) { G.x += z.bx || 0; G.y += z.by || 0; for (const k in KEYS) KEYS[k] = false; z.fn(); return; }
@@ -6027,8 +6348,11 @@ async function doWarp(w) {
 }
 // Chuyển động theo kịch bản của hoạt cảnh: nhân vật / diễn viên đi tới một điểm, hoặc nhảy lên (hop)
 function stepScene(dt) {
-  const sc = RT.scene; if (!sc || !sc.tw || !sc.tw.length) { if (sc) sc.meMove = false; return; }
-  let meMove = false;
+  const sc = RT.scene; if (!sc) return;
+  const dm = sc.drive ? sc.drive(dt) : false;          // cảnh tự điều khiển nhân vật (vd. nhập vào tụ chơi)
+  if (sc.yard) followBubble();
+  if (!sc.tw || !sc.tw.length) { sc.meMove = dm; if (dm) RT.walkT = (RT.walkT < 0 ? 0 : RT.walkT) + dt; return; }
+  let meMove = dm;
   for (const t of sc.tw) {
     t.t += dt * 1000; const k = Math.min(1, t.t / t.ms), e = t.who;
     const x = t.x0 + (t.x1 - t.x0) * k, y = t.y0 + (t.y1 - t.y0) * k, oy = t.hop ? -t.hop * Math.sin(Math.PI * k) : 0;
@@ -6144,7 +6468,7 @@ function render(now) {
   }
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
-  if (G && !RT.scene) drawYardProps(now);        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
+  if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
   // biển hiệu (chữ nét)
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   for (const l of m.labels) { ctx.font = `800 ${l.size * S}px "Baloo 2", system-ui, sans-serif`; ctx.fillStyle = l.col; ctx.fillText(l.text, VIEW.ox + l.x * S, VIEW.oy + l.y * S, l.maxw * S); }
@@ -6190,7 +6514,8 @@ function bindInput() {
     if (!G) return;
     if (UI.isOpen()) return UI._key(e);
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-    const k = e.key.toLowerCase(); KEYS[k] = true;
+    // chữ cái lấy theo vị trí phím: bộ gõ tiếng Việt (Telex: x = dấu ngã, s = dấu sắc…) không làm mất phím
+    const k = e.code && /^Key[A-Z]$/.test(e.code) ? e.code.slice(3).toLowerCase() : e.key.toLowerCase(); KEYS[k] = true;
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
     if (e.repeat) return;
     if (k === 'q') turnToFriend();                  // trong giờ học: quay sang bạn
@@ -6198,7 +6523,7 @@ function bindInput() {
     else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 'f') openMenu('friends'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'k') openMenu('cards');
     else if (k === 'p') openMenu('phone'); else if (k === 'l') openMenu('cal'); else if (k === 'x') { if (G.ride && !RT.lock) dismount(); } else if (k === 'escape' || k === 'm') openMenu('menu');
   });
-  window.addEventListener('keyup', e => { KEYS[e.key.toLowerCase()] = false; });
+  window.addEventListener('keyup', e => { KEYS[e.key.toLowerCase()] = false; if (e.code && /^Key[A-Z]$/.test(e.code)) KEYS[e.code.slice(3).toLowerCase()] = false; });
   window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; });
   window.addEventListener('contextmenu', e => e.preventDefault());
   cv.addEventListener('mousemove', e => { MOUSE.x = e.clientX; MOUSE.y = e.clientY; MOUSE.on = true; });

@@ -380,6 +380,17 @@ const BREAK_FUN_MIN_HEARTS = 1, BREAK_FUN_PER_DAY = 2, BREAK_FUN_MINS = 10;
 const LUNCH_EVENT_TIME = 660, LUNCH_EVENT_CHANCE = 0.55, CLASS_EVENT_CHANCE = 0.26;
 const LIBRARY = { mins: 30, pts: 3, stam: 3, perDay: 2 };
 const NAP = { mins: 40, stam: 18 };
+const BED_NAP = { mins: 30, stam: 12, perDay: 2 };       // ban ngày nằm lên giường nào cũng chợp mắt được
+/* ---------- Điểm may mắn: mỗi ngày quay ngẫu nhiên 0–100, xem trên tivi (kênh “Vận may hôm nay”) ---------- */
+// test: điểm cộng/trừ tối đa vào bài kiểm tra (may 100 → +test, xui 0 → −test) · tu: may thì dễ “trúng tủ”, xui thì dễ “học tài thi phận”
+const LUCK = { test: 0.8, tu: 0.7 };
+const LUCK_LV = [   // [ngưỡng dưới, tên, lời khuyên]
+  [0, 'Rất xui', 'Hôm nay sao xấu chiếu mệnh. Làm bài kiểm tra dễ gặp cảnh “học tài thi phận” — ôn bài thật kỹ vào nhé!'],
+  [20, 'Hơi xui', 'Vận hơi kém một chút. Cẩn thận khi làm bài, đọc kỹ đề trước khi trả lời.'],
+  [40, 'Bình thường', 'Một ngày bình thường. Học được bao nhiêu thì điểm phản ánh bấy nhiêu.'],
+  [60, 'May mắn', 'Hôm nay khá may! Làm bài kiểm tra dễ được điểm cao hơn mọi ngày.'],
+  [80, 'Đại cát', 'Ngày cực kỳ may mắn! Đề dễ “trúng tủ”, điểm kiểm tra cao hơn hẳn. Tranh thủ xung phong lên bảng đi!'],
+];
 
 /* ---------- Địa điểm vui chơi ---------- */
 // x, y: chỗ bạn bè đứng đợi khi đã hẹn · open: giờ mở cửa (phút)

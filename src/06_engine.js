@@ -15,6 +15,7 @@ function resize() {
   VIEW.S = Math.max(2, Math.round(Math.min(cv.width / 320, cv.height / 190)));
 }
 function setMap(id, x, y, dir) {
+  if (G.ride && MAPS[id].indoor) { G.ride = null; G.park = null; }          // không bao giờ đi xe vào trong nhà
   G.map = id; if (x !== undefined) { G.x = x; G.y = y; } if (dir !== undefined) G.dir = dir;
   RT.hover = null; RT.near = null; RT.walkT = -1;
 }
@@ -89,7 +90,6 @@ function interactables() {
   // xe của mình đang dựng ở đâu đó: bấm vào để lên xe
   if (G.park && !G.park.shed && G.park.map === G.map) { const P = G.park; a.push({ x: P.x - 14, y: P.y - 18, w: 28, h: 20, rx: P.x - 12, ry: P.y - 8, rw: 24, rh: 8, base: P.y, label: () => `${VEHICLES[P.id].name} — lên xe`, act: () => ACT.mount(P.id), range: 20 }); }
   if (G.comp && RT.fol && !G.ride) { const f = RT.fol, fid = G.comp.fid; a.push({ x: f.x - 9, y: f.y - 24, w: 18, h: 25, rx: f.x - 4, ry: f.y - 5, rw: 8, rh: 5, base: f.y, label: () => `${FRIENDS[fid].name} — đang đi cùng bạn`, act: () => ACT.friend(fid, 'comp'), range: 24 }); }
-  yardTargets(a);       // tụ chơi ngoài sân: bấm vào giữa tụ để xin chơi cùng
   for (const n of npcsHere()) if (n.act && n.cx !== undefined && !(n.fam && FAM[n.fam].riding)) a.push({ x: n.cx - 9, y: n.cy - 24, w: 18, h: 25, rx: n.cx - 4, ry: n.cy - 5, rw: 8, rh: 5, base: n.cy, label: n.label, act: n.act, range: 24, npc: n });
   return a;
 }
@@ -127,8 +127,11 @@ function movePlayer(dt) {
   G.dir = Math.abs(vx) > Math.abs(vy) ? (vx < 0 ? 1 : 2) : (vy < 0 ? 3 : 0);
   if (G.dir === 1) RT.faceL = true; else if (G.dir === 2) RT.faceL = false;
   const m = MAPS[G.map];
-  if (vx && !blocked(m, G.x + vx, G.y)) G.x += vx;
-  if (vy && !blocked(m, G.x, G.y + vy)) G.y += vy;
+  // đang đi xe: không cho chạy từ đường vào chỗ không phải đường (sân, cỏ, công viên…)
+  const offRoad = (x, y) => G.ride && rideOk(m, G.x, G.y) && !rideOk(m, x, y);
+  const warn = () => { const t = performance.now(); if (t - (RT.rideWarn || 0) > 2500) { RT.rideWarn = t; UI.toast('Chỉ chạy xe trên đường. Bấm X để xuống xe rồi đi bộ vào.', 'info'); } };
+  if (vx) { if (offRoad(G.x + vx, G.y)) warn(); else if (!blocked(m, G.x + vx, G.y)) G.x += vx; }
+  if (vy) { if (offRoad(G.x, G.y + vy)) warn(); else if (!blocked(m, G.x, G.y + vy)) G.y += vy; }
   RT.walkT = (RT.walkT < 0 ? 0 : RT.walkT) + dt;
   for (const w of m.warps) if (G.dir === w.dir && G.x >= w.x && G.x < w.x + w.w && G.y >= w.y && G.y < w.y + w.h) { doWarp(w); return; }
   for (const z of m.zones) if (G.x >= z.x && G.x < z.x + z.w && G.y >= z.y && G.y < z.y + z.h) { G.x += z.bx || 0; G.y += z.by || 0; for (const k in KEYS) KEYS[k] = false; z.fn(); return; }
@@ -142,8 +145,11 @@ async function doWarp(w) {
 }
 // Chuyển động theo kịch bản của hoạt cảnh: nhân vật / diễn viên đi tới một điểm, hoặc nhảy lên (hop)
 function stepScene(dt) {
-  const sc = RT.scene; if (!sc || !sc.tw || !sc.tw.length) { if (sc) sc.meMove = false; return; }
-  let meMove = false;
+  const sc = RT.scene; if (!sc) return;
+  const dm = sc.drive ? sc.drive(dt) : false;          // cảnh tự điều khiển nhân vật (vd. nhập vào tụ chơi)
+  if (sc.yard) followBubble();
+  if (!sc.tw || !sc.tw.length) { sc.meMove = dm; if (dm) RT.walkT = (RT.walkT < 0 ? 0 : RT.walkT) + dt; return; }
+  let meMove = dm;
   for (const t of sc.tw) {
     t.t += dt * 1000; const k = Math.min(1, t.t / t.ms), e = t.who;
     const x = t.x0 + (t.x1 - t.x0) * k, y = t.y0 + (t.y1 - t.y0) * k, oy = t.hop ? -t.hop * Math.sin(Math.PI * k) : 0;
@@ -259,7 +265,7 @@ function render(now) {
   }
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
-  if (G && !RT.scene) drawYardProps(now);        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
+  if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
   // biển hiệu (chữ nét)
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   for (const l of m.labels) { ctx.font = `800 ${l.size * S}px "Baloo 2", system-ui, sans-serif`; ctx.fillStyle = l.col; ctx.fillText(l.text, VIEW.ox + l.x * S, VIEW.oy + l.y * S, l.maxw * S); }
@@ -305,7 +311,8 @@ function bindInput() {
     if (!G) return;
     if (UI.isOpen()) return UI._key(e);
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-    const k = e.key.toLowerCase(); KEYS[k] = true;
+    // chữ cái lấy theo vị trí phím: bộ gõ tiếng Việt (Telex: x = dấu ngã, s = dấu sắc…) không làm mất phím
+    const k = e.code && /^Key[A-Z]$/.test(e.code) ? e.code.slice(3).toLowerCase() : e.key.toLowerCase(); KEYS[k] = true;
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
     if (e.repeat) return;
     if (k === 'q') turnToFriend();                  // trong giờ học: quay sang bạn
@@ -313,7 +320,7 @@ function bindInput() {
     else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 'f') openMenu('friends'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'k') openMenu('cards');
     else if (k === 'p') openMenu('phone'); else if (k === 'l') openMenu('cal'); else if (k === 'x') { if (G.ride && !RT.lock) dismount(); } else if (k === 'escape' || k === 'm') openMenu('menu');
   });
-  window.addEventListener('keyup', e => { KEYS[e.key.toLowerCase()] = false; });
+  window.addEventListener('keyup', e => { KEYS[e.key.toLowerCase()] = false; if (e.code && /^Key[A-Z]$/.test(e.code)) KEYS[e.code.slice(3).toLowerCase()] = false; });
   window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; });
   window.addEventListener('contextmenu', e => e.preventDefault());
   cv.addEventListener('mousemove', e => { MOUSE.x = e.clientX; MOUSE.y = e.clientY; MOUSE.on = true; });

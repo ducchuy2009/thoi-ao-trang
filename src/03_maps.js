@@ -6,12 +6,13 @@
 const MAPS = {};
 const NPCS = [];
 function mapNew(id, name, w, h, indoor) {
-  const m = { id, name, w, h, pw: w * 16, ph: h * 16, indoor, solid: new Uint8Array(w * h), g: mk(w * 16, h * 16), objs: [], warps: [], zones: [], labels: [], solids: [] };
+  const m = { id, name, w, h, pw: w * 16, ph: h * 16, indoor, solid: new Uint8Array(w * h), tile: new Array(w * h), g: mk(w * 16, h * 16), objs: [], warps: [], zones: [], labels: [], solids: [] };
   m.x = cx(m.g); MAPS[id] = m; return m;
 }
 function paint(m, kind, tx, ty, tw, th, solid) {
   for (let j = 0; j < th; j++) for (let i = 0; i < tw; i++) {
     GROUND[kind](m.x, (tx + i) * 16, (ty + j) * 16, tx + i, ty + j);
+    m.tile[(ty + j) * m.w + tx + i] = kind;
     if (solid !== undefined) m.solid[(ty + j) * m.w + tx + i] = solid ? 1 : 0;
   }
 }

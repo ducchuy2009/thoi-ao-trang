@@ -34,7 +34,11 @@ function buildRooms() {
   sch.warps.push({ x: 342, y: 102, w: 20, h: 12, dir: 3, to: { map: 'thuvien', x: 289, y: 204, dir: 3 } });
   // thêm học sinh ra sân cho đông vui + cho mọi học sinh ngoài sân nhập vào các tụ chơi
   for (const [id, a, b] of [['x1', 150, 240], ['x2', 420, 300], ['x3', 260, 200], ['x4', 340, 330]]) NPCS.push({ id: 'y_' + id, sid: id, name: 'Bạn lớp bên', look: id, map: 'school', x: a, y: b, dir: 0, wander: 30, vis: () => yardTime() && !!yardPos(id), label: () => 'Bạn lớp bên', act: () => ACT.mate(id) });
-  for (const n of NPCS) if (n.id.startsWith('y_')) n.pos = () => yardPos(n.sid);
+  // học sinh ngoài sân: đứng theo tụ chơi; nói chuyện với bạn nào thì bạn đó hỏi có vào chơi cùng không
+  for (const n of NPCS) if (n.id.startsWith('y_')) {
+    n.pos = () => yardPos(n.sid); n.act0 = n.act; n.act = () => ACT.yardTalk(n);
+    n.label = () => { const st = yardState(), w = st && st.where[n.sid]; return w ? `${n.name} — đang ${yardVerb(w[0].kind)}` : n.name; };
+  }
 
   /* ---------- TRẠM Y TẾ ---------- */
   let m = roomBase('yte', 'Trạm y tế', '#eef6f3', '#9fd6c4', 'ltile');
@@ -62,7 +66,11 @@ function buildRooms() {
 
   /* ---------- THƯ VIỆN: mỗi môn một tủ sách ---------- */
   m = roomBase('thuvien', 'Thư viện', '#efe6d2', '#c9a467', 'wood');
-  BOOK_SUBJ.forEach((s, i) => addObj(m, { s: 'bs_' + s, x: 22 + i * 34, y: 2, sol: [1, 10, 26, 28], label: () => `Tủ sách ${SUBJ[s].name} — đọc sách`, act: () => ACT.readBook(s) }));
+  BOOK_SUBJ.forEach((s, i) => {
+    addObj(m, { s: 'bs_' + s, x: 22 + i * 34, y: 2, sol: [1, 10, 26, 28], label: () => `Tủ sách ${SUBJ[s].name} — đọc sách`, act: () => ACT.readBook(s) });
+    addObj(m, { s: 'shelfsign', x: 22 + i * 34, y: 0, base: 60 });                     // biển danh mục trên đầu tủ
+    m.labels.push({ x: 35 + i * 34, y: 4.6, text: SUBJ[s].short.toUpperCase(), size: 4.4, col: '#2a2136', maxw: 22 });
+  });
   for (const a of [44, 150]) { addObj(m, { s: 'table', x: a, y: 104, sol: [1, 2, 44, 26] }); addObj(m, { s: 'stool', x: a - 12, y: 114 }); addObj(m, { s: 'stool', x: a + 48, y: 114 }); }
   addObj(m, { s: 'tdesk', x: 236, y: 120, sol: [1, 2, 32, 19] }); addObj(m, { s: 'plant', x: 20, y: 180, sol: [2, 14, 12, 9] });
   NPCS.push({ id: 'thuthu', name: 'Cô thủ thư', look: 'teacherB', map: 'thuvien', x: 252, y: 154, dir: 0, label: () => 'Cô thủ thư', act: () => UI.say('Thư viện', '“Sách xếp theo từng môn trên các tủ sát tường. Em tới tủ nào thì đọc sách môn đó. Giữ trật tự nhé.”') });
@@ -73,8 +81,9 @@ function buildRooms() {
   drawWin(m.x, 60, 9, 22, 13); drawWin(m.x, 220, 9, 22, 13);
   for (let r = 0; r < 2; r++) for (let i = 0; i < 5; i++) {
     const a = 26 + i * 52, b = 52 + r * 62, mine = r === 1 && i === 2;
-    addObj(m, { s: 'napmat', x: a, y: b, flat: true, ir: mine ? [-4, -6, 40, 32] : undefined, label: mine ? () => 'Chiếu của bạn — ngủ trưa' : null, act: mine ? () => ACT.nap() : null });
-    if (!mine) addObj(m, { s: 'sleeper', x: a, y: b, sol: [1, 2, 30, 16], vis: () => napTime() && (i * 7 + r * 3 + G.day) % 5 < 3 });
+    const busy = () => !mine && napTime() && (i * 7 + r * 3 + G.day) % 5 < 3;           // chiếu đã có bạn nằm
+    addObj(m, { s: 'napmat', x: a, y: b, flat: true, ir: [-4, -6, 40, 32], label: () => (busy() ? 'Có bạn đang ngủ ở chiếu này' : 'Chiếu trống — ngủ trưa'), act: () => (busy() ? UI.toast('Có bạn đang ngủ rồi, tìm chiếu khác nhé.') : ACT.nap(a, b)) });
+    if (!mine) addObj(m, { s: 'sleeper', x: a, y: b, sol: [1, 2, 30, 16], vis: busy });
   }
   roomExit(m, { map: 'school', x: 430, y: 116, dir: 0 });
 
@@ -118,7 +127,7 @@ function buildRooms() {
   drawWin(m.x, 60, 9, 22, 13); drawWin(m.x, 240, 9, 20, 13);
   addObj(m, { s: 'rug', x: 70, y: 96, flat: true }); addObj(m, { s: 'tvcab', x: 78, y: 19, sol: [1, 12, 38, 17], label: () => 'Tivi — xem cùng bạn', act: () => ACT.fh('tv') });
   addObj(m, { s: 'sofa', x: 74, y: 140, sol: [1, 6, 46, 15] }); addObj(m, { s: 'plant', x: 22, y: 20, sol: [2, 14, 12, 9] }); addObj(m, { s: 'table', x: 24, y: 150, sol: [1, 2, 44, 26] });
-  addObj(m, { s: 'bed', x: 196, y: 24, sol: [1, 4, 32, 42] }); addObj(m, { s: 'desk', x: 262, y: 24, sol: [1, 2, 34, 25] }); addObj(m, { s: 'rugBlue', x: 220, y: 120, flat: true });
+  addObj(m, { s: 'bed', x: 196, y: 24, sol: [1, 4, 32, 42], label: () => `Giường của ${FRIENDS[G.visit].name} — nằm nghỉ`, act: () => ACT.fhBed() }); addObj(m, { s: 'desk', x: 262, y: 24, sol: [1, 2, 34, 25] }); addObj(m, { s: 'rugBlue', x: 220, y: 120, flat: true });
   addObj(m, { s: 'gameconsole', x: 232, y: 160, sol: [1, 8, 22, 10], label: () => 'Máy chơi game — chơi điện tử cùng bạn', act: () => ACT.fh('game') });
   addObj(m, { s: 'poster', x: 234, y: 8, base: 0 });
   // cửa phòng riêng: chưa đủ thân thì bị chặn lại

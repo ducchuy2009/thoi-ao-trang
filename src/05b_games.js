@@ -53,26 +53,58 @@ function gArrow(c, col, d, x, y, r) {
   c.fillStyle = col; c.beginPath(); c.moveTo(r, 0); c.lineTo(-r * 0.3, -r); c.lineTo(-r * 0.3, -r * 0.4); c.lineTo(-r, -r * 0.4); c.lineTo(-r, r * 0.4); c.lineTo(-r * 0.3, r * 0.4); c.lineTo(-r * 0.3, r); c.closePath(); c.fill(); c.restore();
 }
 const GAMES = {
-  /* ---------- tâng cầu: bấm vào quả cầu đang rơi (hoặc Space khi cầu xuống gần chân) ---------- */
+  /* ---------- tâng cầu: quả cầu ở giữa màn hình, bấm trúng quả cầu để tâng; bấm lệch bên nào thì cầu bay về phía ngược lại ---------- */
   keepup(diff, title) {
-    const need = 8 + diff * 2, T = 22;
+    const need = 8 + diff * 2, T = 32, BR = 6, HIT = 20, GR = 205 + 15 * diff;
     return {
-      title: title || 'Tâng cầu', bot: 0.8, help: `<p><b>Bấm vào quả cầu</b> đang rơi để tâng lên (hoặc <kbd>Space</kbd> khi cầu xuống gần chân). Tâng đủ <b>${need}</b> lần, rơi 3 lần là hết lượt.</p>`,
-      setup(S) { Object.assign(S, { x: S.W / 2, y: 40, vx: 20, vy: 0, kicks: 0, lives: 3 }); },
+      title: title || 'Tâng cầu', bot: 0.8, w: 260, h: 230,
+      help: `<p>Quả cầu đang ở giữa màn hình. <b>Bấm trúng quả cầu</b> để tâng lên.</p><p>Bấm vào <b>bên trái</b> quả cầu thì cầu bay sang phải, bấm <b>bên phải</b> thì cầu bay sang trái, bấm <b>chính giữa</b> thì cầu bay thẳng và cao nhất. Cầu chạm tường thì nảy lại.</p><p>Tâng đủ <b>${need}</b> lần. Cầu rơi xuống đất 3 lần là thua.</p>`,
+      setup(S) {
+        Object.assign(S, { kicks: 0, lives: 3, fx: [], cd: 0 });
+        S.reset = () => { S.x = S.W / 2; S.y = S.H / 2 - 16; S.vx = 0; S.vy = 0; S.hold = 1.2; };
+        S.reset();
+      },
       step(S, dt, inp) {
-        S.vy += (230 + 25 * diff) * dt; S.x += S.vx * dt; S.y += S.vy * dt;
-        if (S.x < 12 || S.x > S.W - 12) { S.vx *= -1; S.x = clamp(S.x, 12, S.W - 12); }
-        const kick = () => { S.vy = -(190 + Math.random() * 50); S.vx = rnd(-55, 55); S.kicks++; };
-        if (S.vy > 0 && ((inp.clicks.some(([a, b]) => Math.hypot(a - S.x, b - S.y) < 24)) || (inp.hit.includes('space') && S.y > S.H - 74 && S.y < S.H - 14))) kick();
-        if (S.y > S.H - 10) { S.lives--; S.x = S.W / 2; S.y = 30; S.vy = 0; S.vx = rnd(-30, 30); }
+        S.cd = Math.max(0, S.cd - dt);
+        for (const f of S.fx) f.t += dt; S.fx = S.fx.filter(f => f.t < 0.45);
+        if (S.hold > 0) S.hold -= dt;                                             // lúc đầu cầu lơ lửng chờ bấm
+        else { S.vy += GR * dt; S.vx *= 1 - 0.35 * dt; if (S.vy > 0) S.vy *= 1 - 0.9 * dt; S.x += S.vx * dt; S.y += S.vy * dt; }   // lông cầu cản gió: rơi chậm dần
+        if (S.x < BR) { S.x = BR; S.vx = Math.abs(S.vx) * 0.7; }
+        if (S.x > S.W - BR) { S.x = S.W - BR; S.vx = -Math.abs(S.vx) * 0.7; }
+        if (S.y < BR + 16) { S.y = BR + 16; S.vy = Math.abs(S.vy) * 0.25; }
+        for (const [a, b] of inp.clicks) {
+          const dx = S.x - a, dy = S.y - b, d = Math.hypot(dx, dy), ok = d < HIT && S.cd <= 0;
+          S.fx.push({ x: a, y: b, t: 0, ok });
+          if (!ok) continue;
+          const k = clamp(dx / HIT, -1, 1);                                        // lệch trái (dx > 0) → bay sang phải
+          S.vx = k * (125 + 8 * diff) + S.vx * 0.15;
+          S.vy = -(185 + 45 * (1 - Math.abs(k)) + 6 * diff);
+          S.hold = 0; S.kicks++; S.cd = 0.12;
+        }
+        if (S.y > S.H - 26 - BR) { S.lives--; S.fx.push({ x: S.x, y: S.H - 28, t: 0, drop: true }); if (S.lives > 0) S.reset(); }
         S.score = S.kicks / need; S.info = `Tâng: ${S.kicks}/${need} · còn ${S.lives} lượt rơi`;
         if (S.lives <= 0 || S.kicks >= need || S.t > T) S.done = true;
       },
       draw(c, S) {
-        gR(c, '#bfe6f7', 0, 0, S.W, S.H); gR(c, '#e6cfa6', 0, S.H - 22, S.W, 22); gR(c, '#5fae78', 0, S.H - 26, S.W, 4); gTime(c, S, T - S.t, T);
-        gR(c, 'rgba(95,174,74,.18)', 0, S.H - 74, S.W, 60);
-        gR(c, '#34425e', S.x - 9, S.H - 20, 18, 6); gR(c, '#2e2738', S.x - 9, S.H - 15, 22, 5);       // bàn chân chạy theo cầu
-        gR(c, '#fffaf0', S.x - 5, S.y - 12, 2, 10); gR(c, '#fffaf0', S.x - 1, S.y - 14, 2, 12); gR(c, '#fffaf0', S.x + 3, S.y - 12, 2, 10); gC(c, '#d9534f', S.x, S.y, 5); gC(c, '#f79a90', S.x - 1, S.y - 1, 2);
+        gR(c, '#bfe6f7', 0, 0, S.W, S.H); gR(c, '#e6cfa6', 0, S.H - 24, S.W, 24); gR(c, '#5fae78', 0, S.H - 28, S.W, 4); gTime(c, S, T - S.t, T);
+        gR(c, '#9fd0e6', 0, S.H - 28, 3, 1);
+        // bóng cầu dưới đất
+        c.fillStyle = 'rgba(42,33,54,.18)'; c.beginPath(); c.ellipse(S.x, S.H - 18, 7 + (S.y / S.H) * 4, 2.5, 0, 0, 6.3); c.fill();
+        // vùng bấm trúng
+        c.strokeStyle = S.hold > 0 ? `rgba(242,169,59,${0.5 + 0.4 * Math.sin(S.t * 8)})` : 'rgba(42,33,54,.14)'; c.lineWidth = 1.5; c.beginPath(); c.arc(S.x, S.y, HIT, 0, 6.3); c.stroke();
+        // quả cầu: đầu cao su bay trước, chùm lông phía sau
+        const ang = S.hold > 0 ? Math.PI / 2 : Math.atan2(S.vy, S.vx);
+        c.save(); c.translate(S.x, S.y); c.rotate(ang - Math.PI / 2);
+        c.fillStyle = '#fffaf0'; c.strokeStyle = '#2a2136'; c.lineWidth = 1; c.beginPath(); c.moveTo(-3, 1); c.lineTo(3, 1); c.lineTo(7, -13); c.lineTo(-7, -13); c.closePath(); c.fill(); c.stroke();
+        c.strokeStyle = '#c9ccd4'; for (const q of [-4, 0, 4]) { c.beginPath(); c.moveTo(q * 0.4, 0); c.lineTo(q, -12); c.stroke(); }
+        gC(c, '#d9534f', 0, 3, 4); gC(c, '#f79a90', -1, 2, 1.5);
+        c.restore();
+        for (const f of S.fx) {
+          const a = 1 - f.t / 0.45;
+          if (f.drop) { gT(c, `rgba(217,83,79,${a})`, 'Rơi rồi!', f.x, f.y - 10 - f.t * 30, 11); continue; }
+          c.strokeStyle = f.ok ? `rgba(95,174,74,${a})` : `rgba(139,143,156,${a})`; c.lineWidth = 2; c.beginPath(); c.arc(f.x, f.y, 4 + f.t * 30, 0, 6.3); c.stroke();
+        }
+        if (S.hold > 0 && S.kicks === 0) gT(c, '#2a2136', 'Bấm vào quả cầu!', S.W / 2, S.H / 2 + 32, 12);
       },
     };
   },
@@ -335,6 +367,26 @@ async function playGame(kind, diff, a, b) { return UI.game(GAMES[kind](diff || 2
  *  CỬA HÀNG DẠNG ICON: bấm vào món để xem tên, mô tả rồi mua
  * ============================================================ */
 // items: [{ id, icon, name, price, desc, owned, off }] · onBuy(item) · extra(): html thêm phía dưới · handlers thêm
+// Chỉ số món hàng mang lại (hiện khi bấm chọn món): thể lực, thẻ cầu thủ, điểm môn học…
+function storeGain(it) {
+  const g = [], ex = EXERCISES.find(e => e.need === it.own);
+  if (it.stam) g.push(`+${it.stam} thể lực`);
+  else if (it.inv && FOODS[it.inv]) g.push(`+${FOODS[it.inv].stam} thể lực khi ăn`);
+  if (it.mins) g.push(`ăn tại chỗ ${it.mins} phút`); else if (it.stam) g.push('dùng ngay');
+  if (it.pack) g.push(`+${it.pack} thẻ cầu thủ`);
+  if (it.act === 'movie') g.push(`+${MALL.movie.stam} thể lực`, '+Giao tiếp', `${MALL.movie.mins} phút`);
+  if (it.act === 'chicken') g.push(`+${MALL.chicken.stam} thể lực`, `${MALL.chicken.mins} phút`);
+  if (it.act === 'teamall') g.push('+12 thể lực', '20 phút');
+  if (it.act === 'book') g.push(`+${MALL.book.pts} điểm môn tự chọn`);
+  if (it.act === 'box') g.push(`+${MALL.box.n} thẻ cầu thủ`);
+  if (it.act === 'bim') g.push('+1 thẻ cầu thủ');
+  if (it.id && it.id.startsWith('d_')) g.push(`ngủ dậy +${DECOR_SLEEP} thể lực`);
+  if (it.own === 'micro') g.push('tập hát ở nhà: +Văn nghệ');
+  if (it.own === 'guitar') g.push('trang trí phòng ngủ');
+  if (ex) g.push(`tập ở nhà: +${ex.pts} Thể thao`);
+  if (it.id === 'xeng') g.push(`+${TOKENS.n} xèng`);
+  return g.length ? '<span class="gains">' + g.map(t => `<i class="${t[0] === '+' ? 'up' : ''}">${t}</i>`).join('') + '</span>' : '';
+}
 UI.store = function (title, greet, items, onBuy, extra, more) {
   let sel = null;
   const list = () => (typeof items === 'function' ? items() : items);
@@ -343,7 +395,7 @@ UI.store = function (title, greet, items, onBuy, extra, more) {
     let h = `<p>${greet} — Bạn đang có <b>${fmtMoney(G.money)}</b>.</p><div class="tiles">`;
     for (const x of L) h += `<button class="tile ${x.id === sel ? 'on' : ''} ${x.owned ? 'own' : ''}" data-act="sel" data-id="${x.id}" title="${x.name}"><img src="${itemIcon(x.icon || x.id)}" alt="${x.name}"><small>${x.owned ? 'Đã có' : fmtMoney(x.price)}</small></button>`;
     h += '</div>';
-    h += it ? `<div class="tinfo"><img src="${itemIcon(it.icon || it.id)}" alt=""><span><b>${it.name}</b><small>${it.desc || ''}</small></span><button class="btn sm primary" data-act="buy" ${it.owned || it.off || G.money < it.price ? 'disabled' : ''}>${it.owned ? 'Đã có' : 'Mua · ' + fmtMoney(it.price)}</button></div>`
+    h += it ? `<div class="tinfo"><img src="${itemIcon(it.icon || it.id)}" alt=""><span><b>${it.name}</b><small>${it.desc || ''}</small>${storeGain(it)}</span><button class="btn sm primary" data-act="buy" ${it.owned || it.off || G.money < it.price ? 'disabled' : ''}>${it.owned ? 'Đã có' : 'Mua · ' + fmtMoney(it.price)}</button></div>`
       : '<div class="tinfo dim">Bấm vào một món để xem.</div>';
     return h + (extra ? extra() : '');
   }, Object.assign({ sel: d => { sel = d.id; }, buy: () => { const it = list().find(x => x.id === sel); if (it) onBuy(it); } }, more || {}), true);

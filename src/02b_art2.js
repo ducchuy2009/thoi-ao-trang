@@ -205,6 +205,7 @@ function buildSprites2() {
     for (let j = 0; j < 3; j++) { R(x, '#5b3d27', 2, 11 + j * 9, 22, 7); for (let i = 0; i < 7; i++) R(x, i % 3 === 0 ? col : ['#fffaf0', shade(col, -25), '#e3ddd0'][(i + j) % 3], 3 + i * 3, 12 + j * 9 + ((i + j) % 2), 2, 6 - ((i + j) % 2)); }
   });
   for (const s of BOOK_SUBJ) bshelf('bs_' + s, SUBJ[s].color);
+  def('shelfsign', 26, 9, x => { R(x, '#2a2136', 0, 0, 26, 9); R(x, '#fffaf0', 1, 1, 24, 7); R(x, '#e3ddd0', 1, 7, 24, 1); }, true);   // biển tên môn trên đầu tủ sách
   def('napmat', 30, 18, x => { R(x, '#e6d096', 0, 0, 30, 18); R(x, '#c9b170', 0, 16, 30, 2); for (let i = 0; i < 30; i += 4) R(x, '#d9c27f', i, 0, 1, 16); R(x, '#fffaf0', 2, 3, 8, 11); R(x, '#e3ddd0', 2, 12, 8, 2); });
   def('sleeper', 30, 18, x => { x.drawImage(SPR.napmat, -1, -1); R(x, '#f8d0a8', 3, 5, 7, 7); R(x, '#2c2733', 2, 4, 5, 8); R(x, '#8fb0d8', 10, 3, 18, 12); R(x, '#6f8fb8', 10, 13, 18, 2); R(x, '#2a2136', 8, 8, 1, 1); });
   def('medbed', 34, 22, x => { R(x, '#c9ccd4', 0, 4, 34, 18); R(x, '#fbfdff', 1, 5, 32, 14); R(x, '#ffffff', 2, 6, 9, 11); R(x, '#9fd6c4', 12, 6, 20, 12); R(x, '#7fbfa9', 12, 16, 20, 2); R(x, '#8b8f9c', 0, 0, 2, 22); R(x, '#8b8f9c', 32, 2, 2, 20); });

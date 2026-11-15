@@ -92,7 +92,7 @@ const grudge = fid => (G.grudge[fid] === undefined ? -1 : G.grudge[fid]) >= G.da
 const sceneHides = sid => !!(RT.scene && RT.scene.hide && RT.scene.hide.includes(sid));
 // "Đã về nhà" (ngày đi học): có mặt ở nhà trong khoảng tan học → 20:00. Sau đó có ra ngoài chơi tiếp thì bố mẹ không mắng.
 function checkIn() { if (schoolToday() && G.time >= CFG.SCHOOL_END && G.time < CFG.LATE_HOME && atHome()) G.daily.checkedIn = true; }
-function yardTime() { return schoolToday() && !RT.scene && YARD_WINDOWS.some(([a, b]) => inWin(G.time, a, b)); }
+function yardTime() { return schoolToday() && (!RT.scene || !!RT.scene.yard) && YARD_WINDOWS.some(([a, b]) => inWin(G.time, a, b)); }
 function classSeated() { const t = G.time; return (RT.scene && RT.scene.type === 'class') || (schoolToday() && (inWin(t, 420, AM_END) || inWin(t, PM_START - 20, CFG.SCHOOL_END))); }
 function teacherIn() { const t = G.time; if (RT.scene) return false; return (schoolToday() && (inWin(t, 460, AM_END) || inWin(t, PM_START - 20, CFG.SCHOOL_END))); }
 function parkTime() { const t = G.time; return schoolToday() ? inWin(t, AFTER_SCHOOL, 1210) : inWin(t, 480, 1090); }
@@ -195,6 +195,9 @@ async function activity(label, mins, fn) {
 }
 
 /* ---------- ngày mới / đi ngủ ---------- */
+const rollLuck = () => Math.round((Math.random() + Math.random()) * 50);       // 0–100, hay rơi vào khoảng giữa
+const luckK = () => clamp(((G.daily.luck === undefined ? 50 : G.daily.luck) - 50) / 50, -1, 1);   // −1 (rất xui) … +1 (rất may)
+const luckLv = () => { const v = G.daily.luck === undefined ? 50 : G.daily.luck; let k = 0; LUCK_LV.forEach((l, i) => { if (v >= l[0]) k = i; }); return k; };
 function resetDaily() {
   G.daily = {
     chores: {}, meals: {}, lunchbox: false, exercise: 0, done: {}, missed: 0, penalty: 0, late: false, arrived: false,
@@ -205,7 +208,8 @@ function resetDaily() {
     brk: {}, duel: {}, msg: {}, ask: {}, ru: {}, gift: {}, hill: {},          // giải lao, đấu thẻ, nhắn tin, rủ rê, quà, núi
     lib: 0, nap: false, lunchEv: false, tipVy: false, book: false,
     bday: {}, fishMom: false, shells: 0, beach: {}, soc: {}, skips: 0,
-    yard: {}, fh: {}, rest: 0, music: 0, smoke: 0, wash: false, fainted: false,   // tụ chơi, nhà bạn, trạm y tế, phòng nhạc…
+    yard: {}, fh: {}, rest: 0, music: 0, smoke: 0, wash: false, fainted: false,
+    luck: rollLuck(), tvSeen: {}, luckSeen: false, bedNap: 0,                   // điểm may mắn hôm nay (xem trên tivi)   // tụ chơi, nhà bạn, trạm y tế, phòng nhạc…
   };
 }
 function beginDay(first) {
@@ -250,11 +254,11 @@ function endDay() {
   G.day++;
   return reports;
 }
-async function goSleep(forced) {
+async function goSleep(forced, note) {
   RT.lock = true;
   await UI.fade(true);
   const hours = (CFG.DAY_START + 1440 - G.time) / 60, mx = maxStam();
-  RT.morning = [];
+  RT.morning = []; if (note) RT.morning.push(note);
   if (forced && G.map !== 'home') { addParent(PARENT.notHome, '', true); RT.morning.push('Cả đêm bạn không về nhà — bố mẹ rất lo và giận.'); }
   const reports = endDay();
   G.stamina = forced ? Math.round(mx * 0.5) : Math.min(mx, Math.round(G.stamina + mx * Math.min(1, hours / 7)));
@@ -350,9 +354,12 @@ function testScore(subj, type, o) {
   let roll = rnd(-1, 1);
   if (Math.random() < Math.min(0.85, 0.1 + comp * 0.12)) roll = Math.max(roll, rnd(-1, 1));
   s += roll * [0.5, 0.9, 1.6][style];
+  const L = luckK(), lp = Math.round(LUCK.test * L * 4) / 4;            // điểm may mắn hôm nay
+  s += LUCK.test * L;
+  if (G.daily.luckSeen && lp) notes.push(lp > 0 ? `Ngày may mắn: +${fmtScore(lp)}` : `Ngày xui xẻo: −${fmtScore(-lp)}`);
   const lk = Math.random(), k = [0.5, 1, 2][style];
-  if (lk < 0.06 * k) { const d = Math.round(rnd(1.5, 2.5) * 4) / 4; s -= d; notes.push(`Học tài thi phận — đề rơi đúng phần chưa ôn: −${fmtScore(d)}`); }
-  else if (lk > 1 - (0.05 + comp * 0.01) * k) { const d = Math.round(rnd(1, 1.75) * 4) / 4; s += d; notes.push(`Trúng tủ: +${fmtScore(d)}`); }
+  if (lk < 0.06 * k * (1 - LUCK.tu * L)) { const d = Math.round(rnd(1.5, 2.5) * 4) / 4; s -= d; notes.push(`Học tài thi phận — đề rơi đúng phần chưa ôn: −${fmtScore(d)}`); }
+  else if (lk > 1 - (0.05 + comp * 0.01) * k * (1 + LUCK.tu * L)) { const d = Math.round(rnd(1, 1.75) * 4) / 4; s += d; notes.push(`Trúng tủ: +${fmtScore(d)}`); }
   if (G.review[subj] !== undefined && G.review[subj] >= G.day) { s += 1; notes.push('Đã ôn bài: +1,0'); delete G.review[subj]; }
   if (BOOK_SUBJ.includes(subj) && !G.bag.hopbut && type !== 'mieng') { s -= 1; notes.push('Quên hộp bút: −1,0'); }
   if (o.bonus) { s += o.bonus; notes.push('Xung phong: +' + fmtScore(o.bonus)); }
@@ -385,7 +392,7 @@ function cheatTest(subj, type, L) {
 // Bài kiểm tra thực hành (Quốc phòng): điểm dựa vào kết quả minigame
 function practicalTestScore(subj, type, r) {
   const notes = [];
-  let s = 3 + 4.2 * r.progress + 0.3 * lv(statOfSubj(subj)) + 0.08 * thucHanh() + (r.perfect ? 0.8 : 0) + rnd(-0.3, 0.3) - 0.6 * (G.grade - 10);
+  let s = 3 + 4.2 * r.progress + 0.3 * lv(statOfSubj(subj)) + 0.08 * thucHanh() + (r.perfect ? 0.8 : 0) + rnd(-0.3, 0.3) - 0.6 * (G.grade - 10) + LUCK.test * luckK();
   notes.push(r.win ? (r.perfect ? 'Thao tác hoàn hảo.' : 'Hoàn thành bài thực hành.') : `Chưa hoàn thành (được ${Math.round(r.progress * 100)}%).`);
   if (subj === 'qp' && !G.bag.dp_qp) { s -= 1; notes.push('Sai trang phục: −1,0'); }
   s += testPenalties(subj, type, notes) + teacherGrading(notes, subj);
@@ -727,7 +734,7 @@ ACT.desk = async () => {
   if (c === 0) UI.pack(); else if (c === 1) studyMenu(SELF_STUDY.mins, SELF_STUDY.pts, SELF_STUDY.stam, true); else if (c === 2) UI.timetable(); else if (c === 3) UI.calendar();
 };
 ACT.bed = async () => {
-  if (G.time < CFG.SLEEP_FROM) return UI.say('Giường', `Trời còn sáng, chưa ngủ được.<p class="dim">Có thể đi ngủ từ ${fmtTime(CFG.SLEEP_FROM)}. Muộn nhất 03:00 sáng bạn sẽ tự ngủ gục.</p>`);
+  if (G.time < CFG.SLEEP_FROM && G.time >= CFG.DAY_START) return bedNap('Giường', 17, 24);       // ban ngày: chợp mắt một lát
   const c = await UI.ask('Đi ngủ?', `<p>Ngủ đến 05:00 sáng mai. Ngủ đủ 7 tiếng sẽ hồi đầy thể lực.</p><p class="dim">Game tự lưu mỗi khi bạn đi ngủ.</p>`, ['Đi ngủ', 'Chưa']);
   if (c === 0) goSleep(false);
 };

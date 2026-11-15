@@ -197,10 +197,10 @@ const UI = {
     $('hotbar').innerHTML = it.map(x => `<button class="slot" data-hb="${x.act}" data-id="${x.id}" title="${x.title}"><img src="${itemIcon(x.id)}" alt="">${x.n ? `<b>${x.n}</b>` : ''}${x.lab ? `<i>${x.lab}</i>` : ''}</button>`).join('')
       + (G.ride ? `<button class="slot txt" data-hb="off" title="Xuống xe">Xuống xe <kbd>X</kbd></button>` : '');
   },
-  hint(text, ok) {
+  hint(text, ok, key) {
     const h = $('hint');
     if (!text) { h.classList.remove('on'); return; }
-    if (h._t !== text || h._ok !== ok) { h._t = text; h._ok = ok; h.innerHTML = (ok ? '<kbd>Chuột phải</kbd><kbd>E</kbd>' : '<em>Lại gần hơn</em>') + '<span></span>'; h.lastChild.textContent = text; h.classList.toggle('far', !ok); }
+    if (h._t !== text || h._ok !== ok || h._key !== key) { h._t = text; h._ok = ok; h._key = key; h.innerHTML = (key ? `<kbd>${key}</kbd>` : ok ? '<kbd>Chuột phải</kbd><kbd>E</kbd>' : '<em>Lại gần hơn</em>') + '<span></span>'; h.lastChild.textContent = text; h.classList.toggle('far', !ok); h.classList.toggle('btnlike', key === 'X'); }
     h.classList.add('on');
   },
 
@@ -509,6 +509,7 @@ function timeTravel(day, time) {
 function bindUI() {
   $('ic-menu').src = itemIcon('m_menu'); $('ic-phone').src = itemIcon('m_phone');
   $('banner').addEventListener('click', () => turnToFriend());
+  $('hint').addEventListener('click', () => { if (G && G.ride && !RT.lock && !UI.isOpen() && $('hint')._key === 'X') dismount(); });   // bấm vào nút “X Xuống xe”
   $('modal').addEventListener('click', UI._click);
   $('m-x').addEventListener('click', () => UI.close(UI._res ? UI._esc : -1));
   $('modal-wrap').addEventListener('input', e => {

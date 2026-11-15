@@ -36,17 +36,33 @@ ACT.go = (from, to) => {
   const L = LINKS[from + '>' + to];
   if (L.hours && !inWin(G.time, L.hours[0], L.hours[1])) return UI.say('Đường lên núi', `Trời tối rồi, đường núi nguy hiểm lắm.<p class="dim">Chỉ lên núi được từ ${fmtTime(L.hours[0])} đến ${fmtTime(L.hours[1])}.</p>`);
   if (L.foot && G.ride) dismount(true);
-  goPlace(L.at[0], L.at[1], L.at[2], L.at[3], G.ride ? 0 : L.hop, L.label);
+  goPlace(L.at[0], L.at[1], L.at[2], L.at[3], G.ride ? 0 : L.hop, L.label).then(() => {
+    if (G.ride && !rideOk(MAPS[G.map], G.x, G.y)) { dismount(true); UI.toast('Chỗ này không có đường cho xe chạy — dựng xe lại đây.', 'info'); }
+  });
 };
 
 /* ---------- xe đạp / xe đạp điện / xe máy: bấm vào xe để lên, X để xuống ---------- */
 const vehAtHome = id => !!G && !!G.owned[VEHICLES[id].own] && G.ride !== id && !(G.park && G.park.id === id);
-ACT.mount = id => {
+// Xe chỉ chạy trên đường (lòng đường, vỉa hè) và trong sân nhà mình
+const RIDE_TILES = ['road', 'walk'];
+function rideOk(m, x, y) {
+  if (!m.tile || m.indoor) return !m.indoor;
+  if (m.id === 'town' && x < 272 && y < 160) return true;          // sân nhà mình: dắt xe ra cổng
+  if (m.id === 'school' && x >= GATE.x && x < GATE.x + GATE.w && y >= 368 && y < 400) return true;   // chạy tới cổng trường để gửi xe
+  return RIDE_TILES.includes(m.tile[(y >> 4) * m.w + (x >> 4)]);
+}
+ACT.mount = async id => {
   if (RT.lock) return;
   if (G.park && G.park.id !== id) return UI.toast(`Bạn đang để ${VEHICLES[G.park.id].name.toLowerCase()} ở chỗ khác. Mang xe đó về đã.`);
+  const V = VEHICLES[id];
+  if (G.comp) {          // đang đi chơi với bạn: chở bạn ngồi sau
+    const fid = G.comp.fid, F = FRIENDS[fid];
+    const c = await UI.ask(F.name, `<p>“${V.name} của cậu hả? Cho tớ ngồi sau với!”</p>`, [`Lên xe, chở ${F.name} đi cùng`, 'Thôi, đi bộ cùng nhau'], { who: { look: fid, outfit: friendOutfit(fid) } });
+    if (c !== 0) return;
+  }
   if (G.ride) dismount(true);
   G.ride = id; G.park = null;
-  UI.toast(`Lên ${VEHICLES[id].name.toLowerCase()}. Bấm X để xuống xe.`, 'good'); UI.hud();
+  UI.toast(G.comp ? `Chở ${FRIENDS[G.comp.fid].name} trên ${V.name.toLowerCase()}. Chỉ chạy xe trên đường · bấm X để xuống xe.` : `Lên ${V.name.toLowerCase()}. Chỉ chạy xe trên đường · bấm X để xuống xe.`, 'good'); UI.hud();
 };
 function dismount(quiet) {
   if (!G.ride) return;
@@ -57,9 +73,18 @@ function dismount(quiet) {
   UI.hud();
 }
 const shedLabel = () => (G && G.park && G.park.shed ? `Nhà xe — lấy ${VEHICLES[G.park.id].name.toLowerCase()}` : 'Nhà xe học sinh');
-ACT.shed = () => {
+// Xe gửi ở nhà xe trường: chỉ lấy được khi đã hết mọi tiết học (hoặc được cho về vì ngất); lấy xe thì dắt ra cổng rồi mới lên xe
+const classesOver = () => !schoolToday() || G.time >= CFG.SCHOOL_END || !!G.daily.fainted;
+ACT.shed = async () => {
+  if (RT.lock) return;
   if (!G.park || !G.park.shed) return UI.toast('Nhà xe học sinh. Đi xe đến trường thì xe gửi ở đây.');
-  G.ride = G.park.id; G.park = null; UI.toast(`Lấy ${VEHICLES[G.ride].name.toLowerCase()} ra khỏi nhà xe. Bấm X để xuống xe.`, 'good'); UI.hud();
+  const V = VEHICLES[G.park.id];
+  if (!classesOver()) return UI.ask('Bác bảo vệ', `<p>“Chưa tan học đâu cháu. Học hết các tiết (${fmtTime(CFG.SCHOOL_END)}) rồi hẵng ra lấy xe.”</p>`, ['Dạ'], { who: { look: 'guard' } });
+  RT.lock = true; await UI.fade(true);
+  G.ride = G.park.id; G.park = null; G.atSchool = false;
+  setMap('school', GATE.x + GATE.w / 2, GATE.yOut + 8, 0);
+  await UI.fade(false); RT.lock = false;
+  UI.toast(`Dắt ${V.name.toLowerCase()} ra khỏi cổng trường. Chỉ chạy xe trên đường · bấm X để xuống xe.`, 'good'); UI.hud();
 };
 
 /* ---------- hoạt cảnh đi xe: xe bus · bố mẹ chở · tàu hoả ---------- */
