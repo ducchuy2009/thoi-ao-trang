@@ -345,7 +345,7 @@ ACT.stall = async i => {
 ACT.canteen = () => {
   if (!inWin(G.time, 360, 1030)) return UI.say('Căn tin', 'Căn tin đã nghỉ bán.');
   meetSoc('cantin');
-  UI.store('Căn tin', '“Ăn gì con?”', CANTEEN, f => buyFood(f.inv, f.price, f.name));
+  UI.store('Căn tin', ttMatOpen(G.day) ? '“Ăn gì con? Sắp Trung thu, căn tin có bán cả nguyên liệu làm đèn lồng đó!”' : '“Ăn gì con?”', () => CANTEEN.concat(ttMatItems()), f => (f.mat ? buyMat(f) : buyFood(f.inv, f.price, f.name)));
 
 };
 
@@ -742,8 +742,8 @@ ACT.senior = async soc => {
  *  CẦM VẬT PHẨM: bấm món đồ trong túi / thanh đồ để cầm lên
  *  Đang cầm mà tương tác với người khác → tặng quà · bấm vào mình hoặc chỗ trống → ăn (nếu ăn được)
  * ============================================================ */
-const holdName = id => (FOODS[id] ? FOODS[id].name : id === 'gaubong' ? 'Gấu bông' : id === 'voso' ? 'Vỏ sò' : id);
-const holdable = id => !!(FOODS[id] || id === 'gaubong' || id === 'voso');
+const holdName = id => (FOODS[id] ? FOODS[id].name : id === 'gaubong' ? 'Gấu bông' : id === 'voso' ? 'Vỏ sò' : id === 'denongsao' ? 'Đèn ông sao' : id);
+const holdable = id => !!(FOODS[id] || id === 'gaubong' || id === 'voso' || id === 'denongsao');
 function toggleHold(id) {
   if (!holdable(id) || !G.inv[id]) return;
   RT.hold = RT.hold === id ? null : id;

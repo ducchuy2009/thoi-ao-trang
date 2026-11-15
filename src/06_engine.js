@@ -277,7 +277,7 @@ function render(now) {
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
   if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);
-  if (G) { drawFestProps(now); drawBcProps(now); }
+  if (G) { drawFestProps(now); drawBcProps(now); drawTTProps(now); }
   if (G) drawHeld(now);                           // món đang cầm trên tay
   for (const o of m.objs) if (o.smoke && (!o.vis || o.vis())) smokeProp(now, o.x + o.smoke[0], o.y + o.smoke[1]);   // khói nhang        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
   // biển hiệu (chữ nét)
@@ -288,6 +288,7 @@ function render(now) {
   // quầng sáng đèn đường ban đêm
   if (G && !m.indoor) { const a = nightAlpha(G.time); if (a > 0.05) { ctx.globalCompositeOperation = 'lighter'; for (const o of m.objs) { if (o.s !== 'lamp' && !(o.glow && (!o.vis || o.vis()))) continue; const X = VIEW.ox + (o.x + 6) * S, Y = VIEW.oy + (o.y + 8) * S, g = ctx.createRadialGradient(X, Y, 0, X, Y, 52 * S); g.addColorStop(0, `rgba(255,214,130,${0.55 * a * 2})`); g.addColorStop(1, 'rgba(255,214,130,0)'); ctx.fillStyle = g; ctx.fillRect(X - 52 * S, Y - 52 * S, 104 * S, 104 * S); } ctx.globalCompositeOperation = 'source-over'; } }
   if (G && RT.scene && RT.scene.glow) for (const p of RT.scene.glow) p(now);   // pháo hoa: vẽ sau lớp tối ban đêm cho sáng rực
+  if (G) drawTTGlow(now);                         // trăng rằm, ánh đèn ông sao đêm Trung thu
   // cắt cảnh: hai dải đen kiểu phim + tên cảnh + bong bóng thoại
   if (G && RT.scene && RT.scene.type === 'cut') {
     const bh = RT.scene.bars === false ? 0 : Math.round(cv.height * 0.085);

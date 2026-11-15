@@ -65,6 +65,7 @@ const LOOKS = {
   sA: { ...UNI, hair: '#1f1f29', style: 'spiky', badge: '#d9534f', pants: '#2b3550' }, sB: { ...UNI, hair: '#3a2a2a', style: 'long', skirt: true, band: '#7a5fc9', badge: '#d9534f' },
   sC: { ...UNI, hair: '#5a3a26', style: 'short', badge: '#2e9e86', skin: '#e3ae80' }, sD: { ...UNI, hair: '#2c2733', style: 'bun', skirt: true, badge: '#2e9e86' },
   principal: { hair: '#c9ccd4', style: 'short', shirt: '#3a3f55', pants: '#2a2136', tie: '#d9534f', mustache: true, skin: '#eab98c' },
+  mayor: { hair: '#5f656f', style: 'short', shirt: '#24406b', pants: '#1f2a44', tie: '#e8b83a', mustache: true, skin: '#e8b48a' },
   monk: { hair: '#f2c9a0', style: 'buzz', shirt: '#d98a2b', pants: '#b8701f', aodai: true, shoe: '#6f472c' },
   vendor: { hair: '#4a3328', style: 'bun', shirt: '#f2a93b', pants: '#5b4a6b', apron: '#ffffff' },
   c1: { ...UNI, hair: '#3b2a22', style: 'short' },

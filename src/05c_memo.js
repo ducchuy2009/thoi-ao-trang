@@ -5,14 +5,23 @@
 MV.memo = {
   h: { mst: d => { UI._mstab = d.id; } },
   render() {
-    const st = UI._mstab || 'items', M = G.memo, nI = Object.keys(M.items).length, nS = Object.keys(M.scenes).length;
-    let h = subTabs('mst', st, [['items', 'Kỷ vật'], ['scenes', 'Khoảnh khắc'], ['notes', 'Lời lưu bút']]);
-    h += `<p class="dim">Đã sưu tầm ${nI}/${Object.keys(MEMO_ITEMS).length} kỷ vật · ${nS}/${Object.keys(MEMO_SCENES).length} khoảnh khắc.</p>`;
+    const st = UI._mstab || 'items', M = G.memo, nI = Object.keys(M.items).length, nS = Object.keys(M.scenes).length, nB = Object.keys(M.badges || {}).length;
+    let h = subTabs('mst', st, [['items', 'Kỷ vật'], ['scenes', 'Khoảnh khắc'], ['badges', 'Danh hiệu'], ['notes', 'Lời lưu bút']]);
+    h += `<p class="dim">Đã sưu tầm ${nI}/${Object.keys(MEMO_ITEMS).length} kỷ vật · ${nS}/${Object.keys(MEMO_SCENES).length} khoảnh khắc · ${nB}/${Object.keys(MEMO_BADGES).length} danh hiệu.</p>`;
+    const when = d => `<i>${dateLabel(d)}, năm ${cal(d).year + 1}</i>`;
     if (st === 'items') {
       h += '<div class="memo-grid">';
       for (const id in MEMO_ITEMS) {
-        const D = MEMO_ITEMS[id], got = M.items[id] !== undefined;
-        h += `<div class="memo-item ${got ? '' : 'lock'}"><img src="${itemIcon(id)}" alt=""><b>${got ? D.name : '???'}</b><small>${got ? D.desc + `<br><i>${dateLabel(M.items[id])}, năm ${cal(M.items[id]).year + 1}</i>` : 'Gợi ý: ' + D.hint}</small></div>`;
+        const D = MEMO_ITEMS[id], got = M.items[id] !== undefined, pic = got && M.pics && M.pics[id];
+        h += `<div class="memo-item ${got ? '' : 'lock'} ${pic ? 'pic' : ''}">${pic ? `<img class="photo" src="${pic}" alt="${D.name}">` : `<img src="${itemIcon(id)}" alt="">`}<b>${got ? D.name : '???'}</b><small>${got ? D.desc + '<br>' + when(M.items[id]) : 'Gợi ý: ' + D.hint}</small></div>`;
+      }
+      return h + '</div>';
+    }
+    if (st === 'badges') {
+      h += '<div class="memo-grid">';
+      for (const id in MEMO_BADGES) {
+        const D = MEMO_BADGES[id], got = M.badges && M.badges[id] !== undefined;
+        h += `<div class="memo-item badge ${got ? '' : 'lock'}"><img src="${itemIcon(D.icon)}" alt=""><b>${got ? D.name : '???'}</b><small>${got ? D.desc + '<br>' + when(M.badges[id]) : 'Gợi ý: ' + D.hint}</small></div>`;
       }
       return h + '</div>';
     }

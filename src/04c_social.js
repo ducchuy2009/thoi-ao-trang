@@ -37,6 +37,7 @@ ACT.go = (from, to) => {
   if (RT.lock) return;
   const L = LINKS[from + '>' + to];
   if (from === 'nui' && RT.fest) return leaveFest();               // đang trong hội giao thừa: hỏi lại trước khi về
+  if (from === 'pho' && RT.ttFest) return leaveTT().then(ok => { if (ok) ACT.go(from, to); });   // đang trong hội Trung thu: hỏi lại
   if (L.hours && !inWin(G.time, L.hours[0], L.hours[1]) && !(to === 'nui' && eveOk())) return UI.say('Đường lên núi', `Trời tối rồi, đường núi nguy hiểm lắm.<p class="dim">Chỉ lên núi được từ ${fmtTime(L.hours[0])} đến ${fmtTime(L.hours[1])}.</p>`);
   if (L.foot && G.ride) dismount(true);
   goPlace(L.at[0], L.at[1], L.at[2], L.at[3], G.ride ? 0 : L.hop, L.label).then(() => {
@@ -567,13 +568,20 @@ async function doBreakFun(fid, id) {
   RT.lock = false; UI.hud();
   if (L.some(x => /class="(bad|warn)"/.test(x))) await UI.ask(BREAK_FUN[id].name.replace(/^Rủ /, '').replace(/^./, c => c.toUpperCase()), resWrap(L), ['OK']);
 }
+// Chọn một người bằng ô avatar + tên (người: { look, outfit, name }); trả về chỉ số, hoặc -1 nếu bấm nút cuối / Esc
+async function pickPerson(title, html, people, cancel) {
+  const btns = people.map(p => `<img src="${faceOf(p.look, p.outfit || null)}" alt=""><b>${p.name}</b>`).concat(cancel || 'Thôi');
+  const k = await UI.ask(title, html || '', btns, { grid: true, cls: 'avas' });
+  return k >= 0 && k < people.length ? k : -1;
+}
+const friendPeople = fids => fids.map(f => ({ look: f, name: FRIENDS[f].name }));
 // TRONG GIỜ HỌC (bấm Q lúc cô đang giảng): quay sang bạn tám chuyện, đấu thẻ, chơi bài, chọi con quay; nữ: xin ra ngoài đi vệ sinh chung.
 // Trả về null nếu đổi ý nghe giảng tiếp; ngược lại { delta, lines } (mất tập trung, có thể bị cô bắt).
 async function classAction(p, subj) {
   const fids = Object.keys(FRIENDS).filter(f => !grudge(f));
   if (!fids.length) { UI.toast('Mấy đứa bạn đang giận, chẳng ai thèm quay sang chơi với bạn.'); return null; }
-  const k = await UI.ask('Quay sang ai?', '', fids.map(f => `${FRIENDS[f].name} (${FRIENDS[f].seat})`).concat('Thôi, nghe giảng tiếp'));
-  if (k < 0 || k >= fids.length) return null;
+  const k = await pickPerson('Quay sang ai?', '', friendPeople(fids), 'Thôi, nghe giảng tiếp');
+  if (k < 0) return null;
   const fid = fids[k], F = FRIENDS[fid], opts = ['Thì thầm tám chuyện'], ids = ['chat'];
   if (cardCount() && !G.daily.duel['f_' + fid]) { opts.push('Đấu thẻ cầu thủ dưới gầm bàn'); ids.push('duel'); }
   const same = F.g === G.gender && hearts(fid) >= BREAK_FUN_MIN_HEARTS && (G.daily.brk[fid] || 0) < BREAK_FUN_PER_DAY;
@@ -601,8 +609,8 @@ async function classAction(p, subj) {
 const borrowChance = fid => clamp((fid === 'khoa' ? BORROW.deskmate : BORROW.other) + BORROW.perHeart * hearts(fid) + BORROW.perTalk * lv('giaotiep') + (grudge(fid) ? BORROW.grudge : 0), 0.03, 0.95);
 async function askBorrow(subj) {
   const item = `sách ${SUBJ[subj].short}`, fids = Object.keys(FRIENDS), L = [];
-  const c = await meSay(`<p><i>Thôi chết… lục tung cả cặp mà không thấy ${item} đâu. Chắc để quên ở nhà rồi. Quay sang hỏi mượn ai bây giờ?</i></p>`, fids.map(f => `${FRIENDS[f].name} (${FRIENDS[f].seat})`).concat('Thôi, ngồi nghe chay'));
-  if (c < 0 || c >= fids.length) return { gain: 1, lines: [li('Quên sách, ngồi nghe chay.', 'warn')] };
+  const c = await pickPerson('Quên sách', `<p><i>Thôi chết… lục tung cả cặp mà không thấy ${item} đâu. Chắc để quên ở nhà rồi. Quay sang hỏi mượn ai bây giờ?</i></p>`, friendPeople(fids), 'Thôi, ngồi nghe chay');
+  if (c < 0) return { gain: 1, lines: [li('Quên sách, ngồi nghe chay.', 'warn')] };
   const fid = fids[c], F = FRIENDS[fid];
   let gain = 1;
   if (Math.random() < borrowChance(fid)) {

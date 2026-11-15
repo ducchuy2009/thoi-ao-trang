@@ -10,12 +10,24 @@
 
 /* ---------- LƯU BÚT ---------- */
 function addMemo(kind, id) {
-  const box = kind === 'item' ? G.memo.items : G.memo.scenes, D = kind === 'item' ? MEMO_ITEMS[id] : MEMO_SCENES[id];
+  const box = kind === 'item' ? G.memo.items : kind === 'badge' ? G.memo.badges : G.memo.scenes, D = (kind === 'item' ? MEMO_ITEMS : kind === 'badge' ? MEMO_BADGES : MEMO_SCENES)[id];
   if (!D || box[id] !== undefined) return false;
   box[id] = G.day;
-  UI.toast(`Lưu bút: ghi thêm “${D.name}”`, 'good');
+  UI.toast(kind === 'badge' ? `Lưu bút: nhận danh hiệu “${D.name}”!` : `Lưu bút: ghi thêm “${D.name}”`, 'good');
   return true;
 }
+// Chụp lại khung hình đang hiện (phần giữa màn hình, bỏ hai dải đen của cắt cảnh) làm ảnh lưu bút. Chụp lần sau đè ảnh cũ.
+// (wx, wy): điểm trên bản đồ đặt ở giữa ảnh
+function snapPhoto(id, wx, wy) {
+  try {
+    const W = cv.width, H = cv.height, S = VIEW.S, cw = Math.round(Math.min(W * 0.62, 150 * S)), ch = Math.round(Math.min(cw * 0.625, H * 0.8));
+    const sx = Math.round(clamp(VIEW.ox + wx * S - cw / 2, 0, W - cw)), sy = Math.round(clamp(VIEW.oy + wy * S - ch / 2, H * 0.085, H * 0.915 - ch));
+    const c = mk(256, 160), x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.drawImage(cv, sx, sy, cw, ch, 0, 0, 256, 160);
+    G.memo.pics[id] = c.toDataURL('image/jpeg', 0.72);
+  } catch (e) { /* trình duyệt chặn đọc canvas: bỏ qua ảnh, vẫn ghi kỷ vật */ }
+}
+// Đèn flash khi chụp ảnh (vẽ đè cả màn hình, mờ dần)
+const flashGlow = t0 => now => { const k = (now - t0) / 600; if (k >= 0 && k < 1) { ctx.fillStyle = `rgba(255,255,255,${1 - k})`; ctx.fillRect(0, 0, cv.width, cv.height); } };
 // Ai sẽ viết lưu bút: bạn thân, thầy cô, bố mẹ — đủ thân vào ngày tốt nghiệp thì viết
 function memoPeople() {
   const a = [];
@@ -201,44 +213,64 @@ function startFest() {
   if (FRIENDS[w] && !grudge(w)) { setComp(w, false); RT.fol = { map: G.map, x: G.x + 14, y: G.y - 6, dir: 0, walk: -1 }; UI.ask(FRIENDS[w].name, '<p>“Cậu tới rồi! Đông vui ghê chưa? Đi một vòng hội chợ đi!”</p>', ['Đi thôi!'], { who: { look: w, outfit: friendOutfit(w) } }); }
 }
 async function leaveFest() {
-  const c = await meSay('<p>Rời hội chợ để về nhà? Sắp tới giao thừa rồi, mọi người đang đếm ngược chờ pháo hoa.</p><p class="dim">Về tới nhà là 01:00 sáng.</p>', ['Xem pháo hoa giao thừa rồi về nhà', 'Ở lại chơi thêm']);
-  if (c !== 0) { G.y = Math.min(G.y, 452); return; }
+  const c = await meSay('<p>Rời hội chợ để về nhà? Sắp tới giao thừa rồi, mọi người đang đếm ngược chờ pháo hoa.</p><p class="dim">Ngắm pháo hoa thì được chụp ảnh cùng gia đình, bạn bè và nhận danh hiệu “Người đón giao thừa”. Về tới nhà là 01:00 sáng.</p>', ['Ngắm pháo hoa giao thừa rồi về nhà', 'Về nhà luôn, không chờ pháo hoa', 'Ở lại chơi thêm']);
+  if (c !== 0 && c !== 1) { G.y = Math.min(G.y, 452); return; }
   RT.lock = true;
-  G.time = EVE.until;                                               // tới giao thừa: nửa đêm, trời tối hẳn
-  await fireworksCut();
-  await UI.fade(true);
   const fid = G.comp && G.comp.fid;
+  let inPhoto = [];
+  if (c === 0) { G.time = EVE.until; inPhoto = await fireworksCut(); }      // tới giao thừa: nửa đêm, trời tối hẳn
+  await UI.fade(true);
   RT.fest = false; G.eve.done = true; endComp();
-  G.time = EVE.home; G.daily.checkedIn = true; G.daily.scolded = true; G.daily.outAt20 = false; G.atSchool = false;
+  if (c === 0) G.time = EVE.home;
+  G.daily.checkedIn = true; G.daily.scolded = true; G.daily.outAt20 = false; G.atSchool = false;
   setMap('home', 58, 76, 0); RT.snapNpcs = true;
-  addMemo('scene', 'giaothua'); if (fid) addFriend(fid, 8);
+  if (c === 0) {
+    addMemo('scene', 'giaothua'); addMemo('item', 'anhgiaothua'); addMemo('badge', 'giaothua');
+    if (fid) addFriend(fid, 8);
+    for (const f of inPhoto) if (f !== fid) addFriend(f, 3);
+  }
   await UI.fade(false);
   RT.lock = false; UI.hud();
-  UI.toast('Về tới nhà lúc 01:00. Ngủ một giấc là sang mùng 1 Tết!', 'info');
+  UI.toast(c === 0 ? 'Về tới nhà lúc 01:00. Ảnh đón giao thừa đã dán vào lưu bút. Ngủ một giấc là sang mùng 1 Tết!' : 'Về nhà sớm, ngủ một giấc là sang mùng 1 Tết.', 'info');
 }
-// Pháo hoa nửa đêm: đếm ngược, pháo nổ rực trời
-function fireworksCut() {
+// Pháo hoa nửa đêm: đếm ngược, pháo nổ rực trời, rồi cả nhà và bạn bè đứng chụp chung một tấm. Trả về các bạn có trong ảnh.
+async function fireworksCut() {
   const fid = G.comp && G.comp.fid, cx0 = 440, cy0 = 124, t0 = { v: 0 }, bursts = [];
-  for (let i = 0; i < 14; i++) bursts.push({ x: 300 + Math.random() * 300, y: 14 + Math.random() * 60, at: 3400 + i * 330 + Math.random() * 200, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a', '#fffaf0'][i % 6], r: 14 + Math.random() * 14 });
+  for (let i = 0; i < 16; i++) bursts.push({ x: (i % 2 ? 360 : 300) + Math.random() * (i % 2 ? 160 : 300), y: 24 + Math.random() * 60, at: 3400 + i * 330 + Math.random() * 200, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a', '#fffaf0'][i % 6], r: 14 + Math.random() * 14 });
+  const extra = [];                                                         // loạt pháo canh đúng lúc bấm máy chụp ảnh
   const glow = now => {
-    const t = now - t0.v;
-    for (const b of bursts) {
-      const k = (t - b.at) / 1100; if (k < -0.35 || k > 1) continue;
+    const raw = now - t0.v; let t = raw; if (t > 3400) t = 3400 + (t - 3400) % 5600;        // pháo bắn liên tục suốt cảnh
+    for (const b of bursts.concat(extra)) {
+      const k = ((b.raw ? raw : t) - b.at) / 1100; if (k < -0.35 || k > 1) continue;
       if (k < 0) { wRect('#ffe9a0', b.x, b.y + 120 * (-k / 0.35), 1, 4); continue; }        // pháo bay lên
       for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283, r = b.r * Math.sqrt(k); wRect(k > 0.75 && i % 2 ? '#fff6e3' : b.col, b.x + Math.cos(a) * r, b.y + Math.sin(a) * r + k * k * 10, 2, 2); }
     }
   };
-  const actors = fid ? [{ look: fid, outfit: friendOutfit(fid), x: cx0 + 18, y: cy0, dir: 3 }] : (G.eve.who === 'parents' ? [{ look: 'mom', outfit: 'noapron', x: cx0 - 22, y: cy0 + 2, dir: 3 }, { look: 'dad', outfit: 'dadhome', x: cx0 + 22, y: cy0 + 2, dir: 3 }] : []);
+  // người trong ảnh: bố mẹ + bạn đi cùng + các bạn thân (từ 2 tim, không giận)
+  const pals = Object.keys(FRIENDS).filter(f => f !== fid && !grudge(f) && hearts(f) >= 2).slice(0, 3), friends = (fid ? [fid] : []).concat(pals);
+  const withPar = G.eve.who === 'parents';
+  const fam = [{ look: 'mom', outfit: 'noapron', x: withPar ? cx0 - 22 : cx0 - 70, y: withPar ? cy0 + 2 : cy0 + 30, dir: 3 }, { look: 'dad', outfit: 'dadhome', x: withPar ? cx0 + 22 : cx0 - 56, y: withPar ? cy0 + 2 : cy0 + 34, dir: 3 }];
+  const frs = friends.map((f, i) => ({ look: f, outfit: friendOutfit(f), x: f === fid ? cx0 + 18 : cx0 + 60 + i * 12, y: f === fid ? cy0 : cy0 + 28 + i * 4, dir: 3 }));
   const crowd = [['c2', 'cas_vy', cx0 - 48, cy0 + 6], ['c7', 'cas_dat', cx0 + 48, cy0 + 4], ['c4', 'cas_ngan', cx0 - 26, cy0 + 22], ['c3', 'cas_khoa', cx0 + 30, cy0 + 24]].map(([look, of, x, y]) => ({ look, outfit: of, x, y, dir: 3 }));
-  const all = actors.concat(crowd), crowdAt = actors.length;
-  return playCut({
-    map: 'nui', me: [cx0, cy0, 3], cam: { x: cx0, y: 84 }, title: 'Giao thừa', actors: all, hide: ['fh'],
+  const cam = { look: 'c5', outfit: 'cas_khoa', x: cx0 + 90, y: cy0 + 50, dir: 1 };          // chú chụp ảnh giùm
+  const all = fam.concat(frs, crowd, [cam]), iF = 2, iC = 2 + frs.length, iCam = all.length - 1;
+  // xếp hàng chụp ảnh: mình đứng giữa, bố mẹ hai bên, các bạn đứng hàng sau
+  const slots = [[-20, 0], [20, 0], [-40, -14], [40, -14], [-16, -18], [16, -18]], order = [0, 1].concat(frs.map((_, i) => iF + i));
+  const line = order.map((k, j) => ({ move: [k, cx0 + slots[j][0], cy0 + 20 + slots[j][1], 700] }));
+  const firstSay = fid ? { say: [iF, 'Năm mới tụi mình vẫn chơi thân như vầy nha!'] } : (withPar ? { say: [0, 'Năm mới chúc con luôn vui vẻ, mạnh khoẻ!'] } : { wait: 600 });
+  await playCut({
+    map: 'nui', me: [cx0, cy0, 3], cam: { x: cx0, y: 92 }, title: 'Giao thừa', actors: all, hide: ['fh', 'f_mom', 'f_dad'],
     steps: [{ fn: sc => { t0.v = performance.now(); sc.glow = [glow]; } },
-      { say: [crowdAt, 'Mười… chín… tám…'] }, { say: [crowdAt + 1, 'Ba… hai… một…'] },
-      { fn: sc => { for (const a of sc.actors) a.dir = 3; } }, { say: ['me', 'CHÚC MỪNG NĂM MỚI!'] },
-      fid ? { say: [0, 'Năm mới tụi mình vẫn chơi thân như vầy nha!'] } : (G.eve.who === 'parents' ? { say: [0, 'Năm mới chúc con luôn vui vẻ, mạnh khoẻ!'] } : { wait: 600 }),
-      { wait: 2600 }],
+      { say: [iC, 'Mười… chín… tám…'] }, { say: [iC + 1, 'Ba… hai… một…'] },
+      { fn: sc => { for (const a of sc.actors) a.dir = 3; } }, { say: ['me', 'CHÚC MỪNG NĂM MỚI!'] }, firstSay,
+      withPar ? { wait: 200 } : { say: [0, 'Bố mẹ cũng lên núi xem pháo hoa nè! Cả nhà chụp chung một tấm nhé!'] },
+      { par: [{ move: ['me', cx0, cy0 + 20, 500] }].concat(line, [{ move: [iCam, cx0, cy0 + 56, 900] }]) },
+      { fn: sc => { G.dir = 0; for (const k of order) sc.actors[k].dir = 0; sc.actors[iCam].dir = 3; const r0 = performance.now() - t0.v; for (let i = 0; i < 5; i++) extra.push({ raw: true, x: cx0 - 70 + i * 35 + Math.random() * 10, y: cy0 - 56 + (i % 2) * 14, at: r0 + 4300 + i * 160, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a'][i], r: 16 + Math.random() * 6 }); } },
+      { say: [iCam, 'Nhìn vào đây nào! Pháo hoa đang nở sau lưng đẹp lắm!'] }, { say: [iCam, 'Một, hai, ba… cười!'] }, { wait: 160 },
+      { fn: sc => { snapPhoto('anhgiaothua', cx0, cy0 - 16); sc.glow = [glow, flashGlow(performance.now())]; } }, { wait: 900 },
+      { say: ['me', 'Tấm ảnh đẹp nhất năm luôn!'] }, { wait: 1200 }],
   });
+  return friends;
 }
 // Sạp ném vòng, bắn ná: trả tiền, xem hoạt cảnh, trúng nhiều thì có quà
 ACT.festGame = async kind => {
@@ -325,6 +357,11 @@ function eventTick() {
   if (G.map === 'nui' && !RT.fest && eveOk() && G.time < EVE.from && !G.daily.eveEarly) { G.daily.eveEarly = true; UI.toast(`Lễ hội đón giao thừa bắt đầu lúc ${fmtTime(EVE.from)}. Mọi người đang dựng sạp, treo lồng đèn…`, 'info'); }
   if (!RT.bcFest && G.atSchool && G.day === contestDay(cal(G.day).year) && !bcY().done && inWin(G.time, PM_START, BANHCHUNG.end)) { startBcFest(); return true; }   // 13:30 ngày học cuối mùa đông
   if (G.map === 'nui' && !RT.fest && eveOk() && G.time >= EVE.from) { startFest(); return true; }
+  // Tết Trung thu: sáng được bố mẹ, bạn thân rủ · tới phố Hoa Phượng 20:00–23:00 là vào hội · ra khỏi phố thì thời gian chạy tiếp
+  if (isTTDay(G.day) && !G.daily.ttAsked && G.time < TT.from) { ttInvite(); return true; }
+  if (RT.ttFest && G.map !== 'pho' && !RT.scene) RT.ttFest = false;
+  if (G.map === 'pho' && !RT.ttFest && isTTDay(G.day) && !ttY().done && G.time >= TT.decor && G.time < TT.from && !G.daily.ttEarly) { G.daily.ttEarly = true; UI.toast(`Hội Trung thu bắt đầu lúc ${fmtTime(TT.from)}. Mọi người đang treo đèn lồng, dựng sân khấu…`, 'info'); }
+  if (G.map === 'pho' && !RT.ttFest && ttOk() && G.time >= TT.from) { startTT(); return true; }
   return false;
 }
 
@@ -497,13 +534,13 @@ function awardCut(win, top) {
 }
 // Chụp ảnh cả lớp ăn mừng quanh chiếc cúp
 function winPhotoCut() {
-  const t0 = { v: -1e9 }, cx0 = 300, cy0 = 222;
+  const cx0 = 300, cy0 = 222;
   const row = [['khoa', -44, -16], ['vy', -22, -18], ['dat', 22, -18], ['ngan', 44, -16], ['c3', -60, 2], ['c4', 60, 2], ['c5', -34, 4], ['c8', 34, 4]];
   const actors = row.map(([look, dx, dy]) => ({ look, x: cx0 + dx, y: cy0 + dy, dir: 0 })).concat([{ look: 'teacherA', x: cx0, y: cy0 + 50, dir: 3 }]);
   return playCut({
     map: 'school', me: [cx0, cy0, 0], cam: { x: cx0, y: cy0 - 10 }, title: 'Ảnh lưu niệm — Vua gói bánh chưng', actors, hide: BC_ALL.concat(['bc_principal']),
     props: [() => drawSpr(iconCv('cup'), G.x - 9, G.y - 44 + Math.round(Math.sin(performance.now() / 200)))],
     steps: [{ say: [8, 'Cả lớp đứng vào chụp ảnh nào! Nhìn vào đây!'] }, { par: actors.slice(0, 8).map((a, i) => ({ hop: i })) }, { say: [0, 'Lớp mình vô địch rồi!'] },
-      { say: [8, 'Một, hai, ba… cười!'] }, { fn: sc => { t0.v = performance.now(); sc.glow = [now => { const k = (now - t0.v) / 600; if (k >= 0 && k < 1) { ctx.fillStyle = `rgba(255,255,255,${1 - k})`; ctx.fillRect(0, 0, cv.width, cv.height); } }]; } }, { wait: 1200 }],
+      { say: [8, 'Một, hai, ba… cười!'] }, { wait: 160 }, { fn: sc => { snapPhoto('photo', cx0, cy0 - 12); sc.glow = [flashGlow(performance.now())]; } }, { wait: 1200 }],
   });
 }

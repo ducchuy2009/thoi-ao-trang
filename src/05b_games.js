@@ -403,7 +403,7 @@ UI.store = function (title, greet, items, onBuy, extra, more) {
 };
 UI.shop = function () {
   const owned = it => !!((it.own && G.owned[it.own]) || (it.special === 'vethang' && G.busPassUntil >= G.day));
-  UI.store('Tạp hoá Cô Ba', '“Mua gì con?”', () => SHOP.map(it => Object.assign({}, it, { owned: owned(it) })), it => buy(SHOP.find(x => x.id === it.id)), () => {
+  UI.store('Tạp hoá Cô Ba', ttMatOpen(G.day) ? '“Mua gì con? Sắp Trung thu rồi, cô có nan tre, giấy bóng kính, nến làm đèn ông sao nè!”' : '“Mua gì con?”', () => SHOP.map(it => Object.assign({}, it, { owned: owned(it) })).concat(ttMatItems()), it => (it.mat ? buyMat(it) : buy(SHOP.find(x => x.id === it.id))), () => {
     let h = '';
     if (fishCount()) h += `<h4>Bán cá câu được</h4><div class="rowi"><span><b>${fishCount()} con cá</b> <small>${FISH.filter(f => G.fish[f.id]).map(f => `${f.name} ×${G.fish[f.id]}`).join(' · ')}</small></span><button class="btn sm" data-act="fish">Bán hết · ${fmtMoney(fishValue())}</button></div>`;
     return h + `<h4>Phụ bán hàng (ngày nghỉ, 08:00–18:00)</h4><div class="rowi"><span><b>Phụ cô Ba 2 tiếng</b> <small>Cô Ba trả công ${fmtMoney(PART_TIME.pay + PART_TIME.payPerLv * lv('buonban'))}</small></span><button class="btn sm" data-act="pt">Nhận việc</button></div>`;

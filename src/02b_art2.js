@@ -387,6 +387,45 @@ function buildSprites2() {
   shopFront('fb_doan', '#f2a93b', x => { ell(x, '#5f656f', 12, 5, 8, 4); R(x, '#5f656f', 4, 5, 17, 4); ell(x, '#8b8f9c', 12, 4, 7, 2); R(x, 'rgba(240,240,240,.7)', 9, 0, 1, 2); R(x, 'rgba(240,240,240,.7)', 14, 0, 1, 2); for (let i = 0; i < 3; i++) { R(x, '#3f8f3a', 36 + i * 5, 3 - (i % 2), 5, 5); R(x, '#d9c690', 38 + i * 5, 3 - (i % 2), 1, 5); } R(x, '#d9534f', 0, 13, 54, 1); });
 
 
+  /* ---------- Tết Trung thu: sân khấu, lân, ông Địa, trống, niêu, đèn ông sao, sạp hàng ---------- */
+  def('ttstage', 100, 46, x => {
+    R(x, '#8a5a3a', 4, 0, 3, 31); R(x, '#8a5a3a', 93, 0, 3, 31);
+    R(x, '#b23b3b', 7, 2, 86, 28); R(x, '#d9534f', 7, 2, 86, 3); R(x, '#ffd23a', 9, 6, 82, 1); R(x, '#ffd23a', 9, 27, 82, 1);
+    ell(x, '#ffe9a0', 82, 16, 7, 7); ell(x, '#fff6c8', 80, 14, 3, 3); ell(x, '#f2d98a', 85, 18, 1.5, 1.5);
+    for (const a of [12, 20]) { R(x, '#3a2a22', a, 0, 1, 3); ell(x, a === 12 ? '#ffd23a' : '#e2574c', a, 6, 2.5, 3); }
+    R(x, '#6f472c', 0, 30, 100, 16); R(x, '#a9703f', 0, 30, 100, 3); for (let i = 6; i < 100; i += 12) R(x, '#5b3d27', i, 33, 1, 13);
+    R(x, '#5b3d27', 40, 42, 20, 4); R(x, '#8a5a3a', 42, 40, 16, 2);
+  });
+  for (let f = 0; f < 2; f++) def('lion' + f, 34, 26, x => {
+    const hy = f ? 0 : 2;
+    R(x, '#e2574c', 2, 8, 20, 10); R(x, '#ffd23a', 2, 8, 20, 2); for (let i = 0; i < 20; i += 3) R(x, i % 6 ? '#ffd23a' : '#fffaf0', 2 + i, 16, 2, 3);
+    R(x, '#3f8f3a', 6, 11, 3, 3); R(x, '#3b82c4', 13, 11, 3, 3); R(x, '#ffd23a', 0, 6, 3, 5); R(x, '#fffaf0', 0, 10, 2, 2);
+    for (const [a, d] of [[4, f], [10, -f], [17, -f], [23, f]]) { R(x, '#ffd23a', a + d, 18, 3, 6); R(x, '#2a2136', a + d, 24, 4, 2); }
+    R(x, '#d9534f', 18, hy + 2, 15, 12); R(x, '#ffd23a', 18, hy + 2, 15, 3); R(x, '#3f8f3a', 25, hy, 2, 3); R(x, '#ffd23a', 17, hy + 4, 2, 5);
+    R(x, '#fffaf0', 21, hy + 6, 4, 3); R(x, '#2a2136', 23, hy + 7, 1, 1); R(x, '#fffaf0', 27, hy + 6, 4, 3); R(x, '#2a2136', 29, hy + 7, 1, 1);
+    R(x, '#2a2136', 21, hy + 11, 12, 2); R(x, '#fffaf0', 22, hy + 11, 10, 1); R(x, '#fffaf0', 21, hy + 13, 12, 2); R(x, '#3b82c4', 31, hy + 4, 2, 2);
+  });
+  for (let f = 0; f < 2; f++) def('ongdia' + f, 20, 26, x => {
+    ell(x, '#f6b3a0', 10, 8, 8, 7.5); ell(x, '#ffd2c4', 8, 5, 3, 2); R(x, '#2a2136', 5, 6, 3, 1); R(x, '#2a2136', 12, 6, 3, 1);
+    R(x, '#b23b3b', 6, 10, 8, 3); R(x, '#fffaf0', 7, 10, 6, 1); ell(x, '#ff8f9a', 4, 9, 1.5, 1); ell(x, '#ff8f9a', 16, 9, 1.5, 1);
+    R(x, '#e8b83a', 4, 15, 12, 9); R(x, '#c9962a', 4, 15, 12, 1); ell(x, '#f6b3a0', 10, 19, 3, 3); R(x, '#8a5a3a', 5, 24, 3, 2); R(x, '#8a5a3a', 12, 24, 3, 2);
+    const fy = f ? 10 : 14; R(x, '#fffaf0', 15, fy, 5, 5); R(x, '#d9c690', 16, fy + 1, 1, 4); R(x, '#d9c690', 18, fy + 1, 1, 4); R(x, '#f6b3a0', 15, fy + 4, 2, 2);
+  });
+  def('trong', 20, 20, x => { R(x, '#6f472c', 3, 12, 2, 8); R(x, '#6f472c', 15, 12, 2, 8); ell(x, '#b23b3b', 10, 8, 9, 6); ell(x, '#d9534f', 10, 7, 8, 5); ell(x, '#f3e2c0', 10, 5, 7, 3); for (const a of [3, 7, 13, 17]) R(x, '#ffd23a', a, 9, 1, 1); R(x, '#8a5a3a', 15, 0, 1, 5); });
+  def('nieupole', 44, 46, x => {
+    R(x, '#a9703f', 1, 2, 3, 44); R(x, '#a9703f', 40, 2, 3, 44); R(x, '#d9c690', 1, 2, 1, 44); R(x, '#d9c690', 40, 2, 1, 44);
+    for (let i = 0; i <= 36; i++) R(x, '#3a2a22', 4 + i, 4 + Math.round(Math.sin(i / 36 * Math.PI) * 4), 1, 1);
+    R(x, '#3a2a22', 22, 8, 1, 6); ell(x, '#8a5a3a', 22, 19, 6, 5); ell(x, '#a9703f', 21, 18, 3, 2); R(x, '#d9534f', 17, 13, 11, 2); R(x, '#ffd23a', 18, 13, 2, 1); R(x, '#5b3d27', 18, 22, 9, 1);
+  });
+  for (let f = 0; f < 2; f++) def('sao' + f, 9, 12, x => { R(x, '#8a5a3a', 4, 7, 1, 5); pat(x, STAR7, 1, 0, '#e2574c', '#e2574c'); R(x, f ? '#fff6a8' : '#ffd23a', 4, 2, 1, 2); R(x, f ? '#ffd23a' : '#fff6a8', 3, 3, 3, 1); });
+  def('sanh', 8, 16, x => { R(x, '#8a5a3a', 3, 0, 2, 16); R(x, '#5fae4a', 0, 2, 8, 5); R(x, '#3f8f3a', 1, 3, 6, 3); R(x, '#d9534f', 2, 8, 4, 4); R(x, '#ffd23a', 3, 9, 2, 2); });
+  boothBack('fb_nguyenlieu', '#3f8f3a', x => { R(x, '#a9703f', 5, 30, 44, 2); ic(x, 'nl_tre', 4, 13); ic(x, 'nl_giay', 18, 13); ic(x, 'nl_nen', 32, 13); for (let i = 0; i < 5; i++) R(x, '#d9c690', 8 + i * 8, 33, 1, 9); });
+  shopFront('fb_nguyenlieu', '#3f8f3a', x => { for (let i = 0; i < 6; i++) R(x, '#d9c690', 4 + i * 2, 1, 1, 8); R(x, '#e2574c', 20, 2, 9, 6); R(x, '#ffd23a', 24, 1, 9, 6); R(x, '#fffaf0', 40, 2, 3, 7); R(x, '#ffd23a', 41, 0, 1, 2); R(x, '#fffaf0', 0, 13, 54, 1); });
+  boothBack('fb_denlong', '#e2574c', x => { for (const [a, b] of [[6, 13], [22, 15], [38, 13], [14, 28], [30, 28]]) { R(x, '#3a2a22', a + 3, b - 2, 1, 2); pat(x, STAR7, a, b, (a + b) % 3 ? '#e2574c' : '#ffd23a', '#ffd23a'); } });
+  shopFront('fb_denlong', '#e2574c', x => { pat(x, STAR7, 4, 1, '#ffd23a', '#ffd23a'); for (let i = 0; i < 5; i++) R(x, '#d9c690', 16 + i * 3, 2, 1, 6); R(x, '#3b82c4', 34, 2, 7, 5); R(x, '#e2574c', 43, 2, 7, 5); R(x, '#ffd23a', 0, 13, 54, 1); });
+  boothBack('fb_banhtt', '#c9862f', x => { R(x, '#2a2136', 6, 13, 42, 22); ic(x, 'banhnuong', 5, 14); ic(x, 'banhdeo', 18, 14); ic(x, 'buoi', 31, 14); for (let i = 0; i < 3; i++) R(x, '#ffe066', 10 + i * 13, 33, 8, 1); });
+  shopFront('fb_banhtt', '#c9862f', x => { for (let i = 0; i < 4; i++) { ell(x, i % 2 ? '#fbf8ef' : '#e0a54a', 7 + i * 7, 5, 3, 2.5); } ell(x, '#7fbf5a', 42, 5, 4, 3.5); R(x, '#d9534f', 0, 13, 54, 1); });
+
   /* ---------- dụng cụ tập thể dục ở nhà (mua ở gian Thể thao, TTTM) ---------- */
   def('eq_daynhay', 16, 10, x => { ell(x, '#e2574c', 8, 5, 6, 3.5); ell(x, '#3a2a22', 8, 5, 4, 2); ell(x, '#e2574c', 8, 5, 3, 1.5); R(x, '#3b82c4', 0, 2, 3, 6); R(x, '#3b82c4', 13, 2, 3, 6); R(x, '#6fa0e0', 0, 2, 1, 6); R(x, '#6fa0e0', 13, 2, 1, 6); });
   def('eq_tatay', 18, 9, x => { for (const b of [0, 5]) { R(x, '#3a3f55', 0, b, 4, 4); R(x, '#3a3f55', 12, b, 4, 4); R(x, '#8b8f9c', 4, b + 1, 8, 2); R(x, '#5f656f', 0, b, 4, 1); R(x, '#5f656f', 12, b, 4, 1); } });
@@ -417,6 +456,10 @@ function buildSprites2() {
 /* ---------- biểu tượng vật phẩm cho thanh đồ (16×16 → dataURL) ---------- */
 const _icons = {}, _iconCv = {};
 const iconCv = id => { itemIcon(id); return _iconCv[id]; };     // canvas của icon (để vẽ hàng hoá lên quầy, kệ)
+// mẫu điểm ảnh: '#' = màu chính, 'o' = màu viền sáng
+const STAR11 = ['.....#.....', '....###....', '....#o#....', '###########', '.##ooooo##.', '..#ooooo#..', '..#######..', '.####.####.', '.###...###.', '##.......##'];
+const STAR7 = ['...#...', '..###..', '#######', '.#####.', '..###..', '.##.##.', '#.....#'];
+function pat(x, rows, ox, oy, col, col2) { rows.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] !== '.') R(x, r[i] === 'o' ? col2 : col, ox + i, oy + j, 1, 1); }); }
 function itemIcon(id) {
   if (_icons[id]) return _icons[id];
   const c = mk(16, 16), x = cx(c);
@@ -494,6 +537,26 @@ function itemIcon(id) {
   else if (id === 'm_map') { R(x, '#fffaf0', 1, 3, 14, 11); R(x, '#cfe8b8', 1, 3, 4, 11); R(x, '#bfe3f2', 10, 3, 5, 11); R(x, '#d9ccb2', 5, 3, 1, 11); R(x, '#d9ccb2', 10, 3, 1, 11); R(x, '#e2574c', 6, 5, 3, 3); R(x, '#e2574c', 7, 8, 1, 2); R(x, '#8b8f9c', 2, 10, 6, 1); }
   else if (id === 'm_menu') { for (const b2 of [3, 7, 11]) { R(x, '#2a2136', 2, b2, 12, 2); R(x, '#5f656f', 2, b2, 12, 1); } }
   else if (id === 'm_phone') { R(x, '#2a2136', 4, 1, 8, 14); R(x, '#8fd0f0', 5, 3, 6, 8); R(x, '#cfeefa', 5, 3, 6, 2); R(x, '#fff6e3', 7, 12, 2, 1); }
+  else if (id === 'denongsao' || id === 'sc_trungthu') {
+    if (id === 'sc_trungthu') { R(x, '#24406b', 0, 0, 16, 16); ell(x, '#ffe9a0', 12, 4, 3, 3); ell(x, '#fff6c8', 11, 3, 1.5, 1.5); }
+    pat(x, STAR11, id === 'sc_trungthu' ? 0 : 2, id === 'sc_trungthu' ? 5 : 2, '#e2574c', '#ffd23a'); R(x, '#8a5a3a', id === 'sc_trungthu' ? 5 : 7, id === 'sc_trungthu' ? 14 : 12, 1, 4); R(x, '#fff6c8', id === 'sc_trungthu' ? 5 : 7, id === 'sc_trungthu' ? 9 : 6, 1, 1);
+  }
+  else if (id === 'nl_tre') { for (let i = 0; i < 5; i++) { R(x, '#d9c690', 2 + i * 2, 2 + (i % 2), 1, 12); R(x, '#b8a46a', 2 + i * 2, 13 + (i % 2), 1, 1); } R(x, '#d9534f', 1, 7, 12, 2); R(x, '#d9c690', 12, 3, 2, 10); }
+  else if (id === 'nl_giay') { R(x, '#e2574c', 1, 4, 10, 10); R(x, '#ff8f7a', 2, 5, 3, 3); R(x, '#ffd23a', 5, 2, 10, 10); R(x, '#fff6a8', 6, 3, 3, 3); R(x, 'rgba(255,255,255,.6)', 12, 3, 1, 6); }
+  else if (id === 'nl_nen') { R(x, '#fffaf0', 6, 6, 4, 9); R(x, '#e3ddd0', 9, 6, 1, 9); R(x, '#2a2136', 7, 4, 1, 2); ell(x, '#ffd23a', 7.5, 2.5, 1.5, 2.2); R(x, '#ff7a3a', 7, 3, 1, 1); R(x, '#c9c2b3', 4, 14, 8, 2); }
+  else if (id === 'banhnuong') { ell(x, '#c9862f', 8, 9, 6.5, 5.5); ell(x, '#e0a54a', 8, 8, 5.5, 4.5); R(x, '#a86a22', 5, 7, 6, 1); R(x, '#a86a22', 7, 5, 2, 6); ell(x, '#f2c76a', 6, 6, 1, 1); }
+  else if (id === 'banhdeo') { ell(x, '#e9e4d6', 8, 9, 6.5, 5.5); ell(x, '#fbf8ef', 8, 8, 5.5, 4.5); R(x, '#d9cfb8', 5, 8, 6, 1); R(x, '#d9cfb8', 7, 6, 2, 5); ell(x, '#9fd6a4', 11, 5, 1.5, 1); }
+  else if (id === 'buoi') { ell(x, '#7fbf5a', 8, 9, 6.5, 6); ell(x, '#f6c4c0', 8, 9, 5, 4.6); for (const a of [5, 8, 11]) R(x, '#f9dcd8', a, 6, 1, 6); R(x, '#5a8f3a', 7, 2, 2, 2); }
+  else if (id === 'anhgiaothua' || id === 'anhtrungthu') { R(x, '#fffdf6', 1, 2, 14, 12); R(x, id === 'anhgiaothua' ? '#24406b' : '#2f3f6b', 2, 3, 12, 8); R(x, id === 'anhgiaothua' ? '#ff5fa8' : '#ffe9a0', 10, 4, 2, 2); for (const a of [4, 7, 10]) { R(x, '#f8d0a8', a, 8, 2, 2); R(x, '#2c2733', a, 7, 2, 1); } R(x, '#8b8f9c', 2, 12, 12, 1); }
+  else if (id.startsWith('b_')) {
+    R(x, '#d9534f', 4, 0, 3, 6); R(x, '#3b82c4', 9, 0, 3, 6); R(x, '#b23b3b', 4, 5, 3, 1); R(x, '#2a5f99', 9, 5, 3, 1);
+    ell(x, '#c9962a', 8, 10, 5.8, 5.8); ell(x, '#ffd23a', 8, 10, 4.8, 4.8); ell(x, '#f2c94c', 8, 11, 4, 3.6);
+    const k = id.slice(2);
+    if (k === 'giaothua') { const c2 = '#e2574c'; R(x, c2, 8, 6, 1, 9); R(x, c2, 4, 10, 9, 1); R(x, c2, 6, 8, 1, 1); R(x, c2, 10, 8, 1, 1); R(x, c2, 6, 12, 1, 1); R(x, c2, 10, 12, 1, 1); }
+    else if (k === 'trungthu') pat(x, STAR7, 5, 7, '#e2574c', '#e2574c');
+    else if (k === 'dapnieu') { ell(x, '#8a5a3a', 8, 11, 3.2, 2.6); R(x, '#5b3d27', 6, 8, 5, 1); R(x, '#5b3d27', 8, 6, 1, 2); R(x, '#d9534f', 6, 11, 1, 1); R(x, '#3b82c4', 9, 12, 1, 1); }
+    else if (k === 'keoco') { R(x, '#8a5a3a', 4, 10, 9, 1); R(x, '#a9703f', 4, 11, 9, 1); R(x, '#d9534f', 8, 8, 1, 5); R(x, '#2a2136', 4, 8, 1, 2); R(x, '#2a2136', 12, 8, 1, 2); }
+  }
   else { R(x, '#c9b58a', 3, 3, 10, 10); }
   const oc = outline(c); _iconCv[id] = oc;
   return (_icons[id] = oc.toDataURL());

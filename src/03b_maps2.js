@@ -157,7 +157,7 @@ function buildRooms() {
   NPCS.push({ id: 'fh', name: 'Bạn', look: 'khoa', dynLook: () => G.visit || 'khoa', outfit: () => friendOutfit(G.visit || 'khoa'), map: 'fhome', x: 130, y: 110, dir: 0, wander: 18, vis: () => !sceneHides('fh'), label: () => FRIENDS[G.visit].name, act: () => ACT.friend(G.visit, 'in') });
   m.zones.push({ x: 272, y: 216, w: 32, h: 8, fn: () => ACT.leaveFh(), by: -8 });
 
-  buildFest(); buildBcFest();
+  buildFest(); buildBcFest(); buildTrungThu();
   /* ---------- đồ trang trí phòng ngủ ở nhà (mua ở gian Nội thất, Nhạc cụ) ---------- */
   const h = MAPS.home, own = k => () => !!G && !!G.owned[k];
   addObj(h, { s: 'poster', x: 24, y: 8, base: 0, vis: own('d_poster') });
@@ -250,6 +250,61 @@ function buildFest() {
   [0, 1, 2].forEach(i => { const a = i / 3 * 6.283 + 0.6; NPCS.push({ id: 'fk_' + i, name: 'Bạn đá cầu', look: ['c1', 'c8', 'x3'][i], outfit: () => ['cas_dat', 'cas_vy', 'cas_khoa'][i], map: 'nui', x: Math.round(C0[0] + Math.cos(a) * 20), y: Math.round(C0[1] + Math.sin(a) * 13), dir: dirOf(-Math.cos(a), -Math.sin(a)), vis: festDecor, label: () => 'Đá cầu — xin vào đá cùng', act: () => ACT.festJoin('cau') }); });
   NPCS.push({ id: 'fs_0', name: 'Bạn ném đá', look: 'c5', outfit: () => 'cas_dat', map: 'nui', x: S0[0] - 14, y: S0[1] + 26, dir: 2, vis: festDecor, label: () => 'Ném đá thia lia xuống hồ', act: () => ACT.festSkip() });
   addObj(m, { s: 'blank', x: S0[0], y: S0[1], ir: [-10, -6, 20, 30], vis: festDecor, label: () => 'Bờ hồ — ném đá thia lia', act: () => ACT.festSkip() });
+}
+
+/* ============================================================
+ *  TẾT TRUNG THU ở phố Hoa Phượng (giữa mùa thu, 20:00–23:00): sân khấu + thị trưởng ở quảng trường,
+ *  đội lân, sạp nguyên liệu / làm đèn lồng / bánh trung thu, góc bịt mắt đập niêu, sân kéo co, trẻ con cầm đèn ông sao
+ * ============================================================ */
+const isTTDay = day => isDate([TT.season, TT.day], day);
+const ttDecor = () => !!G && isTTDay(G.day) && G.time >= TT.decor && G.time < CFG.DAY_END;   // từ chiều đã treo đèn, dựng sạp
+const ttOn = () => !!G && !!RT.ttFest && G.map === 'pho';                                      // đang trong hội
+const TT_SPOTS = { nieu: [800, 318], keoco: [130, 344], stage: [452, 280], mayor: [502, 334], lion: [440, 352], ongdia: [482, 358], drum: [530, 342] };
+const TT_KIDS = [[300, 256], [520, 252], [640, 258], [150, 254], [352, 386], [574, 390], [760, 256], [236, 256]];
+const TT_CHAT = ['Năm nay đội lân múa đẹp lắm, ráng xem nha!', 'Con tôi tự làm đèn ông sao đó, sáng chưa!', 'Ăn miếng bánh nướng không cháu? Nhân thập cẩm ngon lắm.', 'Trăng rằm tháng Tám tròn nhất năm đó.'];
+const TT_FRIEND_AT = { khoa: [330, 258], vy: [600, 374], dat: [92, 374], ngan: [690, 374] };
+function buildTrungThu() {
+  const m = MAPS.pho, K = TT_SPOTS;
+  // dọn chỗ cho hội: xe xiên que, vài cây, bụi, ghế đá ẩn đi trong đêm hội
+  const clear = [[620, 290], [580, 352], [700, 292], [840, 290], [780, 348], [690, 362], [600, 340], [760, 300], [740, 380], [498, 296], [498, 380], [150, 338]];
+  for (const o of m.objs) if (clear.some(([a, b]) => o.x === a && o.y === b)) { const v0 = o.vis; o.vis = () => !ttDecor() && (!v0 || v0()); }
+  // đèn lồng, dây cờ
+  for (const [a, b] of [[40, 230], [210, 230], [560, 230], [740, 230], [160, 110], [332, 110], [650, 110]]) addObj(m, { s: 'lanterns', x: a, y: b, base: 900, glow: true, vis: ttDecor });
+  for (const [a, b] of [[44, 284], [584, 282], [334, 282]]) addObj(m, { s: 'bunting', x: a, y: b, base: 900, vis: ttDecor });
+  // sân khấu + thị trưởng
+  addObj(m, { s: 'ttstage', x: K.stage[0], y: K.stage[1], sol: [0, 30, 100, 16], vis: ttDecor });
+  m.labels.push({ x: K.stage[0] + 40, y: K.stage[1] + 17, text: 'ĐÊM HỘI TRĂNG RẰM', size: 7, col: '#ffe066', maxw: 62, vis: ttDecor });
+  NPCS.push({ id: 'tt_mayor', sid: 'tt_mayor', soc: 'thitruong', name: 'Ông thị trưởng', look: 'mayor', map: 'pho', x: K.mayor[0], y: K.mayor[1], dir: 0, vis: () => ttOn() && !sceneHides('tt_mayor'), label: () => 'Ông thị trưởng — bắt đầu buổi lễ', act: () => ACT.mayor() });
+  // đội lân chờ khai hội: lân, ông Địa, trống
+  const idle = () => ttDecor() && !sceneHides('ttlion');
+  addObj(m, { s: 'lion0', dyn: () => 'lion' + (Math.floor(performance.now() / 420) % 2), x: K.lion[0], y: K.lion[1], sol: [2, 18, 30, 8], vis: idle, label: () => 'Đội lân — chờ thị trưởng khai hội', act: () => UI.ask('Đội lân', '<p>“Gặp ông thị trưởng ở sân khấu đi cháu, ông khai hội là tụi chú múa liền!”</p>', ['Dạ!'], { who: { look: 'c5', outfit: 'cas_dat' } }) });
+  addObj(m, { s: 'ongdia0', dyn: () => 'ongdia' + (Math.floor(performance.now() / 300) % 2), x: K.ongdia[0], y: K.ongdia[1], sol: [4, 20, 12, 6], vis: idle });
+  addObj(m, { s: 'trong', x: K.drum[0], y: K.drum[1], sol: [2, 12, 16, 8], vis: idle });
+  NPCS.push({ id: 'tt_drum', name: 'Chú đánh trống', look: 'driver', map: 'pho', x: K.drum[0] + 22, y: K.drum[1] + 14, dir: 1, vis: () => ttOn() && !sceneHides('ttlion'), label: () => 'Chú đánh trống lân', act: () => UI.ask('Chú đánh trống', '<p>“Tùng tùng cắc! Thị trưởng khai hội là trống nổi lên liền!”</p>', ['Dạ!'], { who: { look: 'driver' } }) });
+  // sạp hàng: nguyên liệu làm đèn · làm đèn lồng · bánh trung thu
+  const booth = (id, a, name, label, act, look, of) => {
+    addObj(m, { s: `fb_${id}_b`, x: a, y: 292, sol: [0, 26, 56, 20], vis: ttDecor });
+    addObj(m, { s: `fb_${id}_f`, x: a, y: 330, sol: [1, 8, 54, 15], label, act, vis: ttDecor });
+    NPCS.push({ id: 'ttv_' + id, name, look, outfit: () => of, map: 'pho', x: a + 28, y: 342, dir: 0, vis: ttOn, label, act });
+  };
+  booth('nguyenlieu', 590, 'Cô bán nguyên liệu', () => 'Sạp nguyên liệu làm đèn lồng', () => ACT.ttMats(), 'vendor', null);
+  booth('denlong', 650, 'Chú làm đèn', () => 'Sạp làm đèn lồng — tự ghép đèn ông sao', () => ACT.ttLantern(), 'c3', 'cas_khoa');
+  booth('banhtt', 710, 'Cô bán bánh', () => 'Sạp bánh trung thu', () => ACT.ttFood(), 'vendor', null);
+  // bịt mắt đập niêu
+  addObj(m, { s: 'nieupole', x: K.nieu[0], y: K.nieu[1], sol: [0, 40, 44, 6], ir: [-6, 10, 56, 44], vis: ttDecor, label: () => 'Bịt mắt đập niêu', act: () => ACT.ttNieu() });
+  NPCS.push({ id: 'tt_nieu', name: 'Chú quản trò', look: 'driver', outfit: () => null, map: 'pho', x: K.nieu[0] - 12, y: K.nieu[1] + 50, dir: 2, vis: ttOn, label: () => 'Chú quản trò — bịt mắt đập niêu', act: () => ACT.ttNieu() });
+  // kéo co: hai đội trên sân bóng mini
+  const [kx, ky] = K.keoco;
+  [-60, -44, -28, 28, 44, 60].forEach((dx, i) => NPCS.push({ id: 'ttc_' + i, name: i < 3 ? 'Đội Hoa Phượng' : 'Đội Bờ Sông', look: ['c1', 'c4', 'x1', 'c7', 'c2', 'x3'][i], outfit: () => ['cas_dat', 'cas_ngan', 'cas_khoa', 'cas_dat', 'cas_vy', 'cas_khoa'][i], map: 'pho', x: kx + dx, y: ky, dir: i < 3 ? 2 : 1, vis: ttOn,
+    pos: () => ({ x: kx + dx + Math.round(Math.sin(performance.now() / 300) * 2), y: ky, dir: i < 3 ? 2 : 1 }), label: () => 'Kéo co — vào đội Hoa Phượng', act: () => ACT.ttKeoco() }));
+  NPCS.push({ id: 'ttc_ref', name: 'Trọng tài', look: 'c5', outfit: () => 'cas_khoa', map: 'pho', x: kx, y: ky - 26, dir: 0, vis: ttOn, label: () => 'Trọng tài kéo co', act: () => ACT.ttKeoco() });
+  // trẻ con cầm đèn ông sao, người xem hội
+  TT_KIDS.forEach(([a, b], i) => NPCS.push({ id: 'ttk_' + i, name: 'Bạn nhỏ rước đèn', look: ['c1', 'c2', 'c3', 'c4', 'c6', 'c8', 'x1', 'x3'][i], outfit: () => ['cas_dat', 'cas_vy', 'cas_khoa', 'cas_ngan'][i % 4], map: 'pho', x: a, y: b, dir: i % 4, wander: 28, vis: ttOn, label: () => 'Bạn nhỏ cầm đèn ông sao', act: () => UI.ask('Bạn nhỏ', `<p>“${['Đèn ông sao của em đẹp không anh chị?', 'Lát nữa rước đèn em đi đầu nha!', 'Em mới đập niêu trúng được kẹo nè!', 'Múa lân sắp bắt đầu chưa ạ?'][i % 4]}”</p>`, ['Đẹp lắm!'], { who: { look: ['c1', 'c2', 'c3', 'c4', 'c6', 'c8', 'x1', 'x3'][i] } }) }));
+  [[424, 384, 'c7', 'cas_dat'], [468, 394, 'c2', 'cas_vy'], [612, 392, 'c4', 'cas_ngan'], [280, 300, 'c3', 'cas_khoa']].forEach(([a, b, look, of], i) => NPCS.push({ id: 'ttp_' + i, name: 'Người xem hội', look, outfit: () => of, map: 'pho', x: a, y: b, dir: i % 2 ? 3 : 0, vis: ttOn, label: () => 'Người xem hội — trò chuyện', act: () => ttChat(i, look, of) }));
+  // bạn bè (không đi cùng mình) cũng ra phố chơi Trung thu · bố mẹ (nếu cả nhà cùng đi)
+  for (const fid in TT_FRIEND_AT) { const [a, b] = TT_FRIEND_AT[fid]; NPCS.push({ id: 'tt_' + fid, fid, name: FRIENDS[fid].name, look: fid, outfit: () => friendOutfit(fid), map: 'pho', x: a, y: b, dir: 0, wander: 10, vis: () => ttOn() && !(G.comp && G.comp.fid === fid) && !sceneHides('tt_' + fid), label: () => `${FRIENDS[fid].name} — đang chơi Trung thu`, act: () => talkMenu(fid, 'pho') }); }
+  NPCS.push({ id: 'tt_mom', name: 'Mẹ', look: 'mom', outfit: () => 'noapron', map: 'pho', x: 346, y: 300, dir: 0, vis: () => ttOn() && !!ttY().fam && !sceneHides('tt_mom'), label: () => 'Mẹ', act: () => UI.ask('Mẹ', '<p>“Đi chơi một vòng đi con. Lúc nào muốn xem múa lân thì ra gặp ông thị trưởng ở sân khấu nhé.”</p>', ['Dạ'], { who: { look: 'mom', outfit: 'noapron' } }) });
+  NPCS.push({ id: 'tt_dad', name: 'Bố', look: 'dad', outfit: () => 'dadhome', map: 'pho', x: 326, y: 304, dir: 0, vis: () => ttOn() && !!ttY().fam && !sceneHides('tt_dad'), label: () => 'Bố', act: () => UI.ask('Bố', '<p>“Hồi bố bằng tuổi con, bố đập niêu giỏi nhất xóm đấy. Thử xem nào!”</p>', ['Dạ'], { who: { look: 'dad', outfit: 'dadhome' } }) });
 }
 
 /* ============================================================

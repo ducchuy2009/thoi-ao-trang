@@ -199,6 +199,9 @@ const FOODS = {
   kem: { name: 'Kem ốc quế', stam: 8, duo: 'kem', gift: 4 },
   garan: { name: 'Gà rán', stam: 35, duo: 'chicken', gift: 6 },
   haisan: { name: 'Hải sản nướng', stam: 30, duo: 'seafood', gift: 5 },
+  banhnuong: { name: 'Bánh nướng Trung thu', stam: 18, gift: 6 },
+  banhdeo: { name: 'Bánh dẻo Trung thu', stam: 14, gift: 5 },
+  buoi: { name: 'Múi bưởi', stam: 6, gift: 3 },
   banhchung: { name: 'Bánh chưng rán', stam: 20, gift: 4 },
   xoi: { name: 'Xôi gấc', stam: 15, gift: 3 },
   keobong: { name: 'Kẹo bông', stam: 6, gift: 4 },
@@ -333,7 +336,22 @@ const BDAY_FRIEND = 8, BDAY_PARENT = 4;
 // Lễ hội — ĐỂ SẴN, sẽ định nghĩa sau: { season, day, name }. Lịch tự hiển thị.
 // Lễ hội trên Lịch: { season, day, name, desc } — desc là câu bản tin đọc khi sắp tới lễ
 const FESTIVALS = [
+  { season: 0, day: 15, name: 'Tết Trung thu', desc: 'Đêm hội trăng rằm ở phố Hoa Phượng (20:00–23:00): múa lân, rước đèn, đập niêu, kéo co, làm đèn ông sao.' },
   { season: 1, day: 30, name: 'Đêm giao thừa', desc: 'Núi sau trường mở hội chợ đón giao thừa, có sạp trò chơi, đồ ăn và pháo hoa lúc nửa đêm.' },
+];
+/* ---------- Tết Trung thu (giữa mùa thu) ở phố Hoa Phượng ----------
+ * from–until: tới phố trong khung giờ này là vào hội (thời gian đứng yên) · end: buổi lễ kết thúc, về nhà
+ * matDays: bao nhiêu ngày trước Trung thu thì tạp hoá Cô Ba, căn tin bắt đầu bán nguyên liệu làm đèn lồng */
+const TT = { season: 0, day: 15, from: 1200, until: 1380, end: 1440, matDays: 7, decor: 1020, nieuPrice: 5000, keocoFriend: 3 };
+const TT_MATS = [
+  { id: 'nl_tre', name: 'Nan tre', price: 8000, desc: 'Mười thanh tre vót mỏng để ghép khung đèn ông sao.' },
+  { id: 'nl_giay', name: 'Giấy bóng kính', price: 6000, desc: 'Giấy kiếng đỏ, vàng để dán quanh khung đèn.' },
+  { id: 'nl_nen', name: 'Nến', price: 3000, desc: 'Cây nến nhỏ thắp sáng chiếc đèn.' },
+];
+const TT_FOOD = [
+  { id: 'banhnuong', name: 'Bánh nướng', price: 25000, desc: 'Vỏ vàng ruộm, nhân thập cẩm có trứng muối.' },
+  { id: 'banhdeo', name: 'Bánh dẻo', price: 20000, desc: 'Trắng mềm, thơm mùi hoa bưởi.' },
+  { id: 'buoi', name: 'Múi bưởi', price: 10000, desc: 'Bưởi ngọt mát, mâm cỗ nào cũng có.' },
 ];
 const isDate = (d, day) => { const c = cal(day); return !!d && c.season === d[0] && c.dos === d[1]; };
 
@@ -369,6 +387,7 @@ const SOCIETY = {
   c_thao: { name: 'Chị Thảo', note: 'Khoá trên · 11A3, lớp phó học tập', look: 'sD' },
   su: { name: 'Sư thầy', note: 'Trụ trì chùa Hoa Phượng', look: 'monk' },
   hieutruong: { name: 'Thầy hiệu trưởng', note: 'Hiệu trưởng trường THPT Hoa Phượng', look: 'principal' },
+  thitruong: { name: 'Ông thị trưởng', note: 'Thị trưởng thành phố Hoa Phượng', look: 'mayor' },
 };
 const SOC_GAIN = 2;
 // Mã thử nghiệm (dán vào ô "Dán mã" trong Cài đặt, không phân biệt hoa thường)
@@ -443,11 +462,22 @@ const MEMO_ITEMS = {
   gaubong: { name: 'Gấu bông gắp được', desc: 'Con gấu đầu tiên gắp được ở khu game.', hint: 'Gắp thú ở khu game' },
   the: { name: 'Thẻ cầu thủ huyền thoại', desc: 'Lá thẻ hiếm nhất trong bộ sưu tập.', hint: 'Bóc được thẻ huyền thoại' },
   voso: { name: 'Vỏ sò biển Hoa Phượng', desc: 'Áp lên tai nghe được tiếng sóng.', hint: 'Đi biển nhặt vỏ sò' },
+  anhgiaothua: { name: 'Ảnh đón giao thừa', desc: 'Gia đình và bạn bè chụp chung dưới bầu trời pháo hoa.', hint: 'Ngắm pháo hoa giao thừa trên núi', photo: true },
+  denongsao: { name: 'Đèn ông sao tự làm', desc: 'Khung nan tre, giấy bóng kính đỏ, ánh nến lung linh.', hint: 'Tự ghép đèn lồng ở hội Trung thu' },
+  anhtrungthu: { name: 'Ảnh rước đèn Trung thu', desc: 'Cả đoàn rước đèn ông sao dưới trăng rằm.', hint: 'Rước đèn cùng mọi người đêm Trung thu', photo: true },
+};
+// Danh hiệu & huy hiệu trong lưu bút
+const MEMO_BADGES = {
+  giaothua: { name: 'Người đón giao thừa', icon: 'b_giaothua', desc: 'Cùng gia đình, bạn bè ngắm pháo hoa giao thừa trên núi.', hint: 'Ngắm pháo hoa giao thừa' },
+  trungthu: { name: 'Huy hiệu Trung thu', icon: 'b_trungthu', desc: 'Tự tay ghép thành công một chiếc đèn ông sao.', hint: 'Làm đèn lồng ở hội Trung thu' },
+  dapnieu: { name: 'Cao thủ đập niêu', icon: 'b_dapnieu', desc: 'Bịt mắt mà vẫn đập vỡ niêu kẹo đêm Trung thu.', hint: 'Bịt mắt đập niêu ở hội Trung thu' },
+  keoco: { name: 'Lực sĩ kéo co', icon: 'b_keoco', desc: 'Kéo đội bạn qua vạch trong hội Trung thu.', hint: 'Thắng kéo co ở hội Trung thu' },
 };
 const MEMO_SCENES = {
   giaothua: { name: 'Đón giao thừa trên núi', icon: 'sc_giaothua', desc: 'Pháo hoa nở rực trời lúc nửa đêm, cả thành phố chào năm mới.' },
   chuatet: { name: 'Đi chùa đầu năm', icon: 'sc_chua', desc: 'Sáng mùng 1 cùng bố mẹ thắp nhang cầu may.' },
   tetvisit: { name: 'Đi chúc Tết', icon: 'sc_tetvisit', desc: 'Đi chúc Tết bạn bè, thầy cô và nhận lì xì.' },
+  trungthu: { name: 'Đêm hội Trung thu', icon: 'sc_trungthu', desc: 'Xem múa lân, rước đèn ông sao quanh phố Hoa Phượng dưới trăng rằm.' },
   banhchung: { name: 'Hội gói bánh chưng', icon: 'sc_banhchung', desc: 'Cả trường nghỉ học buổi chiều, ngồi quanh mâm lá dong gói bánh đón Tết.' },
   xinxam: { name: 'Xin xăm ở chùa', icon: 'sc_xinxam', desc: 'Lắc ống xăm, hồi hộp chờ thẻ rơi ra.' },
   skip: { name: 'Lần đầu trốn học', icon: 'sc_skip', desc: 'Trèo tường trốn ra ngoài cùng bạn — tim đập thình thịch.' },

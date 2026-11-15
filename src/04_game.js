@@ -47,6 +47,9 @@ function migrate() {
   if (G.inv.xeng === undefined) G.inv.xeng = 0;       // xèng khu game
   def('squad', null); def('cardTut', false); def('oppLost', {});   // đấu thẻ: đội hình 11 người, đã được anh Phong hướng dẫn chưa, thẻ đã lấy của từng đối thủ
   def('memo', { items: {}, scenes: {}, notes: null });  // lưu bút
+  if (!G.memo.badges) G.memo.badges = {};             // danh hiệu / huy hiệu: id → ngày
+  if (!G.memo.pics) G.memo.pics = {};                 // ảnh chụp thật (JPEG nhỏ) của kỷ vật dạng ảnh
+  def('tt', {});                                       // Trung thu: năm → { asked, fam, fid, done, lantern, nieu, keoco }
   def('tet', {});                                      // Tết: năm → { lixi, chua, f: {bạn đã chúc}, t: {thầy cô đã chúc} }
   def('eve', null);                                    // lời rủ đón giao thừa: { day, who }
   def('bc', {});                                       // hội thi gói bánh chưng: năm → { reg, done, won }
@@ -151,7 +154,7 @@ function meetSoc(id) { if (G.daily.soc[id]) return; G.daily.soc[id] = true; G.so
 
 /* ---------- thời gian ---------- */
 function advanceTime(mins) {
-  if (RT.fest || RT.bcFest) { UI.hud(); return; }   // trong hội đón giao thừa / hội gói bánh chưng: thời gian đứng yên
+  if (RT.fest || RT.bcFest || RT.ttFest) { UI.hud(); return; }   // trong hội đón giao thừa / gói bánh chưng / Trung thu: thời gian đứng yên
   const steps = Math.round(mins / CFG.TICK_MIN);
   if (mins >= 30) RT.snapNpcs = true;   // thời gian nhảy xa: bố mẹ có mặt luôn ở chỗ mới
   for (let i = 0; i < steps; i++) {
@@ -289,6 +292,7 @@ function morningBrief() {
   for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, G.day)) UI.toast(`Hôm nay sinh nhật ${FRIENDS[f].name}! Gặp bạn ấy để chúc mừng, tặng quà nhé.`, 'good');
   for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], G.day)) UI.toast(`Hôm nay sinh nhật ${PNAME[w].toLowerCase()}! Nhớ chúc mừng ${PNAME[w].toLowerCase()} nhé.`, 'good');
   const fe = FESTIVALS.find(f => isDate([f.season, f.day], G.day)); if (fe) UI.toast(`Hôm nay có lễ hội: ${fe.name}`, 'good');
+  if (ttMatOpen(G.day) && !isTTDay(G.day) && ttDayOf(cal(G.day).year) - G.day === TT.matDays) UI.toast('Còn một tuần nữa là Trung thu! Tạp hoá Cô Ba và căn tin trường bắt đầu bán nan tre, giấy bóng kính, nến để làm đèn ông sao.', 'info');
   const h = holidayOf(G.day);
   if (h) UI.toast(`Hôm nay nghỉ lễ: ${h.name}`, 'good');
   else if (schoolToday()) {
@@ -835,6 +839,8 @@ function todoList() {
   const t = [];
   for (const e of schoolEventsOn(G.day)) if (G.time < e.to && !(e.id === 'banhchung' && bcY().done)) t.push([false, RT.bcFest ? `${e.name} — gặp thầy hiệu trưởng để thi gói bánh` : `${e.name} ${fmtTime(e.from)}–${fmtTime(e.to)} (nghỉ tiết ${e.periods[0]}–${e.periods[e.periods.length - 1]})`]);
   if (eveOk()) t.push([RT.fest, RT.fest ? 'Đang dự hội đón giao thừa' : `Lễ hội đón giao thừa trên núi sau trường: ${fmtTime(EVE.from)}–24:00`]);
+  if (ttOk() || RT.ttFest) t.push([false, RT.ttFest ? 'Đang dự hội Trung thu — gặp ông thị trưởng ở sân khấu để bắt đầu buổi lễ' : `Hội Trung thu ở phố Hoa Phượng: ${fmtTime(TT.from)}–${fmtTime(TT.until)}`]);
+  if (ttMatOpen(G.day) && !ttY().lantern && !ttMatsHave() && G.time < TT.until) t.push([false, `Mua nguyên liệu làm đèn ông sao (còn thiếu: ${ttMatsMissing().map(m => m.name.toLowerCase()).join(', ')})`]);
   if (schoolToday()) {
     if (!G.daily.arrived && G.time < CFG.SCHOOL_END) {
       t.push([!!G.daily.meals.sang, 'Ăn sáng mẹ nấu']);

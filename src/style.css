@@ -314,6 +314,8 @@ body.cut #hotbar{opacity:0;pointer-events:none}
 .memo-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;padding:10px 8px;background:#fff6e3;border:3px solid #e8b83a;border-radius:12px}
 .memo-item img,.memo-row img{width:40px;height:40px;image-rendering:pixelated}
 .memo-item small{font-size:12px;color:#6b6170}
+.memo-item.pic{grid-column:span 2}.memo-item img.photo{width:100%;max-width:288px;height:auto;aspect-ratio:8/5;image-rendering:auto;border:4px solid #fffdf6;outline:2px solid #c9b58a;box-shadow:0 3px 6px rgba(0,0,0,.18);transform:rotate(-1.5deg);margin:4px 0 6px}
+.memo-item.badge{border-color:#7a5fc9;background:#f6f1ff}.memo-item.badge img{width:48px;height:48px}
 .memo-item.lock,.memo-row.lock,.memo-note.lock{border-color:#d9d0bd;background:#efe9dc}
 .memo-item.lock img,.memo-row.lock img{filter:grayscale(1) brightness(.45);opacity:.6}
 .memo-row{display:flex;align-items:center;gap:10px;padding:6px 10px;background:#fff6e3;border:2px solid #e8b83a;border-radius:10px}
@@ -350,3 +352,12 @@ button.ct{cursor:pointer}button.ct:hover{background:#fffbe8}
 .cm-row{margin:6px 0;padding:6px;background:#f4ead2;border-radius:8px}.cm-row small{color:#6b6170}
 .rps .btn{font-size:15px;min-width:86px}.emo{font-size:26px;display:inline-block;margin-right:4px;vertical-align:middle}
 b.bad{color:#d9534f}
+
+/* chọn người bằng avatar + tên */
+.btns.avas{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.btns.avas .btn{display:flex;flex-direction:column;align-items:center;gap:3px;width:96px;padding:8px 6px 6px}
+.btns.avas .btn img{width:52px;height:55px;image-rendering:pixelated;background:#cfe6f2;border:2px solid var(--ink);border-radius:8px}
+.btns.avas .btn b{font-size:14px;line-height:1.1}
+.btns.avas .btn:last-child{flex-basis:100%;width:auto;flex-direction:row;justify-content:center;background:transparent;box-shadow:none;border-style:dashed}
+
+.tt-lantern{text-align:center}.tt-lantern img{width:72px;height:72px;image-rendering:pixelated}

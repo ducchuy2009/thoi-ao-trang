@@ -41,7 +41,7 @@ const UI = {
     return new Promise(res => {
       const btns = buttons.map((b, i) => `<button class="btn ${i === 0 && !opts.grid && buttons.length < 4 ? 'primary' : ''} ${b === 'Thôi' || b === 'Chưa' ? 'ghost' : ''}" data-i="${i}">${opts.grid || buttons.length < 2 ? '' : `<kbd>${i + 1}</kbd>`}${b}</button>`).join('');
       // opts.esc: giá trị trả về khi bấm Esc / nút ✕ (mặc định = nút cuối cùng)
-      this._open(title, html + `<div class="btns ${opts.grid ? 'grid' : (buttons.length > 2 ? 'col' : '')}">${btns}</div>`, res, opts.esc !== undefined ? opts.esc : buttons.length - 1, false, opts.who);      // opts.who = { look, outfit }: ép hiện hội thoại ở dưới với chân dung này
+      this._open(title, html + `<div class="btns ${opts.cls || (opts.grid ? 'grid' : (buttons.length > 2 ? 'col' : ''))}">${btns}</div>`, res, opts.esc !== undefined ? opts.esc : buttons.length - 1, false, opts.who);      // opts.who = { look, outfit }: ép hiện hội thoại ở dưới với chân dung này
     });
   },
   say(title, html) { return this.ask(title, `<p>${html}</p>`, ['OK']); },
@@ -187,6 +187,8 @@ const UI = {
     if (cardCount()) add('the', cardCount(), 'Thẻ cầu thủ — bấm để xem bộ sưu tập', 'cards');
     if (G.inv.gaubong) add('gaubong', G.inv.gaubong, 'Gấu bông — bấm để cầm lên rồi bấm vào bạn để tặng', 'hold');
     if (G.inv.voso) add('voso', G.inv.voso, 'Vỏ sò — bấm để cầm lên rồi bấm vào bạn để tặng', 'hold');
+    if (G.inv.denongsao) add('denongsao', G.inv.denongsao, 'Đèn ông sao tự làm — bấm để cầm lên (rước đèn, hoặc tặng bạn)', 'hold');
+    for (const m of TT_MATS) if (G.inv[m.id]) add(m.id, G.inv[m.id], `${m.name} — nguyên liệu làm đèn ông sao (mang tới sạp làm đèn lồng đêm Trung thu)`);
     if (fishCount()) add('ca', fishCount(), 'Cá câu được — bán cho Cô Ba hoặc đưa mẹ nấu');
     if (G.owned.cancau) add('cancau', 0, 'Cần câu — câu cá ở bờ sông');
     return it;
@@ -220,6 +222,8 @@ const UI = {
       const own = [['xedap', 'Xe đạp'], ['xedapdien', 'Xe đạp điện'], ['xemay', 'Xe máy 50cc'], ['daynhay', 'Dây nhảy'], ['tatay', 'Tạ tay'], ['xadon', 'Xà đơn'], ['cancau', 'Cần câu']].filter(([k]) => G.owned[k]).map(([, n]) => n);
       if (fishCount()) h += '<p>Cá câu được: ' + FISH.filter(f => G.fish[f.id]).map(f => `<b>${f.name}</b> ×${G.fish[f.id]}`).join(' · ') + ` <small class="dim">— bán cho Cô Ba được ${fmtMoney(fishValue())}, hoặc đưa mẹ nấu</small></p>`;
       if (G.inv.voso) h += `<div class="rowi"><span><b>Vỏ sò</b> ×${G.inv.voso} <small>quà tặng bạn thân</small></span><button class="btn sm" data-act="hold" data-id="voso">${RT.hold === 'voso' ? 'Cất đi' : 'Cầm lên'}</button></div>`;
+      if (G.inv.denongsao) h += `<div class="rowi"><span><b>Đèn ông sao</b> ×${G.inv.denongsao} <small>tự làm đêm Trung thu</small></span><button class="btn sm" data-act="hold" data-id="denongsao">${RT.hold === 'denongsao' ? 'Cất đi' : 'Cầm lên'}</button></div>`;
+      if (TT_MATS.some(m => G.inv[m.id])) h += `<h4>Nguyên liệu làm đèn lồng</h4><p>${TT_MATS.map(m => `${m.name}: <b>${G.inv[m.id] || 0}</b>`).join(' · ')} <small class="dim">— đủ cả ba thì làm được một chiếc đèn ông sao ở hội Trung thu</small></p>`;
       h += '<h4>Tài sản ở nhà</h4><p>' + (own.length ? own.join(' · ') : '<span class="dim">Chưa có gì.</span>') + '</p>';
       if (G.busPassUntil >= G.day) h += `<p>Vé tháng xe bus còn hạn đến <b>${dateLabel(G.busPassUntil)}</b>.</p>`;
       return h;

@@ -323,6 +323,8 @@ body.cut #hotbar{opacity:0;pointer-events:none}
 .memo-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;padding:10px 8px;background:#fff6e3;border:3px solid #e8b83a;border-radius:12px}
 .memo-item img,.memo-row img{width:40px;height:40px;image-rendering:pixelated}
 .memo-item small{font-size:12px;color:#6b6170}
+.memo-item.pic{grid-column:span 2}.memo-item img.photo{width:100%;max-width:288px;height:auto;aspect-ratio:8/5;image-rendering:auto;border:4px solid #fffdf6;outline:2px solid #c9b58a;box-shadow:0 3px 6px rgba(0,0,0,.18);transform:rotate(-1.5deg);margin:4px 0 6px}
+.memo-item.badge{border-color:#7a5fc9;background:#f6f1ff}.memo-item.badge img{width:48px;height:48px}
 .memo-item.lock,.memo-row.lock,.memo-note.lock{border-color:#d9d0bd;background:#efe9dc}
 .memo-item.lock img,.memo-row.lock img{filter:grayscale(1) brightness(.45);opacity:.6}
 .memo-row{display:flex;align-items:center;gap:10px;padding:6px 10px;background:#fff6e3;border:2px solid #e8b83a;border-radius:10px}
@@ -359,6 +361,15 @@ button.ct{cursor:pointer}button.ct:hover{background:#fffbe8}
 .cm-row{margin:6px 0;padding:6px;background:#f4ead2;border-radius:8px}.cm-row small{color:#6b6170}
 .rps .btn{font-size:15px;min-width:86px}.emo{font-size:26px;display:inline-block;margin-right:4px;vertical-align:middle}
 b.bad{color:#d9534f}
+
+/* chọn người bằng avatar + tên */
+.btns.avas{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.btns.avas .btn{display:flex;flex-direction:column;align-items:center;gap:3px;width:96px;padding:8px 6px 6px}
+.btns.avas .btn img{width:52px;height:55px;image-rendering:pixelated;background:#cfe6f2;border:2px solid var(--ink);border-radius:8px}
+.btns.avas .btn b{font-size:14px;line-height:1.1}
+.btns.avas .btn:last-child{flex-basis:100%;width:auto;flex-direction:row;justify-content:center;background:transparent;box-shadow:none;border-style:dashed}
+
+.tt-lantern{text-align:center}.tt-lantern img{width:72px;height:72px;image-rendering:pixelated}
 
 </style>
 </head>
@@ -606,6 +617,9 @@ const FOODS = {
   kem: { name: 'Kem ốc quế', stam: 8, duo: 'kem', gift: 4 },
   garan: { name: 'Gà rán', stam: 35, duo: 'chicken', gift: 6 },
   haisan: { name: 'Hải sản nướng', stam: 30, duo: 'seafood', gift: 5 },
+  banhnuong: { name: 'Bánh nướng Trung thu', stam: 18, gift: 6 },
+  banhdeo: { name: 'Bánh dẻo Trung thu', stam: 14, gift: 5 },
+  buoi: { name: 'Múi bưởi', stam: 6, gift: 3 },
   banhchung: { name: 'Bánh chưng rán', stam: 20, gift: 4 },
   xoi: { name: 'Xôi gấc', stam: 15, gift: 3 },
   keobong: { name: 'Kẹo bông', stam: 6, gift: 4 },
@@ -740,7 +754,22 @@ const BDAY_FRIEND = 8, BDAY_PARENT = 4;
 // Lễ hội — ĐỂ SẴN, sẽ định nghĩa sau: { season, day, name }. Lịch tự hiển thị.
 // Lễ hội trên Lịch: { season, day, name, desc } — desc là câu bản tin đọc khi sắp tới lễ
 const FESTIVALS = [
+  { season: 0, day: 15, name: 'Tết Trung thu', desc: 'Đêm hội trăng rằm ở phố Hoa Phượng (20:00–23:00): múa lân, rước đèn, đập niêu, kéo co, làm đèn ông sao.' },
   { season: 1, day: 30, name: 'Đêm giao thừa', desc: 'Núi sau trường mở hội chợ đón giao thừa, có sạp trò chơi, đồ ăn và pháo hoa lúc nửa đêm.' },
+];
+/* ---------- Tết Trung thu (giữa mùa thu) ở phố Hoa Phượng ----------
+ * from–until: tới phố trong khung giờ này là vào hội (thời gian đứng yên) · end: buổi lễ kết thúc, về nhà
+ * matDays: bao nhiêu ngày trước Trung thu thì tạp hoá Cô Ba, căn tin bắt đầu bán nguyên liệu làm đèn lồng */
+const TT = { season: 0, day: 15, from: 1200, until: 1380, end: 1440, matDays: 7, decor: 1020, nieuPrice: 5000, keocoFriend: 3 };
+const TT_MATS = [
+  { id: 'nl_tre', name: 'Nan tre', price: 8000, desc: 'Mười thanh tre vót mỏng để ghép khung đèn ông sao.' },
+  { id: 'nl_giay', name: 'Giấy bóng kính', price: 6000, desc: 'Giấy kiếng đỏ, vàng để dán quanh khung đèn.' },
+  { id: 'nl_nen', name: 'Nến', price: 3000, desc: 'Cây nến nhỏ thắp sáng chiếc đèn.' },
+];
+const TT_FOOD = [
+  { id: 'banhnuong', name: 'Bánh nướng', price: 25000, desc: 'Vỏ vàng ruộm, nhân thập cẩm có trứng muối.' },
+  { id: 'banhdeo', name: 'Bánh dẻo', price: 20000, desc: 'Trắng mềm, thơm mùi hoa bưởi.' },
+  { id: 'buoi', name: 'Múi bưởi', price: 10000, desc: 'Bưởi ngọt mát, mâm cỗ nào cũng có.' },
 ];
 const isDate = (d, day) => { const c = cal(day); return !!d && c.season === d[0] && c.dos === d[1]; };
 
@@ -776,6 +805,7 @@ const SOCIETY = {
   c_thao: { name: 'Chị Thảo', note: 'Khoá trên · 11A3, lớp phó học tập', look: 'sD' },
   su: { name: 'Sư thầy', note: 'Trụ trì chùa Hoa Phượng', look: 'monk' },
   hieutruong: { name: 'Thầy hiệu trưởng', note: 'Hiệu trưởng trường THPT Hoa Phượng', look: 'principal' },
+  thitruong: { name: 'Ông thị trưởng', note: 'Thị trưởng thành phố Hoa Phượng', look: 'mayor' },
 };
 const SOC_GAIN = 2;
 // Mã thử nghiệm (dán vào ô "Dán mã" trong Cài đặt, không phân biệt hoa thường)
@@ -850,11 +880,22 @@ const MEMO_ITEMS = {
   gaubong: { name: 'Gấu bông gắp được', desc: 'Con gấu đầu tiên gắp được ở khu game.', hint: 'Gắp thú ở khu game' },
   the: { name: 'Thẻ cầu thủ huyền thoại', desc: 'Lá thẻ hiếm nhất trong bộ sưu tập.', hint: 'Bóc được thẻ huyền thoại' },
   voso: { name: 'Vỏ sò biển Hoa Phượng', desc: 'Áp lên tai nghe được tiếng sóng.', hint: 'Đi biển nhặt vỏ sò' },
+  anhgiaothua: { name: 'Ảnh đón giao thừa', desc: 'Gia đình và bạn bè chụp chung dưới bầu trời pháo hoa.', hint: 'Ngắm pháo hoa giao thừa trên núi', photo: true },
+  denongsao: { name: 'Đèn ông sao tự làm', desc: 'Khung nan tre, giấy bóng kính đỏ, ánh nến lung linh.', hint: 'Tự ghép đèn lồng ở hội Trung thu' },
+  anhtrungthu: { name: 'Ảnh rước đèn Trung thu', desc: 'Cả đoàn rước đèn ông sao dưới trăng rằm.', hint: 'Rước đèn cùng mọi người đêm Trung thu', photo: true },
+};
+// Danh hiệu & huy hiệu trong lưu bút
+const MEMO_BADGES = {
+  giaothua: { name: 'Người đón giao thừa', icon: 'b_giaothua', desc: 'Cùng gia đình, bạn bè ngắm pháo hoa giao thừa trên núi.', hint: 'Ngắm pháo hoa giao thừa' },
+  trungthu: { name: 'Huy hiệu Trung thu', icon: 'b_trungthu', desc: 'Tự tay ghép thành công một chiếc đèn ông sao.', hint: 'Làm đèn lồng ở hội Trung thu' },
+  dapnieu: { name: 'Cao thủ đập niêu', icon: 'b_dapnieu', desc: 'Bịt mắt mà vẫn đập vỡ niêu kẹo đêm Trung thu.', hint: 'Bịt mắt đập niêu ở hội Trung thu' },
+  keoco: { name: 'Lực sĩ kéo co', icon: 'b_keoco', desc: 'Kéo đội bạn qua vạch trong hội Trung thu.', hint: 'Thắng kéo co ở hội Trung thu' },
 };
 const MEMO_SCENES = {
   giaothua: { name: 'Đón giao thừa trên núi', icon: 'sc_giaothua', desc: 'Pháo hoa nở rực trời lúc nửa đêm, cả thành phố chào năm mới.' },
   chuatet: { name: 'Đi chùa đầu năm', icon: 'sc_chua', desc: 'Sáng mùng 1 cùng bố mẹ thắp nhang cầu may.' },
   tetvisit: { name: 'Đi chúc Tết', icon: 'sc_tetvisit', desc: 'Đi chúc Tết bạn bè, thầy cô và nhận lì xì.' },
+  trungthu: { name: 'Đêm hội Trung thu', icon: 'sc_trungthu', desc: 'Xem múa lân, rước đèn ông sao quanh phố Hoa Phượng dưới trăng rằm.' },
   banhchung: { name: 'Hội gói bánh chưng', icon: 'sc_banhchung', desc: 'Cả trường nghỉ học buổi chiều, ngồi quanh mâm lá dong gói bánh đón Tết.' },
   xinxam: { name: 'Xin xăm ở chùa', icon: 'sc_xinxam', desc: 'Lắc ống xăm, hồi hộp chờ thẻ rơi ra.' },
   skip: { name: 'Lần đầu trốn học', icon: 'sc_skip', desc: 'Trèo tường trốn ra ngoài cùng bạn — tim đập thình thịch.' },
@@ -1047,6 +1088,7 @@ const LOOKS = {
   sA: { ...UNI, hair: '#1f1f29', style: 'spiky', badge: '#d9534f', pants: '#2b3550' }, sB: { ...UNI, hair: '#3a2a2a', style: 'long', skirt: true, band: '#7a5fc9', badge: '#d9534f' },
   sC: { ...UNI, hair: '#5a3a26', style: 'short', badge: '#2e9e86', skin: '#e3ae80' }, sD: { ...UNI, hair: '#2c2733', style: 'bun', skirt: true, badge: '#2e9e86' },
   principal: { hair: '#c9ccd4', style: 'short', shirt: '#3a3f55', pants: '#2a2136', tie: '#d9534f', mustache: true, skin: '#eab98c' },
+  mayor: { hair: '#5f656f', style: 'short', shirt: '#24406b', pants: '#1f2a44', tie: '#e8b83a', mustache: true, skin: '#e8b48a' },
   monk: { hair: '#f2c9a0', style: 'buzz', shirt: '#d98a2b', pants: '#b8701f', aodai: true, shoe: '#6f472c' },
   vendor: { hair: '#4a3328', style: 'bun', shirt: '#f2a93b', pants: '#5b4a6b', apron: '#ffffff' },
   c1: { ...UNI, hair: '#3b2a22', style: 'short' },
@@ -1893,6 +1935,45 @@ function buildSprites2() {
   shopFront('fb_doan', '#f2a93b', x => { ell(x, '#5f656f', 12, 5, 8, 4); R(x, '#5f656f', 4, 5, 17, 4); ell(x, '#8b8f9c', 12, 4, 7, 2); R(x, 'rgba(240,240,240,.7)', 9, 0, 1, 2); R(x, 'rgba(240,240,240,.7)', 14, 0, 1, 2); for (let i = 0; i < 3; i++) { R(x, '#3f8f3a', 36 + i * 5, 3 - (i % 2), 5, 5); R(x, '#d9c690', 38 + i * 5, 3 - (i % 2), 1, 5); } R(x, '#d9534f', 0, 13, 54, 1); });
 
 
+  /* ---------- Tết Trung thu: sân khấu, lân, ông Địa, trống, niêu, đèn ông sao, sạp hàng ---------- */
+  def('ttstage', 100, 46, x => {
+    R(x, '#8a5a3a', 4, 0, 3, 31); R(x, '#8a5a3a', 93, 0, 3, 31);
+    R(x, '#b23b3b', 7, 2, 86, 28); R(x, '#d9534f', 7, 2, 86, 3); R(x, '#ffd23a', 9, 6, 82, 1); R(x, '#ffd23a', 9, 27, 82, 1);
+    ell(x, '#ffe9a0', 82, 16, 7, 7); ell(x, '#fff6c8', 80, 14, 3, 3); ell(x, '#f2d98a', 85, 18, 1.5, 1.5);
+    for (const a of [12, 20]) { R(x, '#3a2a22', a, 0, 1, 3); ell(x, a === 12 ? '#ffd23a' : '#e2574c', a, 6, 2.5, 3); }
+    R(x, '#6f472c', 0, 30, 100, 16); R(x, '#a9703f', 0, 30, 100, 3); for (let i = 6; i < 100; i += 12) R(x, '#5b3d27', i, 33, 1, 13);
+    R(x, '#5b3d27', 40, 42, 20, 4); R(x, '#8a5a3a', 42, 40, 16, 2);
+  });
+  for (let f = 0; f < 2; f++) def('lion' + f, 34, 26, x => {
+    const hy = f ? 0 : 2;
+    R(x, '#e2574c', 2, 8, 20, 10); R(x, '#ffd23a', 2, 8, 20, 2); for (let i = 0; i < 20; i += 3) R(x, i % 6 ? '#ffd23a' : '#fffaf0', 2 + i, 16, 2, 3);
+    R(x, '#3f8f3a', 6, 11, 3, 3); R(x, '#3b82c4', 13, 11, 3, 3); R(x, '#ffd23a', 0, 6, 3, 5); R(x, '#fffaf0', 0, 10, 2, 2);
+    for (const [a, d] of [[4, f], [10, -f], [17, -f], [23, f]]) { R(x, '#ffd23a', a + d, 18, 3, 6); R(x, '#2a2136', a + d, 24, 4, 2); }
+    R(x, '#d9534f', 18, hy + 2, 15, 12); R(x, '#ffd23a', 18, hy + 2, 15, 3); R(x, '#3f8f3a', 25, hy, 2, 3); R(x, '#ffd23a', 17, hy + 4, 2, 5);
+    R(x, '#fffaf0', 21, hy + 6, 4, 3); R(x, '#2a2136', 23, hy + 7, 1, 1); R(x, '#fffaf0', 27, hy + 6, 4, 3); R(x, '#2a2136', 29, hy + 7, 1, 1);
+    R(x, '#2a2136', 21, hy + 11, 12, 2); R(x, '#fffaf0', 22, hy + 11, 10, 1); R(x, '#fffaf0', 21, hy + 13, 12, 2); R(x, '#3b82c4', 31, hy + 4, 2, 2);
+  });
+  for (let f = 0; f < 2; f++) def('ongdia' + f, 20, 26, x => {
+    ell(x, '#f6b3a0', 10, 8, 8, 7.5); ell(x, '#ffd2c4', 8, 5, 3, 2); R(x, '#2a2136', 5, 6, 3, 1); R(x, '#2a2136', 12, 6, 3, 1);
+    R(x, '#b23b3b', 6, 10, 8, 3); R(x, '#fffaf0', 7, 10, 6, 1); ell(x, '#ff8f9a', 4, 9, 1.5, 1); ell(x, '#ff8f9a', 16, 9, 1.5, 1);
+    R(x, '#e8b83a', 4, 15, 12, 9); R(x, '#c9962a', 4, 15, 12, 1); ell(x, '#f6b3a0', 10, 19, 3, 3); R(x, '#8a5a3a', 5, 24, 3, 2); R(x, '#8a5a3a', 12, 24, 3, 2);
+    const fy = f ? 10 : 14; R(x, '#fffaf0', 15, fy, 5, 5); R(x, '#d9c690', 16, fy + 1, 1, 4); R(x, '#d9c690', 18, fy + 1, 1, 4); R(x, '#f6b3a0', 15, fy + 4, 2, 2);
+  });
+  def('trong', 20, 20, x => { R(x, '#6f472c', 3, 12, 2, 8); R(x, '#6f472c', 15, 12, 2, 8); ell(x, '#b23b3b', 10, 8, 9, 6); ell(x, '#d9534f', 10, 7, 8, 5); ell(x, '#f3e2c0', 10, 5, 7, 3); for (const a of [3, 7, 13, 17]) R(x, '#ffd23a', a, 9, 1, 1); R(x, '#8a5a3a', 15, 0, 1, 5); });
+  def('nieupole', 44, 46, x => {
+    R(x, '#a9703f', 1, 2, 3, 44); R(x, '#a9703f', 40, 2, 3, 44); R(x, '#d9c690', 1, 2, 1, 44); R(x, '#d9c690', 40, 2, 1, 44);
+    for (let i = 0; i <= 36; i++) R(x, '#3a2a22', 4 + i, 4 + Math.round(Math.sin(i / 36 * Math.PI) * 4), 1, 1);
+    R(x, '#3a2a22', 22, 8, 1, 6); ell(x, '#8a5a3a', 22, 19, 6, 5); ell(x, '#a9703f', 21, 18, 3, 2); R(x, '#d9534f', 17, 13, 11, 2); R(x, '#ffd23a', 18, 13, 2, 1); R(x, '#5b3d27', 18, 22, 9, 1);
+  });
+  for (let f = 0; f < 2; f++) def('sao' + f, 9, 12, x => { R(x, '#8a5a3a', 4, 7, 1, 5); pat(x, STAR7, 1, 0, '#e2574c', '#e2574c'); R(x, f ? '#fff6a8' : '#ffd23a', 4, 2, 1, 2); R(x, f ? '#ffd23a' : '#fff6a8', 3, 3, 3, 1); });
+  def('sanh', 8, 16, x => { R(x, '#8a5a3a', 3, 0, 2, 16); R(x, '#5fae4a', 0, 2, 8, 5); R(x, '#3f8f3a', 1, 3, 6, 3); R(x, '#d9534f', 2, 8, 4, 4); R(x, '#ffd23a', 3, 9, 2, 2); });
+  boothBack('fb_nguyenlieu', '#3f8f3a', x => { R(x, '#a9703f', 5, 30, 44, 2); ic(x, 'nl_tre', 4, 13); ic(x, 'nl_giay', 18, 13); ic(x, 'nl_nen', 32, 13); for (let i = 0; i < 5; i++) R(x, '#d9c690', 8 + i * 8, 33, 1, 9); });
+  shopFront('fb_nguyenlieu', '#3f8f3a', x => { for (let i = 0; i < 6; i++) R(x, '#d9c690', 4 + i * 2, 1, 1, 8); R(x, '#e2574c', 20, 2, 9, 6); R(x, '#ffd23a', 24, 1, 9, 6); R(x, '#fffaf0', 40, 2, 3, 7); R(x, '#ffd23a', 41, 0, 1, 2); R(x, '#fffaf0', 0, 13, 54, 1); });
+  boothBack('fb_denlong', '#e2574c', x => { for (const [a, b] of [[6, 13], [22, 15], [38, 13], [14, 28], [30, 28]]) { R(x, '#3a2a22', a + 3, b - 2, 1, 2); pat(x, STAR7, a, b, (a + b) % 3 ? '#e2574c' : '#ffd23a', '#ffd23a'); } });
+  shopFront('fb_denlong', '#e2574c', x => { pat(x, STAR7, 4, 1, '#ffd23a', '#ffd23a'); for (let i = 0; i < 5; i++) R(x, '#d9c690', 16 + i * 3, 2, 1, 6); R(x, '#3b82c4', 34, 2, 7, 5); R(x, '#e2574c', 43, 2, 7, 5); R(x, '#ffd23a', 0, 13, 54, 1); });
+  boothBack('fb_banhtt', '#c9862f', x => { R(x, '#2a2136', 6, 13, 42, 22); ic(x, 'banhnuong', 5, 14); ic(x, 'banhdeo', 18, 14); ic(x, 'buoi', 31, 14); for (let i = 0; i < 3; i++) R(x, '#ffe066', 10 + i * 13, 33, 8, 1); });
+  shopFront('fb_banhtt', '#c9862f', x => { for (let i = 0; i < 4; i++) { ell(x, i % 2 ? '#fbf8ef' : '#e0a54a', 7 + i * 7, 5, 3, 2.5); } ell(x, '#7fbf5a', 42, 5, 4, 3.5); R(x, '#d9534f', 0, 13, 54, 1); });
+
   /* ---------- dụng cụ tập thể dục ở nhà (mua ở gian Thể thao, TTTM) ---------- */
   def('eq_daynhay', 16, 10, x => { ell(x, '#e2574c', 8, 5, 6, 3.5); ell(x, '#3a2a22', 8, 5, 4, 2); ell(x, '#e2574c', 8, 5, 3, 1.5); R(x, '#3b82c4', 0, 2, 3, 6); R(x, '#3b82c4', 13, 2, 3, 6); R(x, '#6fa0e0', 0, 2, 1, 6); R(x, '#6fa0e0', 13, 2, 1, 6); });
   def('eq_tatay', 18, 9, x => { for (const b of [0, 5]) { R(x, '#3a3f55', 0, b, 4, 4); R(x, '#3a3f55', 12, b, 4, 4); R(x, '#8b8f9c', 4, b + 1, 8, 2); R(x, '#5f656f', 0, b, 4, 1); R(x, '#5f656f', 12, b, 4, 1); } });
@@ -1923,6 +2004,10 @@ function buildSprites2() {
 /* ---------- biểu tượng vật phẩm cho thanh đồ (16×16 → dataURL) ---------- */
 const _icons = {}, _iconCv = {};
 const iconCv = id => { itemIcon(id); return _iconCv[id]; };     // canvas của icon (để vẽ hàng hoá lên quầy, kệ)
+// mẫu điểm ảnh: '#' = màu chính, 'o' = màu viền sáng
+const STAR11 = ['.....#.....', '....###....', '....#o#....', '###########', '.##ooooo##.', '..#ooooo#..', '..#######..', '.####.####.', '.###...###.', '##.......##'];
+const STAR7 = ['...#...', '..###..', '#######', '.#####.', '..###..', '.##.##.', '#.....#'];
+function pat(x, rows, ox, oy, col, col2) { rows.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] !== '.') R(x, r[i] === 'o' ? col2 : col, ox + i, oy + j, 1, 1); }); }
 function itemIcon(id) {
   if (_icons[id]) return _icons[id];
   const c = mk(16, 16), x = cx(c);
@@ -2000,6 +2085,26 @@ function itemIcon(id) {
   else if (id === 'm_map') { R(x, '#fffaf0', 1, 3, 14, 11); R(x, '#cfe8b8', 1, 3, 4, 11); R(x, '#bfe3f2', 10, 3, 5, 11); R(x, '#d9ccb2', 5, 3, 1, 11); R(x, '#d9ccb2', 10, 3, 1, 11); R(x, '#e2574c', 6, 5, 3, 3); R(x, '#e2574c', 7, 8, 1, 2); R(x, '#8b8f9c', 2, 10, 6, 1); }
   else if (id === 'm_menu') { for (const b2 of [3, 7, 11]) { R(x, '#2a2136', 2, b2, 12, 2); R(x, '#5f656f', 2, b2, 12, 1); } }
   else if (id === 'm_phone') { R(x, '#2a2136', 4, 1, 8, 14); R(x, '#8fd0f0', 5, 3, 6, 8); R(x, '#cfeefa', 5, 3, 6, 2); R(x, '#fff6e3', 7, 12, 2, 1); }
+  else if (id === 'denongsao' || id === 'sc_trungthu') {
+    if (id === 'sc_trungthu') { R(x, '#24406b', 0, 0, 16, 16); ell(x, '#ffe9a0', 12, 4, 3, 3); ell(x, '#fff6c8', 11, 3, 1.5, 1.5); }
+    pat(x, STAR11, id === 'sc_trungthu' ? 0 : 2, id === 'sc_trungthu' ? 5 : 2, '#e2574c', '#ffd23a'); R(x, '#8a5a3a', id === 'sc_trungthu' ? 5 : 7, id === 'sc_trungthu' ? 14 : 12, 1, 4); R(x, '#fff6c8', id === 'sc_trungthu' ? 5 : 7, id === 'sc_trungthu' ? 9 : 6, 1, 1);
+  }
+  else if (id === 'nl_tre') { for (let i = 0; i < 5; i++) { R(x, '#d9c690', 2 + i * 2, 2 + (i % 2), 1, 12); R(x, '#b8a46a', 2 + i * 2, 13 + (i % 2), 1, 1); } R(x, '#d9534f', 1, 7, 12, 2); R(x, '#d9c690', 12, 3, 2, 10); }
+  else if (id === 'nl_giay') { R(x, '#e2574c', 1, 4, 10, 10); R(x, '#ff8f7a', 2, 5, 3, 3); R(x, '#ffd23a', 5, 2, 10, 10); R(x, '#fff6a8', 6, 3, 3, 3); R(x, 'rgba(255,255,255,.6)', 12, 3, 1, 6); }
+  else if (id === 'nl_nen') { R(x, '#fffaf0', 6, 6, 4, 9); R(x, '#e3ddd0', 9, 6, 1, 9); R(x, '#2a2136', 7, 4, 1, 2); ell(x, '#ffd23a', 7.5, 2.5, 1.5, 2.2); R(x, '#ff7a3a', 7, 3, 1, 1); R(x, '#c9c2b3', 4, 14, 8, 2); }
+  else if (id === 'banhnuong') { ell(x, '#c9862f', 8, 9, 6.5, 5.5); ell(x, '#e0a54a', 8, 8, 5.5, 4.5); R(x, '#a86a22', 5, 7, 6, 1); R(x, '#a86a22', 7, 5, 2, 6); ell(x, '#f2c76a', 6, 6, 1, 1); }
+  else if (id === 'banhdeo') { ell(x, '#e9e4d6', 8, 9, 6.5, 5.5); ell(x, '#fbf8ef', 8, 8, 5.5, 4.5); R(x, '#d9cfb8', 5, 8, 6, 1); R(x, '#d9cfb8', 7, 6, 2, 5); ell(x, '#9fd6a4', 11, 5, 1.5, 1); }
+  else if (id === 'buoi') { ell(x, '#7fbf5a', 8, 9, 6.5, 6); ell(x, '#f6c4c0', 8, 9, 5, 4.6); for (const a of [5, 8, 11]) R(x, '#f9dcd8', a, 6, 1, 6); R(x, '#5a8f3a', 7, 2, 2, 2); }
+  else if (id === 'anhgiaothua' || id === 'anhtrungthu') { R(x, '#fffdf6', 1, 2, 14, 12); R(x, id === 'anhgiaothua' ? '#24406b' : '#2f3f6b', 2, 3, 12, 8); R(x, id === 'anhgiaothua' ? '#ff5fa8' : '#ffe9a0', 10, 4, 2, 2); for (const a of [4, 7, 10]) { R(x, '#f8d0a8', a, 8, 2, 2); R(x, '#2c2733', a, 7, 2, 1); } R(x, '#8b8f9c', 2, 12, 12, 1); }
+  else if (id.startsWith('b_')) {
+    R(x, '#d9534f', 4, 0, 3, 6); R(x, '#3b82c4', 9, 0, 3, 6); R(x, '#b23b3b', 4, 5, 3, 1); R(x, '#2a5f99', 9, 5, 3, 1);
+    ell(x, '#c9962a', 8, 10, 5.8, 5.8); ell(x, '#ffd23a', 8, 10, 4.8, 4.8); ell(x, '#f2c94c', 8, 11, 4, 3.6);
+    const k = id.slice(2);
+    if (k === 'giaothua') { const c2 = '#e2574c'; R(x, c2, 8, 6, 1, 9); R(x, c2, 4, 10, 9, 1); R(x, c2, 6, 8, 1, 1); R(x, c2, 10, 8, 1, 1); R(x, c2, 6, 12, 1, 1); R(x, c2, 10, 12, 1, 1); }
+    else if (k === 'trungthu') pat(x, STAR7, 5, 7, '#e2574c', '#e2574c');
+    else if (k === 'dapnieu') { ell(x, '#8a5a3a', 8, 11, 3.2, 2.6); R(x, '#5b3d27', 6, 8, 5, 1); R(x, '#5b3d27', 8, 6, 1, 2); R(x, '#d9534f', 6, 11, 1, 1); R(x, '#3b82c4', 9, 12, 1, 1); }
+    else if (k === 'keoco') { R(x, '#8a5a3a', 4, 10, 9, 1); R(x, '#a9703f', 4, 11, 9, 1); R(x, '#d9534f', 8, 8, 1, 5); R(x, '#2a2136', 4, 8, 1, 2); R(x, '#2a2136', 12, 8, 1, 2); }
+  }
   else { R(x, '#c9b58a', 3, 3, 10, 10); }
   const oc = outline(c); _iconCv[id] = oc;
   return (_icons[id] = oc.toDataURL());
@@ -2717,7 +2822,7 @@ function buildRooms() {
   NPCS.push({ id: 'fh', name: 'Bạn', look: 'khoa', dynLook: () => G.visit || 'khoa', outfit: () => friendOutfit(G.visit || 'khoa'), map: 'fhome', x: 130, y: 110, dir: 0, wander: 18, vis: () => !sceneHides('fh'), label: () => FRIENDS[G.visit].name, act: () => ACT.friend(G.visit, 'in') });
   m.zones.push({ x: 272, y: 216, w: 32, h: 8, fn: () => ACT.leaveFh(), by: -8 });
 
-  buildFest(); buildBcFest();
+  buildFest(); buildBcFest(); buildTrungThu();
   /* ---------- đồ trang trí phòng ngủ ở nhà (mua ở gian Nội thất, Nhạc cụ) ---------- */
   const h = MAPS.home, own = k => () => !!G && !!G.owned[k];
   addObj(h, { s: 'poster', x: 24, y: 8, base: 0, vis: own('d_poster') });
@@ -2813,6 +2918,61 @@ function buildFest() {
 }
 
 /* ============================================================
+ *  TẾT TRUNG THU ở phố Hoa Phượng (giữa mùa thu, 20:00–23:00): sân khấu + thị trưởng ở quảng trường,
+ *  đội lân, sạp nguyên liệu / làm đèn lồng / bánh trung thu, góc bịt mắt đập niêu, sân kéo co, trẻ con cầm đèn ông sao
+ * ============================================================ */
+const isTTDay = day => isDate([TT.season, TT.day], day);
+const ttDecor = () => !!G && isTTDay(G.day) && G.time >= TT.decor && G.time < CFG.DAY_END;   // từ chiều đã treo đèn, dựng sạp
+const ttOn = () => !!G && !!RT.ttFest && G.map === 'pho';                                      // đang trong hội
+const TT_SPOTS = { nieu: [800, 318], keoco: [130, 344], stage: [452, 280], mayor: [502, 334], lion: [440, 352], ongdia: [482, 358], drum: [530, 342] };
+const TT_KIDS = [[300, 256], [520, 252], [640, 258], [150, 254], [352, 386], [574, 390], [760, 256], [236, 256]];
+const TT_CHAT = ['Năm nay đội lân múa đẹp lắm, ráng xem nha!', 'Con tôi tự làm đèn ông sao đó, sáng chưa!', 'Ăn miếng bánh nướng không cháu? Nhân thập cẩm ngon lắm.', 'Trăng rằm tháng Tám tròn nhất năm đó.'];
+const TT_FRIEND_AT = { khoa: [330, 258], vy: [600, 374], dat: [92, 374], ngan: [690, 374] };
+function buildTrungThu() {
+  const m = MAPS.pho, K = TT_SPOTS;
+  // dọn chỗ cho hội: xe xiên que, vài cây, bụi, ghế đá ẩn đi trong đêm hội
+  const clear = [[620, 290], [580, 352], [700, 292], [840, 290], [780, 348], [690, 362], [600, 340], [760, 300], [740, 380], [498, 296], [498, 380], [150, 338]];
+  for (const o of m.objs) if (clear.some(([a, b]) => o.x === a && o.y === b)) { const v0 = o.vis; o.vis = () => !ttDecor() && (!v0 || v0()); }
+  // đèn lồng, dây cờ
+  for (const [a, b] of [[40, 230], [210, 230], [560, 230], [740, 230], [160, 110], [332, 110], [650, 110]]) addObj(m, { s: 'lanterns', x: a, y: b, base: 900, glow: true, vis: ttDecor });
+  for (const [a, b] of [[44, 284], [584, 282], [334, 282]]) addObj(m, { s: 'bunting', x: a, y: b, base: 900, vis: ttDecor });
+  // sân khấu + thị trưởng
+  addObj(m, { s: 'ttstage', x: K.stage[0], y: K.stage[1], sol: [0, 30, 100, 16], vis: ttDecor });
+  m.labels.push({ x: K.stage[0] + 40, y: K.stage[1] + 17, text: 'ĐÊM HỘI TRĂNG RẰM', size: 7, col: '#ffe066', maxw: 62, vis: ttDecor });
+  NPCS.push({ id: 'tt_mayor', sid: 'tt_mayor', soc: 'thitruong', name: 'Ông thị trưởng', look: 'mayor', map: 'pho', x: K.mayor[0], y: K.mayor[1], dir: 0, vis: () => ttOn() && !sceneHides('tt_mayor'), label: () => 'Ông thị trưởng — bắt đầu buổi lễ', act: () => ACT.mayor() });
+  // đội lân chờ khai hội: lân, ông Địa, trống
+  const idle = () => ttDecor() && !sceneHides('ttlion');
+  addObj(m, { s: 'lion0', dyn: () => 'lion' + (Math.floor(performance.now() / 420) % 2), x: K.lion[0], y: K.lion[1], sol: [2, 18, 30, 8], vis: idle, label: () => 'Đội lân — chờ thị trưởng khai hội', act: () => UI.ask('Đội lân', '<p>“Gặp ông thị trưởng ở sân khấu đi cháu, ông khai hội là tụi chú múa liền!”</p>', ['Dạ!'], { who: { look: 'c5', outfit: 'cas_dat' } }) });
+  addObj(m, { s: 'ongdia0', dyn: () => 'ongdia' + (Math.floor(performance.now() / 300) % 2), x: K.ongdia[0], y: K.ongdia[1], sol: [4, 20, 12, 6], vis: idle });
+  addObj(m, { s: 'trong', x: K.drum[0], y: K.drum[1], sol: [2, 12, 16, 8], vis: idle });
+  NPCS.push({ id: 'tt_drum', name: 'Chú đánh trống', look: 'driver', map: 'pho', x: K.drum[0] + 22, y: K.drum[1] + 14, dir: 1, vis: () => ttOn() && !sceneHides('ttlion'), label: () => 'Chú đánh trống lân', act: () => UI.ask('Chú đánh trống', '<p>“Tùng tùng cắc! Thị trưởng khai hội là trống nổi lên liền!”</p>', ['Dạ!'], { who: { look: 'driver' } }) });
+  // sạp hàng: nguyên liệu làm đèn · làm đèn lồng · bánh trung thu
+  const booth = (id, a, name, label, act, look, of) => {
+    addObj(m, { s: `fb_${id}_b`, x: a, y: 292, sol: [0, 26, 56, 20], vis: ttDecor });
+    addObj(m, { s: `fb_${id}_f`, x: a, y: 330, sol: [1, 8, 54, 15], label, act, vis: ttDecor });
+    NPCS.push({ id: 'ttv_' + id, name, look, outfit: () => of, map: 'pho', x: a + 28, y: 342, dir: 0, vis: ttOn, label, act });
+  };
+  booth('nguyenlieu', 590, 'Cô bán nguyên liệu', () => 'Sạp nguyên liệu làm đèn lồng', () => ACT.ttMats(), 'vendor', null);
+  booth('denlong', 650, 'Chú làm đèn', () => 'Sạp làm đèn lồng — tự ghép đèn ông sao', () => ACT.ttLantern(), 'c3', 'cas_khoa');
+  booth('banhtt', 710, 'Cô bán bánh', () => 'Sạp bánh trung thu', () => ACT.ttFood(), 'vendor', null);
+  // bịt mắt đập niêu
+  addObj(m, { s: 'nieupole', x: K.nieu[0], y: K.nieu[1], sol: [0, 40, 44, 6], ir: [-6, 10, 56, 44], vis: ttDecor, label: () => 'Bịt mắt đập niêu', act: () => ACT.ttNieu() });
+  NPCS.push({ id: 'tt_nieu', name: 'Chú quản trò', look: 'driver', outfit: () => null, map: 'pho', x: K.nieu[0] - 12, y: K.nieu[1] + 50, dir: 2, vis: ttOn, label: () => 'Chú quản trò — bịt mắt đập niêu', act: () => ACT.ttNieu() });
+  // kéo co: hai đội trên sân bóng mini
+  const [kx, ky] = K.keoco;
+  [-60, -44, -28, 28, 44, 60].forEach((dx, i) => NPCS.push({ id: 'ttc_' + i, name: i < 3 ? 'Đội Hoa Phượng' : 'Đội Bờ Sông', look: ['c1', 'c4', 'x1', 'c7', 'c2', 'x3'][i], outfit: () => ['cas_dat', 'cas_ngan', 'cas_khoa', 'cas_dat', 'cas_vy', 'cas_khoa'][i], map: 'pho', x: kx + dx, y: ky, dir: i < 3 ? 2 : 1, vis: ttOn,
+    pos: () => ({ x: kx + dx + Math.round(Math.sin(performance.now() / 300) * 2), y: ky, dir: i < 3 ? 2 : 1 }), label: () => 'Kéo co — vào đội Hoa Phượng', act: () => ACT.ttKeoco() }));
+  NPCS.push({ id: 'ttc_ref', name: 'Trọng tài', look: 'c5', outfit: () => 'cas_khoa', map: 'pho', x: kx, y: ky - 26, dir: 0, vis: ttOn, label: () => 'Trọng tài kéo co', act: () => ACT.ttKeoco() });
+  // trẻ con cầm đèn ông sao, người xem hội
+  TT_KIDS.forEach(([a, b], i) => NPCS.push({ id: 'ttk_' + i, name: 'Bạn nhỏ rước đèn', look: ['c1', 'c2', 'c3', 'c4', 'c6', 'c8', 'x1', 'x3'][i], outfit: () => ['cas_dat', 'cas_vy', 'cas_khoa', 'cas_ngan'][i % 4], map: 'pho', x: a, y: b, dir: i % 4, wander: 28, vis: ttOn, label: () => 'Bạn nhỏ cầm đèn ông sao', act: () => UI.ask('Bạn nhỏ', `<p>“${['Đèn ông sao của em đẹp không anh chị?', 'Lát nữa rước đèn em đi đầu nha!', 'Em mới đập niêu trúng được kẹo nè!', 'Múa lân sắp bắt đầu chưa ạ?'][i % 4]}”</p>`, ['Đẹp lắm!'], { who: { look: ['c1', 'c2', 'c3', 'c4', 'c6', 'c8', 'x1', 'x3'][i] } }) }));
+  [[424, 384, 'c7', 'cas_dat'], [468, 394, 'c2', 'cas_vy'], [612, 392, 'c4', 'cas_ngan'], [280, 300, 'c3', 'cas_khoa']].forEach(([a, b, look, of], i) => NPCS.push({ id: 'ttp_' + i, name: 'Người xem hội', look, outfit: () => of, map: 'pho', x: a, y: b, dir: i % 2 ? 3 : 0, vis: ttOn, label: () => 'Người xem hội — trò chuyện', act: () => ttChat(i, look, of) }));
+  // bạn bè (không đi cùng mình) cũng ra phố chơi Trung thu · bố mẹ (nếu cả nhà cùng đi)
+  for (const fid in TT_FRIEND_AT) { const [a, b] = TT_FRIEND_AT[fid]; NPCS.push({ id: 'tt_' + fid, fid, name: FRIENDS[fid].name, look: fid, outfit: () => friendOutfit(fid), map: 'pho', x: a, y: b, dir: 0, wander: 10, vis: () => ttOn() && !(G.comp && G.comp.fid === fid) && !sceneHides('tt_' + fid), label: () => `${FRIENDS[fid].name} — đang chơi Trung thu`, act: () => talkMenu(fid, 'pho') }); }
+  NPCS.push({ id: 'tt_mom', name: 'Mẹ', look: 'mom', outfit: () => 'noapron', map: 'pho', x: 346, y: 300, dir: 0, vis: () => ttOn() && !!ttY().fam && !sceneHides('tt_mom'), label: () => 'Mẹ', act: () => UI.ask('Mẹ', '<p>“Đi chơi một vòng đi con. Lúc nào muốn xem múa lân thì ra gặp ông thị trưởng ở sân khấu nhé.”</p>', ['Dạ'], { who: { look: 'mom', outfit: 'noapron' } }) });
+  NPCS.push({ id: 'tt_dad', name: 'Bố', look: 'dad', outfit: () => 'dadhome', map: 'pho', x: 326, y: 304, dir: 0, vis: () => ttOn() && !!ttY().fam && !sceneHides('tt_dad'), label: () => 'Bố', act: () => UI.ask('Bố', '<p>“Hồi bố bằng tuổi con, bố đập niêu giỏi nhất xóm đấy. Thử xem nào!”</p>', ['Dạ'], { who: { look: 'dad', outfit: 'dadhome' } }) });
+}
+
+/* ============================================================
  *  HỘI GÓI BÁNH CHƯNG ở sân trường (chiều ngày học cuối mùa đông): băng rôn, bàn trao giải, nồi luộc bánh, các tụ gói bánh
  * ============================================================ */
 const BC_GROUPS = [
@@ -2903,6 +3063,9 @@ function migrate() {
   if (G.inv.xeng === undefined) G.inv.xeng = 0;       // xèng khu game
   def('squad', null); def('cardTut', false); def('oppLost', {});   // đấu thẻ: đội hình 11 người, đã được anh Phong hướng dẫn chưa, thẻ đã lấy của từng đối thủ
   def('memo', { items: {}, scenes: {}, notes: null });  // lưu bút
+  if (!G.memo.badges) G.memo.badges = {};             // danh hiệu / huy hiệu: id → ngày
+  if (!G.memo.pics) G.memo.pics = {};                 // ảnh chụp thật (JPEG nhỏ) của kỷ vật dạng ảnh
+  def('tt', {});                                       // Trung thu: năm → { asked, fam, fid, done, lantern, nieu, keoco }
   def('tet', {});                                      // Tết: năm → { lixi, chua, f: {bạn đã chúc}, t: {thầy cô đã chúc} }
   def('eve', null);                                    // lời rủ đón giao thừa: { day, who }
   def('bc', {});                                       // hội thi gói bánh chưng: năm → { reg, done, won }
@@ -3007,7 +3170,7 @@ function meetSoc(id) { if (G.daily.soc[id]) return; G.daily.soc[id] = true; G.so
 
 /* ---------- thời gian ---------- */
 function advanceTime(mins) {
-  if (RT.fest || RT.bcFest) { UI.hud(); return; }   // trong hội đón giao thừa / hội gói bánh chưng: thời gian đứng yên
+  if (RT.fest || RT.bcFest || RT.ttFest) { UI.hud(); return; }   // trong hội đón giao thừa / gói bánh chưng / Trung thu: thời gian đứng yên
   const steps = Math.round(mins / CFG.TICK_MIN);
   if (mins >= 30) RT.snapNpcs = true;   // thời gian nhảy xa: bố mẹ có mặt luôn ở chỗ mới
   for (let i = 0; i < steps; i++) {
@@ -3145,6 +3308,7 @@ function morningBrief() {
   for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, G.day)) UI.toast(`Hôm nay sinh nhật ${FRIENDS[f].name}! Gặp bạn ấy để chúc mừng, tặng quà nhé.`, 'good');
   for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], G.day)) UI.toast(`Hôm nay sinh nhật ${PNAME[w].toLowerCase()}! Nhớ chúc mừng ${PNAME[w].toLowerCase()} nhé.`, 'good');
   const fe = FESTIVALS.find(f => isDate([f.season, f.day], G.day)); if (fe) UI.toast(`Hôm nay có lễ hội: ${fe.name}`, 'good');
+  if (ttMatOpen(G.day) && !isTTDay(G.day) && ttDayOf(cal(G.day).year) - G.day === TT.matDays) UI.toast('Còn một tuần nữa là Trung thu! Tạp hoá Cô Ba và căn tin trường bắt đầu bán nan tre, giấy bóng kính, nến để làm đèn ông sao.', 'info');
   const h = holidayOf(G.day);
   if (h) UI.toast(`Hôm nay nghỉ lễ: ${h.name}`, 'good');
   else if (schoolToday()) {
@@ -3691,6 +3855,8 @@ function todoList() {
   const t = [];
   for (const e of schoolEventsOn(G.day)) if (G.time < e.to && !(e.id === 'banhchung' && bcY().done)) t.push([false, RT.bcFest ? `${e.name} — gặp thầy hiệu trưởng để thi gói bánh` : `${e.name} ${fmtTime(e.from)}–${fmtTime(e.to)} (nghỉ tiết ${e.periods[0]}–${e.periods[e.periods.length - 1]})`]);
   if (eveOk()) t.push([RT.fest, RT.fest ? 'Đang dự hội đón giao thừa' : `Lễ hội đón giao thừa trên núi sau trường: ${fmtTime(EVE.from)}–24:00`]);
+  if (ttOk() || RT.ttFest) t.push([false, RT.ttFest ? 'Đang dự hội Trung thu — gặp ông thị trưởng ở sân khấu để bắt đầu buổi lễ' : `Hội Trung thu ở phố Hoa Phượng: ${fmtTime(TT.from)}–${fmtTime(TT.until)}`]);
+  if (ttMatOpen(G.day) && !ttY().lantern && !ttMatsHave() && G.time < TT.until) t.push([false, `Mua nguyên liệu làm đèn ông sao (còn thiếu: ${ttMatsMissing().map(m => m.name.toLowerCase()).join(', ')})`]);
   if (schoolToday()) {
     if (!G.daily.arrived && G.time < CFG.SCHOOL_END) {
       t.push([!!G.daily.meals.sang, 'Ăn sáng mẹ nấu']);
@@ -4396,6 +4562,7 @@ ACT.go = (from, to) => {
   if (RT.lock) return;
   const L = LINKS[from + '>' + to];
   if (from === 'nui' && RT.fest) return leaveFest();               // đang trong hội giao thừa: hỏi lại trước khi về
+  if (from === 'pho' && RT.ttFest) return leaveTT().then(ok => { if (ok) ACT.go(from, to); });   // đang trong hội Trung thu: hỏi lại
   if (L.hours && !inWin(G.time, L.hours[0], L.hours[1]) && !(to === 'nui' && eveOk())) return UI.say('Đường lên núi', `Trời tối rồi, đường núi nguy hiểm lắm.<p class="dim">Chỉ lên núi được từ ${fmtTime(L.hours[0])} đến ${fmtTime(L.hours[1])}.</p>`);
   if (L.foot && G.ride) dismount(true);
   goPlace(L.at[0], L.at[1], L.at[2], L.at[3], G.ride ? 0 : L.hop, L.label).then(() => {
@@ -4926,13 +5093,20 @@ async function doBreakFun(fid, id) {
   RT.lock = false; UI.hud();
   if (L.some(x => /class="(bad|warn)"/.test(x))) await UI.ask(BREAK_FUN[id].name.replace(/^Rủ /, '').replace(/^./, c => c.toUpperCase()), resWrap(L), ['OK']);
 }
+// Chọn một người bằng ô avatar + tên (người: { look, outfit, name }); trả về chỉ số, hoặc -1 nếu bấm nút cuối / Esc
+async function pickPerson(title, html, people, cancel) {
+  const btns = people.map(p => `<img src="${faceOf(p.look, p.outfit || null)}" alt=""><b>${p.name}</b>`).concat(cancel || 'Thôi');
+  const k = await UI.ask(title, html || '', btns, { grid: true, cls: 'avas' });
+  return k >= 0 && k < people.length ? k : -1;
+}
+const friendPeople = fids => fids.map(f => ({ look: f, name: FRIENDS[f].name }));
 // TRONG GIỜ HỌC (bấm Q lúc cô đang giảng): quay sang bạn tám chuyện, đấu thẻ, chơi bài, chọi con quay; nữ: xin ra ngoài đi vệ sinh chung.
 // Trả về null nếu đổi ý nghe giảng tiếp; ngược lại { delta, lines } (mất tập trung, có thể bị cô bắt).
 async function classAction(p, subj) {
   const fids = Object.keys(FRIENDS).filter(f => !grudge(f));
   if (!fids.length) { UI.toast('Mấy đứa bạn đang giận, chẳng ai thèm quay sang chơi với bạn.'); return null; }
-  const k = await UI.ask('Quay sang ai?', '', fids.map(f => `${FRIENDS[f].name} (${FRIENDS[f].seat})`).concat('Thôi, nghe giảng tiếp'));
-  if (k < 0 || k >= fids.length) return null;
+  const k = await pickPerson('Quay sang ai?', '', friendPeople(fids), 'Thôi, nghe giảng tiếp');
+  if (k < 0) return null;
   const fid = fids[k], F = FRIENDS[fid], opts = ['Thì thầm tám chuyện'], ids = ['chat'];
   if (cardCount() && !G.daily.duel['f_' + fid]) { opts.push('Đấu thẻ cầu thủ dưới gầm bàn'); ids.push('duel'); }
   const same = F.g === G.gender && hearts(fid) >= BREAK_FUN_MIN_HEARTS && (G.daily.brk[fid] || 0) < BREAK_FUN_PER_DAY;
@@ -4960,8 +5134,8 @@ async function classAction(p, subj) {
 const borrowChance = fid => clamp((fid === 'khoa' ? BORROW.deskmate : BORROW.other) + BORROW.perHeart * hearts(fid) + BORROW.perTalk * lv('giaotiep') + (grudge(fid) ? BORROW.grudge : 0), 0.03, 0.95);
 async function askBorrow(subj) {
   const item = `sách ${SUBJ[subj].short}`, fids = Object.keys(FRIENDS), L = [];
-  const c = await meSay(`<p><i>Thôi chết… lục tung cả cặp mà không thấy ${item} đâu. Chắc để quên ở nhà rồi. Quay sang hỏi mượn ai bây giờ?</i></p>`, fids.map(f => `${FRIENDS[f].name} (${FRIENDS[f].seat})`).concat('Thôi, ngồi nghe chay'));
-  if (c < 0 || c >= fids.length) return { gain: 1, lines: [li('Quên sách, ngồi nghe chay.', 'warn')] };
+  const c = await pickPerson('Quên sách', `<p><i>Thôi chết… lục tung cả cặp mà không thấy ${item} đâu. Chắc để quên ở nhà rồi. Quay sang hỏi mượn ai bây giờ?</i></p>`, friendPeople(fids), 'Thôi, ngồi nghe chay');
+  if (c < 0) return { gain: 1, lines: [li('Quên sách, ngồi nghe chay.', 'warn')] };
   const fid = fids[c], F = FRIENDS[fid];
   let gain = 1;
   if (Math.random() < borrowChance(fid)) {
@@ -5622,7 +5796,7 @@ ACT.stall = async i => {
 ACT.canteen = () => {
   if (!inWin(G.time, 360, 1030)) return UI.say('Căn tin', 'Căn tin đã nghỉ bán.');
   meetSoc('cantin');
-  UI.store('Căn tin', '“Ăn gì con?”', CANTEEN, f => buyFood(f.inv, f.price, f.name));
+  UI.store('Căn tin', ttMatOpen(G.day) ? '“Ăn gì con? Sắp Trung thu, căn tin có bán cả nguyên liệu làm đèn lồng đó!”' : '“Ăn gì con?”', () => CANTEEN.concat(ttMatItems()), f => (f.mat ? buyMat(f) : buyFood(f.inv, f.price, f.name)));
 
 };
 
@@ -6019,8 +6193,8 @@ ACT.senior = async soc => {
  *  CẦM VẬT PHẨM: bấm món đồ trong túi / thanh đồ để cầm lên
  *  Đang cầm mà tương tác với người khác → tặng quà · bấm vào mình hoặc chỗ trống → ăn (nếu ăn được)
  * ============================================================ */
-const holdName = id => (FOODS[id] ? FOODS[id].name : id === 'gaubong' ? 'Gấu bông' : id === 'voso' ? 'Vỏ sò' : id);
-const holdable = id => !!(FOODS[id] || id === 'gaubong' || id === 'voso');
+const holdName = id => (FOODS[id] ? FOODS[id].name : id === 'gaubong' ? 'Gấu bông' : id === 'voso' ? 'Vỏ sò' : id === 'denongsao' ? 'Đèn ông sao' : id);
+const holdable = id => !!(FOODS[id] || id === 'gaubong' || id === 'voso' || id === 'denongsao');
 function toggleHold(id) {
   if (!holdable(id) || !G.inv[id]) return;
   RT.hold = RT.hold === id ? null : id;
@@ -6127,12 +6301,24 @@ function exerciseCut(id) {
 
 /* ---------- LƯU BÚT ---------- */
 function addMemo(kind, id) {
-  const box = kind === 'item' ? G.memo.items : G.memo.scenes, D = kind === 'item' ? MEMO_ITEMS[id] : MEMO_SCENES[id];
+  const box = kind === 'item' ? G.memo.items : kind === 'badge' ? G.memo.badges : G.memo.scenes, D = (kind === 'item' ? MEMO_ITEMS : kind === 'badge' ? MEMO_BADGES : MEMO_SCENES)[id];
   if (!D || box[id] !== undefined) return false;
   box[id] = G.day;
-  UI.toast(`Lưu bút: ghi thêm “${D.name}”`, 'good');
+  UI.toast(kind === 'badge' ? `Lưu bút: nhận danh hiệu “${D.name}”!` : `Lưu bút: ghi thêm “${D.name}”`, 'good');
   return true;
 }
+// Chụp lại khung hình đang hiện (phần giữa màn hình, bỏ hai dải đen của cắt cảnh) làm ảnh lưu bút. Chụp lần sau đè ảnh cũ.
+// (wx, wy): điểm trên bản đồ đặt ở giữa ảnh
+function snapPhoto(id, wx, wy) {
+  try {
+    const W = cv.width, H = cv.height, S = VIEW.S, cw = Math.round(Math.min(W * 0.62, 150 * S)), ch = Math.round(Math.min(cw * 0.625, H * 0.8));
+    const sx = Math.round(clamp(VIEW.ox + wx * S - cw / 2, 0, W - cw)), sy = Math.round(clamp(VIEW.oy + wy * S - ch / 2, H * 0.085, H * 0.915 - ch));
+    const c = mk(256, 160), x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.drawImage(cv, sx, sy, cw, ch, 0, 0, 256, 160);
+    G.memo.pics[id] = c.toDataURL('image/jpeg', 0.72);
+  } catch (e) { /* trình duyệt chặn đọc canvas: bỏ qua ảnh, vẫn ghi kỷ vật */ }
+}
+// Đèn flash khi chụp ảnh (vẽ đè cả màn hình, mờ dần)
+const flashGlow = t0 => now => { const k = (now - t0) / 600; if (k >= 0 && k < 1) { ctx.fillStyle = `rgba(255,255,255,${1 - k})`; ctx.fillRect(0, 0, cv.width, cv.height); } };
 // Ai sẽ viết lưu bút: bạn thân, thầy cô, bố mẹ — đủ thân vào ngày tốt nghiệp thì viết
 function memoPeople() {
   const a = [];
@@ -6318,44 +6504,64 @@ function startFest() {
   if (FRIENDS[w] && !grudge(w)) { setComp(w, false); RT.fol = { map: G.map, x: G.x + 14, y: G.y - 6, dir: 0, walk: -1 }; UI.ask(FRIENDS[w].name, '<p>“Cậu tới rồi! Đông vui ghê chưa? Đi một vòng hội chợ đi!”</p>', ['Đi thôi!'], { who: { look: w, outfit: friendOutfit(w) } }); }
 }
 async function leaveFest() {
-  const c = await meSay('<p>Rời hội chợ để về nhà? Sắp tới giao thừa rồi, mọi người đang đếm ngược chờ pháo hoa.</p><p class="dim">Về tới nhà là 01:00 sáng.</p>', ['Xem pháo hoa giao thừa rồi về nhà', 'Ở lại chơi thêm']);
-  if (c !== 0) { G.y = Math.min(G.y, 452); return; }
+  const c = await meSay('<p>Rời hội chợ để về nhà? Sắp tới giao thừa rồi, mọi người đang đếm ngược chờ pháo hoa.</p><p class="dim">Ngắm pháo hoa thì được chụp ảnh cùng gia đình, bạn bè và nhận danh hiệu “Người đón giao thừa”. Về tới nhà là 01:00 sáng.</p>', ['Ngắm pháo hoa giao thừa rồi về nhà', 'Về nhà luôn, không chờ pháo hoa', 'Ở lại chơi thêm']);
+  if (c !== 0 && c !== 1) { G.y = Math.min(G.y, 452); return; }
   RT.lock = true;
-  G.time = EVE.until;                                               // tới giao thừa: nửa đêm, trời tối hẳn
-  await fireworksCut();
-  await UI.fade(true);
   const fid = G.comp && G.comp.fid;
+  let inPhoto = [];
+  if (c === 0) { G.time = EVE.until; inPhoto = await fireworksCut(); }      // tới giao thừa: nửa đêm, trời tối hẳn
+  await UI.fade(true);
   RT.fest = false; G.eve.done = true; endComp();
-  G.time = EVE.home; G.daily.checkedIn = true; G.daily.scolded = true; G.daily.outAt20 = false; G.atSchool = false;
+  if (c === 0) G.time = EVE.home;
+  G.daily.checkedIn = true; G.daily.scolded = true; G.daily.outAt20 = false; G.atSchool = false;
   setMap('home', 58, 76, 0); RT.snapNpcs = true;
-  addMemo('scene', 'giaothua'); if (fid) addFriend(fid, 8);
+  if (c === 0) {
+    addMemo('scene', 'giaothua'); addMemo('item', 'anhgiaothua'); addMemo('badge', 'giaothua');
+    if (fid) addFriend(fid, 8);
+    for (const f of inPhoto) if (f !== fid) addFriend(f, 3);
+  }
   await UI.fade(false);
   RT.lock = false; UI.hud();
-  UI.toast('Về tới nhà lúc 01:00. Ngủ một giấc là sang mùng 1 Tết!', 'info');
+  UI.toast(c === 0 ? 'Về tới nhà lúc 01:00. Ảnh đón giao thừa đã dán vào lưu bút. Ngủ một giấc là sang mùng 1 Tết!' : 'Về nhà sớm, ngủ một giấc là sang mùng 1 Tết.', 'info');
 }
-// Pháo hoa nửa đêm: đếm ngược, pháo nổ rực trời
-function fireworksCut() {
+// Pháo hoa nửa đêm: đếm ngược, pháo nổ rực trời, rồi cả nhà và bạn bè đứng chụp chung một tấm. Trả về các bạn có trong ảnh.
+async function fireworksCut() {
   const fid = G.comp && G.comp.fid, cx0 = 440, cy0 = 124, t0 = { v: 0 }, bursts = [];
-  for (let i = 0; i < 14; i++) bursts.push({ x: 300 + Math.random() * 300, y: 14 + Math.random() * 60, at: 3400 + i * 330 + Math.random() * 200, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a', '#fffaf0'][i % 6], r: 14 + Math.random() * 14 });
+  for (let i = 0; i < 16; i++) bursts.push({ x: (i % 2 ? 360 : 300) + Math.random() * (i % 2 ? 160 : 300), y: 24 + Math.random() * 60, at: 3400 + i * 330 + Math.random() * 200, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a', '#fffaf0'][i % 6], r: 14 + Math.random() * 14 });
+  const extra = [];                                                         // loạt pháo canh đúng lúc bấm máy chụp ảnh
   const glow = now => {
-    const t = now - t0.v;
-    for (const b of bursts) {
-      const k = (t - b.at) / 1100; if (k < -0.35 || k > 1) continue;
+    const raw = now - t0.v; let t = raw; if (t > 3400) t = 3400 + (t - 3400) % 5600;        // pháo bắn liên tục suốt cảnh
+    for (const b of bursts.concat(extra)) {
+      const k = ((b.raw ? raw : t) - b.at) / 1100; if (k < -0.35 || k > 1) continue;
       if (k < 0) { wRect('#ffe9a0', b.x, b.y + 120 * (-k / 0.35), 1, 4); continue; }        // pháo bay lên
       for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283, r = b.r * Math.sqrt(k); wRect(k > 0.75 && i % 2 ? '#fff6e3' : b.col, b.x + Math.cos(a) * r, b.y + Math.sin(a) * r + k * k * 10, 2, 2); }
     }
   };
-  const actors = fid ? [{ look: fid, outfit: friendOutfit(fid), x: cx0 + 18, y: cy0, dir: 3 }] : (G.eve.who === 'parents' ? [{ look: 'mom', outfit: 'noapron', x: cx0 - 22, y: cy0 + 2, dir: 3 }, { look: 'dad', outfit: 'dadhome', x: cx0 + 22, y: cy0 + 2, dir: 3 }] : []);
+  // người trong ảnh: bố mẹ + bạn đi cùng + các bạn thân (từ 2 tim, không giận)
+  const pals = Object.keys(FRIENDS).filter(f => f !== fid && !grudge(f) && hearts(f) >= 2).slice(0, 3), friends = (fid ? [fid] : []).concat(pals);
+  const withPar = G.eve.who === 'parents';
+  const fam = [{ look: 'mom', outfit: 'noapron', x: withPar ? cx0 - 22 : cx0 - 70, y: withPar ? cy0 + 2 : cy0 + 30, dir: 3 }, { look: 'dad', outfit: 'dadhome', x: withPar ? cx0 + 22 : cx0 - 56, y: withPar ? cy0 + 2 : cy0 + 34, dir: 3 }];
+  const frs = friends.map((f, i) => ({ look: f, outfit: friendOutfit(f), x: f === fid ? cx0 + 18 : cx0 + 60 + i * 12, y: f === fid ? cy0 : cy0 + 28 + i * 4, dir: 3 }));
   const crowd = [['c2', 'cas_vy', cx0 - 48, cy0 + 6], ['c7', 'cas_dat', cx0 + 48, cy0 + 4], ['c4', 'cas_ngan', cx0 - 26, cy0 + 22], ['c3', 'cas_khoa', cx0 + 30, cy0 + 24]].map(([look, of, x, y]) => ({ look, outfit: of, x, y, dir: 3 }));
-  const all = actors.concat(crowd), crowdAt = actors.length;
-  return playCut({
-    map: 'nui', me: [cx0, cy0, 3], cam: { x: cx0, y: 84 }, title: 'Giao thừa', actors: all, hide: ['fh'],
+  const cam = { look: 'c5', outfit: 'cas_khoa', x: cx0 + 90, y: cy0 + 50, dir: 1 };          // chú chụp ảnh giùm
+  const all = fam.concat(frs, crowd, [cam]), iF = 2, iC = 2 + frs.length, iCam = all.length - 1;
+  // xếp hàng chụp ảnh: mình đứng giữa, bố mẹ hai bên, các bạn đứng hàng sau
+  const slots = [[-20, 0], [20, 0], [-40, -14], [40, -14], [-16, -18], [16, -18]], order = [0, 1].concat(frs.map((_, i) => iF + i));
+  const line = order.map((k, j) => ({ move: [k, cx0 + slots[j][0], cy0 + 20 + slots[j][1], 700] }));
+  const firstSay = fid ? { say: [iF, 'Năm mới tụi mình vẫn chơi thân như vầy nha!'] } : (withPar ? { say: [0, 'Năm mới chúc con luôn vui vẻ, mạnh khoẻ!'] } : { wait: 600 });
+  await playCut({
+    map: 'nui', me: [cx0, cy0, 3], cam: { x: cx0, y: 92 }, title: 'Giao thừa', actors: all, hide: ['fh', 'f_mom', 'f_dad'],
     steps: [{ fn: sc => { t0.v = performance.now(); sc.glow = [glow]; } },
-      { say: [crowdAt, 'Mười… chín… tám…'] }, { say: [crowdAt + 1, 'Ba… hai… một…'] },
-      { fn: sc => { for (const a of sc.actors) a.dir = 3; } }, { say: ['me', 'CHÚC MỪNG NĂM MỚI!'] },
-      fid ? { say: [0, 'Năm mới tụi mình vẫn chơi thân như vầy nha!'] } : (G.eve.who === 'parents' ? { say: [0, 'Năm mới chúc con luôn vui vẻ, mạnh khoẻ!'] } : { wait: 600 }),
-      { wait: 2600 }],
+      { say: [iC, 'Mười… chín… tám…'] }, { say: [iC + 1, 'Ba… hai… một…'] },
+      { fn: sc => { for (const a of sc.actors) a.dir = 3; } }, { say: ['me', 'CHÚC MỪNG NĂM MỚI!'] }, firstSay,
+      withPar ? { wait: 200 } : { say: [0, 'Bố mẹ cũng lên núi xem pháo hoa nè! Cả nhà chụp chung một tấm nhé!'] },
+      { par: [{ move: ['me', cx0, cy0 + 20, 500] }].concat(line, [{ move: [iCam, cx0, cy0 + 56, 900] }]) },
+      { fn: sc => { G.dir = 0; for (const k of order) sc.actors[k].dir = 0; sc.actors[iCam].dir = 3; const r0 = performance.now() - t0.v; for (let i = 0; i < 5; i++) extra.push({ raw: true, x: cx0 - 70 + i * 35 + Math.random() * 10, y: cy0 - 56 + (i % 2) * 14, at: r0 + 4300 + i * 160, col: ['#ffd23a', '#ff5fa8', '#5fe0f0', '#8fd067', '#ff7a3a'][i], r: 16 + Math.random() * 6 }); } },
+      { say: [iCam, 'Nhìn vào đây nào! Pháo hoa đang nở sau lưng đẹp lắm!'] }, { say: [iCam, 'Một, hai, ba… cười!'] }, { wait: 160 },
+      { fn: sc => { snapPhoto('anhgiaothua', cx0, cy0 - 16); sc.glow = [glow, flashGlow(performance.now())]; } }, { wait: 900 },
+      { say: ['me', 'Tấm ảnh đẹp nhất năm luôn!'] }, { wait: 1200 }],
   });
+  return friends;
 }
 // Sạp ném vòng, bắn ná: trả tiền, xem hoạt cảnh, trúng nhiều thì có quà
 ACT.festGame = async kind => {
@@ -6442,6 +6648,11 @@ function eventTick() {
   if (G.map === 'nui' && !RT.fest && eveOk() && G.time < EVE.from && !G.daily.eveEarly) { G.daily.eveEarly = true; UI.toast(`Lễ hội đón giao thừa bắt đầu lúc ${fmtTime(EVE.from)}. Mọi người đang dựng sạp, treo lồng đèn…`, 'info'); }
   if (!RT.bcFest && G.atSchool && G.day === contestDay(cal(G.day).year) && !bcY().done && inWin(G.time, PM_START, BANHCHUNG.end)) { startBcFest(); return true; }   // 13:30 ngày học cuối mùa đông
   if (G.map === 'nui' && !RT.fest && eveOk() && G.time >= EVE.from) { startFest(); return true; }
+  // Tết Trung thu: sáng được bố mẹ, bạn thân rủ · tới phố Hoa Phượng 20:00–23:00 là vào hội · ra khỏi phố thì thời gian chạy tiếp
+  if (isTTDay(G.day) && !G.daily.ttAsked && G.time < TT.from) { ttInvite(); return true; }
+  if (RT.ttFest && G.map !== 'pho' && !RT.scene) RT.ttFest = false;
+  if (G.map === 'pho' && !RT.ttFest && isTTDay(G.day) && !ttY().done && G.time >= TT.decor && G.time < TT.from && !G.daily.ttEarly) { G.daily.ttEarly = true; UI.toast(`Hội Trung thu bắt đầu lúc ${fmtTime(TT.from)}. Mọi người đang treo đèn lồng, dựng sân khấu…`, 'info'); }
+  if (G.map === 'pho' && !RT.ttFest && ttOk() && G.time >= TT.from) { startTT(); return true; }
   return false;
 }
 
@@ -6614,14 +6825,14 @@ function awardCut(win, top) {
 }
 // Chụp ảnh cả lớp ăn mừng quanh chiếc cúp
 function winPhotoCut() {
-  const t0 = { v: -1e9 }, cx0 = 300, cy0 = 222;
+  const cx0 = 300, cy0 = 222;
   const row = [['khoa', -44, -16], ['vy', -22, -18], ['dat', 22, -18], ['ngan', 44, -16], ['c3', -60, 2], ['c4', 60, 2], ['c5', -34, 4], ['c8', 34, 4]];
   const actors = row.map(([look, dx, dy]) => ({ look, x: cx0 + dx, y: cy0 + dy, dir: 0 })).concat([{ look: 'teacherA', x: cx0, y: cy0 + 50, dir: 3 }]);
   return playCut({
     map: 'school', me: [cx0, cy0, 0], cam: { x: cx0, y: cy0 - 10 }, title: 'Ảnh lưu niệm — Vua gói bánh chưng', actors, hide: BC_ALL.concat(['bc_principal']),
     props: [() => drawSpr(iconCv('cup'), G.x - 9, G.y - 44 + Math.round(Math.sin(performance.now() / 200)))],
     steps: [{ say: [8, 'Cả lớp đứng vào chụp ảnh nào! Nhìn vào đây!'] }, { par: actors.slice(0, 8).map((a, i) => ({ hop: i })) }, { say: [0, 'Lớp mình vô địch rồi!'] },
-      { say: [8, 'Một, hai, ba… cười!'] }, { fn: sc => { t0.v = performance.now(); sc.glow = [now => { const k = (now - t0.v) / 600; if (k >= 0 && k < 1) { ctx.fillStyle = `rgba(255,255,255,${1 - k})`; ctx.fillRect(0, 0, cv.width, cv.height); } }]; } }, { wait: 1200 }],
+      { say: [8, 'Một, hai, ba… cười!'] }, { wait: 160 }, { fn: sc => { snapPhoto('photo', cx0, cy0 - 12); sc.glow = [flashGlow(performance.now())]; } }, { wait: 1200 }],
   });
 }
 
@@ -6867,6 +7078,257 @@ async function cardGroupTalk(g, n) {
 
 'use strict';
 /* ============================================================
+ *  04g. TẾT TRUNG THU (giữa mùa thu) ở phố Hoa Phượng
+ *  - Trước 1 tuần: tạp hoá Cô Ba, căn tin bán nguyên liệu làm đèn lồng (nan tre, giấy bóng kính, nến)
+ *  - Sáng hôm đó: mẹ rủ cả nhà đi, bạn thân nhắn tin rủ rước đèn
+ *  - 20:00–23:00 tới phố Hoa Phượng là vào hội (thời gian đứng yên): đập niêu, kéo co, làm đèn ông sao, sạp bánh
+ *  - Gặp ông thị trưởng để bắt đầu buổi lễ: múa lân → rước đèn quanh phố → chụp ảnh → 24:00 về nhà
+ * ============================================================ */
+const ttDayOf = year => year * YEAR_DAYS + TT.season * CFG.DAYS_PER_SEASON + TT.day - 1;
+const ttY = () => { const y = cal(G.day).year; return (G.tt[y] = G.tt[y] || {}); };
+const ttMatOpen = day => { const d0 = ttDayOf(cal(day).year); return day >= d0 - TT.matDays && day <= d0; };
+const ttOk = () => !!G && isTTDay(G.day) && G.time < TT.until && !ttY().done;          // tối nay còn vào hội được
+const ttMatsMissing = () => TT_MATS.filter(m => !G.inv[m.id]);
+const ttMatsHave = () => !ttMatsMissing().length;
+// nguyên liệu bày bán ở tạp hoá / căn tin (chỉ trong tuần trước Trung thu)
+const ttMatItems = () => (ttMatOpen(G.day) ? TT_MATS.map(m => ({ id: m.id, name: m.name, price: m.price, desc: m.desc + ' Chỉ bán trong tuần trước Trung thu.', inv: m.id, mat: true })) : []);
+function buyMat(it) {
+  if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
+  addMoney(-it.price, true); G.inv[it.id] = (G.inv[it.id] || 0) + 1;
+  UI.toast(`Đã mua ${it.name} (−${fmtMoney(it.price)}). ${ttMatsHave() ? 'Đủ nguyên liệu làm đèn ông sao rồi!' : 'Còn thiếu: ' + ttMatsMissing().map(m => m.name.toLowerCase()).join(', ') + '.'}`, 'good');
+  UI.hud();
+}
+
+/* ---------- lời rủ đi chơi Trung thu ---------- */
+async function ttInvite() {
+  G.daily.ttAsked = true;
+  const T = ttY(), at = fmtTime(TT.from);
+  const c = await UI.ask('Mẹ', `<p>“Hôm nay là Tết Trung thu đó con! Tối nay ${at} cả nhà ra phố Hoa Phượng xem múa lân, rước đèn nhé. Ngoài đó còn có đập niêu, kéo co, làm đèn ông sao nữa.”</p>`, ['Dạ, con đi cùng cả nhà!', 'Con tự đi với bạn ạ'], { who: { look: 'mom', outfit: 'noapron' } });
+  if (c === 0) { T.fam = true; G.daily.outPerm = true; }
+  const fid = Object.keys(FRIENDS).filter(f => !grudge(f) && hearts(f) >= 2).sort((a, b) => (G.friends[b] || 0) - (G.friends[a] || 0))[0];
+  if (fid) {
+    const d = await UI.ask(FRIENDS[fid].name, `<p class="dim">Tin nhắn điện thoại</p><p>“Tối nay Trung thu đi rước đèn với tớ không? ${at} gặp nhau ở phố Hoa Phượng nha! Nghe nói có múa lân với đập niêu đó!”</p>`, ['Đi chứ! Hẹn cậu ở phố', 'Hôm nay tớ bận rồi'], { who: { look: fid, outfit: friendOutfit(fid) } });
+    if (d === 0) { T.fid = fid; G.daily.outPerm = true; }
+  }
+  UI.toast(`Tối nay ${at}–${fmtTime(TT.until)} tới phố Hoa Phượng là vào hội Trung thu.${ttMatsHave() ? '' : ' Muốn tự làm đèn ông sao thì mua nan tre, giấy bóng kính, nến ở tạp hoá Cô Ba, căn tin hoặc sạp trong hội.'}`, 'good');
+}
+
+/* ---------- vào hội / rời hội ---------- */
+function startTT() {
+  RT.ttFest = true; G.daily.outPerm = true;
+  const T = ttY(), w = T.fid;
+  if (!T.joined) { T.joined = true; UI.toast('Đêm hội Trung thu! Trong hội thời gian tạm dừng. Khi muốn xem múa lân, rước đèn thì gặp ông thị trưởng ở sân khấu.', 'good'); }
+  if (w && FRIENDS[w] && !grudge(w) && !(G.comp && G.comp.fid === w)) {
+    setComp(w, false); RT.fol = { map: G.map, x: G.x + 14, y: G.y - 6, dir: 0, walk: -1 };
+    UI.ask(FRIENDS[w].name, '<p>“Cậu tới rồi! Đông vui ghê! Đi đập niêu, kéo co trước rồi xem múa lân nha?”</p>', ['Đi thôi!'], { who: { look: w, outfit: friendOutfit(w) } });
+  }
+}
+async function leaveTT() {
+  const c = await meSay('<p>Rời hội Trung thu? Múa lân với rước đèn còn chưa bắt đầu.</p><p class="dim">Ra khỏi phố thì thời gian chạy tiếp; quay lại trước 23:00 vẫn vào hội được.</p>', ['Ở lại chơi tiếp', 'Rời hội']);
+  if (c !== 1) { G.x = clamp(G.x, 26, 870); G.y = clamp(G.y, 26, 394); return false; }
+  RT.ttFest = false;
+  return true;
+}
+function ttChat(i, look, of) {
+  const k = 'ttc' + i; if (!G.daily[k]) { G.daily[k] = true; addStat('giaotiep', 1); }
+  UI.ask('Người xem hội', `<p>“${TT_CHAT[i % TT_CHAT.length]}”</p>`, ['Trung thu vui vẻ!'], { who: { look, outfit: of } });
+}
+
+/* ---------- sạp hàng ---------- */
+const ttClosed = name => UI.say(name, `Sạp đang bày hàng. Hội mở lúc ${fmtTime(TT.from)}.`);
+ACT.ttMats = () => {
+  if (!ttOn()) return ttClosed('Sạp nguyên liệu');
+  UI.store('Sạp nguyên liệu làm đèn', '“Nan tre, giấy bóng kính, nến đây con! Đủ ba thứ là sang sạp bên cạnh làm đèn ông sao.”', () => TT_MATS.map(m => ({ id: m.id, name: m.name, price: m.price, desc: m.desc, inv: m.id, mat: true })), buyMat);
+};
+ACT.ttFood = () => {
+  if (!ttOn()) return ttClosed('Sạp bánh trung thu');
+  UI.store('Sạp bánh trung thu', '“Bánh nướng, bánh dẻo mới ra lò nè!”', TT_FOOD.map(f => ({ id: f.id, name: f.name, price: f.price, desc: f.desc, inv: f.id })), f => buyFood(f.id, f.price, f.name));
+};
+ACT.ttLantern = async () => {
+  if (RT.lock) return;
+  if (!ttOn()) return ttClosed('Sạp làm đèn lồng');
+  const who = { look: 'c3', outfit: 'cas_khoa' }, miss = ttMatsMissing();
+  if (miss.length) return UI.ask('Chú làm đèn', `<p>“Muốn làm đèn ông sao thì phải có đủ <b>nan tre, giấy bóng kính và nến</b> nha cháu. Cháu còn thiếu: <b>${miss.map(m => m.name.toLowerCase()).join(', ')}</b>.”</p><p class="dim">Mua ở sạp nguyên liệu ngay bên cạnh (hoặc tạp hoá Cô Ba, căn tin trường trong tuần trước Trung thu).</p>`, ['Dạ'], { who });
+  const c = await UI.ask('Chú làm đèn', '<p>“Đủ đồ rồi! Ngồi xuống đây chú chỉ: nối nan tre thành ngôi sao năm cánh, dán giấy bóng kính, rồi gắn nến với cán cầm.”</p><p class="dim">Dùng 1 nan tre, 1 giấy bóng kính, 1 nến. Làm hỏng thì mất nguyên liệu.</p>', ['Làm đèn!', 'Để sau'], { who });
+  if (c !== 0) return;
+  for (const m of TT_MATS) G.inv[m.id]--;
+  RT.lock = true;
+  const r = await playGame('denlong', lv('kheotay') >= 6 ? 1 : 2);
+  RT.lock = false;
+  if (r.score >= 0.6) {
+    G.inv.denongsao = (G.inv.denongsao || 0) + 1; ttY().lantern = true; addStat('kheotay', 3);
+    addMemo('item', 'denongsao'); addMemo('badge', 'trungthu');
+    await UI.ask('Đèn ông sao', `<div class="tt-lantern"><img src="${itemIcon('denongsao')}" alt=""></div><p>Chiếc đèn ông sao đỏ rực, ánh nến lung linh. Lát nữa rước đèn sẽ cầm chiếc này!</p>`, ['Tuyệt!']);
+  } else UI.toast('Khung đèn bị méo, giấy rách mất rồi… Mua nguyên liệu làm lại nhé.', 'bad');
+  UI.hud();
+};
+
+/* ---------- bịt mắt đập niêu · kéo co ---------- */
+ACT.ttNieu = async () => {
+  if (RT.lock) return;
+  if (!ttOn()) return ttClosed('Bịt mắt đập niêu');
+  const fid = G.comp && G.comp.fid, guide = fid ? FRIENDS[fid].name : 'Chú quản trò';
+  const c = await UI.ask('Bịt mắt đập niêu', `<p>“Bịt mắt lại, cầm gậy, nghe ${fid ? FRIENDS[fid].name : 'chú'} chỉ đường mà đập! Vỡ niêu là kẹo rơi đầy đất!” · ${fmtMoney(TT.nieuPrice)} một lượt</p><p class="dim">Đám đông xung quanh hay la ó chỉ bậy — chỉ nghe theo người dẫn đường thôi nhé.</p>`, ['Chơi một lượt', 'Thôi'], { who: { look: 'driver' } });
+  if (c !== 0) return;
+  if (G.money < TT.nieuPrice) return UI.toast('Không đủ tiền.', 'bad');
+  addMoney(-TT.nieuPrice, true); RT.lock = true;
+  const r = await playGame('dapnieu', 2, guide);
+  const win = r.score >= 0.6, [nx, ny] = TT_SPOTS.nieu, t0 = { v: 0 };
+  // cảnh ngắn: vung gậy, niêu vỡ thì kẹo rơi tung toé
+  const prop = now => {
+    const t = (now - t0.v) / 1000; if (t < 0) return;
+    if (!win) return;
+    for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283, k = Math.min(1, t * 1.4), x = nx + 22 + Math.cos(a) * 18 * k, y = ny + 18 + Math.sin(a) * 6 * k + k * k * 22; wRect(['#ffd23a', '#e2574c', '#5fe0f0', '#8fd067'][i % 4], x, y, 2, 2); }
+  };
+  await playCut({ inPlace: true, bars: false, title: 'Đập niêu', props: [prop], hide: [],
+    steps: [{ move: ['me', nx + 22, ny + 44, 400] }, { fn: () => { G.dir = 3; } }, { hop: 'me' }, { fn: () => { t0.v = performance.now(); } }, { wait: 700 }, { say: ['me', win ? 'Bốp! Vỡ rồi! Kẹo rơi đầy nè!' : 'Ơ… đập trượt rồi! Cả đám cười ầm…'] }] });
+  if (win) { addMemo('badge', 'dapnieu'); gainStam(5); if (!G.daily.ttNieu) { G.daily.ttNieu = true; addStat('kheotay', 2); addStat('giaotiep', 1); } }
+  if (fid) addFriend(fid, 3);
+  RT.lock = false; UI.hud();
+};
+ACT.ttKeoco = async () => {
+  if (RT.lock) return;
+  if (!ttOn()) return ttClosed('Kéo co');
+  const fid = G.comp && G.comp.fid, fam = !!ttY().fam, mates = [fid && FRIENDS[fid].name, fam && 'bố'].filter(Boolean);
+  const c = await UI.ask('Trọng tài kéo co', `<p>“Đội Hoa Phượng đang thiếu người! Vào kéo với đội Bờ Sông không? Kéo dải lụa đỏ qua vạch bên mình trước là thắng!”</p>${mates.length ? `<p class="dim">${mates.join(' và ')} vào đội cùng bạn.</p>` : ''}`, ['Vào đội!', 'Thôi'], { who: { look: 'c5', outfit: 'cas_khoa' } });
+  if (c !== 0) return;
+  RT.lock = true;
+  const r = await playGame('keoco', 2, mates.join(', '), mates.length);
+  RT.lock = false;
+  if (r.score >= 0.95) { addMemo('badge', 'keoco'); UI.toast('Đội Hoa Phượng thắng! Cả đội ôm nhau nhảy cẫng lên.', 'good'); if (!G.daily.ttKeo) { G.daily.ttKeo = true; addStat('thethao', 3); } }
+  else if (r.score >= 0.6) UI.toast('Hết giờ — đội mình nhỉnh hơn một chút!', 'good');
+  else UI.toast('Đội Bờ Sông khoẻ quá, đội mình thua rồi…', 'info');
+  addStat('thethao', 1); if (fid) addFriend(fid, TT.keocoFriend);
+  UI.hud();
+};
+
+/* ---------- buổi lễ: thị trưởng khai hội → múa lân → rước đèn → ảnh → 24:00 về nhà ---------- */
+ACT.mayor = async () => {
+  if (RT.lock) return;
+  if (!ttOn()) return UI.ask('Ông thị trưởng', `<p>“Hội Trung thu bắt đầu lúc ${fmtTime(TT.from)}, cháu nhớ ra chơi nhé!”</p>`, ['Dạ'], { who: { look: 'mayor' } });
+  meetSoc('thitruong');
+  const lan = G.inv.denongsao > 0;
+  const c = await UI.ask('Ông thị trưởng', `<p>“Chào cháu! Bà con đã tụ họp đông đủ rồi. Cháu có muốn bắt đầu buổi lễ ngay không? Mở màn là múa lân, sau đó cả phố cùng rước đèn. Buổi lễ kết thúc lúc 24:00.”</p><p class="dim">Bắt đầu rồi thì các sạp trò chơi đóng cửa. ${lan ? 'Bạn sẽ cầm đèn ông sao tự làm đi rước.' : 'Chưa có đèn ông sao tự làm — ban tổ chức sẽ phát cho bạn một chiếc để rước.'}</p>`, ['Bắt đầu buổi lễ!', 'Cháu chơi thêm chút đã'], { who: { look: 'mayor' } });
+  if (c === 0) await ttCeremony();
+};
+async function ttCeremony() {
+  RT.lock = true;
+  const T = ttY(), fid = G.comp && G.comp.fid, fam = !!T.fam;
+  await playCut(lionDanceCut(fid, fam));
+  G.time = Math.max(G.time, TT.until);
+  await playCut(processionCut(fid, fam));
+  await UI.fade(true);
+  RT.ttFest = false; T.done = true; endComp();
+  G.time = TT.end; G.daily.checkedIn = true; G.daily.scolded = true; G.daily.outAt20 = false; G.atSchool = false;
+  setMap('home', 58, 76, 0); RT.snapNpcs = true;
+  addMemo('scene', 'trungthu'); addMemo('item', 'anhtrungthu');
+  if (fid) addFriend(fid, 8);
+  if (fam) addParent(2, 'cả nhà đi chơi Trung thu');
+  await UI.fade(false);
+  RT.lock = false; UI.hud();
+  UI.toast('Buổi lễ kết thúc lúc 24:00. Về tới nhà rồi — ảnh rước đèn đã dán vào lưu bút.', 'info');
+}
+// vẽ sprite lật ngang (lân, ông Địa quay sang trái)
+function drawSprFlip(spr, x, y) { const S = VIEW.S; ctx.save(); ctx.translate(VIEW.ox + Math.round(x) * S + spr.width * S, VIEW.oy + Math.round(y) * S); ctx.scale(-1, 1); ctx.drawImage(spr, 0, 0, spr.width * S, spr.height * S); ctx.restore(); }
+function lionDanceCut(fid, fam) {
+  const [mx, my] = TT_SPOTS.mayor, [lx, ly] = TT_SPOTS.lion, [ox, oy] = TT_SPOTS.ongdia, [dx0, dy0] = TT_SPOTS.drum, cx0 = 470, cy0 = 376, t0 = { v: 0 };
+  const ring = [[-62, -10, 2, 'c1', 'cas_dat'], [-66, 14, 2, 'c2', 'cas_vy'], [-44, 32, 3, 'c3', 'cas_khoa'], [-8, 38, 3, 'c4', 'cas_ngan'], [28, 36, 3, 'c6', 'cas_vy'], [62, 18, 1, 'c8', 'cas_ngan'], [70, -6, 1, 'x1', 'cas_khoa']];
+  const actors = [{ look: 'mayor', x: mx, y: my, dir: 0 }, { look: 'driver', x: dx0 + 22, y: dy0 + 14, dir: 1 }].concat(ring.map(([a, b, d, look, of]) => ({ look, outfit: of, x: cx0 + a, y: cy0 + b, dir: d })));
+  if (fid) actors.push({ look: fid, outfit: friendOutfit(fid), x: cx0 - 26, y: cy0 + 46, dir: 3 });
+  if (fam) actors.push({ look: 'mom', outfit: 'noapron', x: cx0 + 12, y: cy0 + 50, dir: 3 }, { look: 'dad', outfit: 'dadhome', x: cx0 + 28, y: cy0 + 50, dir: 3 });
+  const hide = ['ttlion', 'tt_mayor', 'tt_mom', 'tt_dad'].concat(Object.keys(FRIENDS).map(f => 'tt_' + f));
+  const st = { ph: 'idle' };
+  const prop = now => {
+    const t = (now - t0.v) / 1000, f = Math.floor(now / 160) % 2;
+    let x = lx, y = ly, left = false, bob = 0, gx = ox, gy = oy;
+    if (st.ph === 'dance') { x = cx0 - 18 + Math.sin(t * 1.5) * 34; y = cy0 - 18 + Math.sin(t * 3) * 8; left = Math.cos(t * 1.5) < 0; bob = -Math.abs(Math.sin(t * 5)) * (t % 3 > 2 ? 10 : 3); gx = cx0 - 10 + Math.sin(t * 1.5 - 0.9) * 40; gy = cy0 - 6 + Math.sin(t * 3 - 1.8) * 6; }
+    if (st.ph === 'bow') { x = mx - 18; y = my + 14; left = false; bob = f ? 2 : 0; gx = mx + 22; gy = my + 18; }
+    (left ? drawSprFlip : drawSpr)(SPR['lion' + f], x, y + bob);
+    (gx < x ? drawSpr : drawSprFlip)(SPR['ongdia' + (Math.floor(now / 220) % 2)], gx, gy);
+    drawSpr(SPR.trong, dx0, dy0);
+    if (st.ph === 'dance' && Math.floor(now / 230) % 2) { drawSpr(SPR.hit, dx0 + 4, dy0 - 10); }
+  };
+  return {
+    map: 'pho', me: [cx0 + 46, cy0 + 44, 3], cam: { x: cx0 + 6, y: cy0 - 26 }, title: 'Múa lân khai hội Trung thu', actors, hide, props: [prop],
+    steps: [{ fn: sc => { sc.glow = [ttMoon]; } },
+      { say: [0, 'Kính thưa bà con cô bác và các cháu thiếu nhi!'] },
+      { say: [0, 'Tôi xin tuyên bố khai mạc Đêm hội Trăng rằm phố Hoa Phượng!'] },
+      { fn: () => { st.ph = 'dance'; t0.v = performance.now(); } }, { say: [1, 'Tùng tùng cắc! Tùng tùng cắc!'] }, { wait: 1800 },
+      { say: [4, 'Lân nhảy cao quá kìa!'] }, { say: [6, 'Ông Địa phe phẩy quạt mắc cười ghê!'] }, { wait: 1200 },
+      { fn: () => { st.ph = 'bow'; } }, { wait: 600 },
+      { say: [0, 'Chúc bà con một mùa trăng no đủ, an vui! Giờ mời cả phố cùng rước đèn!'] },
+      { say: ['me', 'Hay quá đi!'] }],
+  };
+}
+function processionCut(fid, fam) {
+  const L0 = 560, Y = 256, dx = -400, own = G.inv.denongsao > 0;
+  // đoàn rước: lân dẫn đầu, ông Địa, trống, rồi mình, bạn, bố mẹ, các bạn nhỏ cầm đèn
+  const col = [{ look: 'c5', x: 0, y: 0, hidden: true, k: 'lion' }, { look: 'c5', x: 30, y: 2, hidden: true, k: 'ongdia' }, { look: 'driver', x: 56, y: 0 }];
+  if (fid) col.push({ look: fid, outfit: friendOutfit(fid), x: 82, y: 14, lan: true });
+  if (fam) col.push({ look: 'mom', outfit: 'noapron', x: 106, y: -6, lan: true }, { look: 'dad', outfit: 'dadhome', x: 106, y: 12 });
+  const kids = [['c1', 'cas_dat'], ['c2', 'cas_vy'], ['c3', 'cas_khoa'], ['c4', 'cas_ngan'], ['c6', 'cas_vy'], ['x1', 'cas_khoa']];
+  kids.forEach(([look, of], i) => col.push({ look, outfit: of, x: 132 + (i >> 1) * 22, y: i % 2 ? 12 : -6, lan: true }));
+  const actors = col.map(a => ({ look: a.look, outfit: a.outfit, x: L0 + a.x, y: Y + a.y, dir: 1, hidden: a.hidden, lan: a.lan, k: a.k }));
+  const meX = L0 + 82, meY = Y - 6, nA = actors.length, iDrum = 2, iKid = actors.findIndex(a => a.look === 'c1');
+  const hide = ['ttlion', 'tt_mayor', 'tt_mom', 'tt_dad'].concat(Object.keys(FRIENDS).map(f => 'tt_' + f), TT_KIDS.map((_, i) => 'ttk_' + i));
+  const meWalk = (ms, k) => ({ move: ['me', meX + dx * k, meY, ms] });
+  const cam = { look: 'c5', outfit: 'cas_khoa', x: L0 + dx + 80, y: Y + 64, dir: 3 };
+  actors.push(cam); const iCam = actors.length - 1;
+  const prop = now => {
+    const sc = RT.scene, f = Math.floor(now / 160) % 2, bob = Math.floor(now / 200) % 2;
+    for (const a of sc.actors) {
+      if (a.k === 'lion') (a.dir === 2 ? drawSpr : drawSprFlip)(SPR['lion' + f], a.x - 18, a.y - 24 - (f ? 2 : 0));
+      if (a.k === 'ongdia') (a.dir === 2 ? drawSpr : drawSprFlip)(SPR['ongdia' + (Math.floor(now / 220) % 2)], a.x - 10, a.y - 24);
+      if (a.lan) drawSpr(SPR['sao' + bob], a.x + 3, a.y - 30 + bob);
+    }
+    drawSpr(SPR['sao' + (1 - bob)], G.x + 3, G.y - 30 + bob);
+    const d = sc.actors[iDrum]; drawSpr(SPR.trong, d.x - 10, d.y - 14);
+  };
+  const steps = [{ fn: sc => { sc.glow = [ttMoon, ttLanternGlow]; } },
+    { par: actors.slice(0, nA).map((a, i) => ({ move: [i, a.x + dx / 2, a.y, 3200] })).concat([meWalk(3200, 0.5), { say: [iKid, 'Rước đèn ông sao, đi khắp phố phường!'] }]) },
+    { par: actors.slice(0, nA).map((a, i) => ({ move: [i, a.x + dx, a.y, 3200] })).concat([meWalk(3200, 1), { say: ['me', own ? 'Đèn tự làm của mình sáng nhất phố luôn!' : 'Trăng rằm tròn quá, đèn ông sao đẹp ghê!'] }]) },
+    { fn: sc => { G.dir = 0; for (let i = 0; i < nA; i++) sc.actors[i].dir = 0; sc.actors[0].dir = 2; sc.actors[1].dir = 2; } },
+    { move: [iCam, L0 + dx + 80, Y + 46, 600] },
+    { say: [iCam, 'Cả đoàn đứng lại chụp tấm ảnh kỷ niệm nào!'] }, { say: [iCam, 'Một, hai, ba… Trung thu vui vẻ!'] }, { wait: 160 },
+    { fn: sc => { snapPhoto('anhtrungthu', L0 + dx + 80, Y - 14); sc.glow = [ttMoon, ttLanternGlow, flashGlow(performance.now())]; } }, { wait: 900 },
+    fam ? { say: [actors.findIndex(a => a.look === 'mom'), 'Khuya rồi, cả nhà mình về thôi con!'] } : fid ? { say: [3, 'Vui ghê! Khuya rồi, mình về thôi!'] } : { say: ['me', 'Khuya rồi, về nhà thôi!'] }];
+  return { map: 'pho', me: [meX, meY, 1], title: 'Rước đèn Trung thu', actors, hide, props: [prop], steps };
+}
+// trăng rằm (góc trên bên phải màn hình) và quầng sáng đèn ông sao — vẽ sau lớp tối ban đêm
+function ttMoon() {
+  const S = VIEW.S, X = cv.width - 46 * S, Y = 34 * S, r = 13 * S;
+  const g = ctx.createRadialGradient(X, Y, r * 0.6, X, Y, r * 2.6); g.addColorStop(0, 'rgba(255,240,180,0.45)'); g.addColorStop(1, 'rgba(255,240,180,0)');
+  ctx.fillStyle = g; ctx.fillRect(X - r * 3, Y - r * 3, r * 6, r * 6);
+  ctx.fillStyle = '#fff3c4'; ctx.beginPath(); ctx.arc(X, Y, r, 0, 6.283); ctx.fill();
+  ctx.fillStyle = 'rgba(214,196,140,0.55)'; for (const [a, b, c] of [[-0.35, -0.2, 0.22], [0.25, 0.15, 0.16], [-0.05, 0.4, 0.12]]) { ctx.beginPath(); ctx.arc(X + a * r, Y + b * r, c * r, 0, 6.283); ctx.fill(); }
+}
+function ttLanternGlow() {
+  const S = VIEW.S, pts = [];
+  if (RT.scene && RT.scene.actors) { for (const a of RT.scene.actors) if (a.lan) pts.push([a.x + 7, a.y - 25]); if (RT.scene.title === 'Rước đèn Trung thu') pts.push([G.x + 7, G.y - 25]); }
+  else for (const n of npcsHere()) if (n.id.startsWith('ttk_') && n.cx !== undefined) pts.push([n.cx + 7, n.cy - 25]);
+  if (!RT.scene && RT.hold === 'denongsao') pts.push([G.x, G.y - 40]);
+  ctx.globalCompositeOperation = 'lighter';
+  for (const [x, y] of pts) { const X = VIEW.ox + x * S, Y = VIEW.oy + y * S, g = ctx.createRadialGradient(X, Y, 0, X, Y, 11 * S); g.addColorStop(0, 'rgba(255,150,90,0.38)'); g.addColorStop(1, 'rgba(255,150,90,0)'); ctx.fillStyle = g; ctx.fillRect(X - 11 * S, Y - 11 * S, 22 * S, 22 * S); }
+  ctx.globalCompositeOperation = 'source-over';
+}
+// gọi mỗi khung hình (06_engine): trên phố đêm Trung thu thì có trăng và ánh đèn của các bạn nhỏ
+function drawTTGlow(now) {
+  if (G.map !== 'pho' || !ttDecor() || nightAlpha(G.time) < 0.05) return;
+  if (RT.scene && RT.scene.glow && RT.scene.glow.includes(ttMoon)) return;     // cắt cảnh đã tự vẽ
+  ttMoon(); if (ttOn()) ttLanternGlow();
+}
+// đèn ông sao của các bạn nhỏ, dây kéo co trên sân bóng mini (vẽ trước lớp tối)
+function drawTTProps(now) {
+  if (G.map !== 'pho' || !ttOn() || (RT.scene && RT.scene.type === 'cut')) return;
+  const bob = Math.floor(now / 200) % 2;
+  for (const n of npcsHere()) if (n.id.startsWith('ttk_') && n.cx !== undefined) drawSpr(SPR['sao' + ((bob + n.id.length) % 2)], n.cx + 3, n.cy - 30 + bob);
+  const [kx, ky] = TT_SPOTS.keoco, w = Math.round(Math.sin(now / 300) * 2);
+  for (let i = -66; i <= 66; i++) wRect('#c9a467', kx + i + w, ky - 9, 1, 1);
+  wRect('#e2574c', kx - 1 + w, ky - 12, 2, 6); wRect('#fffaf0', kx - 20, ky + 2, 1, 6); wRect('#fffaf0', kx + 20, ky + 2, 1, 6);
+}
+
+'use strict';
+/* ============================================================
  *  05. GIAO DIỆN — HUD, hộp thoại, cặp sách, chỉ số, TKB, sổ điểm
  * ============================================================ */
 const $ = id => document.getElementById(id);
@@ -6908,7 +7370,7 @@ const UI = {
     return new Promise(res => {
       const btns = buttons.map((b, i) => `<button class="btn ${i === 0 && !opts.grid && buttons.length < 4 ? 'primary' : ''} ${b === 'Thôi' || b === 'Chưa' ? 'ghost' : ''}" data-i="${i}">${opts.grid || buttons.length < 2 ? '' : `<kbd>${i + 1}</kbd>`}${b}</button>`).join('');
       // opts.esc: giá trị trả về khi bấm Esc / nút ✕ (mặc định = nút cuối cùng)
-      this._open(title, html + `<div class="btns ${opts.grid ? 'grid' : (buttons.length > 2 ? 'col' : '')}">${btns}</div>`, res, opts.esc !== undefined ? opts.esc : buttons.length - 1, false, opts.who);      // opts.who = { look, outfit }: ép hiện hội thoại ở dưới với chân dung này
+      this._open(title, html + `<div class="btns ${opts.cls || (opts.grid ? 'grid' : (buttons.length > 2 ? 'col' : ''))}">${btns}</div>`, res, opts.esc !== undefined ? opts.esc : buttons.length - 1, false, opts.who);      // opts.who = { look, outfit }: ép hiện hội thoại ở dưới với chân dung này
     });
   },
   say(title, html) { return this.ask(title, `<p>${html}</p>`, ['OK']); },
@@ -7054,6 +7516,8 @@ const UI = {
     if (cardCount()) add('the', cardCount(), 'Thẻ cầu thủ — bấm để xem bộ sưu tập', 'cards');
     if (G.inv.gaubong) add('gaubong', G.inv.gaubong, 'Gấu bông — bấm để cầm lên rồi bấm vào bạn để tặng', 'hold');
     if (G.inv.voso) add('voso', G.inv.voso, 'Vỏ sò — bấm để cầm lên rồi bấm vào bạn để tặng', 'hold');
+    if (G.inv.denongsao) add('denongsao', G.inv.denongsao, 'Đèn ông sao tự làm — bấm để cầm lên (rước đèn, hoặc tặng bạn)', 'hold');
+    for (const m of TT_MATS) if (G.inv[m.id]) add(m.id, G.inv[m.id], `${m.name} — nguyên liệu làm đèn ông sao (mang tới sạp làm đèn lồng đêm Trung thu)`);
     if (fishCount()) add('ca', fishCount(), 'Cá câu được — bán cho Cô Ba hoặc đưa mẹ nấu');
     if (G.owned.cancau) add('cancau', 0, 'Cần câu — câu cá ở bờ sông');
     return it;
@@ -7087,6 +7551,8 @@ const UI = {
       const own = [['xedap', 'Xe đạp'], ['xedapdien', 'Xe đạp điện'], ['xemay', 'Xe máy 50cc'], ['daynhay', 'Dây nhảy'], ['tatay', 'Tạ tay'], ['xadon', 'Xà đơn'], ['cancau', 'Cần câu']].filter(([k]) => G.owned[k]).map(([, n]) => n);
       if (fishCount()) h += '<p>Cá câu được: ' + FISH.filter(f => G.fish[f.id]).map(f => `<b>${f.name}</b> ×${G.fish[f.id]}`).join(' · ') + ` <small class="dim">— bán cho Cô Ba được ${fmtMoney(fishValue())}, hoặc đưa mẹ nấu</small></p>`;
       if (G.inv.voso) h += `<div class="rowi"><span><b>Vỏ sò</b> ×${G.inv.voso} <small>quà tặng bạn thân</small></span><button class="btn sm" data-act="hold" data-id="voso">${RT.hold === 'voso' ? 'Cất đi' : 'Cầm lên'}</button></div>`;
+      if (G.inv.denongsao) h += `<div class="rowi"><span><b>Đèn ông sao</b> ×${G.inv.denongsao} <small>tự làm đêm Trung thu</small></span><button class="btn sm" data-act="hold" data-id="denongsao">${RT.hold === 'denongsao' ? 'Cất đi' : 'Cầm lên'}</button></div>`;
+      if (TT_MATS.some(m => G.inv[m.id])) h += `<h4>Nguyên liệu làm đèn lồng</h4><p>${TT_MATS.map(m => `${m.name}: <b>${G.inv[m.id] || 0}</b>`).join(' · ')} <small class="dim">— đủ cả ba thì làm được một chiếc đèn ông sao ở hội Trung thu</small></p>`;
       h += '<h4>Tài sản ở nhà</h4><p>' + (own.length ? own.join(' · ') : '<span class="dim">Chưa có gì.</span>') + '</p>';
       if (G.busPassUntil >= G.day) h += `<p>Vé tháng xe bus còn hạn đến <b>${dateLabel(G.busPassUntil)}</b>.</p>`;
       return h;
@@ -7921,7 +8387,7 @@ UI.store = function (title, greet, items, onBuy, extra, more) {
 };
 UI.shop = function () {
   const owned = it => !!((it.own && G.owned[it.own]) || (it.special === 'vethang' && G.busPassUntil >= G.day));
-  UI.store('Tạp hoá Cô Ba', '“Mua gì con?”', () => SHOP.map(it => Object.assign({}, it, { owned: owned(it) })), it => buy(SHOP.find(x => x.id === it.id)), () => {
+  UI.store('Tạp hoá Cô Ba', ttMatOpen(G.day) ? '“Mua gì con? Sắp Trung thu rồi, cô có nan tre, giấy bóng kính, nến làm đèn ông sao nè!”' : '“Mua gì con?”', () => SHOP.map(it => Object.assign({}, it, { owned: owned(it) })).concat(ttMatItems()), it => (it.mat ? buyMat(it) : buy(SHOP.find(x => x.id === it.id))), () => {
     let h = '';
     if (fishCount()) h += `<h4>Bán cá câu được</h4><div class="rowi"><span><b>${fishCount()} con cá</b> <small>${FISH.filter(f => G.fish[f.id]).map(f => `${f.name} ×${G.fish[f.id]}`).join(' · ')}</small></span><button class="btn sm" data-act="fish">Bán hết · ${fmtMoney(fishValue())}</button></div>`;
     return h + `<h4>Phụ bán hàng (ngày nghỉ, 08:00–18:00)</h4><div class="rowi"><span><b>Phụ cô Ba 2 tiếng</b> <small>Cô Ba trả công ${fmtMoney(PART_TIME.pay + PART_TIME.payPerLv * lv('buonban'))}</small></span><button class="btn sm" data-act="pt">Nhận việc</button></div>`;
@@ -7935,14 +8401,23 @@ UI.shop = function () {
 MV.memo = {
   h: { mst: d => { UI._mstab = d.id; } },
   render() {
-    const st = UI._mstab || 'items', M = G.memo, nI = Object.keys(M.items).length, nS = Object.keys(M.scenes).length;
-    let h = subTabs('mst', st, [['items', 'Kỷ vật'], ['scenes', 'Khoảnh khắc'], ['notes', 'Lời lưu bút']]);
-    h += `<p class="dim">Đã sưu tầm ${nI}/${Object.keys(MEMO_ITEMS).length} kỷ vật · ${nS}/${Object.keys(MEMO_SCENES).length} khoảnh khắc.</p>`;
+    const st = UI._mstab || 'items', M = G.memo, nI = Object.keys(M.items).length, nS = Object.keys(M.scenes).length, nB = Object.keys(M.badges || {}).length;
+    let h = subTabs('mst', st, [['items', 'Kỷ vật'], ['scenes', 'Khoảnh khắc'], ['badges', 'Danh hiệu'], ['notes', 'Lời lưu bút']]);
+    h += `<p class="dim">Đã sưu tầm ${nI}/${Object.keys(MEMO_ITEMS).length} kỷ vật · ${nS}/${Object.keys(MEMO_SCENES).length} khoảnh khắc · ${nB}/${Object.keys(MEMO_BADGES).length} danh hiệu.</p>`;
+    const when = d => `<i>${dateLabel(d)}, năm ${cal(d).year + 1}</i>`;
     if (st === 'items') {
       h += '<div class="memo-grid">';
       for (const id in MEMO_ITEMS) {
-        const D = MEMO_ITEMS[id], got = M.items[id] !== undefined;
-        h += `<div class="memo-item ${got ? '' : 'lock'}"><img src="${itemIcon(id)}" alt=""><b>${got ? D.name : '???'}</b><small>${got ? D.desc + `<br><i>${dateLabel(M.items[id])}, năm ${cal(M.items[id]).year + 1}</i>` : 'Gợi ý: ' + D.hint}</small></div>`;
+        const D = MEMO_ITEMS[id], got = M.items[id] !== undefined, pic = got && M.pics && M.pics[id];
+        h += `<div class="memo-item ${got ? '' : 'lock'} ${pic ? 'pic' : ''}">${pic ? `<img class="photo" src="${pic}" alt="${D.name}">` : `<img src="${itemIcon(id)}" alt="">`}<b>${got ? D.name : '???'}</b><small>${got ? D.desc + '<br>' + when(M.items[id]) : 'Gợi ý: ' + D.hint}</small></div>`;
+      }
+      return h + '</div>';
+    }
+    if (st === 'badges') {
+      h += '<div class="memo-grid">';
+      for (const id in MEMO_BADGES) {
+        const D = MEMO_BADGES[id], got = M.badges && M.badges[id] !== undefined;
+        h += `<div class="memo-item badge ${got ? '' : 'lock'}"><img src="${itemIcon(D.icon)}" alt=""><b>${got ? D.name : '???'}</b><small>${got ? D.desc + '<br>' + when(M.badges[id]) : 'Gợi ý: ' + D.hint}</small></div>`;
       }
       return h + '</div>';
     }
@@ -7968,6 +8443,178 @@ MV.memo = {
     return h + '</div>';
   },
 };
+
+'use strict';
+/* ============================================================
+ *  05d. MINI-GAME ĐÊM TRUNG THU: bịt mắt đập niêu · kéo co · ghép đèn ông sao
+ *  (cùng khung UI.game ở 05b_games.js)
+ * ============================================================ */
+Object.assign(GAMES, {
+  /* ---------- bịt mắt đập niêu: không nhìn thấy niêu, nghe người dẫn đường (chữ vàng) mà đi, đám đông la ó chỉ bậy (chữ xám) ---------- */
+  dapnieu(diff, guide) {
+    const R0 = 17 - diff * 2, T = 32, SWINGS = 3, SP = 58;
+    const BTN = { l: [176, 168], r: [232, 168], u: [204, 146], d: [204, 190], hit: [140, 182] };
+    const inBtn = (k, x, y) => { const [bx, by] = BTN[k]; return k === 'hit' ? Math.abs(x - bx) < 24 && Math.abs(y - by) < 13 : Math.abs(x - bx) < 12 && Math.abs(y - by) < 10; };
+    return {
+      title: 'Bịt mắt đập niêu', w: 260, h: 210, bot: 0.8,
+      help: `<p>Mắt bị bịt kín! Nghe <b style="color:#c9962a">${guide}</b> chỉ đường (chữ vàng) mà đi tới chỗ treo niêu. Đám đông hay la ó chỉ bậy (chữ xám) — đừng nghe!</p><p class="dim">Mũi tên / WASD (hoặc giữ nút mũi tên) để đi · <kbd>Space</kbd> hoặc nút ĐẬP để vung gậy · ${SWINGS} lần vung.</p>`,
+      setup(S) { Object.assign(S, { px: 60 + Math.random() * 140, py: 150, nx: 34 + Math.random() * 120, ny: 40 + Math.random() * 70, sw: SWINGS, say: 'Đi từ từ thôi, tớ chỉ cho!', sayT: 0.9, noise: '', noiseT: 1.6, nzx: 0, nzy: 0, swing: 0, broke: false, end: null, miss: 0 }); },
+      step(S, dt, inp) {
+        const K = inp.keys, held = k => inp.down && inBtn(k, inp.mx, inp.my);
+        if (S.end === null) {
+          let dx = 0, dy = 0;
+          if (K.arrowleft || K.a || held('l')) dx--; if (K.arrowright || K.d || held('r')) dx++;
+          if (K.arrowup || K.w || held('u')) dy--; if (K.arrowdown || K.s || held('d')) dy++;
+          S.px = clamp(S.px + dx * SP * dt, 12, 248); S.py = clamp(S.py + dy * SP * dt, 24, 196);
+          const ex = S.nx - S.px, ey = S.ny - S.py, dist = Math.hypot(ex, ey);
+          S.sayT -= dt;
+          if (S.sayT <= 0) {
+            S.sayT = 0.7 + diff * 0.08;
+            S.say = dist < R0 ? 'Đập đi! Ngay trên đầu đó!' : Math.abs(ex) > Math.abs(ey) ? (ex < 0 ? 'Sang trái!' : 'Sang phải!') + (Math.abs(ex) < 26 ? ' Chút xíu nữa!' : '') : (ey < 0 ? 'Tiến lên!' : 'Lùi lại!') + (Math.abs(ey) < 26 ? ' Gần lắm rồi!' : '');
+          }
+          S.noiseT -= dt;
+          if (S.noiseT <= 0) { S.noiseT = 1.1 + Math.random() * 1.3; S.noise = pick(['Trái! Trái!', 'Phải cơ!', 'Lên nữa! Lên!', 'Lùi lại đi!', 'Đập luôn đi!', 'Sai rồi, quay lại!']); S.nzx = 40 + Math.random() * 180; S.nzy = 60 + Math.random() * 70; }
+          const hit = inp.hit.includes('space') || inp.hit.includes('enter') || inp.clicks.some(([x, y]) => inBtn('hit', x, y));
+          if (hit && S.swing <= 0 && S.sw > 0) {
+            S.sw--; S.swing = 0.45;
+            if (dist < R0) { S.broke = true; S.end = 1.4; }
+            else { S.miss = 0.6; if (S.sw === 0) S.end = 1.2; }
+          }
+          if (S.t >= T) S.end = 1.0;
+        } else { S.end -= dt; if (S.end <= 0) { S.score = S.broke ? clamp(0.7 + 0.15 * S.sw, 0, 1) : 0.2; S.done = true; } }
+        if (S.swing > 0) S.swing -= dt; if (S.miss > 0) S.miss -= dt;
+        S.info = S.broke ? 'Bốp! Vỡ niêu rồi!' : S.end !== null ? 'Hết lượt rồi…' : `Còn ${S.sw} lần vung gậy`;
+      },
+      draw(c, S) {
+        const reveal = S.end !== null;
+        gR(c, reveal ? '#2f3f2a' : '#15121f', 0, 0, S.W, S.H);
+        if (!reveal) { for (let i = 0; i < 6; i++) gC(c, 'rgba(255,255,255,0.025)', S.px, S.py, 14 + i * 9); }
+        gTime(c, S, Math.max(0, T - S.t), T);
+        // chính mình (biết mình đã đi tới đâu) + gậy
+        gC(c, '#f8d0a8', S.px, S.py, 6); gR(c, '#2a2136', S.px - 6, S.py - 3, 12, 3);           // khăn bịt mắt
+        const a = S.swing > 0 ? -2.2 + (0.45 - S.swing) * 6 : -0.6;
+        c.strokeStyle = '#a9703f'; c.lineWidth = 3; c.beginPath(); c.moveTo(S.px + 4, S.py + 2); c.lineTo(S.px + 4 + Math.cos(a) * 22, S.py + 2 + Math.sin(a) * 22); c.stroke();
+        if (S.miss > 0) gT(c, '#cfc8bb', 'Vụt! Trượt rồi…', S.px, S.py - 18, 9);
+        // khi hết lượt mới thấy niêu
+        if (reveal) {
+          gR(c, '#3a2a22', S.nx, 14, 1, S.ny - 20);
+          if (S.broke) { for (let i = 0; i < 12; i++) { const k = 1.4 - S.end, an = i / 12 * 6.283; gC(c, ['#ffd23a', '#e2574c', '#5fe0f0', '#8fd067'][i % 4], S.nx + Math.cos(an) * 22 * k, S.ny + Math.sin(an) * 10 * k + k * k * 30, 2.5); } gR(c, '#8a5a3a', S.nx - 8, S.ny + 2, 6, 4); gR(c, '#8a5a3a', S.nx + 3, S.ny + 3, 6, 4); }
+          else { gC(c, '#8a5a3a', S.nx, S.ny, 9); gR(c, '#d9534f', S.nx - 9, S.ny - 9, 18, 3); }
+        }
+        // người dẫn đường (vàng) và tiếng la ó (xám)
+        if (!reveal) {
+          c.fillStyle = 'rgba(255,246,227,0.95)'; c.fillRect(10, 18, 166, 22); gT(c, '#c9962a', guide + ':', 14, 29, 9, 'left'); gT(c, '#2a2136', S.say, 14 + (guide.length + 1) * 5.6, 29, 10, 'left');
+          if (S.noise && S.noiseT > 0.4) gT(c, 'rgba(200,196,210,0.75)', S.noise, S.nzx, S.nzy, 10);
+        }
+        // nút bấm (chuột / cảm ứng)
+        for (const k of ['l', 'r', 'u', 'd']) { const [bx, by] = BTN[k]; gR(c, 'rgba(255,255,255,0.12)', bx - 11, by - 9, 22, 18); gArrow(c, '#fff6e3', { l: 0, d: 1, u: 2, r: 3 }[k], bx, by, 6); }
+        gR(c, S.sw > 0 && !reveal ? '#d9534f' : '#5f565f', BTN.hit[0] - 24, BTN.hit[1] - 12, 48, 24); gT(c, '#fff6e3', 'ĐẬP!', BTN.hit[0], BTN.hit[1], 11);
+      },
+    };
+  },
+  /* ---------- kéo co: bấm thật nhanh để có lực kéo ---------- */
+  keoco(diff, mates, nMates) {
+    const T = 15, LINE = 64;
+    return {
+      title: 'Kéo co', w: 260, h: 200, bot: 0.96,
+      help: `<p>Bấm <kbd>Space</kbd> (hoặc bấm chuột liên tục vào sân) <b>thật nhanh</b> để kéo! Kéo dải lụa đỏ qua vạch trắng bên mình (bên trái) là thắng.</p>${mates ? `<p class="dim">${mates} cùng đội góp sức.</p>` : ''}<p class="dim">Đội bạn hay dồn sức từng đợt — giữ nhịp bấm đều tay!</p>`,
+      setup(S) { Object.assign(S, { p: 0, taps: [], opp: 0, my: 0 }); },
+      step(S, dt, inp) {
+        const n = inp.hit.filter(k => k === 'space' || k === 'enter').length + inp.clicks.length;
+        for (let i = 0; i < n; i++) S.taps.push(S.t);
+        S.taps = S.taps.filter(t => S.t - t < 1);
+        S.my = S.taps.length * 0.055 * (1 + 0.04 * lv('thethao')) + (nMates || 0) * 0.05;
+        const surge = Math.max(0, Math.sin(S.t * 1.7)) * 0.16 + (Math.sin(S.t * 0.55) > 0.75 ? 0.14 : 0);
+        S.opp = 0.24 + diff * 0.07 + surge;
+        S.p = clamp(S.p + (S.opp - S.my) * dt * 1.6, -1, 1);
+        if (S.p <= -1) { S.score = 1; S.done = true; } else if (S.p >= 1) { S.score = 0.25; S.done = true; } else if (S.t >= T) { S.score = S.p < 0 ? 0.75 : 0.35; S.done = true; }
+        S.info = S.taps.length >= 7 ? 'Dô ta! Dô ta!' : 'Bấm nhanh nữa lên!';
+      },
+      draw(c, S) {
+        gR(c, '#4f8f3a', 0, 0, S.W, S.H); gR(c, '#5fa046', 0, 120, S.W, 80);
+        gTime(c, S, Math.max(0, T - S.t), T);
+        const cx = 130, off = S.p * LINE;
+        gR(c, '#fffaf0', cx - LINE, 96, 2, 44); gR(c, '#fffaf0', cx + LINE, 96, 2, 44); gR(c, 'rgba(255,255,255,0.4)', cx, 100, 1, 36);
+        gT(c, '#fff6e3', 'Hoa Phượng', 40, 150, 10); gT(c, '#fff6e3', 'Bờ Sông', 220, 150, 10);
+        // dây
+        c.strokeStyle = '#c9a467'; c.lineWidth = 3; c.beginPath(); c.moveTo(12, 118); c.quadraticCurveTo(cx + off, 116 + Math.sin(S.t * 9) * 1.5, 248, 118); c.stroke();
+        gR(c, '#e2574c', cx + off - 2, 110, 4, 14);
+        // hai đội (người ngả ra sau)
+        const lean = Math.sin(S.t * 12) * 1.5;
+        for (let i = 0; i < 4; i++) { const x = 20 + i * 18 + off * 0.6, y = 112; gC(c, '#f8d0a8', x - 3 + lean, y - 14, 4); gR(c, i === 3 ? '#4fb3a6' : '#e98fa5', x - 5 + lean, y - 10, 8, 12); gR(c, '#3a3f55', x - 4, y + 2, 7, 8); }
+        for (let i = 0; i < 4; i++) { const x = 186 + i * 18 + off * 0.6, y = 112; gC(c, '#f8d0a8', x + 3 - lean, y - 14, 4); gR(c, '#3b82c4', x - 3 - lean, y - 10, 8, 12); gR(c, '#3a3f55', x - 3, y + 2, 7, 8); }
+        // lực hai bên
+        gR(c, '#2a2136', 14, 172, 100, 8); gR(c, '#8fd067', 15, 173, Math.min(98, S.my * 140), 6);
+        gR(c, '#2a2136', 146, 172, 100, 8); gR(c, '#e2574c', 147, 173, Math.min(98, S.opp * 140), 6);
+        gT(c, '#fff6e3', 'Lực đội mình', 64, 188, 9); gT(c, '#fff6e3', 'Lực đội bạn', 196, 188, 9);
+      },
+    };
+  },
+  /* ---------- ghép đèn ông sao: nối nan tre thành ngôi sao → dán giấy bóng kính 5 cánh + giữa → gắn nến, gắn cán ---------- */
+  denlong(diff) {
+    const T = 55 - diff * 6, CX = 130, CY = 104, RO = 66, RI = RO * 0.382, MAXMISS = 3;
+    const P = [], I = [];
+    for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + k * 2 * Math.PI / 5; P.push([CX + Math.cos(a) * RO, CY + Math.sin(a) * RO]); const b = a + Math.PI / 5; I.push([CX + Math.cos(b) * RI, CY + Math.sin(b) * RI]); }
+    const arm = k => [P[k], I[k], I[(k + 4) % 5]], cen = pts => [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length];
+    const segKey = (a, b) => Math.min(a, b) + '-' + Math.max(a, b);
+    return {
+      title: 'Ghép đèn ông sao', w: 260, h: 220, bot: 0.85,
+      help: `<p><b>1.</b> Nối nan tre: bấm các đỉnh <b>cách một</b> để thành ngôi sao năm cánh.<br><b>2.</b> Bấm vào 5 cánh và phần giữa để dán giấy bóng kính.<br><b>3.</b> Bấm giữa ngôi sao để gắn nến, rồi bấm dưới đáy để gắn cán cầm.</p><p class="dim">Sai quá ${MAXMISS} lần là hỏng đèn.</p>`,
+      setup(S) { Object.assign(S, { ph: 'khung', cur: -1, segs: {}, nSeg: 0, arms: [0, 0, 0, 0, 0], mid: false, nen: false, can: false, miss: 0, shake: 0 }); },
+      step(S, dt, inp) {
+        if (S.shake > 0) S.shake -= dt;
+        const bad = () => { S.miss++; S.shake = 0.3; if (S.miss > MAXMISS) { S.score = 0.25 * S.prog; S.done = true; } };
+        S.prog = (S.nSeg + S.arms.filter(Boolean).length + (S.mid ? 1 : 0) + (S.nen ? 1 : 0) + (S.can ? 1 : 0)) / 13;
+        for (const [x, y] of inp.clicks) {
+          if (S.done) break;
+          if (S.ph === 'khung') {
+            const k = P.findIndex(([px, py]) => Math.hypot(px - x, py - y) < 13); if (k < 0) continue;
+            if (S.cur < 0) { S.cur = k; continue; }
+            const step = (k - S.cur + 5) % 5;
+            if ((step === 2 || step === 3) && !S.segs[segKey(S.cur, k)]) { S.segs[segKey(S.cur, k)] = 1; S.nSeg++; S.cur = k; if (S.nSeg === 5) S.ph = 'giay'; }
+            else if (k !== S.cur) bad();
+          } else if (S.ph === 'giay') {
+            const k = [0, 1, 2, 3, 4].find(i => { const [ax, ay] = cen(arm(i)); return Math.hypot(ax - x, ay - y) < 15; });
+            if (k !== undefined && !S.arms[k]) S.arms[k] = 1;
+            else if (Math.hypot(x - CX, y - CY) < RI * 0.9 && !S.mid) S.mid = true;
+            else if (k === undefined) bad();
+            if (S.arms.every(Boolean) && S.mid) S.ph = 'nen';
+          } else if (S.ph === 'nen') {
+            if (!S.nen) { if (Math.hypot(x - CX, y - CY) < 14) S.nen = true; else bad(); }
+            else if (!S.can) { if (y > CY + RO * 0.55 && Math.abs(x - CX) < 40) { S.can = true; S.score = clamp(1 - 0.08 * S.miss - 0.15 * (S.t / T), 0.6, 1); S.end = 1; } else bad(); }
+          }
+        }
+        if (S.end) { S.end -= dt; if (S.end <= 0) S.done = true; }
+        if (!S.end && !S.done && S.t >= T) { S.score = 0.3 * S.prog; S.done = true; }
+        S.info = S.ph === 'khung' ? `Nối nan tre: ${S.nSeg}/5` : S.ph === 'giay' ? `Dán giấy: ${S.arms.filter(Boolean).length + (S.mid ? 1 : 0)}/6` : !S.nen ? 'Gắn nến vào giữa' : !S.can ? 'Gắn cán cầm ở dưới' : 'Xong rồi!';
+      },
+      draw(c, S) {
+        const sx = S.shake > 0 ? Math.sin(S.t * 80) * 3 : 0;
+        gR(c, '#f3e6c8', 0, 0, S.W, S.H); gR(c, '#e6d4ae', 0, 196, S.W, 24);
+        gTime(c, S, Math.max(0, T - S.t), T);
+        c.save(); c.translate(sx, 0);
+        // giấy bóng kính
+        const poly = (pts, col) => { c.fillStyle = col; c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (const p of pts.slice(1)) c.lineTo(p[0], p[1]); c.closePath(); c.fill(); };
+        for (let k = 0; k < 5; k++) if (S.arms[k]) poly(arm(k), k % 2 ? 'rgba(242,201,76,0.85)' : 'rgba(226,87,76,0.85)');
+        if (S.mid) poly(I, 'rgba(226,87,76,0.85)');
+        if (S.nen) { const g = c.createRadialGradient(CX, CY, 2, CX, CY, 46); g.addColorStop(0, 'rgba(255,236,150,0.85)'); g.addColorStop(1, 'rgba(255,236,150,0)'); c.fillStyle = g; c.fillRect(CX - 46, CY - 46, 92, 92); gR(c, '#fffaf0', CX - 2, CY - 2, 4, 8); gC(c, '#ffb43a', CX, CY - 5, 2.5); }
+        if (S.can) { gR(c, '#8a5a3a', CX - 1.5, CY + RO * 0.62, 3, 60); }
+        // nan tre đã nối
+        c.strokeStyle = '#a9703f'; c.lineWidth = 3;
+        for (const k in S.segs) { const [a, b] = k.split('-').map(Number); c.beginPath(); c.moveTo(P[a][0], P[a][1]); c.lineTo(P[b][0], P[b][1]); c.stroke(); }
+        // đỉnh
+        P.forEach(([x, y], k) => { gC(c, k === S.cur && S.ph === 'khung' ? '#e2574c' : '#5b3d27', x, y, S.ph === 'khung' ? 6 : 3.5); });
+        // gợi ý vị trí bấm
+        if (S.ph === 'giay') for (let k = 0; k < 5; k++) if (!S.arms[k]) { const [ax, ay] = cen(arm(k)); gC(c, 'rgba(91,61,39,0.25)', ax, ay, 5); }
+        if (S.ph === 'giay' && !S.mid) gC(c, 'rgba(91,61,39,0.25)', CX, CY, 6);
+        if (S.ph === 'nen' && !S.nen) gT(c, '#5b3d27', '↓ nến', CX, CY - 14, 9);
+        if (S.ph === 'nen' && S.nen && !S.can) gT(c, '#5b3d27', 'bấm đây gắn cán', CX, CY + RO * 0.75, 9);
+        c.restore();
+        gT(c, '#5b3d27', `Lỗi: ${S.miss}/${MAXMISS}`, 226, 24, 9);
+      },
+    };
+  },
+});
 
 'use strict';
 /* ============================================================
@@ -8248,7 +8895,7 @@ function render(now) {
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
   if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);
-  if (G) { drawFestProps(now); drawBcProps(now); }
+  if (G) { drawFestProps(now); drawBcProps(now); drawTTProps(now); }
   if (G) drawHeld(now);                           // món đang cầm trên tay
   for (const o of m.objs) if (o.smoke && (!o.vis || o.vis())) smokeProp(now, o.x + o.smoke[0], o.y + o.smoke[1]);   // khói nhang        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
   // biển hiệu (chữ nét)
@@ -8259,6 +8906,7 @@ function render(now) {
   // quầng sáng đèn đường ban đêm
   if (G && !m.indoor) { const a = nightAlpha(G.time); if (a > 0.05) { ctx.globalCompositeOperation = 'lighter'; for (const o of m.objs) { if (o.s !== 'lamp' && !(o.glow && (!o.vis || o.vis()))) continue; const X = VIEW.ox + (o.x + 6) * S, Y = VIEW.oy + (o.y + 8) * S, g = ctx.createRadialGradient(X, Y, 0, X, Y, 52 * S); g.addColorStop(0, `rgba(255,214,130,${0.55 * a * 2})`); g.addColorStop(1, 'rgba(255,214,130,0)'); ctx.fillStyle = g; ctx.fillRect(X - 52 * S, Y - 52 * S, 104 * S, 104 * S); } ctx.globalCompositeOperation = 'source-over'; } }
   if (G && RT.scene && RT.scene.glow) for (const p of RT.scene.glow) p(now);   // pháo hoa: vẽ sau lớp tối ban đêm cho sáng rực
+  if (G) drawTTGlow(now);                         // trăng rằm, ánh đèn ông sao đêm Trung thu
   // cắt cảnh: hai dải đen kiểu phim + tên cảnh + bong bóng thoại
   if (G && RT.scene && RT.scene.type === 'cut') {
     const bh = RT.scene.bars === false ? 0 : Math.round(cv.height * 0.085);
