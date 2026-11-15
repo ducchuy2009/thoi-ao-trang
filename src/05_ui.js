@@ -302,7 +302,7 @@ UI.refresh = function () { if (this._panel && this._panel._keep) { this._panel._
  *  MENU CHUNG (Esc hoặc M): một bảng duy nhất, các tab là icon
  *  Chỉ số · Bạn bè · Thời khoá biểu · Học bạ · Lịch · Thẻ cầu thủ · Cài đặt
  * ============================================================ */
-const MENU_TABS = [['stats', 'Chỉ số'], ['friends', 'Bạn bè'], ['tt', 'Thời khoá biểu'], ['grades', 'Học bạ'], ['cal', 'Lịch'], ['cards', 'Thẻ cầu thủ'], ['set', 'Cài đặt']];
+const MENU_TABS = [['stats', 'Chỉ số'], ['friends', 'Bạn bè'], ['tt', 'Thời khoá biểu'], ['grades', 'Học bạ'], ['cal', 'Lịch'], ['cards', 'Thẻ cầu thủ'], ['map', 'Bản đồ'], ['set', 'Cài đặt']];
 const MV = {};
 const subTabs = (act, cur, list) => '<div class="tabs">' + list.map(([id, name]) => `<button class="tab ${cur === id ? 'on' : ''}" data-act="${act}" data-id="${id}">${name}</button>`).join('') + '</div>';
 const heartsHtml = n => `<span class="hearts">${'♥'.repeat(n)}<i>${'♥'.repeat(5 - n)}</i></span>`;
@@ -437,8 +437,93 @@ MV.cards = {
 };
 
 /* ---------- Cài đặt: Hiệu chỉnh game · Điều khiển · Cài đặt khác ---------- */
+/* ---------- Bản đồ thành phố: ghép các khu thật thu nhỏ lại, đánh dấu chỗ mình đang đứng ---------- */
+const CITY_GAP = 64;
+// Toạ độ góc trái-trên của từng khu trên bản đồ chung (đơn vị pixel game), xếp theo đúng lối đi giữa các khu
+function cityLayout() {
+  const M = MAPS, g = CITY_GAP, L = {};
+  L.town = [0, 0]; L.pho = [M.town.pw + g, 0];
+  L.school = [L.pho[0] + M.pho.pw + g, 204 - 408];                 // cổng phố → vỉa hè trường
+  L.nui = [L.school[0] + 736 - 320, L.school[1] - M.nui.ph - g];   // lối mòn sau trường → chân núi
+  L.ga = [L.pho[0] + 456 - 288, -M.ga.ph - g];                       // đường lên ga
+  L.bien = [L.ga[0] - M.bien.pw - g, L.ga[1] - 96];                  // tàu hoả ra biển
+  L.song = [L.pho[0] + 440 - 320, M.pho.ph + g];                     // lối xuống bờ sông
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const k in L) { x0 = Math.min(x0, L[k][0]); y0 = Math.min(y0, L[k][1]); x1 = Math.max(x1, L[k][0] + M[k].pw); y1 = Math.max(y1, L[k][1] + M[k].ph); }
+  const pad = 56;                                                    // lề quanh bản đồ để tên khu không bị cắt
+  for (const k in L) L[k] = [L[k][0] - x0 + pad, L[k][1] - y0 + pad];
+  return { L, W: x1 - x0 + pad * 2, H: y1 - y0 + pad * 2 };
+}
+const CITY_POI = [
+  ['town', 95, 100, 'Nhà mình'], ['town', 351, 86, 'Tạp hoá Cô Ba'], ['town', 479, 86, 'Học thêm'], ['town', 630, 166, 'Trạm bus'], ['town', 380, 334, 'Công viên'],
+  ['pho', 175, 86, 'Nhà các bạn'], ['pho', 524, 86, 'Trà sữa'], ['pho', 660, 66, 'TTTM'], ['pho', 806, 86, 'Khu game'], ['pho', 218, 166, 'Trạm bus'], ['pho', 640, 316, 'Xiên que'], ['pho', 136, 344, 'Sân bóng'],
+  ['school', 352, 66, 'Dãy lớp học'], ['school', 79, 80, 'Căn tin'], ['school', 572, 84, 'Nhà xe'], ['school', 664, 64, 'Vệ sinh'], ['school', 584, 232, 'Sân thể dục'], ['school', 352, 352, 'Cổng'], ['school', 130, 406, 'Trạm bus'],
+  ['nui', 200, 290, 'Bãi picnic'], ['song', 320, 180, 'Câu cá'],
+];
+// Chỗ mình đang ở trên bản đồ chung (ở trong nhà / phòng thì lấy cửa ra vào)
+function whereAmI() {
+  const R0 = { home: ['town', 96, 128, 'trong nhà'], class: ['school', 244, 104, 'lớp 10A1'], lab: ['school', 461, 104, 'phòng thí nghiệm'], yte: ['school', 213, 104, 'trạm y tế'], nhac: ['school', 275, 104, 'phòng nhạc'], thuvien: ['school', 352, 104, 'thư viện'], ngutrua: ['school', 430, 104, 'phòng ngủ trưa'], wcnam: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh nam'], wcnu: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh nữ'], wc: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh'], wcm: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh'], tttm: ['pho', 660, 128, 'trong TTTM'], arc: ['pho', 806, 128, 'trong khu game'], fhome: ['pho', (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1] + 49, 128, 'nhà ' + ((FRIENDS[G.visit] || FRIENDS.khoa).name)] };
+  if (R0[G.map]) { const [a, x, y, room] = R0[G.map]; return { a, x, y, room }; }
+  if (MAPS[G.map] && !MAPS[G.map].indoor && G.map !== 'ride' && G.map !== 'rail') return { a: G.map, x: G.x, y: G.y, room: '' };
+  return null;
+}
+function cityMapImage() {
+  const { L, W, H } = cityLayout(), S = Math.min(1500 / W, 0.55), c = mk(Math.round(W * S), Math.round(H * S)), x = cx(c);
+  const P = (a, px, py) => [(L[a][0] + px) * S, (L[a][1] + py) * S];
+  x.fillStyle = '#7fb36a'; x.fillRect(0, 0, c.width, c.height);
+  x.fillStyle = '#6aa05a'; for (let i = 0; i < c.width; i += 22) for (let j = (i / 22) % 2 * 11; j < c.height; j += 22) x.fillRect(i, j, 3, 3);
+  // đường nối giữa các khu
+  const road = (pts, w, col) => { x.strokeStyle = col; x.lineWidth = w * S; x.lineJoin = 'round'; x.beginPath(); pts.forEach(([a, px, py], i) => { const [X, Y] = P(a, px, py); i ? x.lineTo(X, Y) : x.moveTo(X, Y); }); x.stroke(); };
+  road([['town', 790, 216], ['pho', 10, 216]], 48, '#5f656f'); road([['pho', 886, 216], ['school', -10, 430]], 48, '#5f656f');
+  road([['pho', 456, 6], ['ga', 288, 314]], 40, '#d9ccb2'); road([['pho', 440, 410], ['song', 320, 10]], 40, '#d9ccb2'); road([['school', 736, 4], ['nui', 320, 470]], 30, '#b89a6a');
+  x.setLineDash([10, 8]); road([['ga', 0, 250], ['bien', MAPS.bien.pw, 250]], 10, '#8a5a3a'); x.setLineDash([]);
+  // từng khu: nền + đồ vật
+  x.imageSmoothingEnabled = true;
+  for (const a in L) {
+    const m = MAPS[a], [X, Y] = P(a, 0, 0);
+    x.drawImage(m.g, X, Y, m.pw * S, m.ph * S);
+    const objs = m.objs.filter(o => { try { return !o.vis || o.vis(); } catch (e) { return true; } }).sort((p, q) => p.base - q.base);
+    for (const o of objs) { const sp = o.dyn ? SPR[o.dyn()] : SPR[o.s]; if (sp) x.drawImage(sp, X + o.x * S, Y + o.y * S, sp.width * S, sp.height * S); }
+    x.strokeStyle = '#2a2136'; x.lineWidth = 3; x.strokeRect(X, Y, m.pw * S, m.ph * S);
+  }
+  const label = (t, X, Y, size, bg, fg) => {
+    x.font = `800 ${size}px "Baloo 2", system-ui, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+    const w = x.measureText(t).width + size * 0.9, h = size * 1.35;
+    x.fillStyle = bg; x.beginPath(); x.roundRect ? x.roundRect(X - w / 2, Y - h / 2, w, h, h / 2) : x.rect(X - w / 2, Y - h / 2, w, h); x.fill();
+    x.fillStyle = fg; x.fillText(t, X, Y + 1);
+  };
+  for (const [a, px, py, t] of CITY_POI) { const [X, Y] = P(a, px, py); label(t, X, Y, 25, 'rgba(255,246,227,.94)', '#2a2136'); }
+  for (const a in L) { const [X, Y] = P(a, MAPS[a].pw / 2, 0); label(MAPS[a].name, X, Y + 2, 30, '#2a2136', '#ffe066'); }
+  const [rx, ry] = P('ga', -CITY_GAP / 2, 236); label('tàu hoả', rx, ry, 22, '#8a5a3a', '#fff6e3');
+  // chỗ hẹn với bạn
+  const m = meetOn();
+  if (m) { const Pl = PLACES[m.place]; if (L[Pl.map]) { const [X, Y] = P(Pl.map, Pl.x, Pl.y); x.fillStyle = '#ff5fa8'; x.font = '900 40px system-ui, sans-serif'; x.textAlign = 'center'; x.fillText('♥', X, Y); label('Hẹn ' + FRIENDS[m.fid].name, X, Y - 34, 24, '#ff5fa8', '#fff'); } }
+  // xe đang dựng
+  if (G.park) { const pk = G.park.shed ? ['school', 572, 96] : L[G.park.map] ? [G.park.map, G.park.x, G.park.y] : null; if (pk) { const [X, Y] = P(...pk), sp = SPR[VEHICLES[G.park.id].spr]; x.drawImage(sp, X - sp.width * 0.6, Y - sp.height, sp.width * 1.2, sp.height * 1.2); label('Xe của bạn', X, Y + 16, 22, '#3b6fb6', '#fff'); } }
+  // mình đang ở đây
+  const me = whereAmI();
+  if (me && L[me.a]) {
+    const [X, Y] = P(me.a, me.x, me.y);
+    x.fillStyle = 'rgba(226,87,76,.28)'; x.beginPath(); x.arc(X, Y, 34, 0, 6.3); x.fill();
+    x.fillStyle = '#fff'; x.beginPath(); x.arc(X, Y, 15, 0, 6.3); x.fill(); x.fillStyle = '#e2574c'; x.beginPath(); x.arc(X, Y, 11, 0, 6.3); x.fill();
+    label('BẠN Ở ĐÂY', X, Y - 40, 27, '#e2574c', '#fff');
+  }
+  return c.toDataURL();
+}
+MV.map = {
+  render() {
+    const me = whereAmI(), m = meetOn(), area = me ? MAPS[me.a].name : '';
+    let h = `<div class="cmap"><img src="${cityMapImage()}" alt="Bản đồ thành phố"></div><div class="cmap-info">`;
+    h += `<p>${me ? `Bạn đang ở: <b>${area}</b>${me.room ? ' — ' + me.room : ''}` : 'Bạn đang trên đường đi…'} · ${fmtTime(G.time)}</p>`;
+    if (G.comp) h += `<p>Đang đi cùng <b>${FRIENDS[G.comp.fid].name}</b>${G.ride ? ' (chở sau xe)' : ''}.</p>`;
+    if (m) h += `<p>♥ Hẹn <b>${FRIENDS[m.fid].name}</b> ở ${PLACES[m.place].name} (${meetTimeText(m)}).</p>`;
+    if (G.park) h += `<p>${VEHICLES[G.park.id].name} của bạn ${G.park.shed ? 'đang gửi ở nhà xe trường' : 'đang dựng ở ' + MAPS[G.park.map].name}.</p>`;
+    return h + '<p class="dim">Đi bộ qua mép mỗi khu là sang khu bên cạnh (đường xám là đường xe chạy được). Ra trạm bấm vào xe bus để đi nhanh; lên ga bắt tàu ra biển.</p></div>';
+  },
+};
+
 const KEYMAP = [['W A S D / ↑ ↓ ← →', 'Di chuyển'], ['Chuột_phải / E', 'Tương tác với người, đồ vật'], ['Q', 'Trong giờ học: quay sang bạn'], ['X', 'Xuống xe'], ['B', 'Mở túi đồ'], ['Esc / M', 'Mở menu'],
-  ['C', 'Chỉ số'], ['F', 'Bạn bè'], ['T', 'Thời khoá biểu'], ['G', 'Học bạ'], ['L', 'Lịch'], ['K', 'Thẻ cầu thủ'], ['P', 'Điện thoại'], ['Space / Enter', 'Chọn nút chính trong hộp thoại; lướt nhanh lời thoại'], ['1 – 9', 'Chọn nhanh lựa chọn trong hộp thoại']];
+  ['C', 'Chỉ số'], ['F', 'Bạn bè'], ['T', 'Thời khoá biểu'], ['G', 'Học bạ'], ['L', 'Lịch'], ['K', 'Thẻ cầu thủ'], ['N', 'Bản đồ thành phố'], ['P', 'Điện thoại'], ['Space / Enter', 'Chọn nút chính trong hộp thoại; lướt nhanh lời thoại'], ['1 – 9', 'Chọn nhanh lựa chọn trong hộp thoại']];
 MV.set = {
   h: {
     sset: d => { UI._sset = d.id; },
@@ -449,6 +534,7 @@ MV.set = {
       if (!v) return UI.toast('Chưa dán mã.');
       if (up === CHEATS.money) { addMoney(CHEAT_MONEY, true); UI.toast(`Tiền tiêu vặt +${fmtMoney(CHEAT_MONEY)}.`, 'good'); }
       else if (up === CHEATS.love) { cheatLove(); UI.toast(`Mọi nhân vật quý bạn hơn (+${CHEAT_LOVE} thiện cảm).`, 'good'); }
+      else if (up === CHEATS.level) { const n = cheatLevel(); UI.toast(n ? `Thiên tài! Tất cả ${n} môn học tăng thêm 1 cấp.` : 'Các môn đều đã đạt cấp tối đa.', 'good'); }
       else if (up === CHEATS.time) { UI._travel = true; UI._tab = 'cal'; MV.cal.init(); UI.toast('Du hành thời gian: chọn một ngày trên lịch.', 'info'); }
       else if (importCode(v)) { save(); UI.close(-1); UI.toast('Đã nhập mã lưu.', 'good'); }
       else UI.toast('Mã không hợp lệ.', 'bad');
@@ -469,6 +555,17 @@ MV.set = {
     return h;
   },
 };
+// Mã thử nghiệm: mọi môn học (lý thuyết, thực hành, quốc phòng, thể dục) lên thêm 1 cấp, giữ nguyên phần trăm đang có của cấp hiện tại
+const SUBJ_STATS = ['toan', 'van', 'anh', 'ly', 'hoa', 'sinh', 'su', 'dia', 'qp', 'th_ly', 'th_hoa', 'th_sinh', 'thethao'];
+function cheatLevel() {
+  let n = 0;
+  for (const k of SUBJ_STATS) {
+    const i = lvlInfo(G.stats[k]); if (i.lv >= 10) continue;
+    let start = 0, need = 50; for (let l = 0; l <= i.lv; l++) { start += need; need += 20; }     // điểm bắt đầu của cấp lv+1
+    G.stats[k] = start + (i.lv + 1 >= 10 ? 0 : Math.floor(i.frac * need)); n++;
+  }
+  return n;
+}
 // Mã thử nghiệm: +thiện cảm với mọi nhân vật
 function cheatLove() {
   for (const f in FRIENDS) addFriend(f, CHEAT_LOVE, true);
@@ -507,7 +604,7 @@ function timeTravel(day, time) {
 }
 
 function bindUI() {
-  $('ic-menu').src = itemIcon('m_menu'); $('ic-phone').src = itemIcon('m_phone');
+  $('ic-menu').src = itemIcon('m_menu'); $('ic-phone').src = itemIcon('m_phone'); $('ic-map').src = itemIcon('m_map');
   $('banner').addEventListener('click', () => turnToFriend());
   $('hint').addEventListener('click', () => { if (G && G.ride && !RT.lock && !UI.isOpen() && $('hint')._key === 'X') dismount(); });   // bấm vào nút “X Xuống xe”
   $('modal').addEventListener('click', UI._click);

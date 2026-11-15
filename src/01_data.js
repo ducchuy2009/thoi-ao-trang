@@ -349,7 +349,7 @@ const SOCIETY = {
 };
 const SOC_GAIN = 2;
 // Mã thử nghiệm (dán vào ô "Dán mã" trong Cài đặt, không phân biệt hoa thường)
-const CHEATS = { money: 'HI!IAMBILLGATES', time: 'HI!IAMCIRI', love: 'HI!IAMBALDER' };
+const CHEATS = { money: 'HI!IAMBILLGATES', time: 'HI!IAMCIRI', love: 'HI!IAMBALDER', level: 'HI!IAMDAVINCI' };
 const CHEAT_MONEY = 100000000, CHEAT_LOVE = 2;
 // Trốn học cùng bạn (đi thật ra ngoài, thời gian trôi thật): nguy cơ bị bắt khi quay lại / khi tan học mà chưa về
 const SKIP = { friend: 6, risk: 0.18, perMissed: 0.1, accept: 0.4, perHeart: 0.11, freeBonus: 0.3, perDay: 3, endAt: 1290 };

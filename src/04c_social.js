@@ -694,27 +694,31 @@ async function runLunchEvent(id) {
 }
 /* ---------- phố Hoa Phượng: trà sữa · TTTM · khu game · xiên que, kem ---------- */
 const withF = fid => (fid ? ` cùng ${FRIENDS[fid].name}` : '');
-ACT.tea = async () => {
+ACT.tea = () => {
   const P = PLACES.tea; if (RT.lock || !placeOpen(P)) return;
   const fid = palAt('tea'), wf = withF(fid), T = TEA;
-  const c = await UI.ask(P.name, '<p>“Em uống gì nè?”</p>', [`Trà sữa trân châu, ngồi lại quán${wf} · ${fmtMoney(T.cup.price)}`, `Trà đào mang đi · ${fmtMoney(T.togo.price)}`, 'Thôi']);
-  if (c === 0) {
-    if (G.money < T.cup.price) return UI.toast('Không đủ tiền.', 'bad');
+  UI.store(P.name, '“Em uống gì nè?”', () => [
+    { id: 'trasua', name: 'Trà sữa trân châu', price: T.cup.price, desc: `Ngồi lại quán uống${wf}`, stam: T.cup.stam, mins: T.cup.mins, drink: true, friend: fid && T.cup.friend, act: 'cup' },
+    { id: 'tradao', name: 'Trà đào mang đi', price: T.togo.price, desc: 'Mua mang đi, vừa đi vừa uống', stam: T.togo.stam, drink: true, act: 'togo' },
+  ], async it => {
+    if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
+    if (it.act === 'togo') { addMoney(-it.price); gainStam(it.stam); UI.hud(); return UI.toast('Mua một ly trà đào mang đi.', 'good'); }
+    UI.close();
     await jointAct(`Đang uống trà sữa${wf}…`, T.cup.mins, 'tea', fid, () => { addMoney(-T.cup.price); gainStam(T.cup.stam); addStat('giaotiep', fid ? 4 : 1); palGain('tea', T.cup.friend); });
-  } else if (c === 1) {
-    if (G.money < T.togo.price) return UI.toast('Không đủ tiền.', 'bad');
-    addMoney(-T.togo.price); gainStam(T.togo.stam); UI.hud();
-  }
+  });
 };
 // ACT.mall / ACT.arcade: giờ đi hẳn vào bên trong (xem 04d_life.js)
-ACT.cart = async () => {
+ACT.cart = () => {
   if (!inWin(G.time, 600, 1290)) return UI.say('Xe xiên que', 'Xe chưa dọn hàng.<p class="dim">Bán từ 10:00 đến 21:30.</p>');
   const fid = palAt('cart'), wf = withF(fid);
-  const c = await UI.ask('Xe xiên que', '<p>“Xiên gì con? Cá viên, xúc xích, đậu hũ, kem ốc quế, đủ hết!”</p>', [`Một đĩa xiên que${wf} · 10.000đ`, `Kem ốc quế${wf} · 8.000đ`, 'Thôi']);
-  if (c !== 0 && c !== 1) return;
-  const price = c ? 8000 : 10000;
-  if (G.money < price) return UI.toast('Không đủ tiền.', 'bad');
-  await jointAct(c ? `Đang ăn kem${wf}…` : `Đang ăn xiên que${wf}…`, 10, c ? 'kem' : 'xien', fid, () => { addMoney(-price); gainStam(c ? 8 : 12); palGain('cart', 5); });
+  UI.store('Xe xiên que', '“Xiên gì con? Cá viên, xúc xích, đậu hũ, kem ốc quế, đủ hết!”', () => [
+    { id: 'xien', name: 'Đĩa xiên que', price: 10000, desc: `Cá viên, xúc xích chấm tương${wf}`, stam: 12, mins: 10, friend: fid && 5, k: 'xien' },
+    { id: 'kem', name: 'Kem ốc quế', price: 8000, desc: `Mát lạnh, ăn lẹ kẻo chảy${wf}`, stam: 8, mins: 10, friend: fid && 5, k: 'kem' },
+  ], async it => {
+    if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
+    UI.close();
+    await jointAct(`Đang ăn ${it.name.toLowerCase()}${wf}…`, it.mins, it.k, fid, () => { addMoney(-it.price); gainStam(it.stam); palGain('cart', 5); });
+  });
 };
 // ACT.field (đá bóng có hoạt ảnh): xem 04d_life.js
 

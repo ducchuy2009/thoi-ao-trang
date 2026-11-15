@@ -133,7 +133,11 @@ function movePlayer(dt) {
   if (vx) { if (offRoad(G.x + vx, G.y)) warn(); else if (!blocked(m, G.x + vx, G.y)) G.x += vx; }
   if (vy) { if (offRoad(G.x, G.y + vy)) warn(); else if (!blocked(m, G.x, G.y + vy)) G.y += vy; }
   RT.walkT = (RT.walkT < 0 ? 0 : RT.walkT) + dt;
-  for (const w of m.warps) if (G.dir === w.dir && G.x >= w.x && G.x < w.x + w.w && G.y >= w.y && G.y < w.y + w.h) { doWarp(w); return; }
+  for (const w of m.warps) if (G.dir === w.dir && G.x >= w.x && G.x < w.x + w.w && G.y >= w.y && G.y < w.y + w.h) {
+    const no = w.gate && w.gate();          // cửa có điều kiện (vd. nhà vệ sinh nam / nữ)
+    if (no) { G.y = w.y + w.h + 1; for (const k in KEYS) KEYS[k] = false; UI.toast(no, 'bad'); return; }
+    doWarp(w); return;
+  }
   for (const z of m.zones) if (G.x >= z.x && G.x < z.x + z.w && G.y >= z.y && G.y < z.y + z.h) { G.x += z.bx || 0; G.y += z.by || 0; for (const k in KEYS) KEYS[k] = false; z.fn(); return; }
 }
 async function doWarp(w) {
@@ -317,7 +321,7 @@ function bindInput() {
     if (e.repeat) return;
     if (k === 'q') turnToFriend();                  // trong giờ học: quay sang bạn
     if (k === 'e' || k === ' ' || k === 'enter') { scanTargets(); doInteract(RT.near || RT.hover); }
-    else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 'f') openMenu('friends'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'k') openMenu('cards');
+    else if (k === 'b') openMenu('bag'); else if (k === 'c') openMenu('stats'); else if (k === 'f') openMenu('friends'); else if (k === 't') openMenu('tt'); else if (k === 'g') openMenu('grades'); else if (k === 'k') openMenu('cards'); else if (k === 'n') openMenu('map');
     else if (k === 'p') openMenu('phone'); else if (k === 'l') openMenu('cal'); else if (k === 'x') { if (G.ride && !RT.lock) dismount(); } else if (k === 'escape' || k === 'm') openMenu('menu');
   });
   window.addEventListener('keyup', e => { KEYS[e.key.toLowerCase()] = false; if (e.code && /^Key[A-Z]$/.test(e.code)) KEYS[e.code.slice(3).toLowerCase()] = false; });

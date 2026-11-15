@@ -395,41 +395,89 @@ ACT.tokens = () => {
   });
 };
 const MACHINE_NAME = { claw: 'Máy gắp thú', fight: 'Game đối kháng', slot: 'Máy may rủi', race: 'Game thùng đua xe', dance: 'Máy nhảy' };
-ACT.machine = async kind => {
+// Máy trong khu game: không có mini-game, chỉ có hoạt cảnh; thắng thua tuỳ điểm may mắn hôm nay và độ khéo tay
+const MACH_LINES = {   // câu của bạn đi cùng khi đứng xem
+  claw: 'Gắp con màu hồng đi! Canh cho kỹ vào!', fight: 'Đấu với tớ một ván không? Thua bao nước đó!', slot: 'Bấm đi bấm đi, hôm nay số đỏ mà!',
+  race: 'Đua không? Tớ chấp cậu nửa vòng!', dance: 'Nhảy bài này đi, nhạc bốc lắm!',
+};
+function machineCut(kind, mx, res, fid) {
+  const T = { claw: 3000, fight: 2800, slot: 2600, race: 2800, dance: 2900 }[kind];
+  const pad = kind === 'dance', sx = pad ? 279 : mx + 12, sy = pad ? 62 : 52, now0 = () => performance.now() - (RT.scene.t0 || performance.now());
+  const actors = fid ? [{ look: fid, outfit: friendOutfit(fid), x: pad ? 306 : sx + 17, y: pad ? 70 : sy + 15, dir: pad ? 1 : 3 }] : [];   // bạn đứng chếch phía sau xem
+  const scr = (x, y, w, h, col) => wRect(col, mx + x, y, w, h);
+  const props = [];
+  if (kind === 'claw') props.push(() => {      // càng gắp chạy qua lại, hạ xuống, gắp, kéo lên
+    const t = now0(), win = res === 'win', tx = mx + 12;
+    let cx = mx + 5 + (Math.sin(t / 180) * 0.5 + 0.5) * 14, cy = 12;
+    if (t > 1200) { cx = tx; cy = t < 1900 ? 12 + (t - 1200) / 700 * 11 : t < 2600 ? 23 - (t - 1900) / 700 * 11 : 12; }
+    if (t > 2600) cx = tx + Math.min(6, (t - 2600) / 60);
+    wRect('#8b8f9c', cx, 9, 1, cy - 9); wRect('#5f656f', cx - 3, cy, 7, 2); wRect('#5f656f', cx - 3, cy + 2, 1, 3); wRect('#5f656f', cx + 3, cy + 2, 1, 3);
+    if (win && t > 1900) { wRect('#bfe3f2', tx - 3, 23, 7, 6); wRect('#e98fa5', cx - 2, cy + 3, 5, 4); wRect('#e98fa5', cx - 3, cy + 2, 2, 2); wRect('#e98fa5', cx + 2, cy + 2, 2, 2); }
+  });
+  if (kind === 'fight') props.push(() => {    // hai võ sĩ tí hon đấm nhau trên màn hình
+    const t = now0(), k = Math.min(1, t / T), d = Math.round(Math.sin(t / 90) * 1.5), end = t > T - 700, win = res === 'win';
+    scr(4, 14, 14, 10, '#1b1530'); scr(4, 22, 14, 2, '#3a3f55');
+    const a = mx + 6 + Math.round(k * 2) + d, b = mx + 15 - Math.round(k * 2) - d;
+    if (end && !win) wRect('#5a8fd6', a - 1, 21, 4, 1); else wRect('#5a8fd6', a, 17, 2, 5);
+    if (end && win) wRect('#e2574c', b - 2, 21, 4, 1); else wRect('#e2574c', b, 17, 2, 5);
+    if (!end && Math.floor(t / 260) % 2) wRect('#fffaf0', mx + 10, 17 + (Math.floor(t / 130) % 3), 2, 2);
+    wRect('#ffe066', mx + 5, 15, Math.max(0, Math.round(5 * (1 - k * (win ? 0.3 : 1)))), 1); wRect('#ffe066', mx + 12, 15, Math.max(0, Math.round(5 * (1 - k * (win ? 1 : 0.3)))), 1);
+  });
+  if (kind === 'slot') props.push(() => {     // ba ô quay rồi dừng lần lượt
+    const t = now0(), cols = ['#e2574c', '#f2a93b', '#5fae4a', '#3b82c4', '#e98fa5'];
+    const fin = res === 'big' ? [1, 1, 1] : res === 'small' ? [3, 3, 0] : [0, 2, 4];
+    scr(4, 14, 14, 10, '#fffaf0');
+    for (let i = 0; i < 3; i++) { const stop = t > 900 + i * 500; wRect(cols[stop ? fin[i] : Math.floor(t / 70 + i * 2) % 5], mx + 5 + i * 4, 16, 3, 6); }
+    if (t > 2000 && res !== 'none' && Math.floor(t / 150) % 2) for (let i = 0; i < 5; i++) wRect('#ffe066', mx + 2 + i * 4, 6, 2, 2);
+  });
+  if (kind === 'race') props.push(() => {     // đường đua chạy, xe của mình lách qua xe khác
+    const t = now0();
+    scr(4, 14, 14, 10, '#5f656f'); for (let i = 0; i < 3; i++) wRect('#fffaf0', mx + 10, 14 + ((Math.floor(t / 40) + i * 4) % 10), 1, 2);
+    wRect('#e2574c', mx + 6 + Math.round(Math.sin(t / 300) * 2 + 2), 20, 3, 3);
+    wRect(res === 1 ? '#5fae4a' : '#3b82c4', mx + 13, 15 + ((Math.floor(t / 60)) % 8), 3, 3);
+  });
+  if (kind === 'dance') props.push(() => {    // ô sáng trên sàn nhảy theo nhịp
+    const t = now0(), k = Math.floor(t / 320), cell = (k * 5 + 2) % 6;
+    if (t < T) wRect('rgba(255,255,255,.55)', 262 + 1 + (cell % 3) * 11, 46 + 1 + Math.floor(cell / 3) * 10, 9, 8);
+  });
+  const steps = [{ move: ['me', sx, sy, 450] }, { fn: sc => { G.dir = 3; sc.t0 = performance.now(); } }];
+  if (fid) steps.push({ say: [0, MACH_LINES[kind]] }, { fn: sc => { sc.t0 = performance.now(); } });
+  if (kind === 'dance') for (let i = 0; i < 8; i++) steps.push({ fn: () => { G.dir = [3, 1, 2, 0][i % 4]; } }, { hop: 'me' });
+  else steps.push({ wait: T * 0.45 }, { hop: 'me' }, { wait: T * 0.45 });
+  const said = {
+    claw: res === 'win' ? 'Gắp được rồi! Một con gấu bông!' : 'Ơ… sắp lên tới nơi thì tuột mất!',
+    fight: res === 'win' ? 'K.O.! Thắng rồi nhé!' : 'Thua sát nút… làm ván nữa!',
+    slot: res === 'big' ? 'Ba ô giống nhau! TRÚNG LỚN!' : res === 'small' ? 'Hai ô giống nhau, trúng nhỏ!' : 'Trượt rồi… lần sau vậy.',
+    race: res === 1 ? 'Về nhất! Đỉnh chưa!' : res === 2 ? 'Về nhì, suýt chút nữa!' : 'Về chót rồi, xe lật mấy vòng…',
+    dance: res >= 0.8 ? 'PERFECT! Không trật nhịp nào!' : res >= 0.5 ? 'GREAT! Nhảy cũng ra gì đấy chứ!' : 'Trật nhịp tùm lum… mà vui!',
+  }[kind];
+  steps.push({ say: ['me', said] });
+  if (fid && (kind === 'fight' || kind === 'race')) steps.push({ say: [0, res === 'win' || res === 1 ? 'Gì vậy trời, ván sau tớ phục thù!' : 'Ha ha, gà quá đi!'] });
+  return { inPlace: true, title: MACHINE_NAME[kind], actors, props, steps };
+}
+ACT.machine = async (kind, mx) => {
   if (RT.lock) return;
   const cost = MACHINES[kind], have = G.inv.xeng || 0, fid = palAt('arcade'), wf = withF(fid), A = ARCADE;
   if (have < cost) return UI.say(MACHINE_NAME[kind], `Máy này cần <b>${cost} xèng</b>, bạn đang có ${have}.<p class="dim">Đổi xèng ở quầy bên trái (${fmtMoney(TOKENS.price)} = ${TOKENS.n} xèng).</p>`);
   if (kind === 'dance' && G.stamina < A.dance.stam) return UI.toast('Không đủ thể lực.', 'bad');
-  const c = await UI.ask(MACHINE_NAME[kind], `<p>Bỏ ${cost} xèng vào máy? (đang có ${have} xèng)</p>`, [`Chơi${wf}`, 'Thôi']);
+  const c = await UI.ask(MACHINE_NAME[kind], `<p>Bỏ ${cost} xèng vào máy? (đang có ${have} xèng)</p><p class="dim">Hôm nay may hay xui, khéo tay hay không đều ảnh hưởng tới kết quả.</p>`, [`Chơi${wf}`, 'Thôi']);
   if (c !== 0) return;
   RT.lock = true; G.inv.xeng -= cost;
-  // hoạt ảnh: đứng trước máy, màn hình nhấp nháy
-  await playCut({ inPlace: true, bars: false, stay: true, steps: [{ fn: () => { G.dir = 3; } }, { hop: 'me' }, { wait: 500 }], props: [now => { const f = Math.floor(now / 90); wRect(['#5fe0f0', '#ff5fa8', '#ffe066'][f % 3], G.x - 6 + (f % 4) * 3, G.y - 40, 3, 2); }] });
-  let msg = '', good = true;
-  if (kind === 'claw') {
-    const r = await playGame('claw', 1 + Math.floor(Math.random() * 3)); addStat('kheotay', r.score >= 1 ? 3 : 1);
-    if (r.score >= 1) { G.inv.gaubong = (G.inv.gaubong || 0) + 1; msg = 'Gắp được một con gấu bông! Đem tặng bạn thân nhé.'; } else { msg = 'Càng gắp tuột mất rồi…'; good = false; }
-    advanceTime(10);
-  } else if (kind === 'slot') {
-    const r = await playGame('slot'), win = r.skipped ? 0 : r.score >= 1 ? 8 : r.score >= 0.5 ? 2 : 0;
-    G.inv.xeng += win; msg = win >= 8 ? 'TRÚNG LỚN! Máy nhả ra 8 xèng!' : win ? 'Trúng nhỏ: ra 2 xèng.' : 'Trượt rồi…'; good = win > 0;
-    advanceTime(5);
-  } else if (kind === 'fight') {
-    const r = await playGame('arrows', 2 + Math.floor(Math.random() * 2), 'Game đối kháng', 'Ra chiêu'), win = r.score >= 0.6;
-    addStat('kheotay', win ? 2 : 1); gainStam(3); if (fid) { addStat('giaotiep', 2); palGain('arcade', win ? 8 : 6); }
-    if (win) { G.inv.xeng += 1; msg = 'K.O.! Thắng trận, máy thưởng 1 xèng.'; } else { msg = 'Thua sát nút… làm ván nữa không?'; good = false; }
-    advanceTime(15);
-  } else if (kind === 'race') {
-    RT.lock = false;
-    await jointAct(`Đang chơi game thùng${wf}…`, A.cab.mins / 2, 'cab', fid, () => { gainStam(A.cab.stam); addStat('giaotiep', fid ? 3 : 1); addStat('kheotay', 1); palGain('arcade', A.cab.friend); });
-    return;
-  } else {
-    const r = await playGame('arrows', 2 + Math.floor(Math.random() * 2), 'Máy nhảy', 'Nhảy');
-    useStam(A.dance.stam, true); addStat('vannghe', Math.round(1 + A.dance.pts * r.score)); addStat('thethao', 1); palGain('arcade', A.dance.friend);
-    msg = r.score >= 0.6 ? 'Nhảy đẹp quá, mấy đứa đứng xem vỗ tay rần rần!' : 'Trật nhịp tùm lum, nhưng mà vui!'; good = r.score >= 0.6;
-    advanceTime(A.dance.mins);
-  }
-  RT.lock = false; UI.hud(); UI.toast(msg, good ? 'good' : 'info');
+  if (mx === undefined) mx = Math.round(G.x - 12);
+  const L = luckK(), kt = lv('kheotay'), r = Math.random();
+  let res;
+  if (kind === 'claw') res = r < clamp(0.25 + 0.03 * kt + 0.15 * L, 0.08, 0.65) ? 'win' : 'lose';
+  else if (kind === 'fight') res = r < clamp(0.45 + 0.03 * kt + 0.12 * L, 0.15, 0.85) ? 'win' : 'lose';
+  else if (kind === 'slot') { const big = clamp(0.07 + 0.06 * L, 0.02, 0.15); res = r < big ? 'big' : r < big + 0.3 ? 'small' : 'none'; }
+  else if (kind === 'race') res = r < clamp(0.35 + 0.03 * kt + 0.1 * L, 0.1, 0.8) ? 1 : r < 0.78 ? 2 : 3;
+  else res = clamp(0.35 + 0.05 * lv('vannghe') + 0.15 * L + rnd(-0.2, 0.25), 0, 1);
+  await playCut(machineCut(kind, mx, res, fid));
+  if (kind === 'claw') { addStat('kheotay', res === 'win' ? 3 : 1); if (res === 'win') { G.inv.gaubong = (G.inv.gaubong || 0) + 1; UI.toast('Được một con gấu bông! Đem tặng bạn thân nhé.', 'good'); } advanceTime(10); }
+  else if (kind === 'slot') { const n = res === 'big' ? 8 : res === 'small' ? 2 : 0; if (n) { G.inv.xeng += n; UI.toast(`Máy nhả ra ${n} xèng! Đang có ${G.inv.xeng} xèng.`, 'good'); } advanceTime(5); }
+  else if (kind === 'fight') { addStat('kheotay', res === 'win' ? 2 : 1); gainStam(3); if (fid) { addStat('giaotiep', 2); palGain('arcade', res === 'win' ? 8 : 6); } if (res === 'win') { G.inv.xeng += 1; UI.toast('Thắng trận, máy thưởng 1 xèng.', 'good'); } advanceTime(15); }
+  else if (kind === 'race') { gainStam(A.cab.stam); addStat('giaotiep', fid ? 3 : 1); addStat('kheotay', 1); palGain('arcade', A.cab.friend); if (res === 1) { G.inv.xeng += 1; UI.toast('Về nhất, máy thưởng 1 xèng.', 'good'); } advanceTime(A.cab.mins / 2); }
+  else { useStam(A.dance.stam, true); addStat('vannghe', Math.round(1 + A.dance.pts * res)); addStat('thethao', 1); palGain('arcade', A.dance.friend); advanceTime(A.dance.mins); }
+  RT.lock = false; UI.hud();
 };
 
 /* ---------- nhà bạn ---------- */

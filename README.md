@@ -9,7 +9,7 @@ Toàn bộ đồ hoạ pixel được vẽ bằng code, không dùng file ảnh.
                  Ga tàu ──(tàu hoả)── Bãi biển
                    │
 Khu phố nhà mình ─ Phố Hoa Phượng ─ Trường ── lối mòn vòng sau trường ── Núi
-(nhà, tạp hoá,     (nhà bạn bè, trà sữa,   (cổng, sân, lớp, phòng thí nghiệm,
+(nhà, tạp hoá,     (nhà bạn bè, trà sữa,   (cổng, sân, lớp, phòng thí nghiệm, nhà vệ sinh nam/nữ,
  công viên)         TTTM, khu game —        trạm y tế, phòng nhạc, thư viện,
                     đều vào được)          phòng ngủ trưa, khu vệ sinh)
                    │
@@ -26,7 +26,7 @@ Khu phố nhà mình ─ Phố Hoa Phượng ─ Trường ── lối mòn vò
 | `src/02_art.js` | Đồ hoạ: nhân vật chibi (4 hướng, hoạt ảnh đi bộ, trang phục), vật thể, nền |
 | `src/02b_art2.js` | Đồ hoạ bổ sung: TTTM, khu game, trà sữa, núi, xe bus, tàu, ga, biển, bờ sông, đạo cụ hoạt cảnh, biểu tượng vật phẩm cho thanh đồ, chân dung hội thoại và thẻ cầu thủ |
 | `src/03_maps.js` | Bản đồ: Nhà, Khu phố, Phố Hoa Phượng, Trường, Lớp học, Phòng thí nghiệm, Núi, Bờ sông, Ga tàu, Bãi biển; các bản đồ chỉ dùng cho hoạt cảnh (nhà vệ sinh nam/nữ, cảnh xe chạy, cảnh tàu chạy); vật thể tương tác và NPC |
-| `src/03b_maps2.js` | Các phòng vào được: trong trường (trạm y tế, phòng nhạc, thư viện, phòng ngủ trưa, khu vệ sinh — cửa nằm trên dãy nhà chính), bên trong TTTM (7 gian hàng), khu game (quầy xèng + các máy), nhà bạn (phòng khách + phòng riêng), đồ trang trí phòng ngủ ở nhà |
+| `src/03b_maps2.js` | Các phòng vào được: trong trường (trạm y tế, phòng nhạc, thư viện, phòng ngủ trưa — cửa trên dãy nhà chính; khối nhà vệ sinh riêng NAM / NỮ ở góc sân cạnh nhà xe, `WC_BLOCK`), bên trong TTTM (7 cửa hàng, mỗi nhà một kiểu, có nhân viên đứng quầy — `addShop`, `MALL_VENDOR`), khu game (quầy xèng + các máy), nhà bạn (phòng khách + phòng riêng), đồ trang trí phòng ngủ ở nhà |
 | `src/04_game.js` | Luật chơi: đồng hồ, ngày mới/đi ngủ, tiết học, kiểm tra, điểm, hạnh kiểm, qua cổng trường, việc nhà, buôn bán |
 | `src/04a_family.js` | Bố mẹ: lịch trong ngày, tìm đường A*, ra cửa lấy xe đi làm, đi chợ; trò chuyện, đấm lưng; về muộn |
 | `src/04b_mischief.js` | Làm việc riêng trong giờ, trốn học cùng bạn (ra ngoài thật, thời gian trôi thật, qua cổng trường mới là về lớp), quậy trong trường, tố cáo bạn (có hoạt cảnh bị phạt), buổi thực hành và vật lý của minigame |
@@ -55,7 +55,7 @@ Trong `01_data.js`:
 - `TEACHERS`, `TEACHER`, `CHEAT`, `SNITCH` — thiện cảm của TỪNG thầy cô (giáo viên bộ môn quý thì chấm môn đó nhẹ tay, khó bắt quay cóp), quay cóp, tố cáo bạn rủ rê. `SOCIETY` — người ngoài xã hội hiện trong tab Bạn bè.
 - `PERIODS`, `AM_END`, `PM_START`, `CFG.SCHOOL_END` — giờ các tiết (hai tiết liền nhau rồi ra chơi 20', không còn nghỉ 10' giữa tiết). `COEF` — hệ số điểm (đang để 1 hết: đã bỏ hệ số nhân).
 - `SKIP` — trốn học cùng bạn: khả năng bạn nhận lời, nguy cơ bị bắt. `SELL_FOOD`, `SELL_CARD` — giá bán đồ ăn, thẻ cho bạn.
-- `CHEATS` — mã thử nghiệm dán vào Cài đặt → Cài đặt khác → Dán mã (không phân biệt hoa thường): `HI!IAMBILLGATES` (+100.000.000đ), `HI!IAMCIRI` (du hành tới một ngày bất kỳ trên lịch), `HI!IAMBALDER` (+2 thiện cảm với mọi nhân vật).
+- `CHEATS` — mã thử nghiệm dán vào Cài đặt → Cài đặt khác → Dán mã (không phân biệt hoa thường): `HI!IAMBILLGATES` (+100.000.000đ), `HI!IAMCIRI` (du hành tới một ngày bất kỳ trên lịch), `HI!IAMBALDER` (+2 thiện cảm với mọi nhân vật). `HI!IAMDAVINCI` — mọi môn học (lý thuyết, thực hành, quốc phòng, thể dục) lên thêm 1 cấp.
 - `OUTING` — xin tiền bố mẹ đi chơi · `BORROW` — khả năng mượn được sách/bút · `BREAK_FUN` — trò giải lao giữa 2 tiết · `LUNCH_EVENT_CHANCE`, `CLASS_EVENT_CHANCE` — tần suất sự kiện.
 - `PLACES`, `MALL`, `ARCADE`, `TEA`, `PICNIC`, `TRAVEL`, `HILL_HOURS` — địa điểm vui chơi: giờ mở cửa, giá, thời gian, điểm thưởng.
 - `CARDS`, `CARD_RARITY`, `DUEL_TIER`, `CARD_SET_REWARD` — bộ thẻ cầu thủ, tỉ lệ độ hiếm, trình của đối thủ khi đấu thẻ.
@@ -67,6 +67,8 @@ Trong `01_data.js`:
 - `LUCK`, `LUCK_LV` — điểm may mắn: mỗi ngày quay ngẫu nhiên 0–100 (xem trên tivi, kênh “Vận may hôm nay”). May mắn cao thì bài kiểm tra được cộng thêm (tối đa `LUCK.test` điểm) và dễ “trúng tủ”; xui thì ngược lại.
 - `FESTIVALS` — lễ hội trên Lịch, dạng `{ season, day, name, desc }` (`desc` là câu bản tin đọc khi sắp tới lễ). Bản tin thời sự trên tivi tự thông báo lễ hội, ngày lễ (`HOLIDAYS`), thi học kỳ, nghỉ hè, khai giảng trong 10 ngày tới. Các tin ngẫu nhiên khác ở `NEWS_POOL`, `WEATHER` (`04d_life.js`).
 - `BED_NAP` — ban ngày nằm lên giường nào cũng chợp mắt được (giường ở nhà, giường nhà bạn, mọi chiếu trống trong phòng ngủ trưa). Tối ở nhà bạn thì ngủ lại được (chưa xin phép thì bố mẹ phiền lòng).
+- `MACHINES`, `machineCut()` (`04d_life.js`) — khu game: số xèng mỗi máy; chơi máy là xem hoạt cảnh, thắng thua tuỳ điểm may mắn hôm nay và cấp Khéo tay (máy nhảy: cấp Văn nghệ).
+- `CITY_POI`, `cityLayout()` (`05_ui.js`) — bản đồ thành phố (phím `N`, hoặc nút bản đồ góc trên phải): các khu thật thu nhỏ ghép đúng lối đi, đánh dấu chỗ mình đứng, chỗ hẹn với bạn, xe đang dựng.
 - `RIDE_TILES` (`04c_social.js`) — xe chỉ chạy trên các ô nền này (lòng đường, vỉa hè) và trong sân nhà mình. Xe gửi ở nhà xe trường chỉ lấy được sau khi hết tiết (`CFG.SCHOOL_END`); đang đi chơi với bạn thì bấm vào xe để chở bạn.
 - `FRIEND_HOME_HEARTS`, `FRIEND_ROOM_HEARTS`, `PHONE_HEARTS`, `FH` — độ thân cần để vào nhà bạn, vào phòng riêng, xin số điện thoại.
 
@@ -79,4 +81,4 @@ Trong `04c_social.js`: `LINKS` là ranh giới giữa các khu (đi tới đâu,
 
 ## Điều khiển
 
-`W` `A` `S` `D` di chuyển · chuột phải (hoặc `E`) tương tác · `Q` quay sang bạn trong giờ học · `X` xuống xe (phím đọc theo vị trí nên bật bộ gõ tiếng Việt vẫn dùng được) · `B` túi đồ · `Esc` / `M` menu (`C` chỉ số · `F` bạn bè · `T` thời khoá biểu · `G` học bạ · `L` lịch · `K` thẻ) · `P` điện thoại. Thanh đồ ở cạnh dưới cho biết đang mang gì; bấm vào đồ ăn để ăn. Game tự lưu mỗi khi đi ngủ.
+`W` `A` `S` `D` di chuyển · chuột phải (hoặc `E`) tương tác · `Q` quay sang bạn trong giờ học · `X` xuống xe (phím đọc theo vị trí nên bật bộ gõ tiếng Việt vẫn dùng được) · `B` túi đồ · `Esc` / `M` menu (`C` chỉ số · `F` bạn bè · `T` thời khoá biểu · `G` học bạ · `L` lịch · `K` thẻ) · `N` bản đồ · `P` điện thoại. Thanh đồ ở cạnh dưới cho biết đang mang gì; bấm vào đồ ăn để ăn. Game tự lưu mỗi khi đi ngủ.

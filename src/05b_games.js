@@ -372,7 +372,8 @@ function storeGain(it) {
   const g = [], ex = EXERCISES.find(e => e.need === it.own);
   if (it.stam) g.push(`+${it.stam} thể lực`);
   else if (it.inv && FOODS[it.inv]) g.push(`+${FOODS[it.inv].stam} thể lực khi ăn`);
-  if (it.mins) g.push(`ăn tại chỗ ${it.mins} phút`); else if (it.stam) g.push('dùng ngay');
+  if (it.mins) g.push(`${it.drink ? 'ngồi uống' : 'ăn tại chỗ'} ${it.mins} phút`); else if (it.stam) g.push(it.drink ? 'mang đi' : 'dùng ngay');
+  if (it.friend) g.push(`+${it.friend} thân thiết`);
   if (it.pack) g.push(`+${it.pack} thẻ cầu thủ`);
   if (it.act === 'movie') g.push(`+${MALL.movie.stam} thể lực`, '+Giao tiếp', `${MALL.movie.mins} phút`);
   if (it.act === 'chicken') g.push(`+${MALL.chicken.stam} thể lực`, `${MALL.chicken.mins} phút`);

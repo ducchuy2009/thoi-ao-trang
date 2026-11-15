@@ -19,7 +19,19 @@ function roomBase(id, name, wall, lower, floor, w, h) {
 const roomExit = (m, to) => m.warps.push({ x: (m.w - 3) * 16, y: (m.h - 1) * 16 + 6, w: 32, h: 10, dir: 0, to });
 const napTime = () => !!G && schoolToday() && inWin(G.time, AM_END, PM_START - 10);
 // Cửa các phòng trên dãy nhà chính của trường: [id phòng, x cửa, chữ trên biển]
-const SCHOOL_ROOMS = [['yte', 202, 'Y TẾ'], ['nhac', 264, 'NHẠC'], ['ngutrua', 419, 'NGỦ'], ['wcs', 481, 'WC']];
+const SCHOOL_ROOMS = [['yte', 202, 'Y TẾ'], ['nhac', 264, 'NHẠC'], ['ngutrua', 419, 'NGỦ']];
+// Khối nhà vệ sinh riêng ở góc sân (cạnh nhà xe): cửa trái NAM, cửa phải NỮ — con trai không vào được bên nữ và ngược lại
+const WC_BLOCK = { x: 628, y: 36, nam: 646, nu: 684 };
+const wcGate = g => () => (G.gender === g ? null : g === 'girl' ? 'Đây là nhà vệ sinh NỮ — con trai không được vào!' : 'Đây là nhà vệ sinh NAM — con gái không được vào!');
+// Nhân viên đứng quầy ở từng cửa hàng trong TTTM: [dáng, trang phục]
+const MALL_VENDOR = { phim: ['clerk', null], sach: ['teacherB', null], sieuthi: ['vendor', null], anuong: ['c6', 'cas_ngan'], noithat: ['c7', 'cas_vy'], nhaccu: ['c3', 'cas_dat'], thethao: ['c5', 'cas_khoa'] };
+// Cửa hàng 2 lớp: kệ trưng bày phía sau + quầy phía trước, người bán đứng giữa
+function addShop(m, id, a, name, label, act, vendor) {
+  addObj(m, { s: `sh_${id}_b`, x: a, y: 4, sol: [0, 26, 56, 20] });
+  addObj(m, { s: `sh_${id}_f`, x: a, y: 42, sol: [1, 8, 54, 15], label, act });
+  m.labels.push({ x: a + 28, y: 9.6, text: name.toUpperCase(), size: 4.6, col: '#fffaf0', maxw: 50 });
+  NPCS.push({ id: `mv_${id}`, name: 'Nhân viên', look: vendor[0], outfit: vendor[1] ? () => vendor[1] : undefined, map: m.id, x: a + 28, y: 54, dir: 0, label, act });
+}
 
 function buildRooms() {
   const sch = MAPS.school;
@@ -29,6 +41,13 @@ function buildRooms() {
     sch.warps.push({ x: dx + 2, y: 102, w: 18, h: 12, dir: 3, to: { map: id, x: 289, y: 204, dir: 3 } });
     sch.labels.push({ x: dx + 11, y: 68.5, text, size: 4.2, col: '#2a2136', maxw: 15 });
   }
+  const W = WC_BLOCK;
+  addObj(sch, { s: 'wcblock', x: W.x, y: W.y, sol: [1, 14, 72, 44] });
+  sch.labels.push({ x: W.x + 37, y: W.y + 4.5, text: 'NHÀ VỆ SINH', size: 4.2, col: '#2a2136', maxw: 32 });
+  sch.labels.push({ x: W.nam, y: W.y + 31, text: 'NAM', size: 4.4, col: '#fffaf0', maxw: 18 });
+  sch.labels.push({ x: W.nu, y: W.y + 31, text: 'NỮ', size: 4.4, col: '#fffaf0', maxw: 18 });
+  sch.warps.push({ x: W.nam - 10, y: 94, w: 20, h: 12, dir: 3, gate: wcGate('boy'), to: { map: 'wcnam', x: 289, y: 204, dir: 3 } });
+  sch.warps.push({ x: W.nu - 10, y: 94, w: 20, h: 12, dir: 3, gate: wcGate('girl'), to: { map: 'wcnu', x: 289, y: 204, dir: 3 } });
   addObj(sch, { s: 'sdoorBig', x: 332, y: 55, base: 106 });
   sch.labels.push({ x: 352, y: 59.5, text: 'THƯ VIỆN', size: 5, col: '#2a2136', maxw: 36 });
   sch.warps.push({ x: 342, y: 102, w: 20, h: 12, dir: 3, to: { map: 'thuvien', x: 289, y: 204, dir: 3 } });
@@ -87,20 +106,20 @@ function buildRooms() {
   }
   roomExit(m, { map: 'school', x: 430, y: 116, dir: 0 });
 
-  /* ---------- KHU VỆ SINH: bồn rửa + các buồng ---------- */
-  m = roomBase('wcs', 'Khu vệ sinh', '#e4eef7', '#a9c6dc', 'ltile');
-  for (const mx of WC_MIRRORS) { R(m.x, '#2a2136', mx - 1, 5, 26, 21); R(m.x, '#c9ccd4', mx, 6, 24, 19); R(m.x, '#dff1fa', mx + 1, 7, 22, 17); R(m.x, '#eef8fd', mx + 1, 7, 22, 2); addObj(m, { s: 'wcsink', x: mx - 1, y: 26, sol: [1, 2, 24, 18], label: () => 'Bồn rửa — rửa mặt cho tỉnh', act: () => ACT.washFace() }); }
-  for (let i = 0; i < 5; i++) addObj(m, { s: 'toiletdoor', x: 140 + i * 30, y: 2, base: 0, ir: [0, 0, 20, 40], label: () => 'Buồng vệ sinh', act: () => ACT.stall(i) });
-  addObj(m, { s: 'plant', x: 20, y: 180, sol: [2, 14, 12, 9] });
-  roomExit(m, { map: 'school', x: 492, y: 116, dir: 0 });
+  /* ---------- NHÀ VỆ SINH NAM / NỮ: bồn rửa + buồng (nam có thêm bồn tiểu) ---------- */
+  for (const [id, name, wall, lower, tile, door, x0, stalls] of [['wcnam', 'Nhà vệ sinh nam', '#e4eef7', '#a9c6dc', 'ltile', WC_BLOCK.nam, 140, 3], ['wcnu', 'Nhà vệ sinh nữ', '#fbe4ea', '#eab2c2', 'wtile', WC_BLOCK.nu, 140, 5]]) {
+    m = roomBase(id, name, wall, lower, tile);
+    for (const mx of WC_MIRRORS) { R(m.x, '#2a2136', mx - 1, 5, 26, 21); R(m.x, '#c9ccd4', mx, 6, 24, 19); R(m.x, '#dff1fa', mx + 1, 7, 22, 17); R(m.x, '#eef8fd', mx + 1, 7, 22, 2); addObj(m, { s: 'wcsink', x: mx - 1, y: 26, sol: [1, 2, 24, 18], label: () => 'Bồn rửa — rửa mặt cho tỉnh', act: () => ACT.washFace() }); }
+    for (let i = 0; i < stalls; i++) addObj(m, { s: 'toiletdoor', x: x0 + i * 30, y: 2, base: 0, ir: [0, 0, 20, 40], label: () => 'Buồng vệ sinh', act: () => ACT.stall(i) });
+    if (id === 'wcnam') for (let i = 0; i < 3; i++) { const ux = 236 + i * 22; R(m.x, '#c9ccd4', ux - 1, 11, 14, 19); R(m.x, '#fbfdff', ux, 12, 12, 17); R(m.x, '#dfe9ee', ux + 2, 20, 8, 7); R(m.x, '#8b8f9c', ux + 5, 8, 2, 4); }
+    R(m.x, id === 'wcnam' ? '#5a8fd6' : '#e98fa5', 276, 213, 24, 3);
+    addObj(m, { s: 'plant', x: 20, y: 180, sol: [2, 14, 12, 9] });
+    roomExit(m, { map: 'school', x: door, y: 108, dir: 0 });
+  }
 
   /* ---------- BÊN TRONG TTTM: mỗi gian hàng bán một loại ---------- */
   m = roomBase('tttm', 'TTTM Hoa Phượng Plaza', '#eef3f8', '#b9c9dc', 'ltile', 28, 16);
-  MALL_STALLS.forEach(([id, name, spr], k) => {
-    const a = 18 + k * 58;
-    addObj(m, { s: spr, x: a, y: 8, sol: [1, 24, 52, 22], label: () => name, act: () => ACT.stallShop(id) });
-    m.labels.push({ x: a + 27, y: 47.5, text: name.toUpperCase(), size: 4.6, col: '#2a2136', maxw: 50 });
-  });
+  MALL_STALLS.forEach(([id, name], k) => addShop(m, id, 18 + k * 58, name, () => `${name} — xem hàng`, () => ACT.stallShop(id), MALL_VENDOR[id]));
   addObj(m, { s: 'fountain', x: 200, y: 130, sol: [2, 8, 42, 20] });
   for (const [a, b] of [[110, 136], [300, 136], [110, 190], [300, 190]]) addObj(m, { s: 'bench', x: a, y: b, sol: [1, 1, 28, 12] });
   for (const a of [20, 400]) addObj(m, { s: 'plant', x: a, y: 200, sol: [2, 14, 12, 9] });
@@ -111,10 +130,9 @@ function buildRooms() {
   /* ---------- BÊN TRONG KHU GAME ---------- */
   m = roomBase('arc', 'Khu game Arcade', '#2c2347', '#ff5fa8', 'dtile');
   for (let i = 0; i < 18; i++) R(m.x, i % 2 ? '#ffe066' : '#5fe0f0', 20 + i * 16, 22, 3, 3);
-  addObj(m, { s: 'stE', x: 20, y: 8, sol: [1, 24, 52, 22], label: () => 'Quầy đổi xèng', act: () => ACT.tokens() });
-  m.labels.push({ x: 47, y: 47.5, text: 'ĐỔI XÈNG', size: 4.6, col: '#2a2136', maxw: 50 });
+  addShop(m, 'xeng', 20, 'Đổi xèng', () => 'Quầy đổi xèng', () => ACT.tokens(), ['c1', 'cas_dat']);
   for (const [spr, a, kind, name] of [['cabClaw', 88, 'claw', 'Máy gắp thú'], ['cabFight', 122, 'fight', 'Game đối kháng'], ['cabFight', 146, 'fight', 'Game đối kháng'], ['cabSlot', 178, 'slot', 'Máy may rủi'], ['cabRace', 210, 'race', 'Game thùng đua xe'], ['cabRace', 234, 'race', 'Game thùng đua xe'], ['cabDance', 268, 'dance', 'Máy nhảy']])
-    addObj(m, { s: spr, x: a, y: 4, sol: [1, 14, 20, 22], label: () => name, act: () => ACT.machine(kind) });
+    addObj(m, { s: spr, x: a, y: 4, sol: [1, 14, 20, 22], label: () => name, act: () => ACT.machine(kind, a) });
   addObj(m, { s: 'dancepad', x: 262, y: 46, flat: true });
   NPCS.push({ id: 'arc_a', name: 'Người chơi', look: 'c5', outfit: () => 'cas_dat', map: 'arc', x: 156, y: 52, dir: 3 });
   NPCS.push({ id: 'arc_b', name: 'Người chơi', look: 'c3', outfit: () => 'cas_khoa', map: 'arc', x: 120, y: 150, dir: 0, wander: 30 });

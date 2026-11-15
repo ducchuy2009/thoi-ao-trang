@@ -243,10 +243,97 @@ function buildSprites2() {
   def('weedfly', 5, 6, x => { R(x, '#4c9a3c', 2, 0, 1, 6); R(x, '#6fbd4f', 0, 2, 2, 1); R(x, '#6fbd4f', 3, 1, 2, 1); }, true);
   def('ricebox', 8, 6, x => { R(x, '#e2574c', 0, 2, 8, 4); R(x, '#fbf7ee', 0, 0, 8, 3); }, true);
   for (const k of ['bike', 'ebike', 'moto50']) SPR[k + 'L'] = flipH(SPR[k]);
+
+  /* ---------- khối nhà vệ sinh riêng ngoài sân trường: cửa NAM (xanh) · cửa NỮ (hồng) ---------- */
+  def('wcblock', 72, 58, x => {
+    R(x, '#8fa0ab', 0, 4, 72, 8); R(x, '#a8b6bf', 0, 4, 72, 2); R(x, '#6f7f8a', 0, 11, 72, 1);
+    R(x, '#eef3f6', 2, 12, 68, 46); R(x, '#d6e0e6', 2, 12, 68, 2); R(x, '#c9d6dd', 2, 52, 68, 6);
+    for (let i = 4; i < 70; i += 6) R(x, '#dfe9ee', i, 15, 1, 36);
+    R(x, '#3a3f55', 18, 0, 36, 7); R(x, '#fffaf0', 19, 1, 34, 5);
+    // cửa nam
+    drawDoor(x, 6, 26, 22, 30, '#5a8fd6'); R(x, '#fffaf0', 11, 16, 12, 8); ell(x, '#3b6fb6', 17, 18, 1.6, 1.6); R(x, '#3b6fb6', 15, 20, 5, 3);
+    // cửa nữ
+    drawDoor(x, 44, 26, 22, 30, '#e98fa5'); R(x, '#fffaf0', 49, 16, 12, 8); ell(x, '#d9537a', 55, 18, 1.6, 1.6); tri(x, '#d9537a', 55, 19, 4, 3); R(x, '#d9537a', 53, 22, 5, 1);
+    R(x, '#8b8f9c', 34, 30, 4, 22); R(x, '#5fae4a', 33, 46, 6, 6);
+  });
+  /* ---------- các cửa hàng trong TTTM: mỗi nhà một kiểu, hàng hoá bày ra trước mặt ---------- */
+  // phần sau: tường + biển hiệu + kệ trưng bày; phần trước: quầy (người bán đứng giữa hai phần)
+  const shopBack = (name, wall, sign, fn) => def(name + '_b', 54, 44, x => {
+    R(x, shade(wall, -22), 0, 0, 54, 44); R(x, wall, 1, 9, 52, 35); R(x, shade(wall, 10), 1, 9, 52, 1);
+    R(x, sign, 0, 0, 54, 9); R(x, shade(sign, 28), 0, 0, 54, 1); R(x, shade(sign, -28), 0, 8, 54, 1);
+    fn(x);
+  });
+  const shopFront = (name, col, fn) => def(name + '_f', 54, 22, x => {
+    R(x, shade(col, 32), 0, 7, 54, 3); R(x, col, 0, 10, 54, 9); R(x, shade(col, -25), 0, 19, 54, 3);
+    if (fn) fn(x);
+  });
+  const ic = (x, id, a, b) => x.drawImage(iconCv(id), a, b);
+  const shirt = (x, col, a, b) => { R(x, col, a + 3, b, 8, 11); R(x, col, a, b, 3, 5); R(x, col, a + 11, b, 3, 5); R(x, shade(col, -25), a + 3, b + 9, 8, 2); R(x, '#fffaf0', a + 6, b, 2, 2); R(x, '#fffaf0', a + 5, b + 4, 4, 3); };
+  // RẠP PHIM: bóng đèn quanh biển, hai tấm áp phích phim, cửa bán vé, xô bắp rang
+  shopBack('sh_phim', '#3a2140', '#b23b3b', x => {
+    for (let i = 0; i < 13; i++) { R(x, '#ffe066', 2 + i * 4, 1, 2, 1); R(x, '#ffe066', 2 + i * 4, 7, 2, 1); }
+    R(x, '#ffe066', 3, 11, 15, 22); R(x, '#3b82c4', 4, 12, 13, 20); ell(x, '#ffe066', 13, 16, 2.5, 2.5); tri(x, '#2e9e86', 10, 20, 8, 7); R(x, '#2e9e86', 4, 26, 13, 6); R(x, '#fffaf0', 5, 28, 11, 1);
+    R(x, '#ffe066', 36, 11, 15, 22); R(x, '#7a5fc9', 37, 12, 13, 20); R(x, '#ff9fc0', 41, 15, 5, 5); R(x, '#ff9fc0', 39, 17, 9, 3); R(x, '#fffaf0', 38, 26, 11, 1); R(x, '#fffaf0', 39, 29, 9, 1);
+    R(x, '#1b1530', 19, 11, 16, 15); R(x, '#24406b', 20, 12, 14, 13); ic(x, 'vephim', 18, 10);
+    for (let i = 0; i < 6; i++) R(x, i % 2 ? '#fffaf0' : '#d9534f', 21 + i * 2, 33, 2, 10);
+    ell(x, '#fff3c8', 23, 31, 3, 2.4); ell(x, '#ffe9a0', 27, 30, 3, 2.6); ell(x, '#fff3c8', 31, 31, 3, 2.4); R(x, '#f4d35e', 25, 29, 2, 1);
+  });
+  shopFront('sh_phim', '#b23b3b', x => { R(x, '#ffe066', 0, 11, 54, 1); for (let i = 0; i < 5; i++) { R(x, '#ffe066', 5 + i * 11, 14, 3, 3); } for (let k = 0; k < 2; k++) { const a = 4 + k * 40; for (let i = 0; i < 4; i++) R(x, i % 2 ? '#fffaf0' : '#d9534f', a + i * 2, 2, 2, 6); ell(x, '#fff3c8', a + 4, 1, 4, 1.6); } });
+  // NHÀ SÁCH: kệ gỗ kín sách đủ màu, cuốn sách tham khảo mở ra ở giữa
+  shopBack('sh_sach', '#f3e7cc', '#3b82c4', x => {
+    R(x, '#8a5a3a', 2, 10, 50, 34); const cols = ['#d9534f', '#3b82c4', '#f2a93b', '#5fae4a', '#7a5fc9', '#e06a9a', '#2e9e86', '#fffaf0', '#c9862b'];
+    for (let r = 0; r < 3; r++) { R(x, '#5b3d27', 3, 11 + r * 11, 48, 9); let a = 4, k = r * 3; while (a < 49) { const w = 2 + ((k * 7) % 2), h = 6 + ((k * 5) % 3); R(x, cols[k % cols.length], a, 20 + r * 11 - h, w, h); R(x, shade(cols[k % cols.length], -25), a, 20 + r * 11 - h, w, 1); a += w + ((k % 5) === 0 ? 1 : 0); k++; } R(x, '#a9703f', 3, 20 + r * 11, 48, 2); }
+    R(x, '#fffaf0', 16, 20, 22, 14); ic(x, 'sachtk', 18, 18); R(x, '#a9703f', 15, 34, 24, 2);
+  });
+  shopFront('sh_sach', '#a9703f', x => { for (let i = 0; i < 4; i++) R(x, ['#d9534f', '#3b82c4', '#5fae4a', '#f2a93b'][i], 4, 5 - i * 2 + 2, 11 - i, 2); R(x, '#fffaf0', 36, 3, 13, 5); R(x, '#d9d0bd', 42, 3, 1, 5); R(x, '#8fa0ab', 38, 5, 3, 1); R(x, '#8fa0ab', 44, 5, 3, 1); R(x, '#6f472c', 0, 13, 54, 1); });
+  // SIÊU THỊ: hai tầng kệ bày bim bim, hộp thẻ, sữa, bánh mì
+  shopBack('sh_sieuthi', '#eef7ee', '#5fae4a', x => {
+    for (let r = 0; r < 2; r++) R(x, '#8b8f9c', 1, 26 + r * 17, 52, 2);
+    ic(x, 'bimbim', 1, 9); ic(x, 'bimbim', 18, 9); ic(x, 'hopthe', 35, 9);
+    ic(x, 'sua', 1, 26); ic(x, 'banhmi', 18, 26); ic(x, 'sua', 35, 26);
+  });
+  shopFront('sh_sieuthi', '#fbfdff', x => { R(x, '#5fae4a', 0, 12, 54, 3); R(x, '#5f656f', 38, 1, 12, 7); R(x, '#8fd067', 40, 2, 8, 3); R(x, '#3a3f55', 39, 6, 10, 1); R(x, '#f4d35e', 6, 3, 8, 5); R(x, '#d9534f', 9, 4, 2, 2); });
+  // ĂN UỐNG: bảng thực đơn có hình gà rán, trà sữa, xiên que; quầy có xô gà và cốc nước
+  shopBack('sh_anuong', '#fde8c8', '#f2a93b', x => {
+    for (let i = 0; i < 7; i++) R(x, i % 2 ? '#fffaf0' : '#d9534f', 1 + i * 8, 9, 8, 4);
+    R(x, '#2a2136', 2, 14, 50, 24); R(x, '#3a3f55', 3, 15, 48, 22);
+    ic(x, 'garan', 3, 15); ic(x, 'trasua', 18, 15); ic(x, 'xien', 33, 15);
+    R(x, '#ffe066', 6, 34, 10, 1); R(x, '#ffe066', 21, 34, 10, 1); R(x, '#ffe066', 36, 34, 10, 1);
+  });
+  shopFront('sh_anuong', '#f2a93b', x => { for (let i = 0; i < 5; i++) R(x, i % 2 ? '#fffaf0' : '#d9534f', 5 + i * 2, 2, 2, 6); ell(x, '#d9883c', 7, 1, 2, 1.6); ell(x, '#c97a2b', 12, 1, 2, 1.6); for (const a of [36, 44]) { R(x, '#e8d6b0', a, 2, 6, 6); R(x, '#8a5a3a', a, 6, 6, 2); R(x, '#5f656f', a + 3, 0, 1, 3); } R(x, '#d9534f', 0, 13, 54, 2); });
+  // NỘI THẤT: đèn cây, áp phích, chậu cây, tấm thảm treo tường
+  shopBack('sh_noithat', '#efe7f7', '#7a5fc9', x => {
+    x.drawImage(SPR.floorlamp, 2, 11); x.drawImage(SPR.poster, 20, 11); x.drawImage(SPR.plant, 38, 17);
+    ic(x, 'd_tham', 17, 26);
+  });
+  shopFront('sh_noithat', '#b9aee0', x => { tri(x, '#ffe9a0', 9, 0, 4, 4); R(x, '#5f656f', 9, 4, 2, 3); R(x, '#f4d35e', 4, 3, 10, 1); ell(x, '#5fae4a', 44, 3, 4, 2.5); R(x, '#c8583f', 42, 5, 5, 3); R(x, '#8f7fd0', 0, 13, 54, 2); });
+  // NHẠC CỤ: hai cây đàn treo tường, micro, trống, nốt nhạc; mặt quầy là phím đàn piano
+  shopBack('sh_nhaccu', '#dff2ee', '#2e9e86', x => {
+    x.drawImage(SPR.guitar, 3, 11); x.drawImage(SPR.guitar, 41, 11);
+    ic(x, 'micro', 18, 11);
+    ell(x, '#d9534f', 26, 36, 9, 5); R(x, '#d9534f', 17, 33, 19, 6); ell(x, '#fffaf0', 26, 33, 9, 3); R(x, '#8b8f9c', 20, 39, 1, 4); R(x, '#8b8f9c', 32, 39, 1, 4);
+    for (const [a, b] of [[16, 12], [36, 16]]) { R(x, '#2a2136', a, b, 1, 6); ell(x, '#2a2136', a - 1, b + 6, 1.6, 1.2); R(x, '#2a2136', a, b, 3, 1); }
+  });
+  shopFront('sh_nhaccu', '#fbfdff', x => { for (let i = 0; i < 54; i += 4) R(x, '#2a2136', i + 3, 10, 1, 12); for (let i = 0; i < 54; i += 8) { if ((i / 8) % 4 === 2) continue; R(x, '#2a2136', i + 2, 10, 3, 6); } R(x, '#2e9e86', 0, 7, 54, 3); });
+  // THỂ THAO: áo đấu treo, tạ tay, dây nhảy, xà đơn, bóng rổ
+  shopBack('sh_thethao', '#fde4ee', '#e06a9a', x => {
+    shirt(x, '#3b82c4', 3, 12); ic(x, 'tatay', 18, 10); shirt(x, '#d9534f', 37, 12);
+    ic(x, 'daynhay', 1, 26); ic(x, 'xadon', 18, 26); x.drawImage(SPR.bball, 40, 33); x.drawImage(SPR.bball, 44, 27);
+  });
+  shopFront('sh_thethao', '#e06a9a', x => { R(x, '#5f656f', 4, 4, 2, 4); R(x, '#5f656f', 12, 4, 2, 4); R(x, '#8b8f9c', 6, 5, 6, 2); x.drawImage(SPR.bball, 40, 0); R(x, '#fffaf0', 0, 13, 54, 1); });
+  // QUẦY ĐỔI XÈNG trong khu game
+  shopBack('sh_xeng', '#2c2347', '#ff5fa8', x => {
+    for (let i = 0; i < 13; i++) R(x, i % 2 ? '#ffe066' : '#5fe0f0', 2 + i * 4, 1, 2, 1);
+    ic(x, 'xeng', 2, 14); ic(x, 'xeng', 18, 11); ic(x, 'xeng', 34, 14);
+    for (let i = 0; i < 4; i++) { ell(x, '#f4d35e', 12 + i * 10, 38, 4, 1.8); R(x, '#c9a227', 8 + i * 10, 38, 8, 3); }
+  });
+  shopFront('sh_xeng', '#ff5fa8', x => { for (let i = 0; i < 3; i++) ell(x, '#f4d35e', 8, 6 - i * 2, 4, 1.6); for (let i = 0; i < 2; i++) ell(x, '#f4d35e', 46, 6 - i * 2, 4, 1.6); R(x, '#ffe066', 0, 13, 54, 1); });
+
 }
 
 /* ---------- biểu tượng vật phẩm cho thanh đồ (16×16 → dataURL) ---------- */
-const _icons = {};
+const _icons = {}, _iconCv = {};
+const iconCv = id => { itemIcon(id); return _iconCv[id]; };     // canvas của icon (để vẽ hàng hoá lên quầy, kệ)
 function itemIcon(id) {
   if (_icons[id]) return _icons[id];
   const c = mk(16, 16), x = cx(c);
@@ -299,10 +386,12 @@ function itemIcon(id) {
   else if (id === 'm_cal') { R(x, '#fffaf0', 1, 3, 14, 11); R(x, '#e2574c', 1, 3, 14, 4); R(x, '#2a2136', 4, 1, 1, 4); R(x, '#2a2136', 11, 1, 1, 4); for (let j = 0; j < 2; j++) for (let i = 0; i < 4; i++) R(x, i === 2 && j === 1 ? '#e2574c' : '#8fa0ab', 3 + i * 3, 9 + j * 3, 2, 2); }
   else if (id === 'm_cards') { R(x, '#fffaf0', 2, 3, 8, 11); R(x, '#d9534f', 3, 4, 6, 9); R(x, '#fffaf0', 6, 2, 8, 11); R(x, '#3b82c4', 7, 3, 6, 9); R(x, '#ffe066', 9, 6, 2, 3); }
   else if (id === 'm_set') { ell(x, '#8b8f9c', 7.5, 7.5, 5, 5); for (const [a, b2] of [[7, 0], [7, 13], [0, 7], [13, 7], [2, 2], [12, 2], [2, 12], [12, 12]]) R(x, '#8b8f9c', a, b2, 2, 2); ell(x, '#fff6e3', 7.5, 7.5, 2, 2); R(x, '#c9ccd4', 5, 4, 4, 1); }
+  else if (id === 'm_map') { R(x, '#fffaf0', 1, 3, 14, 11); R(x, '#cfe8b8', 1, 3, 4, 11); R(x, '#bfe3f2', 10, 3, 5, 11); R(x, '#d9ccb2', 5, 3, 1, 11); R(x, '#d9ccb2', 10, 3, 1, 11); R(x, '#e2574c', 6, 5, 3, 3); R(x, '#e2574c', 7, 8, 1, 2); R(x, '#8b8f9c', 2, 10, 6, 1); }
   else if (id === 'm_menu') { for (const b2 of [3, 7, 11]) { R(x, '#2a2136', 2, b2, 12, 2); R(x, '#5f656f', 2, b2, 12, 1); } }
   else if (id === 'm_phone') { R(x, '#2a2136', 4, 1, 8, 14); R(x, '#8fd0f0', 5, 3, 6, 8); R(x, '#cfeefa', 5, 3, 6, 2); R(x, '#fff6e3', 7, 12, 2, 1); }
   else { R(x, '#c9b58a', 3, 3, 10, 10); }
-  return (_icons[id] = outline(c).toDataURL());
+  const oc = outline(c); _iconCv[id] = oc;
+  return (_icons[id] = oc.toDataURL());
 }
 // Chân dung nhân vật cho hộp thoại (đầu + vai, phóng to)
 const _faces = {};

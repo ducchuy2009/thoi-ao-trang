@@ -303,3 +303,7 @@ body.cut #hotbar{opacity:0;pointer-events:none}
 .tv-dim{opacity:.75;font-size:13px!important}
 .tv-tick{background:#15121f;color:#ffe066;font-size:12px;padding:4px 10px}
 @media (max-width:720px){.tv-body img{width:44px;height:44px}}
+/* ---------- bản đồ thành phố ---------- */
+.cmap img{display:block;width:100%;height:auto;border:3px solid var(--ink);border-radius:10px;background:#7fb36a}
+.cmap-info{margin-top:8px}
+.cmap-info p{margin:0 0 5px}
