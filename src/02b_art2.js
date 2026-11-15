@@ -520,3 +520,35 @@ function cardPortrait(c) {
   x.drawImage(f, 0, 0, 18, 24, 0, 0, 72, 96);
   return (_portraits[c.id] = cv2.toDataURL());
 }
+/* ---------- huy hiệu CLB và cờ đội tuyển trên thẻ cầu thủ ---------- */
+const _badges = {};
+const SHIELD = [[1, 10], [0, 11], [0, 11], [0, 11], [0, 11], [0, 11], [0, 11], [0, 11], [0, 11], [1, 10], [2, 9], [3, 8], [4, 7], [5, 6]];
+function clubCrest(k) {
+  if (_badges['c' + k]) return _badges['c' + k];
+  const C = CARD_CLUBS[k], c = mk(12, 14), x = cx(c), [a, b] = C.kit, ink = '#2a2136';
+  SHIELD.forEach(([l, r], y) => R(x, ink, l, y, r - l + 1, 1));
+  SHIELD.forEach(([l, r], y) => { if (y > 0 && y < 13 && r - l > 1) R(x, a, l + 1, y, r - l - 1, 1); });
+  R(x, shade(a, 30), 2, 1, 8, 1);                                    // viền sáng phía trên
+  const P = (px, py, w, h, col) => R(x, col || b, px, py, w || 1, h || 1);
+  if (k === 'HP') { P(5, 2, 2, 2); P(3, 4, 2, 2); P(7, 4, 2, 2); P(5, 6, 2, 2); P(4, 8, 1, 1); P(7, 8, 1, 1); P(5, 4, 2, 2, '#e98a3c'); P(5, 8, 2, 2, '#3f8f3a'); }     // hoa phượng
+  else if (k === 'SX') { for (const yy of [3, 6, 9]) { P(2, yy + 1); P(3, yy); P(4, yy); P(5, yy + 1); P(6, yy + 1); P(7, yy); P(8, yy); P(9, yy + 1); } }            // sóng nước
+  else if (k === 'CB') { P(5, 2, 2, 1); P(4, 3, 1, 1); P(7, 3, 1, 1); P(5, 4, 2, 1); P(5, 5, 2, 5); P(3, 6, 6, 1); P(2, 8, 1, 2); P(9, 8, 1, 2); P(3, 10, 2, 1); P(7, 10, 2, 1); }   // mỏ neo
+  else if (k === 'ND') { P(4, 2); P(3, 3, 3); P(2, 4, 5); P(8, 4); P(7, 5, 3); P(2, 5, 5); P(1, 6, 10); P(1, 7, 10, 2); P(4, 2, 1, 1, '#fffaf0'); P(3, 3, 3, 1, '#fffaf0'); P(8, 4, 1, 1, '#fffaf0'); P(5, 8, 2, 1, shade(a, -25)); }  // hai đỉnh núi phủ tuyết
+  return (_badges['c' + k] = c.toDataURL());
+}
+function natFlag(k) {
+  if (_badges['n' + k]) return _badges['n' + k];
+  const c = mk(16, 11), x = cx(c), ink = '#2a2136';
+  R(x, ink, 0, 0, 16, 11);
+  const F = (px, py, w, h, col) => R(x, col, px, py, w, h);
+  if (k === 'VN') { F(1, 1, 14, 9, '#da251d'); const y = '#ffdd00'; F(7, 2, 2, 2, y); F(4, 4, 8, 1, y); F(5, 5, 6, 1, y); F(6, 6, 4, 1, y); F(5, 7, 2, 1, y); F(9, 7, 2, 1, y); F(4, 8, 2, 1, y); F(10, 8, 2, 1, y); }
+  else if (k === 'NB') { F(1, 1, 14, 9, '#fbfbf7'); ell(x, '#bc002d', 8, 5.5, 2.6, 2.6); }
+  else if (k === 'TH') { F(1, 1, 14, 2, '#a51931'); F(1, 3, 14, 1, '#f4f5f8'); F(1, 4, 14, 3, '#2d2a4a'); F(1, 7, 14, 1, '#f4f5f8'); F(1, 8, 14, 2, '#a51931'); }
+  else if (k === 'BR') { F(1, 1, 14, 9, '#009c3b'); const y = '#ffdf00'; F(7, 2, 2, 1, y); F(5, 3, 6, 1, y); F(3, 4, 10, 3, y); F(5, 7, 6, 1, y); F(7, 8, 2, 1, y); F(6, 4, 4, 3, '#1f3c88'); F(6, 5, 4, 1, '#fbfbf7'); }
+  return (_badges['n' + k] = c.toDataURL());
+}
+// <img> huy hiệu / cờ, kèm tên khi rê chuột
+const badgeImg = (kind, k, cls) => kind === 'club'
+  ? `<img class="${cls || 'bdg'}" src="${clubCrest(k)}" alt="${CARD_CLUBS[k].name}" title="CLB ${CARD_CLUBS[k].name}">`
+  : `<img class="${cls || 'bdg'} flag" src="${natFlag(k)}" alt="${CARD_NATS[k].name}" title="Đội tuyển ${CARD_NATS[k].name}">`;
+const cardBadges = (c, cls) => badgeImg('club', c.club, cls) + (c.nat ? badgeImg('nat', c.nat, cls) : '');

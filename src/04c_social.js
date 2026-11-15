@@ -552,10 +552,10 @@ async function breakFunCore(fid, id, inClass) {
   const risk = (B.risk || 0) + (inClass ? IN_CLASS.riskAdd : 0);
   if (risk) {
     if (Math.random() < risk + 0.03 * G.caughtCycle) {
-      if (inClass) L.push(...caughtInClass({ sev: id === 'danhbai' ? 2 : 1, what: id === 'wc' ? 'Hai đứa đi quá lâu, vào lớp cô hỏi tội' : 'Cô quay xuống đúng lúc' }));
+      if (inClass) { const sev = id === 'danhbai' ? 2 : 1; await caughtScene(fid, id, sev); L.push(...caughtInClass({ sev, what: id === 'wc' ? 'Hai đứa đi quá lâu, vào lớp cô hỏi tội' : 'Cô quay xuống đúng lúc' })); }
       else if (id === 'danhbai') { G.caughtCycle++; addConduct(-0.5, 'đánh bài trong trường'); addTeacher(TEACHER.caughtFun, 'nghiem'); L.push(li('Thầy giám thị đi ngang cửa sổ, tịch thu bộ bài.', 'bad')); }
       else { addTeacher(-1, 'hanh'); L.push(li('Vào lớp cô nhìn thấy vệt son: “Em kia, ra rửa mặt ngay!” — bị nhắc nhở trước lớp.', 'warn')); }
-    } else L.push(li(inClass ? 'Cô không để ý. Trót lọt!' : id === 'danhbai' ? 'Nghe tiếng dép giám thị là cất bài vội vào cặp. Không ai phát hiện!' : 'Kịp lau bớt son trước khi vào lớp. Không ai để ý!', 'dim'));
+    } else L.push(li(inClass ? `${classTeacher().co.replace(/^./, c => c.toUpperCase())} không để ý. Trót lọt!` : id === 'danhbai' ? 'Nghe tiếng dép giám thị là cất bài vội vào cặp. Không ai phát hiện!' : 'Kịp lau bớt son trước khi vào lớp. Không ai để ý!', 'dim'));
   }
   return L;
 }
@@ -583,9 +583,16 @@ async function classAction(p, subj) {
   const a = ids[await UI.ask(F.name, `<p>${F.name} liếc sang: “Gì đó? Cô đang nhìn kìa…”</p>`, opts)] || 'x';
   if (a === 'x') return null;
   let L = [];
-  const risky = r => { if (Math.random() < r + 0.05 * G.caughtCycle) L.push(...caughtInClass({ sev: 1 })); };
-  if (a === 'chat') { addFriend(fid, IN_CLASS.chat.friend); addStat('giaotiep', 1); L.push(li(`Thì thầm tám chuyện với ${F.name}.`, 'warn')); risky(IN_CLASS.chat.risk); }
-  else if (a === 'duel') { const r = await cardDuel('f_' + fid, fid, F.name, F.duel); L.push(li(r === null ? 'Chưa kịp đấu thì thôi.' : `Đấu thẻ dưới gầm bàn với ${F.name}.`, 'warn')); risky(IN_CLASS.duelRisk); }
+  const roll = r => Math.random() < r + 0.05 * G.caughtCycle;
+  if (a === 'chat') {
+    const caught = roll(IN_CLASS.chat.risk), light = G.caughtCycle === 0;
+    if (inClassScene()) await playCut(classFunCut('tam', fid, caught ? (light ? 'light' : 'hard') : null));
+    addFriend(fid, IN_CLASS.chat.friend); addStat('giaotiep', 1); L.push(li(`Thì thầm tám chuyện với ${F.name}.`, 'warn'));
+    if (caught) L.push(...caughtInClass({ sev: 1 }));
+  } else if (a === 'duel') {
+    const r = await cardDuel('f_' + fid, fid, F.name, F.duel); L.push(li(r === null ? 'Chưa kịp đấu thì thôi.' : `Đấu thẻ dưới gầm bàn với ${F.name}.`, 'warn'));
+    if (r !== null && roll(IN_CLASS.duelRisk)) { await caughtScene(fid, 'duel', 1); L.push(...caughtInClass({ sev: 1 })); }
+  }
   else L = await breakFunCore(fid, a, true);
   return { delta: IN_CLASS.delta, lines: L };
 }
@@ -773,7 +780,7 @@ function packToast(res) { for (const { c, isNew } of res) UI.toast(`Bóc thẻ: 
 function cardHtml(c, tag, hidden) {
   const R = CARD_RARITY[c.r], t = tag ? `<i class="pc-t">${tag}</i>` : '';
   if (hidden) return `<div class="pcard back" style="--rc:${R.col}">${t}<div class="pc-q">?</div><div class="pc-n">${CARD_POS[c.pos]}</div><div class="pc-r">${starsOf(c)} ${R.name}</div></div>`;
-  return `<div class="pcard" style="--rc:${R.col}">${t}<img src="${cardPortrait(c)}" alt=""><div class="pc-n">${c.name}</div><div class="pc-r">${starsOf(c)} ${CARD_POS[c.pos]}</div><div class="pc-s">${CARD_STATS.map(([k, , s]) => `<span>${s} <b>${c[k]}</b></span>`).join('')}</div></div>`;
+  return `<div class="pcard" style="--rc:${R.col}">${t}<span class="pc-b">${cardBadges(c)}</span><img src="${cardPortrait(c)}" alt=""><div class="pc-n">${c.name}</div><div class="pc-r">${starsOf(c)} ${CARD_POS[c.pos]}</div><div class="pc-s">${CARD_STATS.map(([k, , s]) => `<span>${s} <b>${c[k]}</b></span>`).join('')}</div></div>`;
 }
 function showPack(res, title) {
   return UI.ask(title || 'Bóc thẻ', `<div class="pcards">${res.map(({ c, isNew }) => cardHtml(c, isNew ? 'MỚI' : '')).join('')}</div><p class="dim">Đã sưu tầm ${cardKinds()}/${CARDS.length} loại thẻ. Xem bộ sưu tập và xếp đội hình trong Menu → Thẻ cầu thủ.</p>`, ['OK']);

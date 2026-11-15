@@ -83,13 +83,13 @@ function genDeck(tier, seed) {
 /* ---------- giao diện thẻ nhỏ ---------- */
 function ctile(c, o) {
   o = o || {};
-  const R = CARD_RARITY[c.r], [n1, n2] = nickOf(c), C = CARD_CLUBS[c.club], N = c.nat && CARD_NATS[c.nat], bo = o.bonus || 0;
+  const R = CARD_RARITY[c.r], [n1, n2] = nickOf(c), bo = o.bonus || 0;
   const st = CARD_STATS.map(([k, , s]) => `<span class="${o.stat === k ? 'hl' : ''}">${s} <b>${c[k]}${o.stat === k && bo ? `<i>+${bo}</i>` : ''}</b></span>`).join('');
   return `<${o.act ? 'button' : 'div'} class="ct ${o.on ? 'on' : ''} ${o.dim ? 'dim' : ''}" ${o.act ? `data-act="${o.act}" data-id="${c.id}"` : ''} style="--rc:${R.col}">
     <i class="ct-pos p-${c.pos}">${POS_SHORT[c.pos]}</i><i class="ct-sal">${cardSal(c)}💰</i><img src="${cardPortrait(c)}" alt=""><b>${n1}</b><small>${n2}</small>
-    <span class="ct-s">${st}</span><span class="ct-tags"><em style="background:${C.col}">${c.club}</em>${N ? `<em style="background:${N.col};color:${N.fg || '#fff'}">${c.nat}</em>` : ''}</span></${o.act ? 'button' : 'div'}>`;
+    <span class="ct-s">${st}</span><span class="ct-tags">${cardBadges(c)}</span></${o.act ? 'button' : 'div'}>`;
 }
-const synergyText = cards => { const { groups } = teamBonus(cards); return groups.length ? groups.map(g => `${g.key === 'club' ? CARD_CLUBS[g.k].name : 'Tuyển ' + CARD_NATS[g.k].name} ×${g.n} (+${g.n - 1}/người)`).join(' · ') : 'Chưa có cặp cùng CLB hay cùng đội tuyển'; };
+const synergyText = cards => { const { groups } = teamBonus(cards); return groups.length ? groups.map(g => `${badgeImg(g.key, g.k, 'bdg in')} ${g.key === 'club' ? CARD_CLUBS[g.k].name : 'Tuyển ' + CARD_NATS[g.k].name} ×${g.n} (+${g.n - 1}/người)`).join(' · ') : 'Chưa có cặp cùng CLB hay cùng đội tuyển'; };
 
 /* ---------- TRẬN ĐẤU ---------- */
 const RPS = [['bua', '✊', 'Búa'], ['keo', '✌️', 'Kéo'], ['bao', '✋', 'Bao']];

@@ -18,24 +18,141 @@ async function classFun() {
   if (c === 2) { await playCut(snitchCut(fid, true)); return { delta: 1, lines: snitch(fid, true) }; }
   if (c !== 0) return { delta: 1, lines: [] };
   addFriend(fid, ev.friend); G.daily.fun++;
+  const caught = Math.random() < ev.risk + 0.05 * G.caughtCycle, light = ev.sev === 1 && G.caughtCycle === 0, { co } = classTeacher();
+  if (inClassScene()) await playCut(classFunCut(ev.id, fid, caught ? (light ? 'light' : 'hard') : null));
   L.push(li(`${ev.join} cùng ${F.name}, hơi mất tập trung.`, 'warn'));
   if (ev.stam) G.stamina = Math.min(maxStam(), G.stamina + ev.stam);
   if (ev.giaotiep) addStat('giaotiep', ev.giaotiep);
-  if (Math.random() < ev.risk + 0.05 * G.caughtCycle) L.push(...caughtInClass(ev));
-  else L.push(li('Cô không để ý. Trót lọt!', 'dim'));
+  if (caught) { L.push(...caughtInClass(ev)); if (!light && FUN_KIND[ev.id].take) L.push(li(FUN_KIND[ev.id].take.replace(/\{co\}/g, co).replace(/^./, c => c.toUpperCase()), 'warn')); }
+  else L.push(li(`${co[0].toUpperCase() + co.slice(1)} không để ý. Trót lọt!`, 'dim'));
   return { delta: -2, lines: L };
 }
 // Bị cô bắt: lỗi nhẹ lần đầu chỉ nhắc nhở; lỗi nặng hoặc tái phạm thì trừ hạnh kiểm và có thể báo phụ huynh
 function caughtInClass(ev) {
   addMemo('scene', 'caught');
-  const n = ++G.caughtCycle, L = [];
-  if (ev.sev === 1 && n === 1) { L.push(li('Bị cô bắt gặp! Lỗi nhẹ, lần đầu nên cô chỉ nhắc nhở.', 'warn')); return L; }
-  L.push(li(`Bị cô bắt quả tang${ev.id && ev.sev === 2 ? ' dùng điện thoại trong giờ' : ''}${n > 1 ? ` — lần thứ ${n} trong kỳ hạnh kiểm này` : ''}.`, 'bad'));
+  const n = ++G.caughtCycle, L = [], { co } = classTeacher(), Co = co[0].toUpperCase() + co.slice(1);
+  if (ev.sev === 1 && n === 1) { L.push(li(`Bị ${co} bắt gặp! Lỗi nhẹ, lần đầu nên ${co} chỉ nhắc nhở.`, 'warn')); return L; }
+  L.push(li(`Bị ${co} bắt quả tang${ev.id && ev.sev === 2 ? ' dùng điện thoại trong giờ' : ''}${n > 1 ? ` — lần thứ ${n} trong kỳ hạnh kiểm này` : ''}.`, 'bad'));
   addConduct(-(n >= 3 ? 1 : 0.5), 'làm việc riêng trong giờ học'); addTeacher(TEACHER.caughtFun);
   const pCall = ev.sev === 2 ? (n > 1 ? 0.5 : 0.25) : 0.15;
-  if (Math.random() < pCall) { addParent(PARENT.teacherCall, 'cô giáo gọi điện báo phụ huynh'); L.push(li('Cô gọi điện báo về gia đình.', 'bad')); }
-  else L.push(li('Cô phê bình trước lớp nhưng không báo phụ huynh.', 'dim'));
+  if (Math.random() < pCall) { addParent(PARENT.teacherCall, `${co} giáo gọi điện báo phụ huynh`); L.push(li(`${Co} gọi điện báo về gia đình.`, 'bad')); }
+  else L.push(li(`${Co} phê bình trước lớp nhưng không báo phụ huynh.`, 'dim'));
   return L;
+}
+
+/* ---------- hoạt cảnh trong giờ học: làm việc riêng & bị thầy cô bắt quả tang ---------- */
+// Hai đứa chụm đầu vào nhau ở đâu: f = chỗ bạn (x, y, hướng), me = chỗ mình, p = chỗ đặt đồ, t = đường thầy cô đi xuống (điểm cuối kèm hướng nhìn)
+const FUN_SPOT = {
+  khoa: { f: [125, 134, 1], me: [111, 134, 2], p: [118, 121], t: [[158, 62], [158, 124], [149, 124, 1]] },
+  ngan: { f: [78, 134, 2], me: [109, 134, 1], p: [93, 121], t: [[92, 62], [92, 112, 0]] },
+  dat: { f: [111, 168, 3], me: [111, 134, 0], p: [108, 142], t: [[158, 62], [158, 152], [138, 152, 1]] },
+  vy: { f: [161, 134, 1], me: [113, 134, 2], p: [144, 121], t: [[176, 62], [176, 112, 0]], mate: ['khoa', 128, 134, 2] },
+  back: { f: [172, 164, 1], me: [146, 164, 2], p: [154, 162], t: [[158, 62], [158, 144, 0]] },
+};
+// {co} = cô / thầy. lead: câu mở đầu khi chỉ diễn cảnh bị bắt (sau một trò khác)
+const FUN_KIND = {
+  banhtrang: { title: 'ăn vụng bánh tráng trộn', prop: 'snack', laugh: false,
+    intro: [[0, 'Bánh tráng trộn nè, bốc một nhúm đi!'], ['me', 'Cho tớ một miếng… cay xé lưỡi!'], [0, 'Hít hà… khẽ thôi kẻo {co} nghe!']],
+    catchT: 'Mùi gì thơm thế này? À, ra là hai em ăn quà trong giờ!', take: 'Bịch bánh này {co} giữ. Ra chơi hãy ăn!' },
+  tam: { title: 'tám chuyện', prop: 'whisper', laugh: true, stand: true,
+    intro: [[0, 'Nè… hôm qua tớ thấy chuyện này hay lắm…'], ['me', 'Thật á?! Kể tiếp đi!'], [0, 'Suỵt… nhỏ thôi, nghe nè…']],
+    catchT: 'Hai em nói chuyện gì vui thế? Đứng dậy kể cho cả lớp cùng nghe!' },
+  game: { title: 'chơi game dưới gầm bàn', prop: 'phone',
+    intro: [[0, 'Vào trận nhanh, đội tớ thiếu một người!'], ['me', 'Vào rồi! Né… né… bắn nó đi!'], [0, 'Sắp thắng rồi, giữ trụ!']],
+    catchT: 'Thắng chưa em? Có cần {co} vào đội cùng không?', take: 'Điện thoại {co} thu. Cuối buổi lên văn phòng gặp {co} mà lấy!' },
+  video: { title: 'xem video hài', prop: 'phone', ear: true, laugh: true,
+    intro: [[0, 'Video này hài lắm, đeo một bên tai nghe vào!'], ['me', 'Hí hí… ha ha ha…'], [0, 'Khúc này mới mắc cười nè, hí hí…']],
+    catchT: 'Có gì vui thế? Mở to lên cho cả lớp cùng xem nào!', take: 'Điện thoại với tai nghe {co} giữ. Cuối buổi lên gặp {co}!' },
+  duel: { title: 'đấu thẻ dưới gầm bàn', prop: 'cards', lead: [0, 'Lá này PT 9 đó, đỡ nổi không?'],
+    catchT: 'Hai em cúi gằm xuống gầm bàn làm gì đấy?', take: 'Xấp thẻ này {co} giữ tới cuối giờ!' },
+  danhbai: { title: 'đánh bài cuối lớp', prop: 'deck', spot: 'back', lead: [0, 'Đôi heo! Chặt nè!'],
+    catchT: 'Ai cho các em ngồi đánh bài trong lớp?!', take: 'Bộ bài này tịch thu! Cuối giờ lên văn phòng!' },
+  conquay: { title: 'chọi con quay', prop: 'tops', spot: 'back', lead: ['me', 'Quay tiếp ván nữa!'],
+    catchT: 'Con quay quay vui quá nhỉ? Hai em đứng lên!', take: 'Hai con quay này {co} giữ, cuối buổi lên mà lấy!' },
+};
+// hướng nhìn từ a về điểm b: 0 xuống · 1 trái · 2 phải · 3 lên
+const faceTo = (a, b) => { const dx = b[0] - a.x, dy = b[1] - a.y; return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 2 : 1) : (dy > 0 ? 0 : 3); };
+const classTeacher = () => { const l = (RT.scene && RT.scene.teacher) || 'teacherA'; return { look: l, co: l === 'teacherC' ? 'thầy' : 'cô' }; };
+const inClassScene = () => !!(RT.scene && RT.scene.type === 'class');
+// Đồ của trò đang chơi (điện thoại, bịch bánh, bài, con quay…) + phấn viết bảng, dấu chấm than, mồ hôi
+function funProps(K, p) {
+  const item = (x, y, now, held) => {
+    if (K.prop === 'phone') {
+      if (!held) wRect('rgba(150,230,255,0.28)', x - 2, y - 2, 9, 11);
+      wRect('#2a2136', x, y, 5, 7); const f = Math.floor(now / 150);
+      if (K.ear) { wRect(f % 4 < 2 ? '#ffe066' : '#ff9fc4', x + 1, y + 1, 3, 5); wRect('#fffaf0', x + 2, y + 2 + f % 2, 1, 1); }
+      else { wRect('#3b6fb6', x + 1, y + 1, 3, 5); wRect('#ffe066', x + 1 + f % 3, y + 4, 1, 1); wRect('#ff5fa8', x + 3 - (f >> 1) % 3, y + 2, 1, 1); }
+    } else if (K.prop === 'snack') { wRect('rgba(255,255,255,0.8)', x, y, 6, 6); wRect('#e98a3c', x + 1, y + 2, 4, 3); wRect('#5fae4a', x + 2, y + 3, 1, 1); wRect('#c0392b', x + 4, y + 2, 1, 1); wRect('#d9534f', x + 2, y, 2, 1); }
+    else if (K.prop === 'cards' || K.prop === 'deck') { drawSpr(SPR.cardBack, x - 3, y); drawSpr(SPR.cardFace, x + 2, y - 1 - (held ? 0 : Math.floor(now / 380) % 2)); }
+    else if (K.prop === 'tops') { drawSpr(SPR.top0, x - 4, y); drawSpr(SPR.topB0, x + 3, y); }
+  };
+  return [now => {
+    const sc = RT.scene, st = sc.st || {}, T = sc.actors[1], fr = sc.actors[0];
+    if (st.write) { const n = Math.floor(now / 110) % 30; wRect('#eef7ee', T.x - 13, 14, Math.min(n, 14), 1); if (n > 14) wRect('#eef7ee', T.x - 13, 18, n - 14, 1); }
+    if (st.bang) drawSpr(SPR.emoBang, T.x - 3, T.y - 38 - (Math.floor(now / 150) % 2));
+    if (st.laugh) { const j = Math.floor(now / 110) % 2; sc.meOy = -j; fr.oy = j - 1; } else { sc.meOy = 0; fr.oy = 0; }
+    if (st.held) item(T.x + 4, T.y - 13, now, true);
+    else if (st.show && !st.hidden) {
+      const [x, y] = p;
+      if (K.prop === 'whisper') { const wx = Math.round((G.x + fr.x) / 2), wy = Math.min(G.y, fr.y) - 33; wRect('#2a2136', wx - 5, wy, 11, 6); wRect('#fffaf0', wx - 4, wy + 1, 9, 4); wRect('#2a2136', wx - 1, wy + 6, 2, 1); for (let i = 0; i < 3; i++) if (Math.floor(now / 220) % 4 > i) wRect('#2a2136', wx - 3 + i * 3, wy + 2, 1, 1); }
+      else if (K.prop === 'deck') cardsProp(now, x - 1, y + 1);
+      else if (K.prop === 'tops') { topProp(now, x - 1, y + 8, 'top', 0); topProp(now, x + 8, y + 8, 'topB', 1); }
+      else item(x - 2, y - 3, now, false);
+      if (K.ear) for (const [hx, hy] of [[G.x, G.y], [fr.x, fr.y]]) for (let k = 1; k < 8; k++) wRect('#5f656f', x + (hx - x) * k / 8, y - 3 + (hy - 16 - y + 3) * k / 8, 1, 1);
+      if (K.prop === 'snack') { const t = (now / 700) % 1, a = Math.floor(now / 700) % 2 ? fr : G; wRect('#e98a3c', x + (a.x - x) * t, y - 2 + (a.y - 14 - y) * t, 1, 1); }
+    }
+    if (st.sweat) for (const a of [G, fr]) wRect('#7fc8f0', a.x + 6, a.y - 25 + (Math.floor(now / 200) % 3), 2, 3);
+  }];
+}
+// kind: một trong FUN_KIND · caught: null (trót lọt) | 'light' (nhắc nhở) | 'hard' (bắt quả tang, tịch thu) · only: chỉ diễn đoạn bị bắt
+function classFunCut(kind, fid, caught, only) {
+  const K = FUN_KIND[kind], F = FRIENDS[fid], S = FUN_SPOT[K.spot || fid] || FUN_SPOT.khoa, { look, co } = classTeacher();
+  const Co = co[0].toUpperCase() + co.slice(1), say = (who, t) => ({ say: [who, t.replace(/\{co\}/g, co)] });
+  const actors = [{ look: fid, x: S.f[0], y: S.f[1], dir: S.f[2] }, { look, x: 160, y: 46, dir: 3 }];
+  const hide = [fid]; if (S.mate) { actors.push({ look: S.mate[0], x: S.mate[1], y: S.mate[2], dir: S.mate[3] }); hide.push(S.mate[0]); }
+  const st = (o) => ({ fn: sc => Object.assign(sc.st || (sc.st = {}), o) }), path = S.t, end = path[path.length - 1];
+  const steps = [st({ write: true, show: true })];
+  if (only) { steps.push({ wait: 700 }); if (K.lead) steps.push(say(...K.lead)); }
+  else for (const [i, l] of (K.intro || (K.lead ? [K.lead] : [])).entries()) { if (i === 1 && K.laugh) steps.push(st({ laugh: true })); steps.push(say(l[0], l[1])); }
+  steps.push(st({ laugh: false }));
+  if (!caught) {
+    steps.push({ fn: sc => { const T = sc.actors[1]; T.dir = 0; sc.st.write = false; sc.st.hidden = true; sc.st.sweat = true; G.dir = 3; sc.actors[0].dir = 3; } });
+    steps.push(say(1, pick(['Cả lớp chép bài vào vở nhé.', 'Trật tự nào! Ai còn nói chuyện đấy?', 'Bạn nào chưa hiểu chỗ nào thì hỏi nhé.'])), { wait: 300 });
+    steps.push({ fn: sc => { sc.actors[1].dir = 3; sc.st.write = true; sc.st.sweat = false; } }, say('me', '(Hú hồn… suýt nữa thì toi!)'));
+    return { map: 'class', me: S.me, cam: { x: 160, y: 96 }, title: `Trong giờ học · ${K.title}`, actors, hide, props: funProps(K, S.p), steps };
+  }
+  steps.push({ fn: sc => { sc.st.write = false; sc.st.bang = true; sc.actors[1].dir = 0; } }, { wait: 500 });
+  for (const q of path) steps.push({ move: [1, q[0], q[1], 520] });
+  steps.push({ fn: sc => { sc.st.bang = false; sc.actors[1].dir = end[2]; G.dir = faceTo(G, end); sc.actors[0].dir = faceTo(sc.actors[0], end); if (K.prop === 'whisper') sc.st.show = false; } });
+  steps.push(say(1, K.catchT));
+  if (K.stand || caught === 'hard') steps.push({ par: [{ hop: 'me' }, { hop: 0 }] });
+  steps.push(st({ sweat: true }), say('me', `Dạ… em xin lỗi ${co} ạ…`));
+  if (caught === 'hard' && K.take) steps.push(st({ held: true }), say(1, K.take));
+  steps.push(say(0, 'Em… em không dám nữa ạ…'));
+  steps.push(say(1, caught === 'light' ? `Lần đầu nên ${co} chỉ nhắc nhở thôi đấy. Tập trung vào bài!` : `Cuối giờ hai em ở lại gặp ${co}. ${Co} sẽ ghi vào sổ đầu bài!`));
+  for (const q of path.slice(0, -1).reverse()) steps.push({ move: [1, q[0], q[1], 420] });
+  steps.push({ move: [1, 160, 46, 420] }, { fn: sc => { sc.actors[1].dir = 3; sc.st.write = true; sc.st.sweat = false; } }, { wait: 500 });
+  return { map: 'class', me: S.me, cam: { x: 160, y: 96 }, title: `Trong giờ học · ${K.title}`, actors, hide, props: funProps(K, S.p), steps };
+}
+// Rủ nhau đi vệ sinh quá lâu: về tới cửa lớp thì bị hỏi tội
+function wcCaughtCut(fid, light) {
+  const { look, co } = classTeacher();
+  return {
+    map: 'class', me: [283, 216, 3], cam: { x: 220, y: 140 }, hide: [fid], title: `Về lớp muộn · bị ${co} hỏi tội`,
+    actors: [{ look: fid, x: 299, y: 216, dir: 3 }, { look, x: 160, y: 46, dir: 3 }],
+    props: [now => { const sc = RT.scene, st = sc.st || {}, T = sc.actors[1]; if (st.bang) drawSpr(SPR.emoBang, T.x - 3, T.y - 38 - (Math.floor(now / 150) % 2)); if (st.sweat) for (const a of [G, sc.actors[0]]) wRect('#7fc8f0', a.x + 6, a.y - 25 + (Math.floor(now / 200) % 3), 2, 3); }],
+    steps: [{ par: [{ move: ['me', 283, 194, 600] }, { move: [0, 299, 194, 600] }] }, { fn: sc => { sc.st = { bang: true }; sc.actors[1].dir = 0; } }, { wait: 400 },
+      { move: [1, 290, 60, 700] }, { move: [1, 290, 170, 600] }, { fn: sc => { sc.st.bang = false; sc.actors[1].dir = 0; sc.st.sweat = true; } },
+      { say: [1, 'Hai em đi vệ sinh gì mà hết nửa tiết mới về?'] }, { say: ['me', `Dạ… tại đông người quá ạ…`] }, { say: [0, 'Dạ… tụi em xin lỗi ạ…'] },
+      { say: [1, light ? 'Lần sau ra chơi hãy đi. Về chỗ ngồi!' : `Son phấn thế kia mà bảo đi vệ sinh à? Cuối giờ ở lại gặp ${co}!`] },
+      { move: [1, 290, 60, 500] }, { move: [1, 160, 52, 600] }],
+  };
+}
+// Cảnh bị bắt sau một trò khác (đấu thẻ, đánh bài, chọi con quay, đi vệ sinh lâu) — chỉ diễn khi đang trong lớp
+async function caughtScene(fid, kind, sev) {
+  if (!inClassScene()) return;
+  const light = sev === 1 && G.caughtCycle === 0;
+  await playCut(kind === 'wc' ? wcCaughtCut(fid, light) : classFunCut(kind, fid, light ? 'light' : 'hard', true));
 }
 
 /* ---------- trốn học cùng bạn · quậy trong trường · tố cáo ---------- */
