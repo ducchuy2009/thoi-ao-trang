@@ -161,10 +161,7 @@ ACT.beach = async kind => {
     await activity('Nằm ghế dù nghe sóng vỗ…', B.rest.mins, () => { d.rest = true; gainStam(B.rest.stam); });
   } else if (kind === 'food') {
     if (!inWin(G.time, 540, 1230)) return UI.say('Quán hải sản', 'Quán chưa mở.<p class="dim">Bán từ 09:00 đến 20:30.</p>');
-    const c = await UI.ask('Quán hải sản', '<p>“Mực nướng, nghêu hấp sả, bắp nướng mỡ hành đây!”</p>', [`Ăn hải sản nướng${wf} · ${fmtMoney(B.food.price)}`, 'Thôi']);
-    if (c !== 0) return;
-    if (G.money < B.food.price) return UI.toast('Không đủ tiền.', 'bad');
-    await jointAct(`Đang ăn hải sản${wf}…`, B.food.mins, 'seafood', fid, () => { addMoney(-B.food.price); gainStam(B.food.stam); palGain('bien', B.food.friend); });
+    UI.store('Quán hải sản', '“Mực nướng, nghêu hấp sả, bắp nướng mỡ hành đây!”', [{ id: 'haisan', name: 'Hải sản nướng', price: B.food.price, desc: `Mực nướng, nghêu hấp sả gói mang theo${wf ? ' — ăn cùng bạn càng vui' : ''}`, inv: 'haisan' }], it => buyFood('haisan', it.price, it.name));
   } else if (kind === 'castle') {
     if (d.castle) return UI.toast('Lâu đài cát hôm nay xây xong rồi.');
     await jointAct(`Đang xây lâu đài cát${wf}…`, B.castle.mins, 'castle', fid, () => { d.castle = true; useStam(B.castle.stam); addStat('kheotay', B.castle.pts); palGain('bien', 6); });
@@ -293,8 +290,6 @@ async function talkMenu(fid, where) {
   if (bd && !G.daily.bday[fid]) add('bday', `Chúc mừng sinh nhật ${F.name}!`);
   if ((where === 'school' || where === 'class') && G.atSchool) for (const id of breakFunFor(fid)) add('brk:' + id, BREAK_FUN[id].name);
   if (cardCount()) add('duel', 'Đấu thẻ cầu thủ');
-  if (G.inv.gaubong && !G.daily.gift[fid]) add('gift', 'Tặng gấu bông');
-  if (G.inv.voso && !G.daily.gift['v_' + fid]) add('shell', 'Tặng vỏ sò');
   const c = ids.length === 1 ? 'chat' : (add('x', 'Thôi'), ids[await UI.ask(F.name, '<p>“Sao đó?”</p>', opts)] || 'x');
   if (c === 'chat') chat('f_' + fid, fid);
   else if (c === 'duel') cardDuel('f_' + fid, fid, F.name, F.duel);
@@ -702,27 +697,18 @@ ACT.tea = () => {
   const P = PLACES.tea; if (RT.lock || !placeOpen(P)) return;
   const fid = palAt('tea'), wf = withF(fid), T = TEA;
   UI.store(P.name, '“Em uống gì nè?”', () => [
-    { id: 'trasua', name: 'Trà sữa trân châu', price: T.cup.price, desc: `Ngồi lại quán uống${wf}`, stam: T.cup.stam, mins: T.cup.mins, drink: true, friend: fid && T.cup.friend, act: 'cup' },
-    { id: 'tradao', name: 'Trà đào mang đi', price: T.togo.price, desc: 'Mua mang đi, vừa đi vừa uống', stam: T.togo.stam, drink: true, act: 'togo' },
-  ], async it => {
-    if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
-    if (it.act === 'togo') { addMoney(-it.price); gainStam(it.stam); UI.hud(); return UI.toast('Mua một ly trà đào mang đi.', 'good'); }
-    UI.close();
-    await jointAct(`Đang uống trà sữa${wf}…`, T.cup.mins, 'tea', fid, () => { addMoney(-T.cup.price); gainStam(T.cup.stam); addStat('giaotiep', fid ? 4 : 1); palGain('tea', T.cup.friend); });
-  });
+    { id: 'trasua', name: 'Trà sữa trân châu', price: T.cup.price, desc: `Ly to, trân châu đường đen${fid ? ' — mời cả ' + FRIENDS[fid].name + ' uống chung' : ''}`, inv: 'trasua' },
+    { id: 'tradao', name: 'Trà đào', price: T.togo.price, desc: 'Ly trà đào cam sả mát lạnh', inv: 'tradao' },
+  ], it => buyFood(it.id, it.price, it.name));
 };
 // ACT.mall / ACT.arcade: giờ đi hẳn vào bên trong (xem 04d_life.js)
 ACT.cart = () => {
   if (!inWin(G.time, 600, 1290)) return UI.say('Xe xiên que', 'Xe chưa dọn hàng.<p class="dim">Bán từ 10:00 đến 21:30.</p>');
   const fid = palAt('cart'), wf = withF(fid);
   UI.store('Xe xiên que', '“Xiên gì con? Cá viên, xúc xích, đậu hũ, kem ốc quế, đủ hết!”', () => [
-    { id: 'xien', name: 'Đĩa xiên que', price: 10000, desc: `Cá viên, xúc xích chấm tương${wf}`, stam: 12, mins: 10, friend: fid && 5, k: 'xien' },
-    { id: 'kem', name: 'Kem ốc quế', price: 8000, desc: `Mát lạnh, ăn lẹ kẻo chảy${wf}`, stam: 8, mins: 10, friend: fid && 5, k: 'kem' },
-  ], async it => {
-    if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
-    UI.close();
-    await jointAct(`Đang ăn ${it.name.toLowerCase()}${wf}…`, it.mins, it.k, fid, () => { addMoney(-it.price); gainStam(it.stam); palGain('cart', 5); });
-  });
+    { id: 'xien', name: 'Đĩa xiên que', price: 10000, desc: 'Cá viên, xúc xích chấm tương', inv: 'xien' },
+    { id: 'kem', name: 'Kem ốc quế', price: 8000, desc: 'Mát lạnh, ăn lẹ kẻo chảy', inv: 'kem' },
+  ], it => buyFood(it.id, it.price, it.name));
 };
 // ACT.field (đá bóng có hoạt ảnh): xem 04d_life.js
 
@@ -759,8 +745,9 @@ const cardCount = () => Object.values(G.cards).reduce((s, n) => s + n, 0);
 const cardKinds = () => CARDS.filter(c => G.cards[c.id] > 0).length;
 const starsOf = c => '★'.repeat(c.r + 1);
 const statLine = c => CARD_STATS.map(([k, , s]) => `${s} ${c[k]}`).join(' · ');
+// Bóc thẻ: không truyền tỉ lệ thì dùng tỉ lệ gói bim bim — hôm nào may mắn thì dễ ra thẻ hiếm hơn
 function rollCard(w) {
-  w = w || CARD_RARITY.map(r => r.w);
+  if (!w) { const L = G ? luckK() : 0; w = CARD_RARITY.map((r, k) => r.w * Math.max(0.25, k === 0 ? 1 - 0.3 * L : 1 + [0, 0.6, 1.0, 1.6][k] * L)); }
   let r = Math.random() * w.reduce((a, b) => a + b, 0), k = 0;
   for (; k < w.length - 1; k++) { r -= w[k]; if (r < 0) break; }
   const pool = CARDS.filter(c => c.r === k);
@@ -770,7 +757,10 @@ function gainCard(c) {
   if (c.r === 3) setTimeout(() => addMemo('item', 'the'), 0);           // thẻ huyền thoại vào lưu bút
   const isNew = !G.cards[c.id];
   G.cards[c.id] = (G.cards[c.id] || 0) + 1;
-  if (!G.cardDone && cardKinds() === CARDS.length) { G.cardDone = true; addMoney(CARD_SET_REWARD, true); UI.toast(`Đủ bộ ${CARDS.length} thẻ cầu thủ! Hãng bim bim Sao Vàng tặng thưởng ${fmtMoney(CARD_SET_REWARD)}.`, 'good'); }
+  if (G.cardDone !== CARDS.length && cardKinds() === CARDS.length) {        // đủ bộ: tiền thưởng + hồi ký “Nhà sưu tầm” trong lưu bút
+    G.cardDone = CARDS.length; addMoney(CARD_SET_REWARD, true); UI.toast(`Đủ bộ ${CARDS.length} thẻ cầu thủ! Hãng bim bim Sao Vàng tặng thưởng ${fmtMoney(CARD_SET_REWARD)}.`, 'good');
+    setTimeout(() => addMemo('scene', 'suutam'), 0);
+  }
   return isNew;
 }
 // minRare: lá đầu tiên chắc chắn từ độ hiếm này trở lên (hộp thẻ đặc biệt)
@@ -786,30 +776,9 @@ function cardHtml(c, tag, hidden) {
   return `<div class="pcard" style="--rc:${R.col}">${t}<img src="${cardPortrait(c)}" alt=""><div class="pc-n">${c.name}</div><div class="pc-r">${starsOf(c)} ${CARD_POS[c.pos]}</div><div class="pc-s">${CARD_STATS.map(([k, , s]) => `<span>${s} <b>${c[k]}</b></span>`).join('')}</div></div>`;
 }
 function showPack(res, title) {
-  return UI.ask(title || 'Bóc thẻ', `<div class="pcards">${res.map(({ c, isNew }) => cardHtml(c, isNew ? 'MỚI' : '')).join('')}</div><p class="dim">Đã sưu tầm ${cardKinds()}/${CARDS.length} loại thẻ. Xem bộ sưu tập trong Cặp sách. Rủ bạn đấu thẻ: thắng lấy thẻ của bạn, thua mất thẻ của mình.</p>`, ['OK']);
+  return UI.ask(title || 'Bóc thẻ', `<div class="pcards">${res.map(({ c, isNew }) => cardHtml(c, isNew ? 'MỚI' : '')).join('')}</div><p class="dim">Đã sưu tầm ${cardKinds()}/${CARDS.length} loại thẻ. Xem bộ sưu tập và xếp đội hình trong Menu → Thẻ cầu thủ.</p>`, ['OK']);
 }
-// Đấu thẻ: chọn 1 lá, rồi chọn 1 chỉ số để so với lá đối thủ đang úp. Trả về 1 thắng · 0 hoà · −1 thua · null không đấu
-async function cardDuel(sid, fid, name, tier, o) {
-  o = o || {};
-  if (RT.lock) return null;
-  if (!cardCount()) { UI.toast('Bạn chưa có thẻ nào. Mua bim bim Sao Vàng ở căn tin, tạp hoá Cô Ba hoặc TTTM để lấy thẻ.'); return null; }
-  if (fid && grudge(fid)) { UI.say(name, '“Tớ không chơi với đứa mách lẻo.”'); return null; }
-  if (!o.free && G.daily.duel[sid]) { UI.toast(`Hôm nay ${name} đấu thẻ với bạn rồi.`); return null; }
-  const mine = CARDS.filter(c => G.cards[c.id] > 0).sort((a, b) => b.r - a.r || a.no - b.no);
-  const i = await UI.ask(`Đấu thẻ với ${name}`, `<p>Chọn một lá để ra sân. <b>Thắng</b>: lấy lá của ${name}. <b>Thua</b>: mất lá vừa ra. Hoà: ai giữ bài nấy.</p>`, mine.map(c => `${starsOf(c)} ${c.name}<br><small>${statLine(c)} · ×${G.cards[c.id]}</small>`).concat('Thôi'), { grid: true });
-  if (i < 0 || i >= mine.length) return null;
-  const me = mine[i], opp = rollCard(DUEL_TIER[tier] || DUEL_TIER.lop);
-  if (!o.free) G.daily.duel[sid] = true;
-  const a = await UI.ask('Chọn chỉ số để so', `<div class="pcards">${cardHtml(me, 'BẠN')}${cardHtml(opp, 'ĐỐI THỦ', true)}</div><p>${name.replace(/^./, c => c.toUpperCase())} úp một lá <b>${CARD_RARITY[opp.r].name}</b> — ${CARD_POS[opp.pos]}. Bạn muốn so chỉ số nào?</p><p class="dim">Mẹo: thủ môn và hậu vệ phòng thủ cao; tiền đạo tấn công và tốc độ cao; thẻ càng nhiều sao chỉ số càng lớn.</p>`, CARD_STATS.map(([k, n]) => `${n}: ${me[k]}`), { esc: 0 });
-  const st = CARD_STATS[a >= 0 && a < CARD_STATS.length ? a : 0], mv = me[st[0]], ov = opp[st[0]];
-  let res = 0, msg;
-  if (mv > ov) { res = 1; const isNew = gainCard(opp); msg = `<p class="okbox">Thắng! ${st[1]} ${mv} &gt; ${ov}. Bạn lấy được lá <b>${opp.name}</b>${isNew ? ' — thẻ mới!' : ''}.</p>`; }
-  else if (mv < ov) { res = -1; G.cards[me.id]--; if (!G.cards[me.id]) delete G.cards[me.id]; msg = `<p class="warnbox">Thua… ${st[1]} ${mv} &lt; ${ov}. Lá <b>${me.name}</b> của bạn về tay ${name}.</p>`; }
-  else msg = `<p class="warnbox">Hoà ${mv} – ${ov}. Ai giữ bài nấy.</p>`;
-  addStat('giaotiep', 1); if (fid) addFriend(fid, 2);
-  await UI.ask(`Đấu thẻ với ${name}`, `<div class="pcards">${cardHtml(me, 'BẠN')}${cardHtml(opp, 'ĐỐI THỦ')}</div>` + msg, ['OK']);
-  return res;
-}
+// cardDuel (đấu thẻ theo luật mới, đội hình 11 người): xem 04f_cards.js
 
 /* ---------- điện thoại: nhắn tin với bạn bè, mẹ ---------- */
 const PHONE_CONTACTS = ['khoa', 'vy', 'dat', 'ngan', 'mom'];

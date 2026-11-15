@@ -17,7 +17,7 @@ function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Ma
  * ============================================================ */
 const YARD_KIDS = ['khoa', 'vy', 'dat', 'ngan', 'm1', 'm3', 'm4', 'm5', 'x1', 'x2', 'x3', 'x4', 'sA', 'sB', 'sC', 'sD'];
 // chỗ đặt từng tụ: [x, y] tâm
-const YARD_SPOT = { chat: [250, 256], chat2: [168, 326], danhbai: [200, 206], conquay: [384, 216], dacau: [302, 236], duoibat: [352, 300], rongran: [232, 316], dabong: [584, 250], trontim: [448, 304], eat: [150, 192], eat2: [80, 116] };
+const YARD_SPOT = { dauthe: [86, 300], chat: [250, 256], chat2: [168, 326], danhbai: [200, 206], conquay: [384, 216], dacau: [302, 236], duoibat: [352, 300], rongran: [232, 316], dabong: [584, 250], trontim: [448, 304], eat: [150, 192], eat2: [80, 116] };
 const HIDE_SPOTS = [[448, 174], [110, 284], [70, 203], [110, 174], [44, 240]];          // núp sau gốc cây, bụi rậm
 const EAT_SEATS = { eat: [[124, 187], [176, 187], [150, 199]], eat2: [[62, 112], [84, 113], [106, 112]] };          // hai bên ghế đá · trước quầy căn tin
 let YS = null;
@@ -32,6 +32,7 @@ function yardState() {
     const nap = kids.filter(k => !FRIENDS[k]).slice(0, 2); for (const k of nap) kids.splice(kids.indexOf(k), 1);
     take('eat', 'eat2', 2); take('eat', 'eat', 2);
   }
+  if (kids.includes('sC')) { kids.splice(kids.indexOf('sC'), 1); kids.unshift('sC'); take('dauthe', 'dauthe', 3); }   // tụ đấu thẻ của anh Phong
   const kinds = sh(['danhbai', 'conquay', 'rongran', 'trontim', 'duoibat', 'dabong', 'dacau']);
   take('chat', 'chat', lunch ? 2 : 3);
   for (const k of kinds) { if (kids.length < 2) break; take(k, k, Math.min(YARD_GAMES[k].n, kids.length)); }
@@ -44,7 +45,7 @@ function yardPos(sid) {
   const st = yardState(); if (!st) return null;
   const w = st.where[sid]; if (!w) return null;
   const [g, i] = w, n = g.mem.length, [cx0, cy0] = g.c, t = performance.now() / 1000, ring = (r, ry) => { const a = i / n * 6.283 + 0.6; return { x: cx0 + Math.cos(a) * r, y: cy0 + Math.sin(a) * ry }; };
-  if (g.kind === 'chat' || g.kind === 'danhbai' || g.kind === 'conquay') {
+  if (g.kind === 'chat' || g.kind === 'danhbai' || g.kind === 'conquay' || g.kind === 'dauthe') {
     const p = ring(g.kind === 'chat' ? 12 : 15, g.kind === 'chat' ? 8 : 10), talk = g.kind === 'chat' && (Math.floor(t / 1.6) + i) % n === 0;
     return { x: p.x, y: p.y, dir: dirOf(cx0 - p.x, cy0 - p.y), oy: talk ? -Math.abs(Math.sin(t * 6)) * 2 : 0 };
   }
@@ -77,7 +78,7 @@ function drawYardProps(now) {
   const t = now / 1000;
   for (const g of st.groups) {
     const [x, y] = g.c, n = g.mem.length;
-    if (g.kind === 'danhbai') cardsProp(now, x - 6, y - 4);
+    if (g.kind === 'danhbai' || g.kind === 'dauthe') cardsProp(now, x - 6, y - 4);
     else if (g.kind === 'conquay') { topProp(now, x - 5, y + 2, 'top', 0); topProp(now, x + 4, y + 3, 'topB', 1); }
     else if (g.kind === 'dabong') { const b = ballPos(g, t); drawSpr(SHADOW, b.x - 7, b.y - 1); drawSpr(SPR.ball, b.x - 3, b.y - 5 - Math.abs(Math.sin(t * 5)) * 4); }
     else if (g.kind === 'dacau') {      // quả cầu bay theo đường vòng cung từ bạn này sang bạn kia
@@ -97,7 +98,7 @@ const YARD_ASK = {
   chat: 'Ê, lại đây tám chung nè! Đang kể chuyện vui lắm.', eat: 'Ngồi xuống ăn trưa chung với bọn tớ không?',
   danhbai: 'Thiếu một tay, vào đánh tiến lên không?', conquay: 'Có con quay không? Vào chọi với bọn tớ đi!',
   rongran: 'Vào chơi rồng rắn lên mây không? Đang thiếu khúc đuôi nè!', trontim: 'Chơi trốn tìm không? Ván sau vào luôn nha!',
-  duoibat: 'Vào chơi đuổi bắt không? Chạy vui lắm!', dabong: 'Vào đá bóng không? Đội tớ đang thiếu người!', dacau: 'Vào đá cầu không? Đứng thành vòng tròn nè!',
+  duoibat: 'Vào chơi đuổi bắt không? Chạy vui lắm!', dauthe: 'Đấu thẻ cầu thủ không?', dabong: 'Vào đá bóng không? Đội tớ đang thiếu người!', dacau: 'Vào đá cầu không? Đứng thành vòng tròn nè!',
 };
 // Hoạt cảnh khi vào chơi: t = bạn mình vừa nói chuyện, o = một bạn khác trong tụ, me = mình
 const YARD_LINES = {
@@ -116,6 +117,7 @@ ACT.yardTalk = async n => {
   const st = yardState(), w = st && st.where[n.sid];
   if (!w || RT.lock) return n.act0 && n.act0();
   const g = w[0], Y = YARD_GAMES[g.kind], key = st.key + ':' + g.id, who = { look: n.dynLook ? n.dynLook() : n.look, outfit: n.outfit ? n.outfit() : null };
+  if (g.kind === 'dauthe') return cardGroupTalk(g, n);            // tụ đấu thẻ cầu thủ
   if (n.fid && grudge(n.fid)) return UI.ask(n.name, '<p>“Không chơi với đồ mách lẻo đâu. Đi chỗ khác đi!”</p>', ['…'], { who });
   const done = !!G.daily.yard[key], opts = [], ids = [];
   if (!done) { opts.push(g.kind === 'chat' || g.kind === 'eat' ? 'Ngồi xuống cùng' : 'Vào chơi cùng!'); ids.push('join'); }
@@ -343,12 +345,8 @@ ACT.stall = async i => {
 ACT.canteen = () => {
   if (!inWin(G.time, 360, 1030)) return UI.say('Căn tin', 'Căn tin đã nghỉ bán.');
   meetSoc('cantin');
-  UI.store('Căn tin', '“Ăn gì con?”', CANTEEN, async f => {
-    if (G.money < f.price) return UI.toast('Không đủ tiền.', 'bad');
-    UI.close();
-    if (f.mins) await activity(`Đang ăn ${f.name.toLowerCase()}…`, f.mins, () => { addMoney(-f.price); gainStam(f.stam); });
-    else { addMoney(-f.price); gainStam(f.stam); UI.hud(); if (f.pack) await showPack(openPacks(f.pack), 'Bóc gói bim bim Sao Vàng'); }
-  });
+  UI.store('Căn tin', '“Ăn gì con?”', CANTEEN, f => buyFood(f.inv, f.price, f.name));
+
 };
 
 /* ============================================================
@@ -371,8 +369,6 @@ ACT.stallShop = id => {
   UI.store(name, '“Mời em xem hàng.”', items, async it => {
     if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
     if (it.act === 'movie') { UI.close(); return jointAct(`Đang xem phim${wf}…`, M.movie.mins, 'movie', fid, () => { if (fid) addMemo('scene', 'movie'); addMoney(-it.price); gainStam(M.movie.stam); addStat('giaotiep', fid ? 3 : 1); palGain('mall', M.movie.friend); }); }
-    if (it.act === 'chicken') { UI.close(); return jointAct(`Đang ăn gà rán${wf}…`, M.chicken.mins, 'chicken', fid, () => { addMoney(-it.price); gainStam(M.chicken.stam); palGain('mall', M.chicken.friend); }); }
-    if (it.act === 'teamall') { UI.close(); return jointAct(`Đang uống trà sữa${wf}…`, 20, 'tea', fid, () => { addMoney(-it.price); gainStam(12); palGain('mall', 5); }); }
     if (it.act === 'book') {
       if (G.daily.book) return UI.toast('Hôm nay bạn mua sách tham khảo rồi, đọc hết cuốn đó đã.');
       UI.close();
@@ -381,7 +377,7 @@ ACT.stallShop = id => {
       G.daily.book = true; addMoney(-it.price); addStat(BOOK_SUBJ[k], M.book.pts); UI.hud(); return;
     }
     if (it.act === 'box') { UI.close(); addMoney(-it.price); UI.hud(); return showPack(openPacks(M.box.n, 1), 'Mở hộp thẻ đặc biệt'); }
-    if (it.act === 'bim') { UI.close(); addMoney(-it.price); G.inv.bimbim++; UI.hud(); return showPack(openPacks(1), 'Bóc gói bim bim Sao Vàng'); }
+    if (it.inv && FOODS[it.inv]) return buyFood(it.inv, it.price, it.name);
     addMoney(-it.price, true);
     if (it.inv) G.inv[it.inv] = (G.inv[it.inv] || 0) + (it.n || 1);
     if (it.own) G.owned[it.own] = true;
@@ -741,3 +737,102 @@ ACT.senior = async soc => {
   const c = await UI.ask(S.name, `<p>“${tip}”</p>`, ['Dạ, em cảm ơn ạ', 'Rời đi'], { who: { look: S.look } });
   if (c === 0 && first) addStat('giaotiep', 1);
 };
+
+/* ============================================================
+ *  CẦM VẬT PHẨM: bấm món đồ trong túi / thanh đồ để cầm lên
+ *  Đang cầm mà tương tác với người khác → tặng quà · bấm vào mình hoặc chỗ trống → ăn (nếu ăn được)
+ * ============================================================ */
+const holdName = id => (FOODS[id] ? FOODS[id].name : id === 'gaubong' ? 'Gấu bông' : id === 'voso' ? 'Vỏ sò' : id);
+const holdable = id => !!(FOODS[id] || id === 'gaubong' || id === 'voso');
+function toggleHold(id) {
+  if (!holdable(id) || !G.inv[id]) return;
+  RT.hold = RT.hold === id ? null : id;
+  UI.toast(RT.hold ? `Đang cầm ${holdName(id)}. Bấm vào người khác để tặng${FOODS[id] ? ', bấm vào mình để ăn' : ''}. Bấm lại món đó để cất đi.` : `Cất ${holdName(id)} vào túi.`, 'info');
+  UI._hb = null; UI.hotbar();
+}
+// Ai đang đứng trước mặt: bạn thân, bố mẹ, thầy cô, người quen ngoài xã hội, hay một bạn học bình thường
+function giftTarget(t) {
+  if (t.fol && G.comp) return { kind: 'friend', id: G.comp.fid };
+  const n = t.npc; if (!n) return null;
+  if (n.id === 'fh') return { kind: 'friend', id: G.visit };
+  if (n.fid && FRIENDS[n.fid]) return { kind: 'friend', id: n.fid };
+  if (n.fam) return { kind: 'parent', id: n.fam };
+  if (n.id === 'teacher') return { kind: 'teacher', id: RT.tid || 'hanh' };
+  const soc = n.soc || { guard: 'baove', su: 'su' }[n.id];
+  if (soc && SOCIETY[soc]) return { kind: 'soc', id: soc };
+  return { kind: 'other', id: n.id, name: n.name, look: n.dynLook ? n.dynLook() : n.look, outfit: n.outfit ? n.outfit() : null };
+}
+async function giveHeld(t) {
+  const id = RT.hold, T = giftTarget(t); if (!id || !T || !G.inv[id]) return;
+  const key = 'g_' + T.kind + '_' + T.id, isFood = !!FOODS[id], it = holdName(id).toLowerCase();
+  let who, name, line, done = () => { };
+  if (T.kind === 'friend') {
+    const F = FRIENDS[T.id], bd = isDate(F.bday, G.day), pts = (id === 'gaubong' ? GIFT_FRIEND : id === 'voso' ? SHELL_FRIEND : FOODS[id].gift || 2) * (bd ? 2 : 1);
+    who = { look: T.id, outfit: friendOutfit(T.id) }; name = F.name;
+    if (grudge(T.id)) return UI.ask(name, '<p>“Tớ không nhận quà của đứa mách lẻo đâu.”</p>', ['…'], { who });
+    line = id === 'gaubong' ? 'Gấu bông cho tớ hả? Dễ thương quá trời!' : id === 'voso' ? 'Vỏ sò đẹp ghê! Áp lên tai nghe được tiếng sóng nè.' : `${holdName(id)} hả? Cảm ơn cậu nha, đúng lúc tớ đang thèm!`;
+    if (bd) line += ' Lại đúng sinh nhật tớ nữa chứ!';
+    done = () => addFriend(T.id, pts);
+  } else if (T.kind === 'parent') {
+    who = { look: T.id, outfit: T.id === 'mom' && G.map !== 'home' ? 'noapron' : null }; name = PNAME[T.id];
+    line = isFood ? `Con mua ${it} cho ${name.toLowerCase()} đấy à? Ngoan quá!` : 'Quà cho bố mẹ hả con? Bố mẹ cảm ơn nhé.';
+    done = () => addParent(id === 'gaubong' ? 3 : 1, '', true);
+  } else if (T.kind === 'teacher') {
+    const Tc = TEACHERS[T.id]; who = { look: Tc.look }; name = Tc.name;
+    line = 'Cảm ơn em. Lần sau không cần quà cáp đâu, chăm học là thầy cô vui rồi.';
+    done = () => addTeacher(2, T.id);
+  } else if (T.kind === 'soc') {
+    const S = SOCIETY[T.id]; who = { look: S.look }; name = S.name;
+    line = T.id === 'su' ? 'A Di Đà Phật. Thầy cảm ơn tấm lòng của con.' : 'Ôi, quà cho bác/cô à? Cảm ơn cháu nhé!';
+    done = () => { G.soc[T.id] = clamp((G.soc[T.id] || 0) + 6, 0, 100); };
+  } else {
+    who = { look: T.look, outfit: T.outfit }; name = T.name || 'Bạn';
+    line = isFood ? 'Cho tớ thật hả? Cảm ơn nha!' : 'Ơ… cho tớ á? Cảm ơn cậu!';
+    done = () => addStat('giaotiep', 1);
+  }
+  if (G.daily.gift[key]) return UI.ask(name, '<p>“Hôm nay cậu tặng quà rồi mà, giữ lại mà dùng đi!”</p>', ['OK'], { who });
+  G.daily.gift[key] = true; G.inv[id]--; if (!G.inv[id]) RT.hold = null;
+  done(); UI._hb = null; UI.hud();
+  await UI.ask(name, `<p>Bạn tặng <b>${it}</b>.</p><p>“${line}”</p>`, ['Không có gì!'], { who });
+}
+// Bấm vào chính mình hoặc chỗ trống khi đang cầm đồ: đồ ăn được thì hỏi có ăn không, còn lại thì thôi
+async function heldSelf() {
+  const id = RT.hold; if (!id || !FOODS[id] || !G.inv[id]) return;
+  const c = await meSay(`<p>Ăn ${FOODS[id].drink ? 'uống ' : ''}<b>${FOODS[id].name.toLowerCase()}</b> luôn bây giờ?</p><p class="dim">Hồi ${FOODS[id].stam} thể lực${FOODS[id].pack ? ' · mở gói ra có 1 thẻ cầu thủ' : ''}${G.comp ? ' · ăn chung với ' + FRIENDS[G.comp.fid].name : ''}.</p>`, [FOODS[id].drink ? 'Uống' : 'Ăn', 'Không ăn']);
+  if (c === 0) { await eat(id); UI._hb = null; UI.hud(); }
+}
+// vẽ món đang cầm lơ lửng trên đầu nhân vật
+function drawHeld(now) {
+  if (!RT.hold || (RT.scene && RT.scene.hideMe) || !G.inv[RT.hold]) return;
+  drawSpr(iconCv(RT.hold), G.x - 9, G.y - 42 + Math.round(Math.sin(now / 260)) + (RT.scene && RT.scene.meOy || 0));
+}
+
+/* ---------- hoạt ảnh tập thể dục ở nhà ---------- */
+function exerciseCut(id) {
+  const spot = { tay: [39, 166], daynhay: [39, 166], tatay: [39, 166], xadon: [110, 152] }[id], t0 = { v: performance.now() };
+  const steps = [{ move: ['me', spot[0], spot[1], 450] }, { fn: sc => { G.dir = 0; t0.v = performance.now(); sc.drive = () => drive(sc); } }, { wait: 2300 }, { fn: sc => { sc.drive = null; sc.meOy = 0; } }];
+  const T = () => (performance.now() - t0.v) / 1000;
+  const drive = sc => {
+    const t = T();
+    if (id === 'tay') { const k = Math.floor(t / 1.15) % 2; if (k === 0) { sc.meOy = -Math.abs(Math.sin(t * 9)) * 3; return true; } sc.meOy = Math.round(2 + Math.sin(t * 7) * 2); return false; }   // chạy tại chỗ rồi hít đất (nhún xuống)
+    if (id === 'daynhay') { sc.meOy = -Math.abs(Math.sin(t * Math.PI / 0.45)) * 7; return false; }
+    if (id === 'tatay') { sc.meOy = Math.round(Math.sin(t * 2) * 0.5); return false; }
+    if (id === 'xadon') { sc.meOy = -Math.round((Math.sin(t * 2.6 - 1.57) * 0.5 + 0.5) * 10); return false; }
+    return false;
+  };
+  const props = [];
+  if (id === 'daynhay') props.push(() => {       // dây quay vòng qua đầu, dưới chân
+    const t = T(), ph = (t / 0.45) % 1, a = ph * 6.283, oy = RT.scene ? RT.scene.meOy || 0 : 0;
+    for (let i = 0; i <= 14; i++) { const k = i / 14, x = G.x - 8 + k * 16, y = G.y - 12 + oy + Math.cos(a) * (12 + Math.sin(k * 3.14) * 3) * Math.sin(k * 3.14); wRect('#e2574c', x, y, 1, 1); }
+    wRect('#3b82c4', G.x - 9, G.y - 13 + oy, 2, 3); wRect('#3b82c4', G.x + 7, G.y - 13 + oy, 2, 3);
+  });
+  if (id === 'tatay') props.push(() => {          // hai tay nâng tạ lên xuống so le
+    const t = T(), l = Math.round((Math.sin(t * 5) * 0.5 + 0.5) * 8), r = Math.round((Math.sin(t * 5 + 3.14) * 0.5 + 0.5) * 8);
+    for (const [x, up] of [[G.x - 11, l], [G.x + 6, r]]) { wRect('#3a3f55', x, G.y - 12 - up, 2, 4); wRect('#3a3f55', x + 3, G.y - 12 - up, 2, 4); wRect('#8b8f9c', x + 1, G.y - 11 - up, 3, 2); }
+  });
+  if (id === 'xadon') props.push(() => {          // tay bám xà
+    const oy = RT.scene ? RT.scene.meOy || 0 : 0;
+    wRect('#f8d0a8', G.x - 6, 114 + 4, 3, Math.max(2, G.y - 18 + oy - 118)); wRect('#f8d0a8', G.x + 3, 114 + 4, 3, Math.max(2, G.y - 18 + oy - 118));
+  });
+  return { inPlace: true, bars: false, steps, props };
+}

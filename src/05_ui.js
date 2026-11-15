@@ -182,19 +182,19 @@ const UI = {
   hotbarItems() {
     const it = [], add = (id, n, title, act, lab) => it.push({ id, n, title, act: act || '', lab: lab || '' });
     for (const k of Object.keys(ITEMS)) if (G.bag[k]) add(k, 0, ITEMS[k].name + (ITEMS[k].desc ? ' — ' + ITEMS[k].desc : ''), '', ITEMS[k].subj ? SUBJ[ITEMS[k].subj].short : '');
-    for (const k in FOODS) if (G.inv[k]) add(k, G.inv[k], `${FOODS[k].name} — bấm để ăn`, 'eat');
+    for (const k in FOODS) if (G.inv[k]) add(k, G.inv[k], `${FOODS[k].name} — bấm để cầm lên (bấm vào mình để ăn, vào người khác để tặng)`, 'hold');
     if (G.inv.banhtrang) add('banhtrang', G.inv.banhtrang, 'Bánh tráng trộn — hàng để mời bạn mua giờ ra chơi');
     if (cardCount()) add('the', cardCount(), 'Thẻ cầu thủ — bấm để xem bộ sưu tập', 'cards');
-    if (G.inv.gaubong) add('gaubong', G.inv.gaubong, 'Gấu bông — tặng bạn thân');
-    if (G.inv.voso) add('voso', G.inv.voso, 'Vỏ sò — tặng bạn thân');
+    if (G.inv.gaubong) add('gaubong', G.inv.gaubong, 'Gấu bông — bấm để cầm lên rồi bấm vào bạn để tặng', 'hold');
+    if (G.inv.voso) add('voso', G.inv.voso, 'Vỏ sò — bấm để cầm lên rồi bấm vào bạn để tặng', 'hold');
     if (fishCount()) add('ca', fishCount(), 'Cá câu được — bán cho Cô Ba hoặc đưa mẹ nấu');
     if (G.owned.cancau) add('cancau', 0, 'Cần câu — câu cá ở bờ sông');
     return it;
   },
   hotbar() {
-    const it = this.hotbarItems(), sig = it.map(x => x.id + ':' + x.n).join('|') + '#' + (G.ride || '');
+    const it = this.hotbarItems(), sig = it.map(x => x.id + ':' + x.n).join('|') + '#' + (G.ride || '') + '#' + (RT.hold || '');
     if (sig === this._hb) return; this._hb = sig;
-    $('hotbar').innerHTML = it.map(x => `<button class="slot" data-hb="${x.act}" data-id="${x.id}" title="${x.title}"><img src="${itemIcon(x.id)}" alt="">${x.n ? `<b>${x.n}</b>` : ''}${x.lab ? `<i>${x.lab}</i>` : ''}</button>`).join('')
+    $('hotbar').innerHTML = it.map(x => `<button class="slot ${RT.hold === x.id ? 'held' : ''}" data-hb="${x.act}" data-id="${x.id}" title="${x.title}"><img src="${itemIcon(x.id)}" alt="">${x.n ? `<b>${x.n}</b>` : ''}${x.lab ? `<i>${x.lab}</i>` : ''}</button>`).join('')
       + (G.ride ? `<button class="slot txt" data-hb="off" title="Xuống xe">Xuống xe <kbd>X</kbd></button>` : '');
   },
   hint(text, ok, key) {
@@ -212,18 +212,18 @@ const UI = {
       if (schoolToday() && G.time < CFG.SCHOOL_END) { const ms = missingToday(); h += ms.length ? `<p class="warnbox">So với thời khoá biểu hôm nay còn thiếu ${ms.length} món. Chỉ soạn cặp được ở bàn học tại nhà.</p>` : '<p class="okbox">Đủ đồ cho thời khoá biểu hôm nay.</p>'; }
       h += '<h4>Đồ ăn mang theo</h4><div class="rows">';
       let any = false;
-      for (const id in FOODS) if (G.inv[id]) { any = true; h += `<div class="rowi"><span><b>${FOODS[id].name}</b> ×${G.inv[id]} </span><button class="btn sm" data-act="eat" data-id="${id}">Dùng</button></div>`; }
+      for (const id in FOODS) if (G.inv[id]) { any = true; h += `<div class="rowi"><span><b>${FOODS[id].name}</b> ×${G.inv[id]} <small>+${FOODS[id].stam} thể lực</small></span><button class="btn sm" data-act="hold" data-id="${id}">${RT.hold === id ? 'Cất đi' : 'Cầm lên'}</button></div>`; }
       if (!any) h += '<span class="dim">Không có gì để ăn.</span>';
       h += '</div><h4>Hàng để bán</h4><p>Bánh tráng trộn: <b>' + (G.inv.banhtrang || 0) + '</b> bịch <small class="dim">— mời bạn mua trong giờ ra chơi</small></p>';
       h += `<h4>Thẻ cầu thủ & quà</h4><div class="rowi"><span><b>Thẻ cầu thủ</b> ${cardCount()} lá · ${cardKinds()}/${CARDS.length} loại <small>bóc trong gói bim bim Sao Vàng, đem đấu với bạn</small></span><button class="btn sm" data-act="cards">Bộ sưu tập</button></div>`;
-      if (G.inv.gaubong) h += `<p>Gấu bông gắp được: <b>${G.inv.gaubong}</b> con <small class="dim">— tặng bạn thân</small></p>`;
+      if (G.inv.gaubong) h += `<div class="rowi"><span><b>Gấu bông</b> ×${G.inv.gaubong} <small>quà tặng bạn thân</small></span><button class="btn sm" data-act="hold" data-id="gaubong">${RT.hold === 'gaubong' ? 'Cất đi' : 'Cầm lên'}</button></div>`;
       const own = [['xedap', 'Xe đạp'], ['xedapdien', 'Xe đạp điện'], ['xemay', 'Xe máy 50cc'], ['daynhay', 'Dây nhảy'], ['tatay', 'Tạ tay'], ['xadon', 'Xà đơn'], ['cancau', 'Cần câu']].filter(([k]) => G.owned[k]).map(([, n]) => n);
       if (fishCount()) h += '<p>Cá câu được: ' + FISH.filter(f => G.fish[f.id]).map(f => `<b>${f.name}</b> ×${G.fish[f.id]}`).join(' · ') + ` <small class="dim">— bán cho Cô Ba được ${fmtMoney(fishValue())}, hoặc đưa mẹ nấu</small></p>`;
-      if (G.inv.voso) h += `<p>Vỏ sò: <b>${G.inv.voso}</b> <small class="dim">— tặng bạn thân</small></p>`;
+      if (G.inv.voso) h += `<div class="rowi"><span><b>Vỏ sò</b> ×${G.inv.voso} <small>quà tặng bạn thân</small></span><button class="btn sm" data-act="hold" data-id="voso">${RT.hold === 'voso' ? 'Cất đi' : 'Cầm lên'}</button></div>`;
       h += '<h4>Tài sản ở nhà</h4><p>' + (own.length ? own.join(' · ') : '<span class="dim">Chưa có gì.</span>') + '</p>';
       if (G.busPassUntil >= G.day) h += `<p>Vé tháng xe bus còn hạn đến <b>${dateLabel(G.busPassUntil)}</b>.</p>`;
       return h;
-    }, { eat: d => eat(d.id), cards: () => UI.cards() });
+    }, { hold: d => { toggleHold(d.id); if (RT.hold) UI.close(-1); }, cards: () => UI.cards() });
   },
 
   cards() { this.menu('cards'); },
@@ -430,12 +430,31 @@ MV.cal = {
 
 /* ---------- Thẻ cầu thủ ---------- */
 MV.cards = {
+  h: {
+    ctab: d => { UI._ctab = d.id; },
+    sq: d => { const s = UI._sq || (UI._sq = (G.squad || []).filter(id => G.cards[id] > 0)); const i = s.indexOf(d.id); if (i >= 0) s.splice(i, 1); else if (s.length < SQUAD.size) s.push(d.id); else UI.toast(`Đội hình đủ ${SQUAD.size} người rồi — bỏ bớt một người trước.`); },
+    sqauto: () => { const a = autoSquad(CARDS.filter(c => G.cards[c.id] > 0)); if (a) UI._sq = a; else UI.toast('Chưa đủ thẻ để xếp một đội hình hợp lệ (cần ít nhất 1 thủ môn, 2 hậu vệ, 2 tiền vệ, 1 tiền đạo, tổng lương ≤ ' + SQUAD.cap + ').', 'bad'); },
+    sqclear: () => { UI._sq = []; },
+    sqsave: () => { const s = UI._sq || []; const is = squadIssues(s); if (is.length) return UI.toast(is[0], 'bad'); G.squad = s.slice(); UI.toast('Đã lưu đội hình!', 'good'); },
+  },
+  init() { UI._sq = null; },
   render() {
-    let h = `<p>Đã sưu tầm <b>${cardKinds()}/${CARDS.length}</b> loại · tổng <b>${cardCount()}</b> lá.${G.cardDone ? ' <b class="tag">Đủ bộ!</b>' : ''}</p><div class="pcards">`;
-    for (const c of CARDS) h += G.cards[c.id] ? cardHtml(c, '×' + G.cards[c.id]) : `<div class="pcard none" style="--rc:${CARD_RARITY[c.r].col}"><div class="pc-q">?</div><div class="pc-n">Số ${c.no}</div><div class="pc-r">${starsOf(c)} ${CARD_RARITY[c.r].name}</div></div>`;
-    return h + '</div><p class="dim">Mỗi gói bim bim Sao Vàng (căn tin, tạp hoá Cô Ba, TTTM) có 1 thẻ. TC = Tấn công · PT = Phòng thủ · TĐ = Tốc độ. Đấu thẻ với bạn: chọn 1 lá và 1 chỉ số để so — thắng lấy lá của bạn, thua mất lá của mình.</p>';
+    const t = UI._ctab || 'album';
+    let h = subTabs('ctab', t, [['album', 'Bộ sưu tập'], ['squad', 'Đội hình']]);
+    if (t === 'album') {
+      h += `<p>Đã sưu tầm <b>${cardKinds()}/${CARDS.length}</b> loại · tổng <b>${cardCount()}</b> lá.${G.cardDone === CARDS.length ? ' <b class="tag">Đủ bộ!</b>' : ''}</p><div class="pcards">`;
+      for (const c of CARDS) h += G.cards[c.id] ? cardHtml(c, '×' + G.cards[c.id]) : `<div class="pcard none" style="--rc:${CARD_RARITY[c.r].col}"><div class="pc-q">?</div><div class="pc-n">Số ${c.no}</div><div class="pc-r">${starsOf(c)} ${CARD_RARITY[c.r].name}</div></div>`;
+      return h + `</div><p class="dim">Mỗi gói bim bim Sao Vàng có 1 thẻ (hôm nào may mắn dễ ra thẻ hiếm). TC = Tấn công · PT = Phòng thủ · TĐ = Tốc độ. Đủ bộ ${CARDS.length} thẻ được thưởng ${fmtMoney(CARD_SET_REWARD)}.</p>`;
+    }
+    const s = UI._sq || (UI._sq = (G.squad || []).filter(id => G.cards[id] > 0)), cs = cardsOf(s), is = squadIssues(s), cnt = p => cs.filter(c => c.pos === p).length;
+    h += `<p>Lương <b class="${squadSal(s) > SQUAD.cap ? 'bad' : ''}">${squadSal(s)}/${SQUAD.cap}</b> · ${cs.length}/${SQUAD.size} người · TM ${cnt('tm')} · HV ${cnt('hv')} · TV ${cnt('tv')} · TĐ ${cnt('td')}</p>`;
+    h += is.length ? `<p class="warnbox">${is.join(' · ')}</p>` : '<p class="okbox">Đội hình hợp lệ!' + (JSON.stringify(s) === JSON.stringify(G.squad) ? ' (đã lưu)' : ' Bấm “Lưu đội hình”.') + '</p>';
+    h += `<p class="dim">Màu áo trong đội: ${synergyText(cs)}</p><div class="btns"><button class="btn primary" data-act="sqsave">Lưu đội hình</button><button class="btn" data-act="sqauto">Xếp tự động</button><button class="btn ghost" data-act="sqclear">Bỏ chọn hết</button></div>`;
+    h += `<div class="cts">${CARDS.filter(c => G.cards[c.id] > 0).sort((a, b) => 'tm hv tv td'.indexOf(a.pos) - 'tm hv tv td'.indexOf(b.pos) || b.r - a.r).map(c => ctile(c, { act: 'sq', on: s.includes(c.id) })).join('') || '<p class="dim">Chưa có thẻ nào.</p>'}</div>`;
+    return h + `<p class="dim">Đội hình: đúng 1 thủ môn, ít nhất 2 hậu vệ, 2 tiền vệ, 1 tiền đạo; tổng lương ≤ ${SQUAD.cap}. Cầu thủ cùng CLB hoặc cùng đội tuyển ra sân chung được cộng chỉ số.</p>`;
   },
 };
+
 
 /* ---------- Cài đặt: Hiệu chỉnh game · Điều khiển · Cài đặt khác ---------- */
 /* ---------- Bản đồ thành phố: ghép các khu thật thu nhỏ lại, đánh dấu chỗ mình đang đứng ---------- */
@@ -619,7 +638,7 @@ function bindUI() {
     const b = e.target.closest('[data-hb]'); if (!b) return; b.blur();
     if (!G || RT.lock || UI.isOpen()) return;
     const a = b.dataset.hb;
-    if (a === 'eat') eat(b.dataset.id); else if (a === 'cards') UI.cards(); else if (a === 'off') dismount(); else UI.toast(b.title);
+    if (a === 'hold') toggleHold(b.dataset.id); else if (a === 'cards') UI.cards(); else if (a === 'off') dismount(); else UI.toast(b.title);
   });
   $('menu').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (!b) return; b.blur(); if (!G || RT.lock) return; openMenu(b.dataset.m); });
 }

@@ -177,25 +177,28 @@ ACT.teacherHouse = async tid => {
 };
 
 /* ============================================================
- *  ĐÊM GIAO THỪA: được rủ lúc 17:00, lên núi sau trường trước 24:00 là vào hội chợ
+ *  ĐÊM GIAO THỪA: sáng ngày cuối năm được rủ; từ 18:30 đến trước 24:00 ai lên núi sau trường cũng vào được hội chợ
  *  Trong hội thời gian đứng yên · rời hội (đi xuống núi) có hỏi lại · xem pháo hoa rồi về nhà lúc 01:00
  * ============================================================ */
-const eveOk = () => !!G.eve && G.eve.day === G.day && !G.eve.done && G.time < EVE.until;
+// Hôm nay là đêm giao thừa, chưa quá nửa đêm, chưa về: núi mở cửa tới 24:00 cho mọi người (không cần nhận lời rủ)
+const eveOk = () => isEveDay(G.day) && G.time < EVE.until && !(G.eve && G.eve.day === G.day && G.eve.done);
 async function eveInvite() {
   G.daily.eveAsked = true;
   const fids = Object.keys(FRIENDS).filter(f => !grudge(f) && hearts(f) >= 1).sort((a, b) => (G.friends[b] || 0) - (G.friends[a] || 0)), fid = fids[0];
   let c;
-  if (fid) c = await UI.ask(FRIENDS[fid].name, '<p>“Tối nay giao thừa rồi! Lên núi sau trường đón giao thừa với tớ không? Trên đó có hội chợ, nửa đêm bắn pháo hoa nữa!”</p>', ['Đi chứ! Hẹn cậu trên núi', 'Thôi, tớ ở nhà'], { who: { look: fid, outfit: friendOutfit(fid) } });
-  else c = await UI.ask('Mẹ', '<p>“Tối nay cả nhà lên núi sau trường đón giao thừa nhé! Trên đó có hội chợ, nửa đêm bắn pháo hoa.”</p>', ['Dạ, con đi!', 'Con ở nhà thôi ạ'], { who: { look: 'mom', outfit: 'noapron' } });
-  if (c !== 0) return;
+  const when = `từ ${fmtTime(EVE.from)}`;
+  if (fid) c = await UI.ask(FRIENDS[fid].name, `<p>“Hôm nay là ngày cuối năm rồi! Tối nay ${when} lên núi sau trường đón giao thừa với tớ không? Trên đó có hội chợ, nửa đêm bắn pháo hoa nữa!”</p>`, ['Đi chứ! Tối hẹn cậu trên núi', 'Thôi, tớ ở nhà'], { who: { look: fid, outfit: friendOutfit(fid) } });
+  else c = await UI.ask('Mẹ', `<p>“Hôm nay là ngày cuối năm. Tối nay ${when} cả nhà lên núi sau trường đón giao thừa nhé! Trên đó có hội chợ, nửa đêm bắn pháo hoa.”</p>`, ['Dạ, con đi!', 'Con ở nhà thôi ạ'], { who: { look: 'mom', outfit: 'noapron' } });
+  if (c !== 0) return UI.toast(`Đổi ý thì tối nay ${when} đến trước 24:00 cứ lên núi sau trường là vào được lễ hội.`, 'info');
   G.eve = { day: G.day, who: fid || 'parents' }; G.daily.outPerm = true;
   UI.toast(`Lên núi sau trường (đi lối mòn bên ngoài hàng rào trường) từ ${fmtTime(EVE.from)} đến trước 24:00 để vào hội đón giao thừa.`, 'good');
 }
 function startFest() {
-  RT.fest = true;
+  RT.fest = true; G.daily.outPerm = true;
+  if (!(G.eve && G.eve.day === G.day)) G.eve = { day: G.day, who: null };     // tự đi không cần ai rủ
   UI.toast('Hội chợ đón giao thừa! Trong hội thời gian tạm dừng — cứ chơi thoả thích, xuống núi là về nhà.', 'good');
   const w = G.eve.who;
-  if (FRIENDS[w]) { setComp(w, false); RT.fol = { map: G.map, x: G.x + 14, y: G.y - 6, dir: 0, walk: -1 }; UI.ask(FRIENDS[w].name, '<p>“Cậu tới rồi! Đông vui ghê chưa? Đi một vòng hội chợ đi!”</p>', ['Đi thôi!'], { who: { look: w, outfit: friendOutfit(w) } }); }
+  if (FRIENDS[w] && !grudge(w)) { setComp(w, false); RT.fol = { map: G.map, x: G.x + 14, y: G.y - 6, dir: 0, walk: -1 }; UI.ask(FRIENDS[w].name, '<p>“Cậu tới rồi! Đông vui ghê chưa? Đi một vòng hội chợ đi!”</p>', ['Đi thôi!'], { who: { look: w, outfit: friendOutfit(w) } }); }
 }
 async function leaveFest() {
   const c = await meSay('<p>Rời hội chợ để về nhà? Sắp tới giao thừa rồi, mọi người đang đếm ngược chờ pháo hoa.</p><p class="dim">Về tới nhà là 01:00 sáng.</p>', ['Xem pháo hoa giao thừa rồi về nhà', 'Ở lại chơi thêm']);
@@ -268,11 +271,7 @@ ACT.festGame = async kind => {
   RT.lock = false; UI.hud();
 };
 ACT.festFood = () => {
-  UI.store('Sạp đồ ăn đêm giao thừa', '“Ăn gì cho ấm bụng nè con?”', FEST_FOOD.map(f => Object.assign({ desc: f.desc }, f)), f => {
-    if (G.money < f.price) return UI.toast('Không đủ tiền.', 'bad');
-    addMoney(-f.price, true); gainStam(f.stam); UI.toast(`Ăn ${f.name.toLowerCase()} — ngon quá!`, 'good'); UI.hud();
-    if (G.comp) addFriend(G.comp.fid, 2, true);
-  });
+  UI.store('Sạp đồ ăn đêm giao thừa', '“Ăn gì cho ấm bụng nè con?”', FEST_FOOD.map(f => ({ id: f.id, name: f.name, price: f.price, desc: f.desc, inv: f.id })), f => buyFood(f.id, f.price, f.name));
 };
 // Nhảy dây · đá cầu cùng mọi người · ném đá thia lia: hoạt cảnh, không có mini-game
 ACT.festJoin = async kind => {
@@ -322,7 +321,8 @@ function drawFestProps(now) {
 /* ---------- điều phối sự kiện mỗi khung hình (khi không bận) ---------- */
 function eventTick() {
   if (isTetDay1() && G.map === 'home' && G.time < 720 && !tetYear().ask) { tetMorning(); return true; }
-  if (RT.pendingEve) { RT.pendingEve = false; eveInvite(); return true; }
+  if (isEveDay(G.day) && !G.daily.eveAsked && !RT.fest && G.time < EVE.from) { eveInvite(); return true; }   // sáng ngày cuối năm: được rủ đón giao thừa
+  if (G.map === 'nui' && !RT.fest && eveOk() && G.time < EVE.from && !G.daily.eveEarly) { G.daily.eveEarly = true; UI.toast(`Lễ hội đón giao thừa bắt đầu lúc ${fmtTime(EVE.from)}. Mọi người đang dựng sạp, treo lồng đèn…`, 'info'); }
   if (RT.pendingBC) { RT.pendingBC = false; if (G.atSchool) { bcContest(); return true; } }
   if (G.map === 'nui' && !RT.fest && eveOk() && G.time >= EVE.from) { startFest(); return true; }
   return false;

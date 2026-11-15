@@ -184,17 +184,30 @@ const ITEMS = {
 for (const s of BOOK_SUBJ) {
   ITEMS['sach_' + s] = { name: 'Sách ' + SUBJ[s].short, subj: s, kind: 'sach' };
 }
+// Đồ ăn uống mua về đều cất vào túi; cầm lên rồi bấm vào mình để ăn, bấm vào người khác để tặng
+// stam: thể lực hồi · drink: đồ uống · pack: trong gói có thẻ cầu thủ · duo: ăn cùng bạn đang đi chung thì có hoạt cảnh (khoá DUO) · gift: điểm thân thiết khi tặng bạn
 const FOODS = {
-  comhop: { name: 'Cơm hộp mẹ nấu', stam: 30 },
-  banhmi: { name: 'Bánh mì', stam: 15 },
-  sua: { name: 'Sữa hộp', stam: 8 },
-  bimbim: { name: 'Bim bim Sao Vàng', stam: 5 },
+  comhop: { name: 'Cơm hộp mẹ nấu', stam: 30, gift: 3 },
+  banhmi: { name: 'Bánh mì', stam: 15, gift: 2 },
+  sua: { name: 'Sữa hộp', stam: 8, drink: true, gift: 2 },
+  bimbim: { name: 'Bim bim Sao Vàng', stam: 5, pack: 1, gift: 2 },
+  comtrua: { name: 'Cơm trưa căn tin', stam: 30, gift: 3 },
+  nuocmia: { name: 'Nước mía', stam: 6, drink: true, gift: 2 },
+  trasua: { name: 'Trà sữa trân châu', stam: 12, drink: true, duo: 'tea', gift: 5 },
+  tradao: { name: 'Trà đào', stam: 6, drink: true, gift: 4 },
+  xien: { name: 'Xiên que', stam: 12, duo: 'xien', gift: 3 },
+  kem: { name: 'Kem ốc quế', stam: 8, duo: 'kem', gift: 4 },
+  garan: { name: 'Gà rán', stam: 35, duo: 'chicken', gift: 6 },
+  haisan: { name: 'Hải sản nướng', stam: 30, duo: 'seafood', gift: 5 },
+  banhchung: { name: 'Bánh chưng rán', stam: 20, gift: 4 },
+  xoi: { name: 'Xôi gấc', stam: 15, gift: 3 },
+  keobong: { name: 'Kẹo bông', stam: 6, gift: 4 },
 };
 const SHOP = [
   { id: 'banhmi', name: 'Bánh mì', price: 10000, desc: 'Bánh mì kẹp, ăn lót dạ', inv: 'banhmi', n: 1 },
   { id: 'sua', name: 'Sữa hộp', price: 6000, desc: 'Hộp sữa nhỏ mang theo', inv: 'sua', n: 1 },
-  { id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, desc: 'Trong gói có 1 thẻ cầu thủ', inv: 'bimbim', n: 1, pack: 1 },
-  { id: 'bimbim5', name: 'Lốc 5 gói bim bim Sao Vàng', price: 23000, desc: '5 gói = 5 thẻ cầu thủ', inv: 'bimbim', n: 5, pack: 5 },
+  { id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, desc: 'Mở gói ra là có 1 thẻ cầu thủ', inv: 'bimbim', n: 1 },
+  { id: 'bimbim5', name: 'Lốc 5 gói bim bim Sao Vàng', price: 23000, desc: '5 gói, mỗi gói 1 thẻ cầu thủ', inv: 'bimbim', n: 5 },
   { id: 'banhtrang', name: 'Bánh tráng trộn ×5', price: 25000, desc: 'Hàng để bán lại cho bạn trong giờ ra chơi', inv: 'banhtrang', n: 5 },
   { id: 'vethang', name: 'Vé tháng xe bus', price: BUS_PASS_PRICE, desc: 'Dùng 30 ngày kể từ ngày mua', special: 'vethang' },
   { id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu cá ở bờ sông (dưới phố Hoa Phượng)', own: 'cancau' },
@@ -203,10 +216,10 @@ const SHOP = [
   { id: 'xemay', name: 'Xe máy 50cc', price: 6000000, desc: 'Chạy nhanh nhất', own: 'xemay' },
 ];
 const CANTEEN = [
-  { id: 'comtrua', name: 'Cơm trưa', price: 20000, stam: 30, mins: 20, desc: 'Ăn tại chỗ' },
-  { id: 'banhmi', name: 'Bánh mì', price: 10000, stam: 15, mins: 10, desc: 'Ăn tại chỗ' },
-  { id: 'nuocmia', name: 'Nước mía', price: 5000, stam: 6, mins: 0, desc: 'Uống liền' },
-  { id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, stam: 5, mins: 0, pack: 1, desc: 'Trong gói có 1 thẻ cầu thủ' },
+  { id: 'comtrua', name: 'Cơm trưa', price: 20000, inv: 'comtrua', desc: 'Hộp cơm nóng, cất vào túi ăn dần' },
+  { id: 'banhmi', name: 'Bánh mì', price: 10000, inv: 'banhmi', desc: 'Cất vào túi ăn dần' },
+  { id: 'nuocmia', name: 'Nước mía', price: 5000, inv: 'nuocmia', desc: 'Ly nước mía mát lạnh' },
+  { id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, inv: 'bimbim', desc: 'Mở gói ra là có 1 thẻ cầu thủ' },
 ];
 /* ---------- Gian hàng trong TTTM ---------- */
 // [id, tên, sprite]. Hàng của từng gian: own = mua một lần (để ở nhà); act = làm ngay tại chỗ
@@ -214,8 +227,8 @@ const MALL_STALLS = [['phim', 'Rạp phim', 'stA'], ['sach', 'Nhà sách', 'stB'
 const MALL_GOODS = {
   phim: [{ id: 'vephim', name: 'Vé xem phim', price: 45000, desc: 'Vào rạp xem một suất phim', act: 'movie' }],
   sach: [{ id: 'sachtk', name: 'Sách tham khảo', price: 60000, desc: 'Chọn một môn để đọc thêm (mỗi ngày một cuốn)', act: 'book' }],
-  sieuthi: [{ id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, desc: 'Trong gói có 1 thẻ cầu thủ', act: 'bim' }, { id: 'hopthe', name: 'Hộp thẻ đặc biệt', price: 30000, desc: '5 thẻ, chắc chắn có thẻ Hiếm trở lên', act: 'box' }, { id: 'banhmi', name: 'Bánh mì', price: 10000, desc: 'Mang theo ăn dần', inv: 'banhmi' }, { id: 'sua', name: 'Sữa hộp', price: 6000, desc: 'Mang theo uống dần', inv: 'sua' }],
-  anuong: [{ id: 'garan', name: 'Gà rán', price: 35000, desc: 'Ăn tại khu ăn uống', act: 'chicken' }, { id: 'trasua', name: 'Trà sữa', price: 25000, desc: 'Uống tại khu ăn uống', act: 'teamall' }],
+  sieuthi: [{ id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, desc: 'Mở gói ra là có 1 thẻ cầu thủ', inv: 'bimbim' }, { id: 'hopthe', name: 'Hộp thẻ đặc biệt', price: 30000, desc: '5 thẻ, chắc chắn có thẻ Hiếm trở lên', act: 'box' }, { id: 'banhmi', name: 'Bánh mì', price: 10000, desc: 'Mang theo ăn dần', inv: 'banhmi' }, { id: 'sua', name: 'Sữa hộp', price: 6000, desc: 'Mang theo uống dần', inv: 'sua' }],
+  anuong: [{ id: 'garan', name: 'Gà rán', price: 35000, desc: 'Hộp gà rán giòn, cất vào túi', inv: 'garan' }, { id: 'trasua', name: 'Trà sữa', price: 25000, desc: 'Ly trà sữa trân châu, cất vào túi', inv: 'trasua' }],
   noithat: [{ id: 'd_poster', name: 'Tấm áp phích', price: 40000, desc: 'Dán tường phòng ngủ', own: 'd_poster' }, { id: 'd_den', name: 'Đèn cây', price: 90000, desc: 'Đặt ở góc phòng ngủ', own: 'd_den' }, { id: 'd_cay', name: 'Chậu cây cảnh', price: 60000, desc: 'Đặt trong phòng ngủ', own: 'd_cay' }, { id: 'd_tham', name: 'Thảm trải sàn', price: 120000, desc: 'Trải giữa phòng ngủ', own: 'd_tham' }],
   nhaccu: [{ id: 'micro', name: 'Micro karaoke', price: 150000, desc: 'Để trong phòng ngủ, tập hát ở nhà', own: 'micro' }, { id: 'guitar', name: 'Đàn guitar', price: 400000, desc: 'Dựng trong phòng ngủ; có đàn tập hát vào hơn', own: 'guitar' }],
   thethao: [{ id: 'daynhay', name: 'Dây nhảy', price: 60000, desc: 'Dụng cụ tập thể dục ở nhà', own: 'daynhay' }, { id: 'tatay', name: 'Tạ tay', price: 150000, desc: 'Dụng cụ tập thể dục ở nhà, nặng hơn dây nhảy', own: 'tatay' }, { id: 'xadon', name: 'Xà đơn gắn cửa', price: 350000, desc: 'Dụng cụ tập thể dục ở nhà, khó nhất', own: 'xadon' }],
@@ -233,6 +246,7 @@ const FH = { tv: { mins: 30, friend: 5 }, game: { mins: 40, friend: 8 } };
 // game: mini-game khi xin chơi cùng · n: số người · sport: cộng Thể thao
 const YARD_GAMES = {
   chat: { name: 'tám chuyện', n: 3 }, eat: { name: 'ăn trưa', n: 2 },
+  dauthe: { name: 'đấu thẻ cầu thủ', n: 3 },
   danhbai: { name: 'đánh bài', n: 3, game: 'arrows', what: 'Ra bài' }, conquay: { name: 'chọi con quay', n: 3, game: 'arrows', what: 'Quấn dây, giật con quay' },
   rongran: { name: 'rồng rắn lên mây', n: 4, game: 'arrows', what: 'Lượn theo đầu rồng' }, trontim: { name: 'trốn tìm', n: 3, game: 'seek' },
   duoibat: { name: 'đuổi bắt', n: 3, game: 'arrows', what: 'Né trái né phải', sport: 1 }, dabong: { name: 'đá bóng', n: 3, game: 'keepup', sport: 2 }, dacau: { name: 'đá cầu', n: 3, game: 'keepup', sport: 2 },
@@ -402,8 +416,9 @@ const QUE = [
 // Lì xì: bố mẹ (sáng mùng 1) · nhà bạn và nhà thầy cô (khi đến chúc Tết): base + perHeart × số tim
 const LIXI = { parents: 50000, perParentLv: 5000, friend: 10000, teacher: 20000, perHeart: 10000, friendGain: 6, teacherGain: 6 };
 const TET_TEMPLE = { luck: 25, parent: 3, mins: 60 };   // đi chùa đầu năm cùng bố mẹ
-// Đêm giao thừa (ngày cuối mùa đông): được rủ lúc 17:00, lên núi trước 24:00 là vào hội; trong hội thời gian đứng yên; rời hội thì về nhà lúc 01:00
-const EVE = { ask: 1020, from: 1080, until: 1440, home: 1500 };
+// Đêm giao thừa (ngày cuối mùa đông): sáng hôm đó bố mẹ hoặc bạn thân rủ đi; ai cũng lên núi được tới 24:00
+// from: giờ lễ hội bắt đầu (18:30) · until: hạn chót tới núi (24:00) · home: giờ về tới nhà sau khi xem pháo hoa (01:00). Trong hội thời gian đứng yên.
+const EVE = { from: 1110, until: 1440, home: 1500 };
 const FEST_GAME = { price: 5000, friend: 4 };
 const FEST_FOOD = [
   { id: 'banhchung', name: 'Bánh chưng rán', price: 15000, stam: 20, desc: 'Giòn rụm, nóng hổi' },
@@ -436,6 +451,7 @@ const MEMO_SCENES = {
   faint: { name: 'Ngất trong giờ học', icon: 'sc_faint', desc: 'Tỉnh dậy ở trạm y tế, cô y tá dặn phải giữ sức khoẻ.' },
   caught: { name: 'Bị giám thị bắt', icon: 'sc_caught', desc: 'Tiếng còi của thầy giám thị — một kỷ niệm khó quên.' },
   ngu: { name: 'Ngủ lại nhà bạn', icon: 'sc_ngu', desc: 'Nằm nói chuyện tới khuya ở nhà bạn thân.' },
+  suutam: { name: 'Nhà sưu tầm', icon: 'm_cards', desc: 'Gom đủ trọn bộ thẻ cầu thủ Sao Vàng. Cả trường kháo nhau: muốn xem thẻ hiếm thì cứ tìm tới bạn!' },
   totnghiep: { name: 'Ngày tốt nghiệp', icon: 'sc_totnghiep', desc: 'Ba năm áo trắng khép lại, ai cũng ký tên vào lưu bút.' },
 };
 const MEMO_NOTE_HEARTS = 3;          // thân từ 3 tim trở lên thì người đó viết lưu bút cho mình vào ngày tốt nghiệp
@@ -482,25 +498,37 @@ const PICNIC = { mins: 90, base: 12, friend: 14 };
 const GIFT_FRIEND = 10;           // tặng gấu bông gắp được
 
 /* ---------- Thẻ cầu thủ sưu tầm (trong gói bim bim Sao Vàng) ---------- */
-// r: độ hiếm 0 Thường · 1 Hiếm · 2 Siêu hiếm · 3 Huyền thoại. Đấu thẻ: chọn 1 lá + 1 chỉ số để so; thua mất lá, thắng lấy lá của đối thủ.
+// r: độ hiếm 0 Thường · 1 Hiếm · 2 Siêu hiếm · 3 Huyền thoại · club: câu lạc bộ · nat: đội tuyển quốc gia (không phải ai cũng lên tuyển)
 const CARD_RARITY = [
   { name: 'Thường', w: 62, col: '#8fa0ab' }, { name: 'Hiếm', w: 28, col: '#3b82c4' },
   { name: 'Siêu hiếm', w: 9, col: '#f2a93b' }, { name: 'Huyền thoại', w: 1, col: '#d9534f' },
 ];
 const CARD_STATS = [['atk', 'Tấn công', 'TC'], ['def', 'Phòng thủ', 'PT'], ['spd', 'Tốc độ', 'TĐ']];
 const CARD_POS = { tm: 'Thủ môn', hv: 'Hậu vệ', tv: 'Tiền vệ', td: 'Tiền đạo' };
+const CARD_CLUBS = { HP: { name: 'Hoa Phượng FC', col: '#d9534f', kit: ['#d9534f', '#ffe066'] }, SX: { name: 'Sông Xanh', col: '#3b82c4', kit: ['#3b82c4', '#fffaf0'] }, CB: { name: 'Cảng Biển', col: '#2e9e86', kit: ['#2e9e86', '#fffaf0'] }, ND: { name: 'Núi Đá', col: '#8a5a3a', kit: ['#8a5a3a', '#f2c94c'] } };
+const CARD_NATS = { VN: { name: 'Việt Nam', col: '#da251d' }, NB: { name: 'Nhật Bản', col: '#ffffff', fg: '#bc002d' }, TH: { name: 'Thái Lan', col: '#2d2a4a' }, BR: { name: 'Brazil', col: '#009c3b', fg: '#ffdf00' } };
 const CARDS = [
-  ['Tùng “Tay Nhện”', 'tm', 0, 2, 6, 3], ['Đức “Găng Sắt”', 'tm', 0, 1, 7, 3],
-  ['Lâm “Lá Chắn”', 'hv', 0, 2, 6, 4], ['Hùng “Xe Ủi”', 'hv', 0, 3, 6, 2], ['Phong “Bóng Ma”', 'hv', 0, 3, 5, 5],
-  ['Nam “Con Thoi”', 'tv', 0, 4, 4, 5], ['Quân “Nhạc Trưởng”', 'tv', 0, 5, 4, 3], ['Bảo “Máy Quét”', 'tv', 0, 3, 5, 4], ['Tài “Ong Thợ”', 'tv', 0, 4, 5, 4],
-  ['Minh “Chớp”', 'td', 0, 5, 2, 6], ['Sơn “Búa Tạ”', 'td', 0, 6, 3, 2], ['Việt “Cáo Già”', 'td', 0, 6, 2, 4],
-  ['Khánh “Người Nhện”', 'tm', 1, 2, 9, 5], ['Trung “Bức Tường”', 'hv', 1, 4, 9, 4], ['Hải “Mũi Khoan”', 'hv', 1, 6, 7, 7],
-  ['Long “Phù Thuỷ”', 'tv', 1, 8, 5, 6], ['Kiên “La Bàn”', 'tv', 1, 7, 7, 5], ['Duy “Tia Chớp”', 'td', 1, 7, 3, 9], ['Thắng “Sát Thủ”', 'td', 1, 9, 3, 6],
-  ['Vũ “Thần Giữ Cửa”', 'tm', 2, 3, 11, 7], ['Cường “Đá Tảng”', 'hv', 2, 6, 11, 6], ['An “Bậc Thầy”', 'tv', 2, 10, 8, 8], ['Hoàng “Vua Phá Lưới”', 'td', 2, 11, 5, 9],
-  ['Rồng Vàng “Số 10 huyền thoại”', 'tv', 3, 12, 10, 11],
-].map(([name, pos, r, atk, def, spd], i) => ({ id: 'c' + String(i + 1).padStart(2, '0'), no: i + 1, name, pos, r, atk, def, spd }));
+  ['Tùng “Tay Nhện”', 'tm', 0, 2, 6, 3, 'HP', 'VN'], ['Đức “Găng Sắt”', 'tm', 0, 1, 7, 3, 'SX'],
+  ['Lâm “Lá Chắn”', 'hv', 0, 2, 6, 4, 'CB'], ['Hùng “Xe Ủi”', 'hv', 0, 3, 6, 2, 'ND'], ['Phong “Bóng Ma”', 'hv', 0, 3, 5, 5, 'HP'],
+  ['Nam “Con Thoi”', 'tv', 0, 4, 4, 5, 'SX'], ['Quân “Nhạc Trưởng”', 'tv', 0, 5, 4, 3, 'CB', 'VN'], ['Bảo “Máy Quét”', 'tv', 0, 3, 5, 4, 'ND'], ['Tài “Ong Thợ”', 'tv', 0, 4, 5, 4, 'HP'],
+  ['Minh “Chớp”', 'td', 0, 5, 2, 6, 'CB'], ['Sơn “Búa Tạ”', 'td', 0, 6, 3, 2, 'ND', 'VN'], ['Việt “Cáo Già”', 'td', 0, 6, 2, 4, 'SX'],
+  ['Khánh “Người Nhện”', 'tm', 1, 2, 9, 5, 'CB', 'VN'], ['Trung “Bức Tường”', 'hv', 1, 4, 9, 4, 'HP', 'VN'], ['Hải “Mũi Khoan”', 'hv', 1, 6, 7, 7, 'SX', 'VN'],
+  ['Long “Phù Thuỷ”', 'tv', 1, 8, 5, 6, 'ND', 'VN'], ['Kiên “La Bàn”', 'tv', 1, 7, 7, 5, 'HP'], ['Duy “Tia Chớp”', 'td', 1, 7, 3, 9, 'SX', 'VN'], ['Thắng “Sát Thủ”', 'td', 1, 9, 3, 6, 'CB'],
+  ['Vũ “Thần Giữ Cửa”', 'tm', 2, 3, 11, 7, 'ND', 'VN'], ['Cường “Đá Tảng”', 'hv', 2, 6, 11, 6, 'SX'], ['An “Bậc Thầy”', 'tv', 2, 10, 8, 8, 'CB', 'VN'], ['Hoàng “Vua Phá Lưới”', 'td', 2, 11, 5, 9, 'HP', 'VN'],
+  ['Rồng Vàng “Số 10 huyền thoại”', 'tv', 3, 12, 10, 11, 'HP', 'VN'],
+  ['Kenji “Samurai”', 'tv', 1, 7, 6, 7, 'CB', 'NB'], ['Somchai “Voi Chiến”', 'hv', 1, 5, 9, 4, 'SX', 'TH'], ['Rafael “Vũ Công”', 'td', 2, 11, 4, 10, 'HP', 'BR'],
+  ['Takumi “Mũi Tên”', 'td', 0, 6, 2, 6, 'ND', 'NB'], ['Anan “Rắn Hổ Mang”', 'tv', 0, 5, 4, 4, 'CB', 'TH'], ['Lucas “Thần Đèn”', 'tm', 1, 2, 9, 6, 'ND', 'BR'],
+  ['Hiro “Lá Thép”', 'hv', 0, 2, 7, 3, 'HP', 'NB'], ['Chaiya “Cơn Lốc”', 'td', 1, 8, 3, 8, 'ND', 'TH'], ['Diego “Bò Tót”', 'hv', 2, 7, 11, 6, 'CB', 'BR'],
+  ['Yuto “Cánh Én”', 'tv', 0, 4, 3, 6, 'SX', 'NB'], ['Pedro “Pháp Sư”', 'tv', 3, 11, 9, 12, 'SX', 'BR'], ['Quang “Đội Trưởng”', 'hv', 1, 5, 8, 5, 'HP', 'VN'],
+].map(([name, pos, r, atk, def, spd, club, nat], i) => ({ id: 'c' + String(i + 1).padStart(2, '0'), no: i + 1, name, pos, r, atk, def, spd, club, nat: nat || null }));
 const CARD_BY_ID = {}; for (const c of CARDS) CARD_BY_ID[c.id] = c;
-// Tỉ lệ độ hiếm của lá bài đối thủ tung ra, theo trình của đối thủ
+// Lương cầu thủ: hiếm và mạnh thì lương cao — tổng lương đội hình không được vượt trần
+const cardSal = c => [3, 5, 8, 12][c.r] + Math.max(0, Math.floor((c.atk + c.def + c.spd - 12) / 6));
+// Đội hình: đúng 11 người khác nhau, đúng 1 thủ môn, ít nhất 2 hậu vệ, 2 tiền vệ, 1 tiền đạo; tổng lương ≤ cap
+const SQUAD = { size: 11, cap: 55, need: { tm: [1, 1], hv: [2, 9], tv: [2, 9], td: [1, 9] } };
+// Trận đấu thẻ: 5 lượt, ai thắng 3 lượt trước thắng; người ra lệnh chọn chỉ số và 3–5 lá
+const MATCH = { rounds: 5, win: 3, nMin: 3, nMax: 5 };
+// Tỉ lệ độ hiếm trong bộ thẻ của đối thủ, theo trình
 const DUEL_TIER = { 'gà': [72, 24, 4, 0], kha: [60, 30, 9, 1], caothu: [45, 35, 17, 3], lop: [65, 28, 6, 1] };
 const CARD_SET_REWARD = 200000;
 

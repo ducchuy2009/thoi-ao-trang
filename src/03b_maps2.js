@@ -165,6 +165,10 @@ function buildRooms() {
   addObj(h, { s: 'plant', x: 104, y: 194, sol: [2, 14, 12, 9], vis: own('d_cay') });
   addObj(h, { s: 'rug', x: 66, y: 166, flat: true, vis: own('d_tham') });
   addObj(h, { s: 'guitar', x: 112, y: 50, sol: [2, 18, 6, 8], vis: own('guitar') });
+  // dụng cụ thể thao: để quanh thảm tập, bấm vào để tập (có hoạt ảnh)
+  addObj(h, { s: 'eq_daynhay', x: 60, y: 148, ir: [-4, -4, 24, 18], vis: own('daynhay'), label: () => 'Dây nhảy — nhảy dây', act: () => ACT.exercise('daynhay') });
+  addObj(h, { s: 'eq_tatay', x: 60, y: 166, ir: [-4, -4, 26, 17], vis: own('tatay'), label: () => 'Tạ tay — tập tạ', act: () => ACT.exercise('tatay') });
+  addObj(h, { s: 'eq_xadon', x: 96, y: 110, sol: [0, 38, 28, 6], ir: [0, 20, 28, 26], vis: own('xadon'), label: () => 'Xà đơn — hít xà', act: () => ACT.exercise('xadon') });
   addObj(h, { s: 'mic', x: 132, y: 96, sol: [2, 16, 6, 6], ir: [-8, 0, 24, 30], vis: own('micro'), label: () => 'Micro — tập hát ở nhà', act: () => ACT.music('home') });
 }
 
@@ -183,7 +187,7 @@ function buildChua() {
   ell(x, '#9cc48a', 96, 316, 62, 34); ell(x, '#5fb0e0', 96, 316, 58, 30); ell(x, '#8fd0f0', 80, 306, 26, 8);
   for (const [a, b] of [[70, 320], [104, 304], [124, 326], [86, 332], [60, 302]]) { ell(x, '#5fae4a', a, b, 6, 3.5); R(x, '#ff8fb8', a - 1, b - 3, 3, 3); R(x, '#ffd6e4', a, b - 3, 1, 1); }
   m.solids.push([36, 286, 120, 60]);
-  addObj(m, { s: 'pagoda', x: 231, y: 18, sol: [4, 62, 170, 44] });
+  addObj(m, { s: 'pagoda', x: 231, y: 18, sol: [0, -18, 178, 124] });           // chặn cả khối chính điện (kể cả phía sau mái) — không đi xuyên được
   m.labels.push({ x: 320, y: 84.5, text: 'CHÙA HOA PHƯỢNG', size: 4.4, col: '#ffe066', maxw: 46 });
   addObj(m, { s: 'luhuong0', x: 309, y: 186, sol: [3, 18, 20, 10], smoke: [13, 4], dyn: () => 'luhuong' + (Math.floor(performance.now() / 350) % 2), label: () => (G.daily.que !== undefined && G.daily.que !== null ? 'Lư hương — hôm nay đã xin quẻ' : 'Lư hương — thắp nhang, xin xăm'), act: () => ACT.incense() });
   for (const a of [252, 380]) { addObj(m, { s: 'stonelamp', x: a, y: 160, sol: [1, 16, 12, 8] }); addObj(m, { s: 'stonelamp', x: a, y: 260, sol: [1, 16, 12, 8] }); }

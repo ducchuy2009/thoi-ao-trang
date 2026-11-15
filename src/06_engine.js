@@ -89,7 +89,7 @@ function interactables() {
   }
   // xe của mình đang dựng ở đâu đó: bấm vào để lên xe
   if (G.park && !G.park.shed && G.park.map === G.map) { const P = G.park; a.push({ x: P.x - 14, y: P.y - 18, w: 28, h: 20, rx: P.x - 12, ry: P.y - 8, rw: 24, rh: 8, base: P.y, label: () => `${VEHICLES[P.id].name} — lên xe`, act: () => ACT.mount(P.id), range: 20 }); }
-  if (G.comp && RT.fol && !G.ride) { const f = RT.fol, fid = G.comp.fid; a.push({ x: f.x - 9, y: f.y - 24, w: 18, h: 25, rx: f.x - 4, ry: f.y - 5, rw: 8, rh: 5, base: f.y, label: () => `${FRIENDS[fid].name} — đang đi cùng bạn`, act: () => ACT.friend(fid, 'comp'), range: 24 }); }
+  if (G.comp && RT.fol && !G.ride) { const f = RT.fol, fid = G.comp.fid; a.push({ x: f.x - 9, y: f.y - 24, w: 18, h: 25, rx: f.x - 4, ry: f.y - 5, rw: 8, rh: 5, base: f.y, fol: true, label: () => `${FRIENDS[fid].name} — đang đi cùng bạn`, act: () => ACT.friend(fid, 'comp'), range: 24 }); }
   for (const n of npcsHere()) if (n.act && n.cx !== undefined && !(n.fam && FAM[n.fam].riding)) a.push({ x: n.cx - 9, y: n.cy - 24, w: 18, h: 25, rx: n.cx - 4, ry: n.cy - 5, rw: 8, rh: 5, base: n.cy, label: n.label, act: n.act, range: 24, npc: n });
   return a;
 }
@@ -106,14 +106,18 @@ function scanTargets() {
   RT.near = near; RT.hover = hov;
 }
 function doInteract(t) {
-  if (!G || RT.lock || UI.isOpen() || !t) return;
+  if (!G || RT.lock || UI.isOpen()) return;
+  if (!t) { if (RT.hold) heldSelf(); return; }                    // đang cầm đồ mà không nhắm vào ai: ăn
   if (!inRange(t)) return UI.toast('Lại gần hơn một chút nhé.');
   const cxm = t.rx + t.rw / 2, cym = t.ry + t.rh / 2, dx = cxm - G.x, dy = cym - G.y;
   G.dir = Math.abs(dx) > Math.abs(dy) * 1.4 ? (dx < 0 ? 1 : 2) : (dy < 0 ? 3 : 0);
   if (t.npc && !t.npc.pos) { t.npc.tx = undefined; t.npc.cdir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 2 : 1) : (dy < 0 ? 0 : 3); }
+  if (RT.hold && (t.npc || t.fol)) return giveHeld(t);              // đang cầm đồ: tặng quà cho người đó
   t.act();
 }
-function interactPointer() { scanTargets(); doInteract(RT.hover || RT.near); }
+// Bấm chuột: đang cầm đồ thì bấm vào chính mình / chỗ trống là ăn, bấm vào người khác là tặng
+const onPlayer = () => { const wx = (MOUSE.x * VIEW.dpr - VIEW.ox) / VIEW.S, wy = (MOUSE.y * VIEW.dpr - VIEW.oy) / VIEW.S; return wx >= G.x - 8 && wx <= G.x + 8 && wy >= G.y - 24 && wy <= G.y + 1; };
+function interactPointer() { scanTargets(); if (RT.hold && (onPlayer() || !RT.hover)) return doInteract(null); doInteract(RT.hover || RT.near); }
 
 /* ---------- cập nhật ---------- */
 function movePlayer(dt) {
@@ -181,7 +185,9 @@ function update(dt) {
     if (RT.tickAcc >= G.speed) { RT.tickAcc = 0; advanceTime(CFG.TICK_MIN); }
     scanTargets();
     const t = RT.hover || RT.near;
-    if (t) UI.hint(t.label ? t.label() : '', inRange(t)); else UI.hint(null);
+    if (t) UI.hint(RT.hold && (t.npc || t.fol) ? `Tặng ${holdName(RT.hold).toLowerCase()} cho ${(t.npc && t.npc.name) || 'bạn'}` : (t.label ? t.label() : ''), inRange(t));
+    else if (RT.hold) UI.hint(`Đang cầm ${holdName(RT.hold).toLowerCase()}${FOODS[RT.hold] ? ' — bấm vào mình để ăn' : ''}`, true);
+    else UI.hint(null);
   } else { if (!(RT.scene && RT.scene.meMove)) RT.walkT = -1; UI.hint(null); }
   updateFamily(dt, busy);
   updateNpcs(dt, busy);
@@ -272,6 +278,7 @@ function render(now) {
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
   if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);
   if (G) drawFestProps(now);
+  if (G) drawHeld(now);                           // món đang cầm trên tay
   for (const o of m.objs) if (o.smoke && (!o.vis || o.vis())) smokeProp(now, o.x + o.smoke[0], o.y + o.smoke[1]);   // khói nhang        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
   // biển hiệu (chữ nét)
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';

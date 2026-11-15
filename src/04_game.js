@@ -45,6 +45,7 @@ function migrate() {
   def('visit', 'khoa');                                // đang ở trong nhà của bạn nào
   if (!G.phone.contacts) G.phone.contacts = Object.keys(FRIENDS).filter(f => (G.friends[f] || 0) >= 20 || (G.phone.msgs[f] || []).length);   // danh bạ: bạn đã cho số
   if (G.inv.xeng === undefined) G.inv.xeng = 0;       // xèng khu game
+  def('squad', null); def('cardTut', false); def('oppLost', {});   // đấu thẻ: đội hình 11 người, đã được anh Phong hướng dẫn chưa, thẻ đã lấy của từng đối thủ
   def('memo', { items: {}, scenes: {}, notes: null });  // lưu bút
   def('tet', {});                                      // Tết: năm → { lixi, chua, f: {bạn đã chúc}, t: {thầy cô đã chúc} }
   def('eve', null);                                    // lời rủ đón giao thừa: { day, who }
@@ -167,7 +168,6 @@ function tickEvents() {
   // Thứ 7, Chủ nhật, ngày nghỉ: về muộn hơn 20:00 cũng không sao.
   if (t === CFG.LATE_HOME) G.daily.outAt20 = schoolToday() && !atHome() && !G.daily.checkedIn && !G.daily.outPerm;
   socialTick(t);
-  if (t === EVE.ask && isEveDay(G.day) && !G.daily.eveAsked && !(G.eve && G.eve.day === G.day)) RT.pendingEve = true;   // rủ đón giao thừa
   if (G.comp && !G.comp.skip && t >= SKIP.endAt) endComp(`${FRIENDS[G.comp.fid].name} chào bạn rồi về nhà.`);
   if (!schoolToday()) return;
   if (!G.daily.arrived && !G.atSchool && !RT.skip) {   // nhắc giờ buổi sáng
@@ -698,9 +698,24 @@ ACT.table = async () => {
 };
 function lunchboxAvail() { return !!G && schoolToday() && G.time < 470 && !G.daily.lunchbox; }
 ACT.lunchbox = () => { G.daily.lunchbox = true; G.inv.comhop++; UI.toast('Đã lấy cơm hộp mẹ nấu. Mở Cặp sách để ăn vào giờ nghỉ trưa.', 'good'); };
-function eat(id) {
+// Mua đồ ăn: cất vào túi (chưa ăn ngay)
+function buyFood(id, price, name) {
+  if (G.money < price) { UI.toast('Không đủ tiền.', 'bad'); return false; }
+  addMoney(-price, true); G.inv[id] = (G.inv[id] || 0) + 1;
+  UI.toast(`Đã mua ${name || FOODS[id].name} (−${fmtMoney(price)}) — cất vào túi. Bấm vào món đó ở thanh đồ để cầm lên.`, 'good'); UI.hud();
+  return true;
+}
+// Ăn một món trong túi. Bim bim: mở gói ra là có thẻ cầu thủ. Đang đi cùng bạn thì hai đứa ăn chung.
+async function eat(id) {
   const f = FOODS[id]; if (!f || !G.inv[id]) return;
-  G.inv[id]--; gainStam(f.stam); UI.hud();
+  G.inv[id]--; if (!G.inv[id] && RT.hold === id) RT.hold = null;
+  gainStam(f.stam); UI.hud();
+  if (f.pack) await showPack(openPacks(f.pack), 'Mở gói bim bim Sao Vàng');
+  if (G.comp && !RT.lock) {
+    const fid = G.comp.fid;
+    if (f.duo && !G.daily.duoEat) { G.daily.duoEat = true; RT.lock = true; await playCut(duoCut(fid, f.duo)); RT.lock = false; }
+    addFriend(fid, 2);
+  }
 }
 
 /* ---------- việc nhà, tập luyện, học ---------- */
@@ -718,13 +733,21 @@ ACT.chore = async (id, ax) => {
   else if (id === 'nhoco') await animActivity(label, c.mins, weedCut(186, 84), done);   // cúi nhổ từng bụi, cỏ bay
   else await activity(label, c.mins, done);
 };
-ACT.exercise = async () => {
+// Tập ở nhà: thảm tập (chạy tại chỗ, hít đất) · dây nhảy · tạ tay · xà đơn — mỗi bài một hoạt ảnh
+ACT.exercise = async id => {
+  if (RT.lock) return;
   if (G.daily.exercise >= EXERCISE_MAX_PER_DAY) return UI.toast('Hôm nay tập đủ rồi, mai tập tiếp.');
   if (G.stamina < EXERCISE_STAM) return UI.toast('Không đủ thể lực để tập.', 'bad');
-  const opts = EXERCISES.filter(e => !e.need || G.owned[e.need]);
-  const c = await UI.ask('Tập thể dục', '<p>Tập bài nào?</p>', opts.map(e => e.name).concat('Thôi'));
-  if (c < 0 || c >= opts.length) return;
-  await activity('Đang tập thể dục…', EXERCISE_MIN, () => { G.daily.exercise++; useStam(EXERCISE_STAM, true); addStat('thethao', opts[c].pts); });
+  const E = EXERCISES.find(e => e.id === (id || 'tay'));
+  if (!E || (E.need && !G.owned[E.need])) return;
+  const c = await meSay(`<p>${E.name}? <span class="dim">(+${E.pts} Thể thao · −${EXERCISE_STAM} thể lực · ${EXERCISE_MIN} phút)</span></p>`, ['Tập thôi!', 'Thôi']);
+  if (c !== 0) return;
+  RT.lock = true;
+  UI.progress(`Đang tập: ${E.name.toLowerCase()}…`, 2600, '#d9742b');
+  await playCut(exerciseCut(E.id));
+  advanceTime(EXERCISE_MIN);
+  G.daily.exercise++; useStam(EXERCISE_STAM, true); addStat('thethao', E.pts);
+  RT.lock = false; UI.hud();
 };
 // needBook: tự học ở trường thì chỉ học được những môn hôm nay có mang sách trong cặp (ở nhà thì sách có sẵn)
 async function studyMenu(mins, pts, stam, review, needBook) {
@@ -785,7 +808,6 @@ function buy(it) {
   if (it.own) G.owned[it.own] = true;
   if (it.special === 'vethang') { G.busPassUntil = G.day + BUS_PASS_DAYS - 1; G.bag.vethang = true; }
   UI.toast(`Đã mua ${it.name} (−${fmtMoney(it.price)})`, 'good'); UI.hud();
-  if (it.pack) packToast(openPacks(it.pack));        // bim bim Sao Vàng: mỗi gói kèm 1 thẻ cầu thủ
 }
 async function partTime() {
   if (schoolToday()) return UI.toast('Cô Ba chỉ nhận phụ bán vào ngày nghỉ.');
@@ -810,7 +832,7 @@ ACT.center = async () => {
 /* ---------- việc cần làm (gợi ý) ---------- */
 function todoList() {
   const t = [];
-  if (G.eve && eveOk()) t.push([RT.fest, RT.fest ? 'Đang dự hội đón giao thừa' : 'Lên núi sau trường đón giao thừa (trước 24:00)']);
+  if (eveOk()) t.push([RT.fest, RT.fest ? 'Đang dự hội đón giao thừa' : `Lễ hội đón giao thừa trên núi sau trường: ${fmtTime(EVE.from)}–24:00`]);
   if (schoolToday()) {
     if (!G.daily.arrived && G.time < CFG.SCHOOL_END) {
       t.push([!!G.daily.meals.sang, 'Ăn sáng mẹ nấu']);

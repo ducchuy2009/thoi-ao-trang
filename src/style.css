@@ -323,3 +323,26 @@ body.cut #hotbar{opacity:0;pointer-events:none}
 .memo-note img{width:44px;height:44px;image-rendering:pixelated;flex:none;border-radius:8px;background:#f4ead2}
 .memo-note p{margin:3px 0 0;font-family:"Comic Sans MS","Baloo 2",cursive;font-size:14px}
 .bc-board{margin:6px 0 8px;padding-left:22px}.bc-board li{padding:2px 0}.bc-board li.me{color:#2f7d5b;font-weight:800}
+.slot.held{background:#ffe066;outline:3px solid #e2574c;transform:translateY(-4px)}
+/* ---------- đấu thẻ chiến thuật ---------- */
+.cts{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;margin:6px 0}
+.cts.sm{grid-template-columns:repeat(5,minmax(70px,1fr))}
+.ct{position:relative;display:flex;flex-direction:column;align-items:center;padding:14px 3px 4px;background:linear-gradient(#fff,#fff6e3);border:3px solid var(--rc);border-radius:9px;font:inherit;color:var(--ink);cursor:default;text-align:center}
+button.ct{cursor:pointer}button.ct:hover{background:#fffbe8}
+.ct.on{outline:3px solid var(--ink);background:#ffe066;transform:translateY(-2px)}
+.ct.dim{opacity:.45}
+.ct img{width:30px;height:40px;image-rendering:pixelated}
+.ct b{font-size:12px;line-height:1.1}.ct small{font-size:10px;color:#6b6170;line-height:1.1;min-height:11px}
+.ct-pos{position:absolute;left:3px;top:2px;font-style:normal;font-size:10px;font-weight:800;padding:0 4px;border-radius:4px;color:#fff;background:#5f656f}
+.ct-pos.p-tm{background:#2a2136}.ct-pos.p-hv{background:#3b82c4}.ct-pos.p-tv{background:#2e9e86}.ct-pos.p-td{background:#d9534f}
+.ct-sal{position:absolute;right:3px;top:2px;font-style:normal;font-size:10px;font-weight:800}
+.ct-s{display:flex;gap:3px;font-size:10px;margin-top:2px}.ct-s span{padding:0 2px;border-radius:3px}.ct-s .hl{background:#ffe066}.ct-s i{font-style:normal;color:#2f7d5b}
+.ct-tags{display:flex;gap:3px;margin-top:3px}.ct-tags em{font-style:normal;font-size:9px;font-weight:800;padding:0 4px;border-radius:3px;color:#fff;border:1px solid rgba(0,0,0,.25)}
+.cm-head{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#2a2136;color:#fff6e3;border-radius:10px;margin-bottom:8px}
+.cm-head img{width:34px;height:34px;image-rendering:pixelated;background:#fff6e3;border-radius:6px}
+.cm-head b{font-size:16px}.cm-head span{flex:1;text-align:center;font-size:12px;opacity:.85}
+.cm-big{font-size:16px;text-align:center;margin:6px 0}
+.cm-tot{font-size:18px;color:#d9534f}
+.cm-row{margin:6px 0;padding:6px;background:#f4ead2;border-radius:8px}.cm-row small{color:#6b6170}
+.rps .btn{font-size:15px;min-width:86px}.emo{font-size:26px;display:inline-block;margin-right:4px;vertical-align:middle}
+b.bad{color:#d9534f}

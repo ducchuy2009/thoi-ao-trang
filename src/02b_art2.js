@@ -386,6 +386,12 @@ function buildSprites2() {
   });
   shopFront('fb_doan', '#f2a93b', x => { ell(x, '#5f656f', 12, 5, 8, 4); R(x, '#5f656f', 4, 5, 17, 4); ell(x, '#8b8f9c', 12, 4, 7, 2); R(x, 'rgba(240,240,240,.7)', 9, 0, 1, 2); R(x, 'rgba(240,240,240,.7)', 14, 0, 1, 2); for (let i = 0; i < 3; i++) { R(x, '#3f8f3a', 36 + i * 5, 3 - (i % 2), 5, 5); R(x, '#d9c690', 38 + i * 5, 3 - (i % 2), 1, 5); } R(x, '#d9534f', 0, 13, 54, 1); });
 
+
+  /* ---------- dụng cụ tập thể dục ở nhà (mua ở gian Thể thao, TTTM) ---------- */
+  def('eq_daynhay', 16, 10, x => { ell(x, '#e2574c', 8, 5, 6, 3.5); ell(x, '#3a2a22', 8, 5, 4, 2); ell(x, '#e2574c', 8, 5, 3, 1.5); R(x, '#3b82c4', 0, 2, 3, 6); R(x, '#3b82c4', 13, 2, 3, 6); R(x, '#6fa0e0', 0, 2, 1, 6); R(x, '#6fa0e0', 13, 2, 1, 6); });
+  def('eq_tatay', 18, 9, x => { for (const b of [0, 5]) { R(x, '#3a3f55', 0, b, 4, 4); R(x, '#3a3f55', 12, b, 4, 4); R(x, '#8b8f9c', 4, b + 1, 8, 2); R(x, '#5f656f', 0, b, 4, 1); R(x, '#5f656f', 12, b, 4, 1); } });
+  def('eq_xadon', 28, 42, x => { R(x, '#5f656f', 2, 4, 3, 38); R(x, '#5f656f', 23, 4, 3, 38); R(x, '#8b8f9c', 2, 4, 1, 38); R(x, '#8b8f9c', 23, 4, 1, 38); R(x, '#c9ccd4', 0, 4, 28, 3); R(x, '#eceef2', 0, 4, 28, 1); R(x, '#3a3f55', 0, 39, 8, 3); R(x, '#3a3f55', 20, 39, 8, 3); R(x, '#e2574c', 6, 3, 3, 5); R(x, '#e2574c', 19, 3, 3, 5); });
+
 }
 
 /* ---------- biểu tượng vật phẩm cho thanh đồ (16×16 → dataURL) ---------- */
@@ -488,7 +494,7 @@ const CARD_HAIR = [['#2c2733', 'short'], ['#6b4429', 'spiky'], ['#1f1f29', 'buzz
 const _portraits = {};
 function cardPortrait(c) {
   if (_portraits[c.id]) return _portraits[c.id];
-  const kit = c.r === 3 ? ['#f4d35e', '#d9534f'] : CARD_KITS[c.no % CARD_KITS.length], hr = CARD_HAIR[(c.no * 7) % CARD_HAIR.length];
+  const kit = c.r === 3 ? ['#f4d35e', '#d9534f'] : c.club ? CARD_CLUBS[c.club].kit : CARD_KITS[c.no % CARD_KITS.length], hr = CARD_HAIR[(c.no * 7) % CARD_HAIR.length];
   const L = { hair: hr[0], style: hr[1], shirt: c.pos === 'tm' ? '#3a3f55' : kit[0], pants: c.pos === 'tm' ? '#2a2136' : '#fffaf0', stripe: kit[1], skin: c.no % 3 === 0 ? '#e3ae80' : '#f8d0a8', shoe: '#2a2136' };
   const f = drawCharFrame(L, 0, 0), cv2 = mk(72, 96), x = cx(cv2);
   x.drawImage(f, 0, 0, 18, 24, 0, 0, 72, 96);

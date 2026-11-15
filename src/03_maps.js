@@ -57,7 +57,7 @@ function buildHome() {
   addObj(m, { s: 'chair', x: 70, y: 49, sol: [1, 1, 12, 11] });
   addObj(m, { s: 'wardrobe', x: 95, y: 6, sol: [1, 10, 30, 29] });
   addObj(m, { s: 'shelf', x: 126, y: 12, sol: [1, 8, 16, 25] });
-  addObj(m, { s: 'mat', x: 24, y: 150, flat: true, label: () => 'Thảm tập thể dục', act: () => ACT.exercise() });
+  addObj(m, { s: 'mat', x: 24, y: 150, flat: true, label: () => 'Thảm tập — chạy tại chỗ, hít đất', act: () => ACT.exercise('tay') });
   addObj(m, { s: 'plant', x: 20, y: 194, sol: [2, 14, 12, 9] });
   // phòng khách
   addObj(m, { s: 'rug', x: 188, y: 60, flat: true });
