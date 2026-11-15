@@ -795,8 +795,8 @@ ACT.senior = async soc => {
  *  CẦM VẬT PHẨM: bấm món đồ trong túi / thanh đồ để cầm lên
  *  Đang cầm mà tương tác với người khác → tặng quà · bấm vào mình hoặc chỗ trống → ăn (nếu ăn được)
  * ============================================================ */
-const holdName = id => (FOODS[id] ? FOODS[id].name : id === 'gaubong' ? 'Gấu bông' : id === 'voso' ? 'Vỏ sò' : id === 'denongsao' ? 'Đèn ông sao' : PARENT_ITEMS[id] || id);
-const holdable = id => !!(FOODS[id] || id === 'gaubong' || id === 'voso' || id === 'denongsao' || PARENT_ITEMS[id]);
+const holdName = id => (FOODS[id] ? FOODS[id].name : id === 'gaubong' ? 'Gấu bông' : id === 'voso' ? 'Vỏ sò' : id === 'denongsao' ? 'Đèn ông sao' : PARENT_ITEMS[id] || GROUP_ITEMS[id] || id);
+const holdable = id => !!(FOODS[id] || id === 'gaubong' || id === 'voso' || id === 'denongsao' || PARENT_ITEMS[id] || GROUP_ITEMS[id]);
 function toggleHold(id) {
   if (!holdable(id) || !G.inv[id]) return;
   RT.hold = RT.hold === id ? null : id;
@@ -819,6 +819,11 @@ function giftTarget(t) {
 async function giveHeld(t) {
   const id = RT.hold, T = giftTarget(t); if (!id || !T || !G.inv[id]) return;
   if (PARENT_ITEMS[id]) { if (T.kind === 'parent' && await parentDeliver(T.id)) return; return UI.toast(`${PARENT_ITEMS[id]} là đồ của ${Object.values(PARENT_TASKS).find(P => P.item === id).who === 'dad' ? 'bố' : 'mẹ'} — mang tới đưa tận tay nhé.`, 'info'); }
+  if (GROUP_ITEMS[id]) {
+    if ((T.kind === 'friend' || T.kind === 'soc') && await groupDeliver(T.id)) return;
+    const t = G.tasks.active.find(x => x.gr && taskDef(x).item === id);
+    return UI.toast(t ? `${GROUP_ITEMS[id]} là đồ ${grLow(t.who)} nhờ lấy — mang tới đưa tận tay ${grLow(t.who)} nhé.` : `${GROUP_ITEMS[id]} không phải của người này.`, 'info');
+  }
   const key = 'g_' + T.kind + '_' + T.id, isFood = !!FOODS[id], it = holdName(id).toLowerCase();
   let who, name, line, done = () => { };
   if (T.kind === 'friend') {

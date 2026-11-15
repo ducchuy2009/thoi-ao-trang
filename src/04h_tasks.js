@@ -16,11 +16,11 @@ function ptDef(id) {
   return (PT_CACHE[id] = { who: P.who, name: P.name, desc: P.msg, mins: 5, win: [300, 1440], pay: PARENT_TASK.pay, aff: PARENT_TASK.aff, item: P.item, cost: P.cost || 0, where: P.where,
     steps: [Object.assign({}, P.pick), { give: P.who, do: `Cầm ${PARENT_ITEMS[P.item].toLowerCase()} đưa tận tay ${PNAME[P.who].toLowerCase()}`, where: P.where }] });
 }
-const taskDef = t => (t.pt ? ptDef(t.id) : TASKS[t.id]);
-const defById = id => (PARENT_TASKS[id] ? ptDef(id) : TASKS[id]);
-const ownerName = T => (T.tid ? tName(T.tid) : PNAME[T.who]);
-const ownerLow = T => (T.tid ? tLow(T.tid) : PNAME[T.who].toLowerCase());
-const ownerLook = T => (T.tid ? TEACHERS[T.tid].look : T.who);
+// việc các bạn nhờ trong nhóm điện thoại (t.gr): định nghĩa theo cả việc lẫn người nhờ (grDef ở 04j)
+const taskDef = t => (t.gr ? grDef(t.id, t.who) : t.pt ? ptDef(t.id) : TASKS[t.id]);
+const ownerName = T => (T.tid ? tName(T.tid) : T.gw ? grName(T.gw) : PNAME[T.who]);
+const ownerLow = T => (T.tid ? tLow(T.tid) : T.gw ? grLow(T.gw) : PNAME[T.who].toLowerCase());
+const ownerLook = T => (T.tid ? TEACHERS[T.tid].look : T.gw ? grWho(T.gw).look : T.who);
 const tUntil = t => (t.until !== undefined ? t.until : taskDef(t).until);
 const taskById = uid => G.tasks.active.find(t => t.uid === uid) || G.tasks.board.find(t => t.uid === uid);
 const taskWin = (T, k) => (T.steps[k] && T.steps[k].win) || T.win;
@@ -35,6 +35,7 @@ function taskNewDay() {
   const S = G.tasks;
   for (const t of S.active.filter(t => t.exp < G.day)) {
     const T = taskDef(t);
+    if (t.gr) { groupFail(t, T); continue; }
     if (t.pt) { addParent(-2, '', true); if (T.item) delete G.inv[T.item]; if (RT.morning) RT.morning.push(`Hôm qua không kịp “${T.name.toLowerCase()}” — ${PNAME[T.who].toLowerCase()} phải tự xoay xở.`); continue; }
     addTeacher(TASK_BOARD.failAff, T.tid, true);
     if (RT.morning) RT.morning.push(`Không kịp làm việc “${T.name}” — ${tName(T.tid)} hơi buồn vì em đã nhận mà không làm.`);
@@ -56,10 +57,10 @@ function taskCard(t, mode) {
   const T = taskDef(t), late = taskLate(t), dl = daysLeft(t);
   const where = T.steps.map((s, i) => (mode === 'active' ? `<span class="${i < t.step ? 'ok' : i === t.step ? 'cur' : ''}">${i < t.step ? '✓ ' : ''}${s.where}</span>` : s.where)).join(' → ');
   const due = `${taskDeadline(t)}${late ? ' — đã quá hạn' : dl === 0 ? ' — hôm nay!' : dl === 1 ? ' — còn 1 ngày' : ` — còn ${dl} ngày`}`;
-  const reward = t.pt ? `bố mẹ vui (+${T.aff}) · ${fmtMoney(T.pay)} tiền công${T.cost ? ` + trả lại ${fmtMoney(T.cost)} tiền mua đồ` : ''}` : `+${T.aff} thân thiết với ${tLow(T.tid)} · ${fmtMoney(T.pay)}${T.stat ? ` · +${T.stat[1]} ${STAT_NAMES[T.stat[0]]}` : ''}`;
+  const reward = t.gr ? grRewardText(T) : t.pt ? `bố mẹ vui (+${T.aff}) · ${fmtMoney(T.pay)} tiền công${T.cost ? ` + trả lại ${fmtMoney(T.cost)} tiền mua đồ` : ''}` : `+${T.aff} thân thiết với ${tLow(T.tid)} · ${fmtMoney(T.pay)}${T.stat ? ` · +${T.stat[1]} ${STAT_NAMES[T.stat[0]]}` : ''}`;
   const btn = mode === 'board' ? `<button class="btn sm primary" data-act="take" data-id="${t.uid}">Nhận việc</button>` : `<button class="btn sm ghost" data-act="drop" data-id="${t.uid}">Bỏ việc</button>`;
-  return `<div class="task ${mode} ${late ? 'late' : ''}"><img src="${faceOf(ownerLook(T), null)}" alt=""><div class="tbody"><b>${T.name}</b><small>${ownerName(T)}${t.pt ? ' (tin nhắn)' : ''}: “${T.desc}”</small>
-    <dl><dt>Ở đâu</dt><dd>${where}</dd><dt>Cần</dt><dd>${t.pt ? 'lấy đồ cho vào túi → cầm lên → bấm vào ' + PNAME[T.who].toLowerCase() + ' để đưa' : `khoảng ${T.mins} phút · ${winText(T, mode === 'active' ? t.step : 0)}`}</dd><dt>Hạn chót</dt><dd class="${late || dl === 0 ? 'bad' : ''}">${due}</dd><dt>Thưởng</dt><dd>${reward}</dd></dl></div>${btn}</div>`;
+  return `<div class="task ${mode} ${late ? 'late' : ''}"><img src="${faceOf(ownerLook(T), null)}" alt=""><div class="tbody"><b>${T.name}</b><small>${ownerName(T)}${t.gr ? ' (nhóm học sinh)' : t.pt ? ' (tin nhắn)' : ''}: “${T.desc}”</small>
+    <dl><dt>Ở đâu</dt><dd>${where}</dd><dt>Cần</dt><dd>${t.pt || t.gr ? 'lấy đồ cho vào túi → cầm lên → bấm vào ' + ownerLow(T) + ' để đưa' : `khoảng ${T.mins} phút · ${winText(T, mode === 'active' ? t.step : 0)}`}</dd><dt>Hạn chót</dt><dd class="${late || dl === 0 ? 'bad' : ''}">${due}</dd><dt>Thưởng</dt><dd>${reward}</dd></dl></div>${btn}</div>`;
 }
 ACT.board = () => {
   if (RT.lock) return;
@@ -74,7 +75,7 @@ ACT.board = () => {
 async function takeTask(uid) {
   const S = G.tasks, t = S.board.find(x => x.uid === uid); if (!t) return;
   const T = taskDef(t);
-  if (S.active.filter(x => !x.pt).length >= TASK_BOARD.maxActive) return UI.toast(`Đang nhận ${TASK_BOARD.maxActive} việc rồi — làm xong bớt rồi hãy nhận thêm.`, 'bad');
+  if (S.active.filter(x => !x.pt && !x.gr).length >= TASK_BOARD.maxActive) return UI.toast(`Đang nhận ${TASK_BOARD.maxActive} việc rồi — làm xong bớt rồi hãy nhận thêm.`, 'bad');
   const c = await UI.ask(T.name, `<p>${tName(T.tid)} nhờ: “${T.desc}”</p><p>Cần khoảng <b>${T.mins} phút</b>, ${winText(T)}. Hạn chót: <b>${taskDeadline(t)}</b>.</p><p class="dim">Nhận rồi mà không làm kịp thì ${tLow(T.tid)} sẽ buồn đấy.</p>`, ['Em nhận việc này!', 'Thôi'], { who: { look: TEACHERS[T.tid].look } });
   if (c !== 0) return ACT.board();
   S.board = S.board.filter(x => x !== t);
@@ -87,8 +88,8 @@ async function takeTask(uid) {
 function questPanel() {
   UI.panel('Nhiệm vụ', () => {
     const S = G.tasks;
-    let h = S.active.length ? `<div class="tasks">${S.active.map(t => taskCard(t, 'active')).join('')}</div>` : '<p class="okbox">Chưa nhận việc nào. Ra <b>bảng thông báo</b> ở sân trường (cạnh căn tin) xem thầy cô cần giúp gì, hoặc chờ bố mẹ nhắn tin nhờ việc.</p>';
-    h += `<p class="dim">Chỗ cần tới có dấu <b style="color:#c9962a">!</b> vàng nhấp nháy. Đi tới đó rồi bấm E (hoặc chuột phải) để làm. Việc bố mẹ nhờ: lấy đồ xong thì bấm món đó ở thanh đồ để cầm lên, rồi bấm vào bố / mẹ để đưa. Đã giúp ${S.done} việc.</p>`;
+    let h = S.active.length ? `<div class="tasks">${S.active.map(t => taskCard(t, 'active')).join('')}</div>` : '<p class="okbox">Chưa nhận việc nào. Ra <b>bảng thông báo</b> ở sân trường (cạnh căn tin) xem thầy cô cần giúp gì, hoặc chờ bố mẹ nhắn tin, các bạn đăng nhờ trong nhóm học sinh (điện thoại).</p>';
+    h += `<p class="dim">Chỗ cần tới có dấu <b style="color:#c9962a">!</b> vàng nhấp nháy. Đi tới đó rồi bấm E (hoặc chuột phải) để làm. Việc bố mẹ / các bạn nhờ: lấy đồ xong thì bấm món đó ở thanh đồ để cầm lên, rồi bấm vào người nhờ để đưa. Đã giúp ${S.done} việc.</p>`;
     return h;
   }, { drop: d => dropTask(+d.id) }, true);
 }
@@ -98,7 +99,8 @@ async function dropTask(uid) {
   const c = await UI.ask('Bỏ việc', `<p>Bỏ việc “${T.name}”? ${ownerName(T)} sẽ hơi buồn.</p>`, ['Bỏ việc', 'Thôi, để em làm']);
   if (c === 0) {
     G.tasks.active = G.tasks.active.filter(x => x !== t);
-    if (t.pt) { addParent(-1, '', true); if (T.item) { delete G.inv[T.item]; if (RT.hold === T.item) RT.hold = null; } } else addTeacher(TASK_BOARD.dropAff, T.tid, true);
+    if (t.gr) groupFail(t, T, true);
+    else if (t.pt) { addParent(-1, '', true); if (T.item) { delete G.inv[T.item]; if (RT.hold === T.item) RT.hold = null; } } else addTeacher(TASK_BOARD.dropAff, T.tid, true);
     UI.toast(`Đã bỏ việc “${T.name}”.`, 'info'); UI.hud();
   }
   questPanel();
@@ -108,7 +110,8 @@ const taskAt = (id, k) => G && G.tasks && G.tasks.active.find(t => t.id === id &
 async function doTaskStep(id, k) {
   if (RT.lock) return;
   const t = taskAt(id, k); if (!t) return;
-  const T = defById(id), s = T.steps[k], w = taskWin(T, k);
+  const T = taskDef(t), s = T.steps[k], w = taskWin(T, k);
+  if (t.gr) return pickGroupItem(t, T, s);
   if (t.pt) return pickParentItem(t, T, s);
   if (taskLate(t)) return UI.say(T.name, `Đã quá hạn chót (${taskDeadline(t)}) mất rồi…`);
   if (!inWin(G.time, w[0], w[1])) return UI.say(T.name, `Việc này ${winText(T, k)}. Giờ chưa làm được.`);
@@ -132,6 +135,8 @@ function buildTaskSpots() {
   });
   for (const id in PARENT_TASKS) { const s = PARENT_TASKS[id].pick, m = MAPS[s.map]; if (!m) continue;
     addObj(m, { s: 'blank', x: s.x, y: s.y, ir: [-14, -20, 28, 30], vis: () => !!taskAt(id, 0), label: () => `Việc ${PNAME[PARENT_TASKS[id].who].toLowerCase()} nhờ: ${s.do.toLowerCase()}`, act: () => doTaskStep(id, 0) }); }
+  for (const id in GROUP_REQS) { const s = GROUP_REQS[id].pick, m = MAPS[s.map]; if (!m) continue;
+    addObj(m, { s: 'blank', x: s.x, y: s.y, ir: [-14, -20, 28, 30], vis: () => !!taskAt(id, 0), label: () => { const t = taskAt(id, 0); return `Việc ${t ? grLow(t.who) : 'bạn'} nhờ: ${s.do.toLowerCase()}`; }, act: () => doTaskStep(id, 0) }); }
   const sch = MAPS.school;
   addObj(sch, { s: 'bangtin', x: 144, y: 90, sol: [2, 24, 32, 6], label: () => `Bảng thông báo — thầy cô cần giúp${G.tasks.board.length ? ` (${G.tasks.board.length} việc)` : ''}`, act: () => ACT.board() });
   sch.labels.push({ x: 162, y: 95.5, text: 'THÔNG BÁO', size: 4.2, col: '#fffaf0', maxw: 26 });
@@ -142,7 +147,7 @@ function drawTaskMarkers(now) {
   const b = Math.round(Math.sin(now / 180) * 2);
   for (const t of G.tasks.active) {
     let s = taskDef(t).steps[t.step]; if (!s) continue;
-    if (s.give) { const n = NPCS.find(q => q.map === G.map && (q.fam === s.give || q.pf === s.give) && q.cx !== undefined && (!q.vis || q.vis())); if (!n) continue; s = { x: n.cx, y: n.cy - 10 }; }
+    if (s.give) { const n = NPCS.find(q => q.map === G.map && (q.fam === s.give || q.pf === s.give || (t.gr && (q.fid === s.give || q.soc === s.give))) && q.cx !== undefined && (!q.vis || q.vis())); if (!n) continue; s = { x: n.cx, y: n.cy - 10 }; }
     else if (s.map !== G.map) continue;
     wRect('#2a2136', s.x - 3, s.y - 32 + b, 7, 11); wRect('#ffd23a', s.x - 2, s.y - 31 + b, 5, 9); wRect('#2a2136', s.x, s.y - 30 + b, 1, 4); wRect('#2a2136', s.x, s.y - 25 + b, 1, 1);
     if (Math.floor(now / 400) % 2) wRect('rgba(255,210,58,0.35)', s.x - 9, s.y - 2, 18, 5);

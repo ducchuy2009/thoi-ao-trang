@@ -250,11 +250,36 @@ function buildSprites() {
     if (flower) for (let i = 0; i < (nf || 26); i++) { const a = r() * 6.28, rad = r() * 13, fx = Math.round(16.5 + Math.cos(a) * rad), fy = Math.round(15 + Math.sin(a) * rad * 0.9); R(x, flower, fx, fy, 2, 1); R(x, shade(flower, 30), fx, fy - 1, 1, 1); }
   });
   tree('tree', '#5fae4a', null, 3); tree('tree2', '#4c9f58', null, 9);
-  tree('treePink', '#f3a6c0', '#ffd6e4', 5); tree('treeRed', '#57a548', '#e8483a', 7); tree('treeOrange', '#e98a3c', '#f6c35a', 4);
+  tree('treePink', '#f3a6c0', '#ffd6e4', 5); tree('treeOrange', '#e98a3c', '#f6c35a', 4);
   tree('treeMai', '#6aa848', '#ffd23a', 11);                       // cây mai vàng ngày Tết
   // cây theo mùa (Hà Nội): xuân đào hồng, lộc non, hoa sưa · hè phượng đỏ, bàng vàng · thu hoa sữa · đông bàng lá đỏ
   tree('sp_dao', '#f3a6c0', '#ffe3ec', 13, 34); tree('sp_loc', '#9fd46a', '#e2f5b0', 15, 20); tree('sp_sua', '#86c46a', '#fbfbf2', 17, 46);
-  tree('su_phuong', '#57a548', '#e8483a', 19, 70); tree('su_bang', '#e8c547', '#f6e08a', 21, 18);
+  tree('su_bang', '#e8c547', '#f6e08a', 21, 18);
+  // phượng vĩ: thân thấp chia nhánh, tán xoè rộng như chiếc ô, lá lông chim li ti, chùm hoa đỏ cam phủ kín mặt tán
+  const phuong = (name, nFlower, seed) => def(name, 34, 46, x => {
+    const r = rng(seed);
+    // thân thấp, chia nhiều nhánh toả ra đỡ lấy tán
+    R(x, '#8b5e3c', 15, 29, 5, 16); R(x, '#6f472c', 18, 29, 2, 16); R(x, '#a37248', 15, 31, 1, 12); R(x, '#6f472c', 10, 44, 15, 2); R(x, '#8b5e3c', 13, 43, 2, 2); R(x, '#8b5e3c', 20, 43, 2, 2);
+    for (const [tx, ty] of [[4, 18], [30, 18], [11, 19], [23, 19], [17, 17]]) { line(x, '#6f472c', 17, 30, tx, ty); line(x, '#8b5e3c', 17, 29, tx, ty - 1); }
+    // tán dẹt xoè như chiếc ô: mặt trên sáng, mép dưới tối, lá lông chim li ti
+    const inside = (px, py) => { const dx = px - 16.5, dy = py - 11, ang = Math.atan2(dy, dx), e = 1 + 0.07 * Math.sin(ang * 11 + seed) + (dy > 2 ? 0.06 * Math.sin(px * 1.9 + seed) : 0); return (dx * dx) / (16.5 * 16.5) + (dy * dy) / (dy > 0 ? 8.5 * 8.5 : 9 * 9) <= e * e; };
+    for (let py = 1; py < 21; py++) for (let px = 0; px < 34; px++) {
+      if (!inside(px, py)) continue;
+      const dy = py - 11, q = r();
+      let col = dy > 4 ? '#3a7f36' : dy < -4 ? '#74bc54' : '#5aa548';
+      if (q < 0.18) col = dy > 4 ? '#46923e' : '#8ccd62'; else if (q < 0.3) col = '#4a983f';
+      R(x, col, px, py);
+    }
+    // hoa phượng: từng mảng đỏ cam phủ trên mặt tán (nhiều ở nửa trên)
+    for (let i = 0; i < nFlower; i++) {
+      const fx = 3 + r() * 28, fy = 2 + Math.pow(r(), 1.4) * 12; if (!inside(Math.round(fx), Math.round(fy))) continue;
+      const rx = 1.4 + r() * 1.6, ry = 1 + r() * 0.8;
+      ell(x, '#d93a30', fx, fy + 0.5, rx, ry); ell(x, '#f0503c', fx - 0.3, fy, rx - 0.4, ry - 0.3);
+      R(x, '#ff9a52', Math.round(fx - rx / 2), Math.round(fy - ry / 2), 1, 1); R(x, '#a82a24', Math.round(fx + rx / 2), Math.round(fy + ry / 2), 1, 1);
+    }
+  });
+  phuong('su_phuong', 30, 19); phuong('treeRed', 12, 7);
+
   // hoa sữa: tán xếp tầng như chiếc ô, chùm hoa trắng kem mọc thành cụm trên đỉnh mỗi tầng lá
   def('au_sua', 34, 46, x => {
     R(x, '#8b5e3c', 15, 12, 4, 33); R(x, '#6f472c', 18, 12, 1, 33); R(x, '#a37248', 15, 14, 1, 28); R(x, '#6f472c', 12, 44, 10, 2);

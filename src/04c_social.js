@@ -961,6 +961,7 @@ function friendPing(evening) {
 }
 function socialTick(t) {
   parentPing(t);                                                                  // bố mẹ nhắn nhờ việc (ngoài giờ học)
+  groupTick(t);                                                                   // nhóm học sinh trường: nhờ vả, chuyện phiếm
   if (t === 1170 && Math.random() < 0.5) friendPing(true);                       // 19:30
   else if (t === 510 && !schoolToday() && Math.random() < 0.45) friendPing(false);   // sáng ngày nghỉ
   const m = meetOn();

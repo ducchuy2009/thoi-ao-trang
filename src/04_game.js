@@ -50,6 +50,7 @@ function migrate() {
   if (!G.memo.badges) G.memo.badges = {};             // danh hiệu / huy hiệu: id → ngày
   if (!G.memo.pics) G.memo.pics = {};                 // ảnh chụp thật (JPEG nhỏ) của kỷ vật dạng ảnh
   def('wage', []);                                     // tiền công trong ngày (trả khi hết ngày): [{ what, amt }]
+  def('group', { reqs: [], seq: 0 });                  // nhóm học sinh trên điện thoại: lời nhờ đã đăng { uid, id, who, day, t, exp, until, st }
   def('tasks', { board: [], active: [], done: 0, seq: 0 });   // bảng thông báo việc thầy cô nhờ · việc đã nhận · số việc đã xong
   def('tt', {});                                       // Trung thu: năm → { asked, fam, fid, done, lantern, nieu, keoco }
   def('tet', {});                                      // Tết: năm → { lixi, chua, f: {bạn đã chúc}, t: {thầy cô đã chúc} }

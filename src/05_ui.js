@@ -189,6 +189,7 @@ const UI = {
     if (G.inv.gaubong) add('gaubong', G.inv.gaubong, 'Gấu bông — bấm để cầm lên rồi bấm vào bạn để tặng', 'hold');
     if (G.inv.voso) add('voso', G.inv.voso, 'Vỏ sò — bấm để cầm lên rồi bấm vào bạn để tặng', 'hold');
     for (const k in PARENT_ITEMS) if (G.inv[k]) add(k, 1, `${PARENT_ITEMS[k]} — bấm để cầm lên rồi bấm vào bố / mẹ để đưa tận tay`, 'hold');
+    for (const k in GROUP_ITEMS) if (G.inv[k]) add(k, 1, `${GROUP_ITEMS[k]} — bấm để cầm lên rồi bấm vào bạn đã nhờ để đưa tận tay`, 'hold');
     if (G.inv.denongsao) add('denongsao', G.inv.denongsao, 'Đèn ông sao tự làm — bấm để cầm lên (rước đèn, hoặc tặng bạn)', 'hold');
     for (const m of TT_MATS) if (G.inv[m.id]) add(m.id, G.inv[m.id], `${m.name} — nguyên liệu làm đèn ông sao (mang tới sạp làm đèn lồng đêm Trung thu)`);
     if (fishCount()) add('ca', fishCount(), 'Cá câu được — bán cho Cô Ba hoặc đưa mẹ nấu');
@@ -242,6 +243,8 @@ const UI = {
       const id = UI._chat;
       if (!id) {
         let h = '<div class="rows">';
+        const ga = G.phone.msgs.group || [], gl = ga[ga.length - 1], gu = G.phone.unread.group || 0, gopen = G.group ? G.group.reqs.filter(r => r.st === 'open').length : 0;
+        h += `<button class="crow grp" data-act="open" data-id="group"><span class="gfaces">${['khoa', 'vy', 'sA'].map(l => `<img src="${faceOf(l, null)}" alt="">`).join('')}</span><b>Nhóm ${GROUP.name}</b>${gopen ? `<em class="gtag">${gopen} lời nhờ</em>` : ''}${gu ? `<i class="dot on">${gu}</i>` : ''}<small>${gl ? (gl.by === 'me' ? 'Bạn: ' : grName(gl.by) + ': ') + gl.t : 'Nhóm chung của học sinh toàn trường'}</small></button>`;
         for (const c of phoneList()) {
           const C = contactOf(c), a = G.phone.msgs[c] || [], last = a[a.length - 1], un = G.phone.unread[c] || 0;
           h += `<button class="crow" data-act="open" data-id="${c}"><b>${C.name}</b>${FRIENDS[c] ? hs(c) : ''}${un ? `<i class="dot on">${un}</i>` : ''}<small>${last ? (last.m ? 'Bạn: ' : '') + last.t : C.note}</small></button>`;
@@ -251,6 +254,7 @@ const UI = {
         if (G.meet && G.meet.day >= G.day) h += `<p class="okbox">Đã hẹn ${FRIENDS[G.meet.fid].name}: ${meetWhen(G.meet)} ở ${PLACES[G.meet.place].name}.</p>`;
         return h + '<p class="dim">Nhắn tin không tốn thời gian. Rủ bạn đi chơi: bạn ấy sẽ đợi ở chỗ hẹn (trà sữa, TTTM, khu game ở phố Hoa Phượng; công viên; núi sau trường; bãi biển). Lỡ hẹn là bạn giận đó.</p>';
       }
+      if (id === 'group') return `<div class="chead"><button class="btn sm" data-act="back">‹ Danh bạ</button><b>Nhóm ${GROUP.name}</b></div><div class="chat gchat">${groupChatHtml()}</div><p class="dim">Bạn tự động được vào nhóm chung của trường. Ngày đi học, các bạn và anh chị khoá trên hay đăng nhờ vả (không đăng trong giờ học). Bấm <b>Nhận giúp</b> → việc vào danh sách Nhiệm vụ → lấy đồ cho vào túi → cầm lên → bấm vào người nhờ để đưa tận tay. Giúp xong được thân thiết hơn. Để lâu không ai nhận thì bạn khác giúp mất.</p>`;
       const C = contactOf(id), a = (G.phone.msgs[id] || []).slice(-9);
       let h = `<div class="chead"><button class="btn sm" data-act="back">‹ Danh bạ</button><b>${C.name}</b>${FRIENDS[id] ? hs(id) : ''}</div><div class="chat">`;
       h += a.length ? a.map(m => `<div class="msg ${m.m ? 'me' : ''}"><span>${m.t}</span></div>`).join('') : '<p class="dim">Chưa có tin nhắn nào. Gõ gì đó đi!</p>';
@@ -264,6 +268,7 @@ const UI = {
       sub: d => { UI._chatSub = d.id || null; },
       send: d => { phoneSend(UI._chat, d.id); },
       go: d => { UI._chatSub = null; phoneSend(UI._chat, 'go', d.id); },
+      grtake: d => { groupTake(+d.id); },
     });
   },
 

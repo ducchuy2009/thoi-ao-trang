@@ -222,6 +222,22 @@ body.cut #hotbar{opacity:0;pointer-events:none}
 .msg span{max-width:82%;padding:4px 10px;border-radius:12px 12px 12px 3px;background:#fff;border:2px solid var(--ink);font-weight:600;font-size:14px}
 .msg.me{justify-content:flex-end}
 .msg.me span{background:#d8f2c9;border-radius:12px 12px 3px 12px}
+.crow.grp{grid-template-columns:auto 1fr auto auto;background:#fff6e3}
+.crow.grp:hover{background:#ffeccc}
+.crow.grp .gfaces{grid-row:span 2;display:flex}
+.crow.grp .gfaces img{width:26px;height:26px;image-rendering:pixelated;border:2px solid var(--ink);border-radius:50%;background:#bfe3f2;margin-left:-8px}
+.crow.grp .gfaces img:first-child{margin-left:0}
+.crow.grp small{grid-column:2/-1}
+.gtag{font-style:normal;font-size:12px;background:#ffd23a;border:2px solid var(--ink);border-radius:8px;padding:0 6px}
+.gchat{max-height:52vh;overflow-y:auto}
+.gmsg{display:flex;gap:6px;align-items:flex-start}
+.gmsg img{width:28px;height:28px;flex:none;image-rendering:pixelated;border:2px solid var(--ink);border-radius:50%;background:#bfe3f2}
+.gmsg>div{max-width:84%;padding:3px 10px 5px;border-radius:12px 12px 12px 3px;background:#fff;border:2px solid var(--ink);font-weight:600;font-size:14px}
+.gmsg>div>b{display:block;font-size:12px;color:#8a5a3a}
+.greq{margin-top:5px;padding:5px 7px;background:#fff6e3;border:2px dashed #c9962a;border-radius:8px;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.greq small{font-weight:600;color:#5f656f}
+.gst{font-style:normal;font-size:12px;color:#5f656f}
+.gst.mine{color:#3f8f3a}.gst.done{color:#3f8f3a}
 
 /* ---------- thẻ cầu thủ ---------- */
 .pcards{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 10px}

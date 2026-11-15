@@ -185,7 +185,7 @@ function update(dt) {
     if (RT.tickAcc >= G.speed) { RT.tickAcc = 0; advanceTime(CFG.TICK_MIN); }
     scanTargets();
     const t = RT.hover || RT.near;
-    if (t) UI.hint(RT.hold && (t.npc || t.fol) ? `Tặng ${holdName(RT.hold).toLowerCase()} cho ${(t.npc && t.npc.name) || 'bạn'}` : (t.label ? t.label() : ''), inRange(t));
+    if (t) UI.hint(RT.hold && (t.npc || t.fol) ? `${PARENT_ITEMS[RT.hold] || GROUP_ITEMS[RT.hold] ? 'Đưa' : 'Tặng'} ${holdName(RT.hold).toLowerCase()} cho ${(t.npc && t.npc.name) || 'bạn'}` : (t.label ? t.label() : ''), inRange(t));
     else if (RT.hold) UI.hint(`Đang cầm ${holdName(RT.hold).toLowerCase()}${FOODS[RT.hold] ? ' — bấm vào mình để ăn' : ''}`, true);
     else UI.hint(null);
   } else { if (!(RT.scene && RT.scene.meMove)) RT.walkT = -1; UI.hint(null); }

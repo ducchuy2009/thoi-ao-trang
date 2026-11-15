@@ -181,7 +181,7 @@ const MOM_TIPS = [
   'Tan học về nhà đã rồi muốn đi chơi tiếp thì xin phép, mẹ cho ít tiền mà đi.',
   'Toán hoặc Văn phải từ 8,0 thì mới được học sinh Giỏi đó.',
   'Chăm học trên lớp, tối nào cũng ôn bài thì học sinh Giỏi không khó đâu con.',
-  'Lên lớp 11, 12 đề khó hơn nhiều. Muốn chắc học sinh Giỏi thì đi học thêm vài buổi ở trung tâm Sao Mai.',
+  'Lên lớp 11 đề khó hơn hẳn, lớp 12 còn khó nữa. Muốn được học sinh Giỏi thì phải đi học thêm ở trung tâm Sao Mai và luyện thực hành ở phòng thí nghiệm.',
 ];
 const DAD_TIPS = [
   'Học thực hành cho chắc tay vào, sau này đi làm mới thấy quý.',

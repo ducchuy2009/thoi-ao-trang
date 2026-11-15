@@ -305,6 +305,39 @@ const PARENT_TASKS = {
 };
 const PARENT_ITEMS = { tailieu: 'Tập tài liệu của bố', comme: 'Hộp cơm trưa của mẹ', vibo: 'Cái ví của bố', kinhme: 'Kính của mẹ', usb: 'USB của bố', nuocmam: 'Chai nước mắm' };
 
+/* ---------- Nhóm học sinh trường trên điện thoại ----------
+ * Ai cũng tự động được vào nhóm “Học sinh THPT Hoa Phượng”. Ngày đi học (không đăng trong giờ học), các bạn thân và anh chị
+ * khoá trên đăng nhờ vả lên nhóm: bấm “Nhận” ngay trong nhóm → vào danh sách nhiệm vụ → tới chỗ lấy đồ (cho vào túi) → cầm lên →
+ * bấm vào người nhờ để đưa tận tay. Thưởng: điểm thân thiết (♥ với bạn thân, quen thân với anh chị). Để lâu không ai nhận thì bạn khác giúp mất.
+ * slots: giờ đăng (đầu giờ, ra chơi, nghỉ trưa, ra chơi chiều) · claim: sau bao nhiêu phút chưa ai nhận thì bạn khác nhận
+ * who: ai có thể nhờ việc này (bạn thân hoặc anh chị khoá trên) · cost: tiền bỏ ra mua (người nhờ trả lại) · days: 1 = hạn tới buổi học hôm sau */
+const GROUP = { name: 'Học sinh THPT Hoa Phượng', slots: [400, 540, AM_END + 10, 870, 950], chance: 0.45, max: 2, maxActive: 2, claim: 80, aff: 5, socAff: 8, lateAff: 1, failAff: -2, chat: [410, 550, 700, 880, 1200, 1290], chatChance: 0.3 };
+const GROUP_REQS = {
+  gr_vo: { name: 'Lấy giúp vở ghi Hoá', item: 'gr_vo', who: ['khoa', 'dat', 'ngan'], msg: 'Ai còn ở lớp không, mình để quên quyển vở ghi Hoá trong ngăn bàn cuối lớp rồi 😭 Cầm ra giúp mình với, chiều nay cô kiểm tra vở!', pick: { map: 'class', x: 176, y: 172, do: 'Lấy quyển vở ghi Hoá trong ngăn bàn', where: 'Lớp 10A1 (ngăn bàn cuối lớp)' } },
+  gr_sach: { name: 'Mượn giúp sách tham khảo', item: 'gr_sach', who: ['vy', 'c_thao', 'a_hung'], msg: 'Có ai qua thư viện mượn giúp mình cuốn “Bài tập Toán nâng cao” không? Mình đang kẹt việc, cảm ơn nhiều nha!', pick: { map: 'thuvien', x: 160, y: 50, do: 'Mượn cuốn “Bài tập Toán nâng cao” ở kệ sách', where: 'Thư viện (kệ sách)' } },
+  gr_nuoc: { name: 'Mua giúp chai nước', item: 'gr_nuoc', cost: 6000, who: ['khoa', 'dat', 'a_phong', 'ngan'], msg: 'Khát khô cổ mà căn tin đông quá, ai mua giúp mình chai nước suối với, gửi lại tiền liền!', pick: { map: 'school', x: 78, y: 116, do: 'Mua một chai nước suối ở căn tin', where: 'Căn tin trường' } },
+  gr_banh: { name: 'Mua giúp ổ bánh mì', item: 'gr_banh', cost: 15000, who: ['khoa', 'vy', 'dat', 'c_mai'], msg: 'Sáng nay dậy muộn chưa kịp ăn gì 🥲 Ai mua giúp mình ổ bánh mì ở căn tin với, mình gửi lại tiền nha!', pick: { map: 'school', x: 78, y: 116, do: 'Mua một ổ bánh mì ở căn tin', where: 'Căn tin trường' } },
+  gr_bong: { name: 'Lấy bóng cho đội bóng', item: 'gr_bong', who: ['a_phong', 'khoa', 'dat'], msg: 'Đội bóng thiếu bóng tập! Ai tiện ghé góc sân thể dục lấy giúp quả bóng trong rổ mang lại đây với!', pick: { map: 'school', x: 630, y: 196, do: 'Lấy quả bóng trong rổ dụng cụ', where: 'Góc sân thể dục (rổ bóng)' } },
+  gr_micro: { name: 'Lấy micro tập văn nghệ', item: 'gr_micro', who: ['c_mai', 'dat'], msg: 'Đội văn nghệ cần cái micro ở phòng nhạc để tập, ai lấy giúp mang ra sân với nha! 🎤', pick: { map: 'nhac', x: 110, y: 120, do: 'Lấy cái micro ở phòng nhạc', where: 'Phòng nhạc' } },
+  gr_the: { name: 'Tìm giúp thẻ học sinh', item: 'gr_the', who: ['ngan', 'vy', 'khoa', 'c_thao'], msg: 'Ai thấy thẻ học sinh của mình không 😢 Hình như rơi ở gốc cây to bên trái sân trường lúc sáng…', pick: { map: 'school', x: 132, y: 196, do: 'Nhặt tấm thẻ học sinh rơi dưới gốc cây', where: 'Sân trường (gốc cây to bên trái)' } },
+  gr_sotay: { name: 'Lấy giúp sổ tay Đoàn', item: 'gr_sotay', who: ['a_hung'], msg: 'Mình để quên sổ tay Đoàn trên bàn lớp 12A1, em nào lên tầng 2 lấy giúp mang cho mình với!', pick: { map: 'l12a1', x: 118, y: 150, do: 'Lấy cuốn sổ tay Đoàn trên bàn', where: 'Lớp 12A1 (tầng 2)' } },
+  gr_butmau: { name: 'Mua giúp hộp bút màu', item: 'gr_butmau', cost: 12000, days: 1, who: ['ngan', 'vy', 'c_mai'], msg: 'Mai có giờ Mĩ thuật mà mình hết bút màu rồi, ai về qua tạp hoá Cô Ba mua giúp hộp bút chì màu với, mai lên lớp gửi tiền nha!', pick: { map: 'town', x: 290, y: 150, do: 'Mua hộp bút chì màu ở tạp hoá Cô Ba', where: 'Tạp hoá Cô Ba (khu phố nhà mình)' } },
+};
+const GROUP_ITEMS = { gr_vo: 'Vở ghi Hoá', gr_sach: 'Sách “Bài tập Toán nâng cao”', gr_nuoc: 'Chai nước suối', gr_banh: 'Ổ bánh mì', gr_bong: 'Quả bóng đá', gr_micro: 'Cái micro', gr_the: 'Thẻ học sinh', gr_sotay: 'Sổ tay Đoàn', gr_butmau: 'Hộp bút chì màu' };
+// gặp người nhờ ở đâu để đưa đồ
+const GROUP_MEET = { khoa: 'sân trường / lớp 10A1', vy: 'sân trường / lớp 10A1', dat: 'sân trường / lớp 10A1', ngan: 'sân trường / lớp 10A1', a_hung: 'sân trường giờ ra chơi / lớp 12A1 (tầng 2)', c_mai: 'sân trường giờ ra chơi / lớp 12A2 (tầng 2)', a_phong: 'sân trường giờ ra chơi / lớp 11A1 (tầng 2)', c_thao: 'sân trường giờ ra chơi / lớp 11A3 (tầng 2)' };
+// người trong nhóm hay nhắn chuyện phiếm: [tên, look]
+const GROUP_PEOPLE = { x1: ['Tú · 10A2', 'x1'], x2: ['Linh · 10A2', 'x2'], x3: ['Bảo · 10A3', 'x3'], x4: ['Nhi · 10A4', 'x4'], m1: ['Lớp trưởng 10A1', 'c1'], m3: ['Hà · 10A1', 'c3'] };
+const GROUP_CHAT = [
+  ['m1', 'Nhắc cả lớp: mai kiểm tra 15 phút Toán nhé, ôn kỹ phần bài tập về nhà!'], ['x1', 'Hôm nay căn tin có bánh mì pate mới, ngon xỉu luôn 😋'],
+  ['x2', 'Ai có ảnh buổi chào cờ sáng nay gửi lên nhóm với, mình nhắm mắt trong ảnh mất rồi 😂'], ['x3', 'Chiều nay đội bóng 10A3 đá giao hữu với 10A1, ra cổ vũ đi mọi người!'],
+  ['x4', 'Thư viện vừa về sách mới đó, có cả truyện tranh khoa học nữa.'], ['a_hung', 'Đoàn trường thông báo: thứ Bảy này có buổi trồng cây, bạn nào muốn tham gia thì đăng ký với lớp trưởng nhé.'],
+  ['c_mai', 'Đội văn nghệ tuyển thêm thành viên nha, ai thích hát múa thì nhắn chị!'], ['a_phong', 'Đội bóng trường thắng giải liên trường rồi!!! ⚽🏆'],
+  ['c_thao', 'Mấy em khối 10 cần đề cương ôn tập thì nhắn chị, chị còn giữ của năm ngoái.'], ['m3', 'Có ai thấy cái ô màu xanh để ở hành lang không, của mình đó 😥'],
+  ['x1', 'Trời hôm nay nóng quá, chiều mà được nghỉ thể dục thì tốt 🥵'], ['x2', 'Tiệm trà sữa Mây giảm giá 20% cho học sinh đó, đeo thẻ học sinh vào nha.'],
+  ['m1', 'Thứ Hai tuần sau lớp mình trực tuần, mọi người đi học sớm giúp mình nhé.'], ['x3', 'Có ai giải được câu cuối đề cương Lý chưa, chỉ mình với 🙏'],
+];
+
 /* ---------- Làm việc riêng trong giờ học (sev: 1 nhẹ, 2 nặng) ---------- */
 const CLASS_FUN_CHANCE = 0.22;
 const CLASS_FUN = [
@@ -361,10 +394,11 @@ const TEST_NAME = { mieng: 'Kiểm tra miệng', p15: "Kiểm tra 15'", tiet: 'K
 const TEST_DIFF = { mieng: 0.3, p15: 0, tiet: -0.3, thi: -0.5 };
 /* ---------- Cân bằng điểm học tập (đã kiểm chứng bằng mô phỏng) ----------
  * điểm ≈ base + kLv·√(cấp môn) + kLt·√(cấp Lý thuyết TB) − gradeOff[khối] ± may rủi (+1 nếu tối trước đã ôn môn đó)
- * Học đủ tiết (mang đủ sách) + tối nào cũng ôn 2 buổi → vừa đủ học sinh Giỏi ở lớp 10; lên lớp 11, 12 đề khó hơn (gradeOff),
- * muốn chắc Giỏi / điểm cao phải học thêm vài buổi mỗi tuần và luyện thực hành ở phòng thí nghiệm.
+ * Lớp 10: học đủ tiết (mang đủ sách) + tối nào cũng ôn 2 buổi → vừa đủ học sinh Giỏi.
+ * Lớp 11 khó hơn: chăm chỉ thôi chỉ Khá, cần thêm ~2 buổi học thêm + 1 buổi luyện thực hành mỗi tuần.
+ * Lớp 12 khó hơn nữa: cần ~4 buổi học thêm + 2 buổi luyện thực hành mỗi tuần mới chắc Giỏi.
  * prac*: bài kiểm tra thực hành (Thể dục, Quốc phòng) — dựa vào kết quả mini-game + cấp môn + cấp Thực hành TB */
-const STUDY = { base: 5.3, kLv: 1.15, kLt: 0.45, comp: 0.04, gradeOff: [0, 1.25, 1.95], roll: [0.5, 0.8, 1.4], tutor: 0.2, tutorMax: 0.8, pracBase: 3.8, pracProg: 4.0, pracLv: 0.25, pracTh: 0.08, pracGrade: [0, 0.5, 0.9] };
+const STUDY = { base: 5.3, kLv: 1.15, kLt: 0.45, comp: 0.04, gradeOff: [0, 1.65, 2.75], roll: [0.5, 0.8, 1.4], tutor: 0.25, tutorMax: 1.0, pracBase: 3.8, pracProg: 4.0, pracLv: 0.25, pracTh: 0.08, pracGrade: [0, 0.7, 1.3] };
 // học thêm: mỗi buổi học thêm một môn được cộng STUDY.tutor vào bài kiểm tra môn đó trong cùng học kỳ (tối đa STUDY.tutorMax)
 
 /* ---------- Bạn bè ---------- */
