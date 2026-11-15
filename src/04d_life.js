@@ -17,8 +17,8 @@ function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Ma
  * ============================================================ */
 const YARD_KIDS = ['khoa', 'vy', 'dat', 'ngan', 'm1', 'm3', 'm4', 'm5', 'x1', 'x2', 'x3', 'x4', 'sA', 'sB', 'sC', 'sD'];
 // chỗ đặt từng tụ: [x, y] tâm
-const YARD_SPOT = { dauthe: [86, 300], chat: [250, 256], chat2: [168, 326], danhbai: [200, 206], conquay: [384, 216], dacau: [302, 236], duoibat: [352, 300], rongran: [232, 316], dabong: [584, 250], trontim: [448, 304], eat: [150, 192], eat2: [80, 116] };
-const HIDE_SPOTS = [[448, 174], [110, 284], [70, 203], [110, 174], [44, 240]];          // núp sau gốc cây, bụi rậm
+const YARD_SPOT = { dauthe: [196, 272], chat: [250, 256], chat2: [168, 326], danhbai: [200, 206], conquay: [384, 216], dacau: [302, 236], duoibat: [352, 300], rongran: [232, 316], dabong: [584, 250], trontim: [448, 304], eat: [150, 192], eat2: [80, 116] };
+const HIDE_SPOTS = [[448, 174], [150, 334], [70, 203], [110, 174], [22, 200]];          // núp sau gốc cây, bụi rậm
 const EAT_SEATS = { eat: [[124, 187], [176, 187], [150, 199]], eat2: [[62, 112], [84, 113], [106, 112]] };          // hai bên ghế đá · trước quầy căn tin
 let YS = null;
 function yardState() {
@@ -277,21 +277,44 @@ ACT.nap = async (mx, my) => {
   advanceTime(NAP.mins); G.daily.nap = true; gainStam(NAP.stam);
   RT.lock = false; UI.hud();
 };
+// Thư viện mở trước giờ học, giờ ra chơi, nghỉ trưa và sau giờ tan học. Ra chơi thì chỉ đọc được tới lúc vào lớp.
+const LIB_TABLES = [[44, 104], [150, 104]];
+function libWindow() {
+  if (!(schoolToday() && G.atSchool && G.time >= PERIODS[0].start && G.time < CFG.SCHOOL_END)) return { mins: LIBRARY.mins };
+  const w = YARD_WINDOWS.find(([a, b2]) => inWin(G.time, a, b2));
+  return w ? { mins: Math.min(LIBRARY.mins, w[1] - G.time), brk: w[1] - w[0] <= 40 } : null;
+}
 ACT.readBook = async s => {
-  if (schoolToday() && G.atSchool && G.time < CFG.SCHOOL_END && !inWin(G.time, AM_END, PM_START - 10) && G.time >= PERIODS[0].start) return UI.say('Thư viện', 'Cô thủ thư: “Đang giờ học, về lớp đi em.”<p class="dim">Thư viện mở trước giờ học, giờ nghỉ trưa và sau giờ tan học.</p>');
+  if (RT.lock) return;
+  const W = libWindow();
+  if (!W) return UI.say('Thư viện', 'Cô thủ thư: “Đang giờ học, về lớp đi em.”<p class="dim">Thư viện mở trước giờ học, giờ ra chơi, giờ nghỉ trưa và sau giờ tan học.</p>');
+  if (W.mins < 8) return UI.toast('Sắp vào lớp rồi, không kịp đọc đâu. Để giờ ra chơi sau nhé.');
   if ((G.daily.lib || 0) >= LIBRARY.perDay) return UI.toast('Hôm nay bạn đọc sách ở thư viện đủ rồi.');
   if (G.stamina < LIBRARY.stam) return UI.toast('Mệt quá, đọc không vào.', 'bad');
-  const c = await UI.ask(`Tủ sách ${SUBJ[s].name}`, `<p>Lấy một cuốn ${SUBJ[s].name} xuống đọc ${LIBRARY.mins} phút?</p>`, ['Đọc sách', 'Thôi']);
+  const c = await UI.ask(`Tủ sách ${SUBJ[s].name}`, `<p>Lấy một cuốn ${SUBJ[s].name} ra bàn ngồi đọc ${W.mins} phút?${W.brk ? ' <span class="dim">(giờ ra chơi — đọc tới lúc vào lớp)</span>' : ''}</p>`, ['Đọc sách', 'Thôi']);
   if (c !== 0 || RT.lock) return;
   RT.lock = true;
-  UI.progress(`Đang đọc sách ${SUBJ[s].name}…`, 2000, SUBJ[s].color);
-  await playCut({ inPlace: true, bars: false, steps: [{ fn: () => { G.dir = 0; } }, { wait: 2000 }], props: [now => { drawSpr(SPR.book, G.x - 3, G.y - 13 + (Math.floor(now / 500) % 2)); if (Math.floor(now / 900) % 2) wRect('#fffaf0', G.x + 2, G.y - 12, 2, 1); }] });
-  advanceTime(LIBRARY.mins);
-  G.daily.lib = (G.daily.lib || 0) + 1; useStam(LIBRARY.stam); addStat(s, LIBRARY.pts);
-  if (!grudge('vy') && !isComp('vy') && Math.random() < 0.3) { addFriend('vy', 2); UI.toast('Gặp Vy cũng đang ngồi đọc sách.', 'good'); }
+  // hoạt cảnh: rút sách trên tủ → mang ra bàn → ngồi xuống ghế đẩu, mở sách đọc
+  const i = BOOK_SUBJ.indexOf(s), shelfX = 36 + i * 34, [tx, ty] = LIB_TABLES[shelfX < 120 ? 0 : 1], seat = [tx - 6, ty + 20];
+  const vy = !grudge('vy') && !isComp('vy') && Math.random() < 0.3, col = SUBJ[s].color, st = { ph: 0 };
+  const prop = now => {
+    const f = Math.floor(now / 500) % 2;
+    if (st.ph === 1) { wRect(col, G.x - 4, G.y - 22 + f, 8, 6); wRect('#fffaf0', G.x - 4, G.y - 17 + f, 8, 1); }           // ôm sách trên tay
+    if (st.ph === 2) { wRect('#fffaf0', tx + 6, ty + 6, 12, 7); wRect(col, tx + 5, ty + 5, 1, 9); wRect(col, tx + 18, ty + 5, 1, 9); wRect('#8fa0ab', tx + 7, ty + 8, 4, 1); wRect('#8fa0ab', tx + 13, ty + 8 + f, 4, 1); if (Math.floor(now / 1300) % 2) wRect('#efe6d2', tx + 12, ty + 6, 6, 7); }   // sách mở trên bàn, lật trang
+    if (vy && st.ph === 2) { wRect('#e98fa5', tx + 28, ty + 7, 9, 6); wRect('#fffaf0', tx + 29, ty + 8, 7, 1); }
+  };
+  UI.progress(`Đang đọc sách ${SUBJ[s].name}…`, 3600, col);
+  await playCut({ inPlace: true, bars: false, stay: true, actors: vy ? [{ look: 'vy', x: tx + 50, y: ty + 20, dir: 1 }] : [], hide: vy ? ['vy'] : [], props: [prop],
+    steps: [{ move: ['me', shelfX, 50, 380] }, { fn: () => { G.dir = 3; } }, { wait: 250 }, { fn: () => { st.ph = 1; } }, { wait: 200 },
+      { move: ['me', shelfX, 90, 360] }, { move: ['me', seat[0], 90, 380] }, { move: ['me', seat[0], seat[1], 260] }, { fn: () => { G.dir = 2; st.ph = 2; } }, { wait: 1500 }]
+      .concat(vy ? [{ say: [0, 'Ơ, cậu cũng ra thư viện đọc sách à? Ngồi cùng bàn đi!'] }] : [{ wait: 600 }]) });
+  advanceTime(W.mins);
+  const pts = Math.max(1, Math.round(LIBRARY.pts * W.mins / LIBRARY.mins));
+  G.daily.lib = (G.daily.lib || 0) + 1; useStam(LIBRARY.stam); addStat(s, pts);
+  if (vy) { addFriend('vy', 2); UI.toast('Đọc sách cùng bàn với Vy.', 'good'); }
   RT.lock = false; UI.hud();
 };
-ACT.library = () => UI.toast('Thư viện giờ là một phòng riêng: cửa lớn giữa dãy nhà chính của trường.');
+ACT.library = () => UI.toast('Thư viện là khu nhà riêng ở góc trái sân trường. Cửa giữa dãy nhà chính là cầu thang lên tầng 2 (các lớp anh chị khoá trên).');
 // Phòng nhạc: sân khấu tập nhảy (bấm mũi tên theo nhịp) · phòng thu tập hát (bấm nốt rơi) · ở nhà: micro
 ACT.music = async kind => {
   if (RT.lock) return;

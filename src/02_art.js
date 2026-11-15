@@ -64,6 +64,9 @@ const LOOKS = {
   x3: { ...UNI, hair: '#1f1f29', style: 'short' }, x4: { ...UNI, hair: '#5a3020', style: 'long', skirt: true, band: '#5fb0e8' },
   sA: { ...UNI, hair: '#1f1f29', style: 'spiky', badge: '#d9534f', pants: '#2b3550' }, sB: { ...UNI, hair: '#3a2a2a', style: 'long', skirt: true, band: '#7a5fc9', badge: '#d9534f' },
   sC: { ...UNI, hair: '#5a3a26', style: 'short', badge: '#2e9e86', skin: '#e3ae80' }, sD: { ...UNI, hair: '#2c2733', style: 'bun', skirt: true, badge: '#2e9e86' },
+  // thêm anh chị khoá trên (phù hiệu đỏ: khối 12 · xanh: khối 11) ngồi ở các lớp tầng 2
+  sE: { ...UNI, hair: '#2a2136', style: 'buzz', badge: '#d9534f', skin: '#eab98c' }, sF: { ...UNI, hair: '#4a3324', style: 'long', skirt: true, badge: '#d9534f', band: '#e98fa5' },
+  sG: { ...UNI, hair: '#1f1f29', style: 'short', badge: '#2e9e86', glasses: true }, sH: { ...UNI, hair: '#5b3d27', style: 'bun', skirt: true, badge: '#2e9e86', skin: '#e3ae80' },
   principal: { hair: '#c9ccd4', style: 'short', shirt: '#3a3f55', pants: '#2a2136', tie: '#d9534f', mustache: true, skin: '#eab98c' },
   mayor: { hair: '#5f656f', style: 'short', shirt: '#24406b', pants: '#1f2a44', tie: '#e8b83a', mustache: true, skin: '#e8b48a' },
   monk: { hair: '#f2c9a0', style: 'buzz', shirt: '#d98a2b', pants: '#b8701f', aodai: true, shoe: '#6f472c' },
@@ -110,12 +113,15 @@ function drawCharFrame(L, dir, fr) {
     if (L.aodai) { R(x, sh, 3, 19, 10, 2); R(x, shS, 12, 19, 1, 2); R(x, shS, 7, 19, 2, 2); }
     else if (L.skirt) { R(x, pt, 4, 18, 8, 1); R(x, pt, 3, 19, 10, 1); }
     else R(x, pt, 4, 18, 8, 1);
-    const arm = (ax, short) => { const len = short ? 3 : 4, sl = L.aodai ? len - 1 : 2; R(x, shS, ax, 14, 1, sl); R(x, sk, ax, 14 + sl, 1, len - sl); };
+    const arm = (ax, short) => { const len = short ? 3 : 4, sl = L.long ? len : L.aodai ? len - 1 : 2; R(x, shS, ax, 14, 1, sl); R(x, sk, ax, 14 + sl, 1, len - sl); };
     arm(3, fr === 1); arm(12, fr === 2);
     if (L.stripe) { R(x, L.stripe, 4, 14, 1, 4); R(x, L.stripe, 11, 14, 1, 4); }
+    if (L.puffer) { R(x, shade(sh, -12), 4, 16, 8, 1); }
     if (dir === 0) {
-      R(x, sk, 7, 14, 2, 1);
-      if (L.tie) R(x, L.tie, 7, 15, 2, 2);
+      R(x, L.collar || sk, 7, 14, 2, 1);
+      if (L.zip) { R(x, L.collar, 6, 14, 4, 1); R(x, shade(sh, -32), 8, 15, 1, 3); }
+      if (L.scarf) { R(x, L.scarf, 5, 14, 6, 1); R(x, shade(L.scarf, -20), 9, 15, 2, 2); }
+      if (L.tie && !L.zip) R(x, L.tie, 7, 15, 2, 2);
       if (L.badge) R(x, L.badge, 9, 15, 1, 1);
       if (L.apron) { R(x, L.apron, 5, 15, 6, 4); R(x, shade(L.apron, -14), 5, 18, 6, 1); }
     }
@@ -162,7 +168,9 @@ function drawCharFrame(L, dir, fr) {
     else R(x, pt, 5, 18, 6, 1);
     if (L.stripe) R(x, L.stripe, 5, 14, 1, 4);
     if (L.apron) R(x, L.apron, 5, 15, 2, 4);
-    const ax = fr ? 6 : 7, sl = L.aodai ? 3 : 2;
+    if (L.puffer) R(x, shade(sh, -12), 5, 16, 6, 1);
+    if (L.scarf) R(x, L.scarf, 5, 14, 5, 1);
+    const ax = fr ? 6 : 7, sl = L.long ? 4 : L.aodai ? 3 : 2;
     R(x, shS, ax, 14, 2, sl); R(x, sk, ax, 14 + sl, 2, 4 - sl);
     headFill(sk, 0, 12);
     headFill(hr, 0, st === 'buzz' ? 4 : 5);
@@ -180,11 +188,20 @@ function drawCharFrame(L, dir, fr) {
 }
 function flipH(src) { const c = mk(src.width, src.height), x = cx(c); x.translate(src.width, 0); x.scale(-1, 1); x.drawImage(src, 0, 0); return c; }
 const SHEETS = {};
+// Mùa đông: đồng phục khoác thêm áo khoác đồng phục xanh than, quần áo thường thành áo phao dài tay (con gái quàng khăn), người lớn mặc dài tay
+const isWinter = () => typeof G !== 'undefined' && !!G && cal(G.day).season === 1;
+function winterize(L, outfit) {
+  if (outfit === 'td' || outfit === 'qp' || L.aodai) return { ...L, long: true };
+  if (!outfit && L.shirt === UNI.shirt) return { ...L, shirt: '#2f4a7a', long: true, collar: '#f6f6f2', zip: true };
+  if (outfit && /^cas/.test(outfit)) return { ...L, long: true, puffer: true, scarf: L.skirt ? '#e2574c' : null };
+  return { ...L, long: true };
+}
 function charSheet(key, outfit) {
-  const id = key + (outfit ? ':' + outfit : '');
+  const w = isWinter(), id = key + (outfit ? ':' + outfit : '') + (w ? ':w' : '');
   if (SHEETS[id]) return SHEETS[id];
   let L = LOOKS[key] || LOOKS.boy;
   if (outfit && OUTFITS[outfit]) L = { ...L, ...OUTFITS[outfit] };
+  if (w) L = winterize(L, outfit);
   const left = [drawCharFrame(L, 1, 0), drawCharFrame(L, 1, 1)];
   const s = {
     0: [0, 1, 2].map(f => drawCharFrame(L, 0, f)),
@@ -220,7 +237,7 @@ function drawDoor(x, a, b, w, h, col) {
 
 function buildSprites() {
   /* ---------- cây cối ---------- */
-  const tree = (name, leaf, flower, seed) => def(name, 34, 46, x => {
+  const tree = (name, leaf, flower, seed, nf) => def(name, 34, 46, x => {
     const r = rng(seed), d = shade(leaf, -24), l = shade(leaf, 20);
     R(x, '#8b5e3c', 14, 29, 6, 16); R(x, '#6f472c', 18, 29, 2, 16); R(x, '#a37248', 14, 31, 1, 12); R(x, '#6f472c', 12, 44, 10, 2);
     for (let py = 0; py < 34; py++) for (let px = 0; px < 34; px++) {
@@ -230,11 +247,25 @@ function buildSprites() {
       const q = r(); if (q < 0.07) col = d; else if (q < 0.13) col = l;
       R(x, col, px, py);
     }
-    if (flower) for (let i = 0; i < 26; i++) { const a = r() * 6.28, rad = r() * 13, fx = Math.round(16.5 + Math.cos(a) * rad), fy = Math.round(15 + Math.sin(a) * rad * 0.9); R(x, flower, fx, fy, 2, 1); R(x, shade(flower, 30), fx, fy - 1, 1, 1); }
+    if (flower) for (let i = 0; i < (nf || 26); i++) { const a = r() * 6.28, rad = r() * 13, fx = Math.round(16.5 + Math.cos(a) * rad), fy = Math.round(15 + Math.sin(a) * rad * 0.9); R(x, flower, fx, fy, 2, 1); R(x, shade(flower, 30), fx, fy - 1, 1, 1); }
   });
   tree('tree', '#5fae4a', null, 3); tree('tree2', '#4c9f58', null, 9);
   tree('treePink', '#f3a6c0', '#ffd6e4', 5); tree('treeRed', '#57a548', '#e8483a', 7); tree('treeOrange', '#e98a3c', '#f6c35a', 4);
   tree('treeMai', '#6aa848', '#ffd23a', 11);                       // cây mai vàng ngày Tết
+  // cây theo mùa (Hà Nội): xuân đào hồng, lộc non, hoa sưa · hè phượng đỏ, bàng vàng · thu hoa sữa · đông bàng lá đỏ
+  tree('sp_dao', '#f3a6c0', '#ffe3ec', 13, 34); tree('sp_loc', '#9fd46a', '#e2f5b0', 15, 20); tree('sp_sua', '#86c46a', '#fbfbf2', 17, 46);
+  tree('su_phuong', '#57a548', '#e8483a', 19, 70); tree('su_bang', '#e8c547', '#f6e08a', 21, 18);
+  // hoa sữa: tán xếp tầng như chiếc ô, chùm hoa trắng kem mọc thành cụm trên đỉnh mỗi tầng lá
+  def('au_sua', 34, 46, x => {
+    R(x, '#8b5e3c', 15, 12, 4, 33); R(x, '#6f472c', 18, 12, 1, 33); R(x, '#a37248', 15, 14, 1, 28); R(x, '#6f472c', 12, 44, 10, 2);
+    line(x, '#6f472c', 16, 23, 9, 19); line(x, '#6f472c', 18, 23, 25, 19); line(x, '#6f472c', 16, 33, 7, 29); line(x, '#6f472c', 18, 33, 27, 29);
+    const tier = (cy, rx, ry) => { ell(x, '#3b7340', 17, cy + 1, rx, ry); ell(x, '#4f8f4a', 17, cy, rx - 0.5, ry - 0.8); ell(x, '#6aa85a', 17, cy - 1.5, rx - 3, ry - 2.6); };
+    tier(31, 16, 5); tier(20, 12.5, 4.6); tier(9, 8.5, 4.2);
+    const cluster = (cx2, cy2, r) => { ell(x, '#d8d1a2', cx2, cy2 + 0.6, r, r * 0.8); ell(x, '#f6f2d8', cx2, cy2, r - 0.3, r * 0.75); R(x, '#fffdf2', Math.round(cx2 - r / 2), Math.round(cy2 - r / 2), 2, 1); R(x, '#cfd98f', Math.round(cx2 + 0.5), Math.round(cy2), 1, 1); };
+    for (const [a, b, r] of [[12, 6, 2.4], [20, 5, 2.6], [16, 8, 2], [7, 17, 2.4], [14, 16, 2.6], [21, 16, 2.4], [27, 18, 2.2], [4, 28, 2.4], [11, 27, 2.6], [18, 27, 2.4], [25, 27, 2.6], [30, 29, 2]]) cluster(a, b, r);
+  });
+  tree('wi_bang', '#c8483a', '#e8833a', 25, 30); tree('wi_bang2', '#b8402f', '#d9534f', 27, 22);
+  tree('treeQuat', '#3f8f3a', '#f2a93b', 29, 44);                  // cây quất lớn ngày Tết
   def('bush', 20, 13, x => { ell(x, '#5fae4a', 9.5, 7, 9.5, 5.5); ell(x, '#7cc75f', 6, 5, 4, 2.5); ell(x, '#4a9340', 13, 9, 5, 2.5); R(x, '#ff8fa8', 4, 4, 1, 1); R(x, '#ffd84d', 12, 3, 1, 1); R(x, '#fff', 15, 6, 1, 1); });
   def('hedge', 16, 14, x => { R(x, '#4f9d48', 0, 2, 16, 12); R(x, '#69b85a', 0, 0, 16, 4); R(x, '#69b85a', 2, 4, 3, 1); R(x, '#69b85a', 9, 5, 4, 1); R(x, '#3f8a3e', 0, 11, 16, 3); R(x, '#3f8a3e', 5, 8, 2, 1); R(x, '#3f8a3e', 12, 9, 2, 1); });
   def('fence', 16, 14, x => { for (let i = 0; i < 3; i++) { const a = 1 + i * 5; R(x, '#fbf7ee', a, 1, 3, 13); R(x, '#fbf7ee', a + 1, 0, 1, 1); R(x, '#d8d2c2', a + 2, 2, 1, 12); } R(x, '#ece6d6', 0, 4, 16, 2); R(x, '#ece6d6', 0, 9, 16, 2); R(x, '#cfc8b6', 0, 5, 16, 1); R(x, '#cfc8b6', 0, 10, 16, 1); });

@@ -384,6 +384,13 @@ b.bad{color:#d9534f}
 .task dd .ok{color:#2f7d5b}.task dd .cur{font-weight:800;color:#c9862f}.task dd.bad{color:#d9534f;font-weight:700}
 .task .btn{flex:none;align-self:center}
 
+/* icon chỉ số thẻ cầu thủ */
+.sic,.ct .sic,.pcard .sic,.cm-head .sic{display:inline-block;width:11px;height:11px;image-rendering:pixelated;vertical-align:-1px;margin:0 2px 0 0;border:0;background:none}
+.sic.big,.ct .sic.big,.cm-head .sic.big{width:18px;height:18px;vertical-align:-4px}
+.ct-s span{display:inline-flex;align-items:center}.pcard .pc-s span{display:inline-flex;align-items:center;justify-content:center;gap:1px}
+.stat-legend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;margin:6px 0 8px;font-weight:700}.stat-legend span{display:flex;align-items:center;gap:4px}
+.btns.stats6 .btn{display:flex;align-items:center;justify-content:center;gap:6px}
+
 </style>
 </head>
 <body>
@@ -1122,6 +1129,9 @@ const LOOKS = {
   x3: { ...UNI, hair: '#1f1f29', style: 'short' }, x4: { ...UNI, hair: '#5a3020', style: 'long', skirt: true, band: '#5fb0e8' },
   sA: { ...UNI, hair: '#1f1f29', style: 'spiky', badge: '#d9534f', pants: '#2b3550' }, sB: { ...UNI, hair: '#3a2a2a', style: 'long', skirt: true, band: '#7a5fc9', badge: '#d9534f' },
   sC: { ...UNI, hair: '#5a3a26', style: 'short', badge: '#2e9e86', skin: '#e3ae80' }, sD: { ...UNI, hair: '#2c2733', style: 'bun', skirt: true, badge: '#2e9e86' },
+  // thêm anh chị khoá trên (phù hiệu đỏ: khối 12 · xanh: khối 11) ngồi ở các lớp tầng 2
+  sE: { ...UNI, hair: '#2a2136', style: 'buzz', badge: '#d9534f', skin: '#eab98c' }, sF: { ...UNI, hair: '#4a3324', style: 'long', skirt: true, badge: '#d9534f', band: '#e98fa5' },
+  sG: { ...UNI, hair: '#1f1f29', style: 'short', badge: '#2e9e86', glasses: true }, sH: { ...UNI, hair: '#5b3d27', style: 'bun', skirt: true, badge: '#2e9e86', skin: '#e3ae80' },
   principal: { hair: '#c9ccd4', style: 'short', shirt: '#3a3f55', pants: '#2a2136', tie: '#d9534f', mustache: true, skin: '#eab98c' },
   mayor: { hair: '#5f656f', style: 'short', shirt: '#24406b', pants: '#1f2a44', tie: '#e8b83a', mustache: true, skin: '#e8b48a' },
   monk: { hair: '#f2c9a0', style: 'buzz', shirt: '#d98a2b', pants: '#b8701f', aodai: true, shoe: '#6f472c' },
@@ -1168,12 +1178,15 @@ function drawCharFrame(L, dir, fr) {
     if (L.aodai) { R(x, sh, 3, 19, 10, 2); R(x, shS, 12, 19, 1, 2); R(x, shS, 7, 19, 2, 2); }
     else if (L.skirt) { R(x, pt, 4, 18, 8, 1); R(x, pt, 3, 19, 10, 1); }
     else R(x, pt, 4, 18, 8, 1);
-    const arm = (ax, short) => { const len = short ? 3 : 4, sl = L.aodai ? len - 1 : 2; R(x, shS, ax, 14, 1, sl); R(x, sk, ax, 14 + sl, 1, len - sl); };
+    const arm = (ax, short) => { const len = short ? 3 : 4, sl = L.long ? len : L.aodai ? len - 1 : 2; R(x, shS, ax, 14, 1, sl); R(x, sk, ax, 14 + sl, 1, len - sl); };
     arm(3, fr === 1); arm(12, fr === 2);
     if (L.stripe) { R(x, L.stripe, 4, 14, 1, 4); R(x, L.stripe, 11, 14, 1, 4); }
+    if (L.puffer) { R(x, shade(sh, -12), 4, 16, 8, 1); }
     if (dir === 0) {
-      R(x, sk, 7, 14, 2, 1);
-      if (L.tie) R(x, L.tie, 7, 15, 2, 2);
+      R(x, L.collar || sk, 7, 14, 2, 1);
+      if (L.zip) { R(x, L.collar, 6, 14, 4, 1); R(x, shade(sh, -32), 8, 15, 1, 3); }
+      if (L.scarf) { R(x, L.scarf, 5, 14, 6, 1); R(x, shade(L.scarf, -20), 9, 15, 2, 2); }
+      if (L.tie && !L.zip) R(x, L.tie, 7, 15, 2, 2);
       if (L.badge) R(x, L.badge, 9, 15, 1, 1);
       if (L.apron) { R(x, L.apron, 5, 15, 6, 4); R(x, shade(L.apron, -14), 5, 18, 6, 1); }
     }
@@ -1220,7 +1233,9 @@ function drawCharFrame(L, dir, fr) {
     else R(x, pt, 5, 18, 6, 1);
     if (L.stripe) R(x, L.stripe, 5, 14, 1, 4);
     if (L.apron) R(x, L.apron, 5, 15, 2, 4);
-    const ax = fr ? 6 : 7, sl = L.aodai ? 3 : 2;
+    if (L.puffer) R(x, shade(sh, -12), 5, 16, 6, 1);
+    if (L.scarf) R(x, L.scarf, 5, 14, 5, 1);
+    const ax = fr ? 6 : 7, sl = L.long ? 4 : L.aodai ? 3 : 2;
     R(x, shS, ax, 14, 2, sl); R(x, sk, ax, 14 + sl, 2, 4 - sl);
     headFill(sk, 0, 12);
     headFill(hr, 0, st === 'buzz' ? 4 : 5);
@@ -1238,11 +1253,20 @@ function drawCharFrame(L, dir, fr) {
 }
 function flipH(src) { const c = mk(src.width, src.height), x = cx(c); x.translate(src.width, 0); x.scale(-1, 1); x.drawImage(src, 0, 0); return c; }
 const SHEETS = {};
+// Mùa đông: đồng phục khoác thêm áo khoác đồng phục xanh than, quần áo thường thành áo phao dài tay (con gái quàng khăn), người lớn mặc dài tay
+const isWinter = () => typeof G !== 'undefined' && !!G && cal(G.day).season === 1;
+function winterize(L, outfit) {
+  if (outfit === 'td' || outfit === 'qp' || L.aodai) return { ...L, long: true };
+  if (!outfit && L.shirt === UNI.shirt) return { ...L, shirt: '#2f4a7a', long: true, collar: '#f6f6f2', zip: true };
+  if (outfit && /^cas/.test(outfit)) return { ...L, long: true, puffer: true, scarf: L.skirt ? '#e2574c' : null };
+  return { ...L, long: true };
+}
 function charSheet(key, outfit) {
-  const id = key + (outfit ? ':' + outfit : '');
+  const w = isWinter(), id = key + (outfit ? ':' + outfit : '') + (w ? ':w' : '');
   if (SHEETS[id]) return SHEETS[id];
   let L = LOOKS[key] || LOOKS.boy;
   if (outfit && OUTFITS[outfit]) L = { ...L, ...OUTFITS[outfit] };
+  if (w) L = winterize(L, outfit);
   const left = [drawCharFrame(L, 1, 0), drawCharFrame(L, 1, 1)];
   const s = {
     0: [0, 1, 2].map(f => drawCharFrame(L, 0, f)),
@@ -1278,7 +1302,7 @@ function drawDoor(x, a, b, w, h, col) {
 
 function buildSprites() {
   /* ---------- cây cối ---------- */
-  const tree = (name, leaf, flower, seed) => def(name, 34, 46, x => {
+  const tree = (name, leaf, flower, seed, nf) => def(name, 34, 46, x => {
     const r = rng(seed), d = shade(leaf, -24), l = shade(leaf, 20);
     R(x, '#8b5e3c', 14, 29, 6, 16); R(x, '#6f472c', 18, 29, 2, 16); R(x, '#a37248', 14, 31, 1, 12); R(x, '#6f472c', 12, 44, 10, 2);
     for (let py = 0; py < 34; py++) for (let px = 0; px < 34; px++) {
@@ -1288,11 +1312,25 @@ function buildSprites() {
       const q = r(); if (q < 0.07) col = d; else if (q < 0.13) col = l;
       R(x, col, px, py);
     }
-    if (flower) for (let i = 0; i < 26; i++) { const a = r() * 6.28, rad = r() * 13, fx = Math.round(16.5 + Math.cos(a) * rad), fy = Math.round(15 + Math.sin(a) * rad * 0.9); R(x, flower, fx, fy, 2, 1); R(x, shade(flower, 30), fx, fy - 1, 1, 1); }
+    if (flower) for (let i = 0; i < (nf || 26); i++) { const a = r() * 6.28, rad = r() * 13, fx = Math.round(16.5 + Math.cos(a) * rad), fy = Math.round(15 + Math.sin(a) * rad * 0.9); R(x, flower, fx, fy, 2, 1); R(x, shade(flower, 30), fx, fy - 1, 1, 1); }
   });
   tree('tree', '#5fae4a', null, 3); tree('tree2', '#4c9f58', null, 9);
   tree('treePink', '#f3a6c0', '#ffd6e4', 5); tree('treeRed', '#57a548', '#e8483a', 7); tree('treeOrange', '#e98a3c', '#f6c35a', 4);
   tree('treeMai', '#6aa848', '#ffd23a', 11);                       // cây mai vàng ngày Tết
+  // cây theo mùa (Hà Nội): xuân đào hồng, lộc non, hoa sưa · hè phượng đỏ, bàng vàng · thu hoa sữa · đông bàng lá đỏ
+  tree('sp_dao', '#f3a6c0', '#ffe3ec', 13, 34); tree('sp_loc', '#9fd46a', '#e2f5b0', 15, 20); tree('sp_sua', '#86c46a', '#fbfbf2', 17, 46);
+  tree('su_phuong', '#57a548', '#e8483a', 19, 70); tree('su_bang', '#e8c547', '#f6e08a', 21, 18);
+  // hoa sữa: tán xếp tầng như chiếc ô, chùm hoa trắng kem mọc thành cụm trên đỉnh mỗi tầng lá
+  def('au_sua', 34, 46, x => {
+    R(x, '#8b5e3c', 15, 12, 4, 33); R(x, '#6f472c', 18, 12, 1, 33); R(x, '#a37248', 15, 14, 1, 28); R(x, '#6f472c', 12, 44, 10, 2);
+    line(x, '#6f472c', 16, 23, 9, 19); line(x, '#6f472c', 18, 23, 25, 19); line(x, '#6f472c', 16, 33, 7, 29); line(x, '#6f472c', 18, 33, 27, 29);
+    const tier = (cy, rx, ry) => { ell(x, '#3b7340', 17, cy + 1, rx, ry); ell(x, '#4f8f4a', 17, cy, rx - 0.5, ry - 0.8); ell(x, '#6aa85a', 17, cy - 1.5, rx - 3, ry - 2.6); };
+    tier(31, 16, 5); tier(20, 12.5, 4.6); tier(9, 8.5, 4.2);
+    const cluster = (cx2, cy2, r) => { ell(x, '#d8d1a2', cx2, cy2 + 0.6, r, r * 0.8); ell(x, '#f6f2d8', cx2, cy2, r - 0.3, r * 0.75); R(x, '#fffdf2', Math.round(cx2 - r / 2), Math.round(cy2 - r / 2), 2, 1); R(x, '#cfd98f', Math.round(cx2 + 0.5), Math.round(cy2), 1, 1); };
+    for (const [a, b, r] of [[12, 6, 2.4], [20, 5, 2.6], [16, 8, 2], [7, 17, 2.4], [14, 16, 2.6], [21, 16, 2.4], [27, 18, 2.2], [4, 28, 2.4], [11, 27, 2.6], [18, 27, 2.4], [25, 27, 2.6], [30, 29, 2]]) cluster(a, b, r);
+  });
+  tree('wi_bang', '#c8483a', '#e8833a', 25, 30); tree('wi_bang2', '#b8402f', '#d9534f', 27, 22);
+  tree('treeQuat', '#3f8f3a', '#f2a93b', 29, 44);                  // cây quất lớn ngày Tết
   def('bush', 20, 13, x => { ell(x, '#5fae4a', 9.5, 7, 9.5, 5.5); ell(x, '#7cc75f', 6, 5, 4, 2.5); ell(x, '#4a9340', 13, 9, 5, 2.5); R(x, '#ff8fa8', 4, 4, 1, 1); R(x, '#ffd84d', 12, 3, 1, 1); R(x, '#fff', 15, 6, 1, 1); });
   def('hedge', 16, 14, x => { R(x, '#4f9d48', 0, 2, 16, 12); R(x, '#69b85a', 0, 0, 16, 4); R(x, '#69b85a', 2, 4, 3, 1); R(x, '#69b85a', 9, 5, 4, 1); R(x, '#3f8a3e', 0, 11, 16, 3); R(x, '#3f8a3e', 5, 8, 2, 1); R(x, '#3f8a3e', 12, 9, 2, 1); });
   def('fence', 16, 14, x => { for (let i = 0; i < 3; i++) { const a = 1 + i * 5; R(x, '#fbf7ee', a, 1, 3, 13); R(x, '#fbf7ee', a + 1, 0, 1, 1); R(x, '#d8d2c2', a + 2, 2, 1, 12); } R(x, '#ece6d6', 0, 4, 16, 2); R(x, '#ece6d6', 0, 9, 16, 2); R(x, '#cfc8b6', 0, 5, 16, 1); R(x, '#cfc8b6', 0, 10, 16, 1); });
@@ -1938,6 +1976,9 @@ function buildSprites2() {
   });
   def('stonelamp', 12, 24, x => { R(x, '#a8a39a', 3, 18, 6, 6); R(x, '#cfcac0', 1, 16, 10, 2); R(x, '#bfbab0', 2, 8, 8, 8); R(x, '#ffe9a0', 4, 10, 4, 4); R(x, '#a8a39a', 0, 5, 12, 3); R(x, '#cfcac0', 2, 2, 8, 3); R(x, '#a8a39a', 5, 0, 2, 2); });
   def('chaumai', 16, 26, x => { R(x, '#c8583f', 3, 19, 10, 7); R(x, '#e07a5f', 2, 18, 12, 2); R(x, '#6f472c', 7, 9, 2, 10); line(x, '#6f472c', 8, 12, 3, 6); line(x, '#6f472c', 8, 11, 13, 5); for (const [a, b] of [[3, 5], [5, 3], [8, 4], [11, 3], [13, 5], [2, 8], [14, 8], [6, 7], [10, 7], [8, 1]]) { R(x, '#ffd23a', a, b, 2, 2); R(x, '#f2a93b', a, b + 1, 1, 1); } });
+  // Tết miền Bắc: chậu đào hồng và chậu quất trĩu quả (treo bao lì xì)
+  def('chaudao', 16, 28, x => { R(x, '#c8583f', 3, 21, 10, 7); R(x, '#e07a5f', 2, 20, 12, 2); R(x, '#ffd23a', 6, 23, 4, 2); R(x, '#5b3d27', 7, 9, 2, 12); line(x, '#5b3d27', 8, 13, 2, 5); line(x, '#5b3d27', 8, 11, 14, 4); line(x, '#5b3d27', 8, 9, 6, 1); for (const [a, b] of [[1, 4], [3, 6], [2, 2], [6, 1], [9, 2], [13, 3], [14, 6], [11, 5], [5, 8], [12, 9], [7, 4], [4, 10]]) { R(x, '#f3a6c0', a, b, 2, 2); R(x, '#ffe3ec', a, b, 1, 1); } R(x, '#d9534f', 12, 11, 2, 3); });
+  def('chauquat', 18, 26, x => { R(x, '#c8583f', 4, 19, 10, 7); R(x, '#e07a5f', 3, 18, 12, 2); R(x, '#ffd23a', 7, 21, 4, 2); R(x, '#5b3d27', 8, 13, 2, 6); ell(x, '#3f8f3a', 9, 8, 8.5, 7.5); ell(x, '#57a548', 7, 6, 4, 3); for (const [a, b] of [[3, 6], [6, 3], [10, 4], [14, 6], [5, 10], [9, 9], [13, 11], [11, 13], [7, 13], [2, 9], [15, 9]]) { R(x, '#f2a93b', a, b, 2, 2); R(x, '#ffd23a', a, b, 1, 1); } R(x, '#d9534f', 12, 5, 2, 3); R(x, '#d9534f', 4, 12, 2, 3); });
   def('lanterns', 80, 24, x => {
     R(x, '#6f472c', 0, 0, 2, 24); R(x, '#6f472c', 78, 0, 2, 24);
     for (let i = 0; i <= 76; i++) R(x, '#3a2a22', 2 + i, 2 + Math.round(Math.sin(i / 76 * Math.PI) * 6), 1, 1);
@@ -1970,6 +2011,34 @@ function buildSprites2() {
   shopFront('fb_doan', '#f2a93b', x => { ell(x, '#5f656f', 12, 5, 8, 4); R(x, '#5f656f', 4, 5, 17, 4); ell(x, '#8b8f9c', 12, 4, 7, 2); R(x, 'rgba(240,240,240,.7)', 9, 0, 1, 2); R(x, 'rgba(240,240,240,.7)', 14, 0, 1, 2); for (let i = 0; i < 3; i++) { R(x, '#3f8f3a', 36 + i * 5, 3 - (i % 2), 5, 5); R(x, '#d9c690', 38 + i * 5, 3 - (i % 2), 1, 5); } R(x, '#d9534f', 0, 13, 54, 1); });
 
 
+  // khu nhà thư viện riêng trong sân trường
+  def('libhouse', 120, 84, x => {
+    const wall = '#f6efd8', wallS = '#e3d6b4', roof = '#3f7d5c', roofS = '#2f5f45';
+    R(x, roofS, 2, 2, 116, 22); R(x, roof, 4, 0, 112, 20); for (let i = 4; i < 116; i += 8) { R(x, roofS, i, 4, 1, 14); } R(x, shade(roof, 25), 4, 0, 112, 2); R(x, roofS, 0, 20, 120, 4);
+    R(x, wall, 6, 24, 108, 56); R(x, wallS, 6, 24, 108, 3); R(x, wallS, 6, 76, 108, 4);
+    for (const a of [6, 38, 78, 110]) R(x, '#d8bd80', a, 27, 4, 49);
+    for (const a of [14, 90]) drawWin(x, a, 34, 18, 20, '#3f7d5c');
+    R(x, '#24406b', 36, 30, 48, 10); R(x, '#3b6fb6', 37, 31, 46, 8); R(x, '#ffd23a', 37, 39, 46, 1);
+    R(x, '#5b3d27', 48, 46, 24, 34); drawDoor(x, 50, 48, 10, 32, '#8a5a3a'); drawDoor(x, 60, 48, 10, 32, '#8a5a3a');
+    R(x, '#c9c2b3', 42, 80, 36, 4); R(x, '#e2ddd2', 42, 80, 36, 1);
+    for (const a of [26, 94]) { R(x, '#3a2a22', a, 24, 1, 3); ell(x, '#e2574c', a, 30, 2.5, 3); }
+  });
+  // cầu thang lên tầng 2 ở cửa giữa dãy nhà chính
+  def('stairs', 36, 34, x => {
+    R(x, '#3a2f4a', 0, 0, 36, 34); R(x, '#2a2136', 0, 0, 36, 3);
+    for (let i = 0; i < 7; i++) { const y = 30 - i * 4, l = 2 + i * 3; R(x, '#c9c2b3', l, y, 34 - l, 3); R(x, '#e2ddd2', l, y, 34 - l, 1); R(x, '#8b8f9c', l, y + 3, 34 - l, 1); }
+    for (let i = 0; i <= 26; i++) R(x, '#8a5a3a', 2 + i, 22 - Math.round(i * 0.75), 1, 1);
+    R(x, '#8a5a3a', 2, 22, 1, 10); R(x, '#8a5a3a', 28, 2, 1, 10);
+  }, true);
+  // lỗ cầu thang đi xuống ở hành lang tầng 2
+  def('stairdown', 34, 18, x => { R(x, '#5f565f', 0, 0, 34, 18); for (let i = 0; i < 5; i++) { R(x, '#c9c2b3', 1, 1 + i * 3.4, 32, 2); R(x, '#8b8f9c', 1, 3 + i * 3.4, 32, 1); } R(x, '#8a5a3a', 0, 0, 2, 18); R(x, '#8a5a3a', 32, 0, 2, 18); }, true);
+  // ảnh Bác Hồ treo trên tường lớp học
+  def('hoportrait', 14, 18, x => {
+    R(x, '#c9962a', 0, 0, 14, 18); R(x, '#ffd23a', 1, 1, 12, 1); R(x, '#efe6d2', 2, 2, 10, 14);
+    R(x, '#e8e4dc', 4, 3, 6, 2); R(x, '#e8b48a', 4, 5, 6, 4); R(x, '#2a2136', 5, 6, 1, 1); R(x, '#2a2136', 8, 6, 1, 1);
+    R(x, '#f4f2ea', 5, 9, 4, 3); R(x, '#f4f2ea', 6, 12, 2, 1); R(x, '#c9b58a', 3, 12, 8, 4); R(x, '#a89060', 6, 12, 2, 4);
+    R(x, '#da251d', 0, 17, 14, 1);
+  });
   // bảng thông báo ở sân trường: khung gỗ, tấm bần, giấy ghim
   def('bangtin', 36, 30, x => {
     R(x, '#6f472c', 3, 18, 3, 12); R(x, '#6f472c', 30, 18, 3, 12);
@@ -2200,6 +2269,20 @@ function natFlag(k) {
   else if (k === 'BR') { F(1, 1, 14, 9, '#009c3b'); const y = '#ffdf00'; F(7, 2, 2, 1, y); F(5, 3, 6, 1, y); F(3, 4, 10, 3, y); F(5, 7, 6, 1, y); F(7, 8, 2, 1, y); F(6, 4, 4, 3, '#1f3c88'); F(6, 5, 4, 1, '#fbfbf7'); }
   return (_badges['n' + k] = c.toDataURL());
 }
+// icon 6 chỉ số thẻ cầu thủ: Tấn công (bóng sút) · Phòng thủ (khiên) · Tốc độ (tia chớp) · Sức mạnh (tạ) · Kỹ thuật (ngôi sao) · Tư duy (bộ não)
+function statIcon(k) {
+  if (_badges['s' + k]) return _badges['s' + k];
+  const c = mk(12, 12), x = cx(c);
+  if (k === 'atk') { ell(x, '#fffaf0', 7, 6, 4, 4); R(x, '#2a2136', 6, 5, 2, 2); R(x, '#2a2136', 9, 3, 1, 1); R(x, '#2a2136', 4, 8, 1, 1); R(x, '#2a2136', 9, 8, 1, 1); R(x, '#e2574c', 0, 3, 3, 1); R(x, '#e2574c', 0, 6, 2, 1); R(x, '#e2574c', 0, 9, 3, 1); }
+  else if (k === 'def') { for (const [l, r2, y] of [[1, 10, 1], [1, 10, 2], [1, 10, 3], [1, 10, 4], [1, 10, 5], [2, 9, 6], [2, 9, 7], [3, 8, 8], [4, 7, 9], [5, 6, 10]]) R(x, '#3b82c4', l, y, r2 - l + 1, 1); R(x, '#8fc1e3', 3, 2, 2, 4); R(x, '#fffaf0', 5, 3, 2, 5); R(x, '#fffaf0', 4, 4, 4, 2); }
+  else if (k === 'spd') { pat(x, ['.....###', '....###.', '...###..', '..######', '.....##.', '....##..', '...##...', '..##....', '.##.....'], 2, 1, '#f2c94c', '#f2c94c'); R(x, '#fff6a8', 6, 1, 1, 1); }
+  else if (k === 'str') { R(x, '#5f656f', 0, 3, 3, 6); R(x, '#5f656f', 9, 3, 3, 6); R(x, '#8b8f9c', 0, 3, 3, 1); R(x, '#8b8f9c', 9, 3, 3, 1); R(x, '#3a3f55', 3, 5, 6, 2); R(x, '#c9ccd4', 3, 5, 6, 1); }
+  else if (k === 'tec') { pat(x, ['....#....', '....#....', '...###...', '#########', '.#######.', '..#####..', '..##.##..', '.##...##.', '##.....##'], 1, 1, '#7a5fc9', '#7a5fc9'); R(x, '#c9b8f2', 5, 4, 1, 2); }
+  else if (k === 'iq') { ell(x, '#e98fa5', 6, 6, 5, 4.5); R(x, '#c9667f', 6, 2, 1, 8); R(x, '#c9667f', 3, 4, 2, 1); R(x, '#c9667f', 8, 5, 2, 1); R(x, '#c9667f', 3, 7, 2, 1); R(x, '#c9667f', 8, 8, 2, 1); R(x, '#ffd2dc', 3, 3, 1, 1); }
+  return (_badges['s' + k] = outline(c).toDataURL());
+}
+const statName2 = k => CARD_STATS.find(s2 => s2[0] === k)[1];
+const statImg = (k, cls) => `<img class="${cls || 'sic'}" src="${statIcon(k)}" alt="${statName2(k)}" title="${statName2(k)}">`;
 // <img> huy hiệu / cờ, kèm tên khi rê chuột
 const badgeImg = (kind, k, cls) => kind === 'club'
   ? `<img class="${cls || 'bdg'}" src="${clubCrest(k)}" alt="${CARD_CLUBS[k].name}" title="CLB ${CARD_CLUBS[k].name}">`
@@ -2624,15 +2707,15 @@ function buildSchool() {
   const mates = [['khoa', 'Khoa', 'khoa'], ['vy', 'Vy', 'vy'], ['dat', 'Đạt', 'dat'], ['m1', 'Bạn cùng lớp', 'c1'], ['ngan', 'Ngân', 'ngan'], ['m3', 'Bạn cùng lớp', 'c3'], ['m4', 'Bạn cùng lớp', 'c4'], ['m5', 'Bạn cùng lớp', 'c5']];
   mates.forEach(([id, name, look], i) => {
     const fr = !!FRIENDS[id];
-    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(id) && !!yardPos(id), label: () => name, act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
+    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(id) && !!yardPos(id) && !sceneHides(id), label: () => name, act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
   });
 }
 
 /* ---------------- LỚP HỌC ---------------- */
 const SEAT = { x: 111, y: 134 };
-// Chỗ có người ngồi trong lớp (cột, hàng, bên): 8 bạn có tên + vài bạn khác — lớp không còn kín chỗ
+// Chỗ có người ngồi trong lớp (cột, hàng, bên)
 const CLASS_SEATED = new Set();
-const seatTaken = (c, r, sd, sp) => !!sp || (c * 3 + r * 5 + sd * 7) % 4 === 1;
+const seatTaken = () => true;                       // lớp đủ sĩ số: 16 bàn, mỗi bàn 2 bạn
 function buildClass() {
   const m = mapNew('class', 'Lớp 10A1', 20, 14, true);
   paint(m, 'void', 0, 0, 20, 14, 1);
@@ -2646,6 +2729,7 @@ function buildClass() {
   drawWin(m.x, 34, 9, 22, 13); drawWin(m.x, 262, 9, 22, 13);
   ell(m.x, '#2a2136', 240, 12, 5.5, 5.5); ell(m.x, '#fffaf0', 240, 12, 4.5, 4.5); R(m.x, '#2a2136', 240, 9, 1, 4); R(m.x, '#2a2136', 240, 12, 3, 1);
   addObj(m, { s: 'tdesk', x: 38, y: 34, sol: [1, 2, 32, 19] });
+  addObj(m, { s: 'hoportrait', x: 73, y: 6, base: 0 });                // ảnh Bác Hồ treo trên tường cạnh bảng
   const X = [40, 104, 184, 248], Y = [70, 104, 138, 172];
   const looks = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'];
   const special = { '1,1,1': 'khoa', '2,1,0': 'vy', '1,2,0': 'dat', '0,1,1': 'ngan', '0,0,0': 'm1', '3,0,0': 'm3', '2,2,1': 'm4', '3,3,0': 'm5' };
@@ -2703,6 +2787,7 @@ function buildMaps() {
   buildRide('ride', false); buildRide('rail', true);
   buildRooms();
   addMeetNpcs(); buildFamily();
+  seasonTrees();                                   // cây đổi màu theo mùa
 }
 
 'use strict';
@@ -2712,6 +2797,64 @@ function buildMaps() {
  *  Phố Hoa Phượng: bên trong TTTM (các gian hàng) · bên trong khu game · nhà bạn (phòng khách + phòng riêng)
  *  Đồ trang trí phòng ngủ ở nhà (mua ở TTTM)
  * ============================================================ */
+// Cây ngoài trời đổi theo mùa (không đụng tới cây trang trí riêng ngày Tết)
+const TREE_KINDS = ['tree', 'tree2', 'treeRed', 'treePink', 'treeOrange'];
+const SEASON_TREES = [['au_sua', 'tree', 'au_sua', 'tree2'], ['wi_bang', 'wi_bang2', 'wi_bang', 'tree2'], ['sp_dao', 'sp_loc', 'sp_sua', 'sp_loc'], ['su_phuong', 'su_bang', 'su_phuong', 'su_bang']];
+function seasonTrees() {
+  for (const id in MAPS) for (const o of MAPS[id].objs) {
+    if (!TREE_KINDS.includes(o.s) || o.dyn || o.vis === tetTime) continue;
+    const k = (o.x * 7 + o.y * 13) % 4, base = o.s;
+    o.dyn = () => (G ? (base === 'treeRed' && cal(G.day).season === 3 ? 'su_phuong' : SEASON_TREES[cal(G.day).season][k]) : base);
+  }
+}
+// Thư viện (khu nhà riêng trong sân) · tầng 2 dãy nhà chính: hành lang + 4 lớp anh chị khoá trên
+const LIB_HOUSE = [4, 236], LIB_DOOR = [64, 330];
+const TANG2 = { stair: 224, rooms: [['l11a1', '11A1', 40, ['sC', 'sG', 'sE', 'sH', 'sA', 'sF']], ['l11a3', '11A3', 130, ['sD', 'sH', 'sG', 'sF', 'sE', 'sC']], ['l12a1', '12A1', 300, ['sA', 'sE', 'sF', 'sG', 'sH', 'sB']], ['l12a2', '12A2', 390, ['sB', 'sF', 'sE', 'sH', 'sA', 'sD']]] };
+const SENIOR_OF = { l11a1: 'a_phong', l11a3: 'c_thao', l12a1: 'a_hung', l12a2: 'c_mai' };
+const SENIOR_TALK = ['Năm cuối rồi, ôn thi đại học muốn xỉu luôn em ạ.', 'Em lớp 10 hả? Có bài gì khó cứ lên đây hỏi anh chị.', 'Đề cương ôn thi dày như cuốn từ điển ấy…', 'Tuần sau lớp chị diễn văn nghệ, nhớ xuống xem nha!', 'Đội bóng khối 11 đang tuyển thêm người đó, em đá được không?', 'Hồi lớp 10 anh cũng hay trốn lên đây ngắm sân trường.', 'Ra chơi mà lên tận tầng 2 chơi à? Dũng cảm ghê!', 'Thư viện có cuốn đề cương Toán hay lắm, xuống mượn đi em.'];
+const seniorChat = (key, name, look, i) => { const k = 'snr_' + key; if (!G.daily[k]) { G.daily[k] = true; addStat('giaotiep', 1); } UI.ask(name, `<p>“${SENIOR_TALK[i % SENIOR_TALK.length]}”</p>`, ['Dạ, em cảm ơn anh chị!'], { who: { look } }); };
+function buildUpstairs() {
+  // hành lang tầng 2: tường có 4 cửa lớp, lan can nhìn xuống sân, lỗ cầu thang ở giữa
+  const m = mapNew('tang2', 'Tầng 2 · các lớp khối 11, 12', 30, 9, true);
+  paint(m, 'void', 0, 0, 30, 9, 1); paint(m, 'ctile', 1, 2, 28, 6, 0);
+  wallFace(m, 16, 0, 448, 32, '#f4d273', '#e2bb57');
+  paint(m, 'walltop', 0, 0, 1, 9, 1); paint(m, 'walltop', 29, 0, 1, 9, 1);
+  // lan can + khoảng trời, cây phượng phía xa
+  R(m.x, '#a8dcf5', 16, 128, 448, 16); R(m.x, '#5fae4a', 16, 138, 448, 6); for (let i = 0; i < 8; i++) ell(m.x, '#3f8f3a', 40 + i * 56, 138, 14, 5);
+  R(m.x, '#c9c2b3', 16, 120, 448, 4); R(m.x, '#e2ddd2', 16, 120, 448, 1); for (let i = 16; i < 464; i += 12) R(m.x, '#c9c2b3', i, 124, 3, 12); R(m.x, '#8b8f9c', 16, 135, 448, 2);
+  for (let i = 0; i < 30; i++) m.solid[8 * 30 + i] = 1;
+  for (const [id, label, dx] of TANG2.rooms) {
+    addObj(m, { s: 'sdoor', x: dx, y: 0, base: 34 });
+    m.labels.push({ x: dx + 11, y: 4.5, text: label, size: 4.6, col: '#2a2136', maxw: 18 });
+    m.warps.push({ x: dx + 2, y: 30, w: 18, h: 10, dir: 3, to: { map: id, x: 289, y: 204, dir: 3 } });
+    drawWin(m.x, dx + 30, 10, 18, 14);
+  }
+  addObj(m, { s: 'stairdown', x: TANG2.stair, y: 118, base: 0, flat: true });
+  for (let i = 0; i < 2; i++) m.solid[8 * 30 + 14 + i] = 0;
+  m.warps.push({ x: TANG2.stair + 2, y: 128, w: 30, h: 10, dir: 0, to: { map: 'school', x: 352, y: 118, dir: 0 } });
+  m.labels.push({ x: TANG2.stair + 17, y: 113, text: '↓ XUỐNG SÂN', size: 4.4, col: '#2a2136', maxw: 40 });
+  addObj(m, { s: 'plant', x: 100, y: 28, sol: [2, 14, 12, 9] }); addObj(m, { s: 'plant', x: 370, y: 28, sol: [2, 14, 12, 9] });
+  // anh chị đứng hành lang giờ ra chơi
+  [[86, 72, 'sE', 0], [196, 88, 'sF', 1], [272, 70, 'sG', 2], [440, 84, 'sH', 3]].forEach(([a, b, look, i]) => NPCS.push({ id: 'cor_' + i, name: i % 2 ? 'Chị khoá trên' : 'Anh khoá trên', look, map: 'tang2', x: a, y: b, dir: i % 4, wander: 16, vis: () => yardTime(), label: () => (i % 2 ? 'Chị' : 'Anh') + ' khoá trên — trò chuyện', act: () => seniorChat('cor' + i, i % 2 ? 'Chị khoá trên' : 'Anh khoá trên', look, i + 4) }));
+  // các lớp anh chị: bảng, ảnh Bác, bàn ghế, anh chị ngồi học / tụ tập
+  for (const [id, label, dx, looks] of TANG2.rooms) {
+    const r = roomBase(id, 'Lớp ' + label, '#f7efd0', '#8fc7a8', 'ctile');
+    R(r.x, '#2a2136', 95, 5, 130, 22); R(r.x, '#8a5a3a', 96, 6, 128, 20); R(r.x, '#2f6b4f', 98, 8, 124, 15); R(r.x, '#dfeee6', 106, 12, 40, 1); R(r.x, '#dfeee6', 106, 16, 28, 1);
+    drawWin(r.x, 34, 9, 22, 13); drawWin(r.x, 262, 9, 22, 13);
+    addObj(r, { s: 'hoportrait', x: 73, y: 6, base: 0 });
+    addObj(r, { s: 'tdesk', x: 38, y: 34, sol: [1, 2, 32, 19] });
+    r.labels.push({ x: 160, y: 30, text: label, size: 4.6, col: '#2a2136', maxw: 18 });
+    const X = [40, 104, 184, 248], Y = [70, 120, 170], seats = [];
+    for (let row = 0; row < 3; row++) for (let c = 0; c < 4; c++) if ((row * 4 + c + label.charCodeAt(2)) % 3 !== 0) { addObj(r, { s: 'sdesk', x: X[c] - 1, y: Y[row] - 1, sol: [1, 1, 28, 12] }); seats.push([X[c] + 7, Y[row] + 30], [X[c] + 21, Y[row] + 30]); }
+    const soc = SENIOR_OF[id], S = SOCIETY[soc];
+    seats.filter((_, k) => k % 2 === 0 || k % 5 === 1).slice(0, 7).forEach(([a, b], k) => {
+      const named = k === 1, look = named ? S.look : looks[k % looks.length], name = named ? S.name : (['sB', 'sD', 'sF', 'sH'].includes(look) ? 'Chị lớp ' : 'Anh lớp ') + label;
+      NPCS.push({ id: `${id}_${k}`, sid: named ? 'r_' + soc : null, soc: named ? soc : null, name, look, map: id, x: a, y: b, dir: 3, solid: true,
+        vis: named ? () => !(yardTime() && !!yardPos(S.look)) : null, label: () => name + (named ? '' : ' — trò chuyện'), act: () => (named ? ACT.senior(soc) : seniorChat(`${id}${k}`, name, look, k)) });
+    });
+    roomExit(r, { map: 'tang2', x: dx + 11, y: 46, dir: 0 });
+  }
+}
 // Phòng chữ nhật có cửa ra ở góc dưới bên phải (giống lớp học)
 function roomBase(id, name, wall, lower, floor, w, h) {
   w = w || 20; h = h || 14;
@@ -2756,9 +2899,18 @@ function buildRooms() {
   sch.labels.push({ x: W.nu, y: W.y + 31, text: 'NỮ', size: 4.4, col: '#fffaf0', maxw: 18 });
   sch.warps.push({ x: W.nam - 10, y: 94, w: 20, h: 12, dir: 3, gate: wcGate('boy'), to: { map: 'wcnam', x: 289, y: 204, dir: 3 } });
   sch.warps.push({ x: W.nu - 10, y: 94, w: 20, h: 12, dir: 3, gate: wcGate('girl'), to: { map: 'wcnu', x: 289, y: 204, dir: 3 } });
+  // cửa giữa dãy nhà: cầu thang lên tầng 2 (các lớp anh chị khoá trên)
   addObj(sch, { s: 'sdoorBig', x: 332, y: 55, base: 106 });
-  sch.labels.push({ x: 352, y: 59.5, text: 'THƯ VIỆN', size: 5, col: '#2a2136', maxw: 36 });
-  sch.warps.push({ x: 342, y: 102, w: 20, h: 12, dir: 3, to: { map: 'thuvien', x: 289, y: 204, dir: 3 } });
+  addObj(sch, { s: 'stairs', x: 334, y: 72, base: 106 });
+  sch.labels.push({ x: 352, y: 59.5, text: 'CẦU THANG', size: 5, col: '#2a2136', maxw: 36 });
+  sch.warps.push({ x: 342, y: 102, w: 20, h: 12, dir: 3, to: { map: 'tang2', x: TANG2.stair + 16, y: 118, dir: 3 } });
+  // thư viện: khu nhà riêng ở góc trái sân trường (dời mấy cây, bụi ở đó đi)
+  const [lx, ly] = LIB_HOUSE;
+  sch.objs = sch.objs.filter(o => !((o.s === 'tree2' && o.x === 34 && o.y === 244) || (o.s === 'bush' && o.x === 12 && o.y === 318) || (o.s === 'treeRed' && o.x === 96 && o.y === 250)));
+  addObj(sch, { s: 'libhouse', x: lx, y: ly, sol: [1, 18, 118, 60] });
+  sch.labels.push({ x: lx + 60, y: ly + 35.5, text: 'THƯ VIỆN', size: 6, col: '#ffffff', maxw: 44 });
+  sch.warps.push({ x: lx + 50, y: ly + 76, w: 20, h: 12, dir: 3, to: { map: 'thuvien', x: 289, y: 204, dir: 3 } });
+  buildUpstairs();
   // thêm học sinh ra sân cho đông vui + cho mọi học sinh ngoài sân nhập vào các tụ chơi
   for (const [id, a, b, name] of [['x1', 150, 240, 'Tú · 10A2'], ['x2', 420, 300, 'Linh · 10A2'], ['x3', 260, 200, 'Bảo · 10A3'], ['x4', 340, 330, 'Nhi · 10A4']]) NPCS.push({ id: 'y_' + id, sid: id, name, look: id, map: 'school', x: a, y: b, dir: 0, wander: 30, vis: () => yardTime() && !!yardPos(id), label: () => name, act: () => ACT.mate(id) });
   // anh chị khoá trên (11, 12): nói chuyện riêng thì được chỉ mẹo học hành, đi lại trong trường
@@ -2803,7 +2955,7 @@ function buildRooms() {
   for (const a of [44, 150]) { addObj(m, { s: 'table', x: a, y: 104, sol: [1, 2, 44, 26] }); addObj(m, { s: 'stool', x: a - 12, y: 114 }); addObj(m, { s: 'stool', x: a + 48, y: 114 }); }
   addObj(m, { s: 'tdesk', x: 236, y: 120, sol: [1, 2, 32, 19] }); addObj(m, { s: 'plant', x: 20, y: 180, sol: [2, 14, 12, 9] });
   NPCS.push({ id: 'thuthu', name: 'Cô thủ thư', look: 'teacherB', map: 'thuvien', x: 252, y: 154, dir: 0, label: () => 'Cô thủ thư', act: () => UI.say('Thư viện', '“Sách xếp theo từng môn trên các tủ sát tường. Em tới tủ nào thì đọc sách môn đó. Giữ trật tự nhé.”') });
-  roomExit(m, { map: 'school', x: 352, y: 116, dir: 0 });
+  roomExit(m, { map: 'school', x: LIB_DOOR[0], y: LIB_DOOR[1], dir: 0 });
 
   /* ---------- PHÒNG NGỦ TRƯA ---------- */
   m = roomBase('ngutrua', 'Phòng ngủ trưa', '#e8e4f5', '#b9aee0', 'wood');
@@ -2902,8 +3054,8 @@ function buildChua() {
   for (const a of [176, 448]) addObj(m, { s: 'benchstone', x: a, y: 230, sol: [1, 1, 28, 12] });
   for (let i = 0; i < 40; i++) addObj(m, { s: 'hedge', x: i * 16, y: 398, sol: [0, 4, 18, 12] });
   // ngày Tết: mai vàng, đào, lồng đèn
-  for (const a of [292, 336]) addObj(m, { s: 'chaumai', x: a, y: 126, sol: [3, 20, 10, 6], vis: tetTime });
-  addObj(m, { s: 'treeMai', x: 200, y: 150, sol: [13, 38, 10, 9], vis: tetTime }); addObj(m, { s: 'treePink', x: 410, y: 150, sol: [13, 38, 10, 9], vis: tetTime });
+  for (const a of [292, 336]) addObj(m, { s: a === 292 ? 'chaudao' : 'chauquat', x: a, y: 124, sol: [3, 20, 10, 6], vis: tetTime });
+  addObj(m, { s: 'treeQuat', x: 200, y: 150, sol: [13, 38, 10, 9], vis: tetTime }); addObj(m, { s: 'treePink', x: 410, y: 150, sol: [13, 38, 10, 9], vis: tetTime });
   addObj(m, { s: 'lanterns', x: 280, y: 136, base: 0, vis: tetTime });
   NPCS.push({ id: 'su', name: 'Sư thầy', look: 'monk', map: 'chua', x: 372, y: 210, dir: 0, wander: 10, vis: () => inWin(G.time, 330, 1260), label: () => 'Sư thầy', act: () => ACT.monk() });
   NPCS.push({ id: 'chua_a', name: 'Người đi lễ', look: 'c6', outfit: () => 'cas_ngan', map: 'chua', x: 220, y: 280, dir: 0, wander: 30, vis: () => inWin(G.time, 360, 1140) });
@@ -2924,9 +3076,12 @@ const festDecor = () => !!G && (RT.fest || (isEveDay(G.day) && G.time >= 1020 &&
 const FEST_SPOTS = { rope: [130, 424], cau: [250, 420], skip: [462, 252] };
 function buildFest() {
   const t = MAPS.town;
-  for (const a of [64, 110]) addObj(t, { s: 'chaumai', x: a, y: 110, sol: [3, 20, 10, 6], vis: tetTime });
+  for (const [a, k] of [[64, 'chaudao'], [110, 'chauquat'], [290, 'chaudao'], [402, 'chauquat']]) addObj(t, { s: k, x: a, y: 106, sol: [3, 20, 10, 6], vis: tetTime });
   const p = MAPS.pho;
-  for (const fid in FRIEND_HOUSE) { const hx = FRIEND_HOUSE[fid][1]; addObj(p, { s: 'chaumai', x: hx + 12, y: 106, sol: [3, 20, 10, 6], vis: tetTime }); addObj(p, { s: 'chaumai', x: hx + 72, y: 106, sol: [3, 20, 10, 6], vis: tetTime }); }
+  for (const fid in FRIEND_HOUSE) { const hx = FRIEND_HOUSE[fid][1]; addObj(p, { s: 'chaudao', x: hx + 12, y: 104, sol: [3, 20, 10, 6], vis: tetTime }); addObj(p, { s: 'chauquat', x: hx + 72, y: 106, sol: [3, 20, 10, 6], vis: tetTime }); }
+  for (const [a, k] of [[468, 'chauquat'], [568, 'chaudao'], [748, 'chauquat']]) addObj(p, { s: k, x: a, y: 106, sol: [3, 20, 10, 6], vis: tetTime });
+  // trong nhà: chậu đào cạnh tivi, chậu quất cạnh sofa
+  const h0 = MAPS.home; addObj(h0, { s: 'chaudao', x: 240, y: 14, sol: [3, 20, 10, 6], vis: tetTime }); addObj(h0, { s: 'chauquat', x: 244, y: 98, sol: [3, 18, 12, 6], vis: tetTime });
   const m = MAPS.nui;
   // dọn chỗ cho hội chợ: vài cây thông, tảng đá ẩn đi trong đêm hội
   const clear = [[386, 330], [430, 380], [500, 400], [340, 380], [96, 380], [220, 390], [240, 440], [290, 340], [410, 260]];
@@ -4360,6 +4515,32 @@ function classFunCut(kind, fid, caught, only) {
   steps.push({ move: [1, 160, 46, 420] }, { fn: sc => { sc.actors[1].dir = 3; sc.st.write = true; sc.st.sweat = false; } }, { wait: 500 });
   return { map: 'class', me: S.me, cam: { x: 160, y: 96 }, title: `Trong giờ học · ${K.title}`, actors, hide, props: funProps(K, S.p), steps };
 }
+// Bạn bị gọi lên bảng trả bài, mình ngồi dưới nhắc bài · caught: bị thầy cô phát hiện
+const SEAT_OF = { khoa: [125, 134], vy: [191, 134], ngan: [61, 134], dat: [111, 168] };
+const SEAT_AISLE = { khoa: 150, vy: 170, ngan: 86, dat: 150 };
+const PROMPT_HINT = { toan: ['bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông…', 'Dạ… bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông ạ!'], van: ['bài thơ viết năm 1948… tình đồng chí…', 'Dạ… bài thơ ra đời năm 1948, nói về tình đồng chí ạ!'], anh: ['have/has cộng quá khứ phân từ…', 'Dạ… thì hiện tại hoàn thành là have hoặc has cộng quá khứ phân từ ạ!'], ly: ['F bằng m nhân a…', 'Dạ… lực bằng khối lượng nhân gia tốc ạ!'], hoa: ['hai H một O…', 'Dạ… công thức của nước là H2O ạ!'], sinh: ['ti thể… nhà máy năng lượng…', 'Dạ… ti thể là nơi tạo năng lượng cho tế bào ạ!'], su: ['năm 1945… mùng 2 tháng 9…', 'Dạ… ngày 2 tháng 9 năm 1945 ạ!'], dia: ['sông Hồng… phù sa…', 'Dạ… đồng bằng sông Hồng do phù sa bồi đắp ạ!'] };
+function promptCut(fid, subj, caught) {
+  const F = FRIENDS[fid], S = SUBJ[subj], { look, co } = classTeacher(), Co = co[0].toUpperCase() + co.slice(1);
+  const [sx, sy] = SEAT_OF[fid] || SEAT_OF.khoa, ax = SEAT_AISLE[fid] || 150, bx = 132, by = 60, [hint, ans] = PROMPT_HINT[subj] || ['trang 25 trong sách đó…', 'Dạ… như trong sách trang 25 ạ!'];
+  const st = {};
+  const go = [{ move: [0, ax, sy, 300] }, { move: [0, ax, 66, 500] }, { move: [0, bx, by, 300] }], back = [{ move: [0, ax, 66, 300] }, { move: [0, ax, sy, 500] }, { move: [0, sx, sy, 300] }];
+  const prop = now => {
+    const sc = RT.scene, T = sc.actors[1], fr = sc.actors[0];
+    if (st.whisper) { const x = G.x + 8, y = G.y - 36; wRect('#2a2136', x - 1, y - 1, 13, 7); wRect('#fffaf0', x, y, 11, 5); for (let i = 0; i < 3; i++) if (Math.floor(now / 200) % 4 > i) wRect('#2a2136', x + 2 + i * 3, y + 2, 1, 1); wRect('#f8d0a8', G.x + 4, G.y - 22, 3, 3); }
+    if (st.bang) drawSpr(SPR.emoBang, T.x - 3, T.y - 38 - (Math.floor(now / 150) % 2));
+    if (st.sweat) for (const a of [G, fr]) wRect('#7fc8f0', a.x + 6, a.y - 25 + (Math.floor(now / 200) % 3), 2, 3);
+    if (st.chalk) { const n = Math.floor(now / 120) % 16; wRect('#eef7ee', 110, 16, Math.min(n, 10), 1); }
+  };
+  const steps = [{ say: [1, `Em ${F.name}, lên bảng trả bài cũ!`] }, ...go, { fn: sc => { sc.actors[0].dir = 0; st.chalk = true; } },
+    { say: [0, 'Dạ… thưa ' + co + '… bài này… ờ…'] }, { say: [1, 'Sao? Không thuộc bài à?'] },
+    { fn: sc => { sc.actors[0].dir = faceTo(sc.actors[0], [G.x, G.y]); st.whisper = true; } }, { say: ['me', `(Pssst… ${hint})`] },
+    { fn: sc => { st.whisper = false; sc.actors[0].dir = 0; } }, { say: [0, ans] }];
+  if (caught) steps.push({ fn: sc => { st.bang = true; sc.actors[1].dir = faceTo(sc.actors[1], [G.x, G.y]); } }, { wait: 400 },
+    { say: [1, `Em nào nhắc bài đấy? Em ${G.name}, đứng lên!`] }, { hop: 'me' }, { fn: () => { st.bang = false; st.sweat = true; } },
+    { say: ['me', `Dạ… em xin lỗi ${co} ạ…`] }, { say: [1, `Cả hai em đều bị phê bình. ${F.name} về chỗ, lần sau học bài cho kỹ!`] }, ...back, { fn: sc => { sc.actors[0].dir = 3; } }, { say: [0, '(Tại tớ hết… xin lỗi nha.)'] });
+  else steps.push({ say: [1, 'Ừ… cũng được. Lần sau học kỹ hơn nhé. Về chỗ!'] }, ...back, { fn: sc => { sc.actors[0].dir = faceTo(sc.actors[0], [G.x, G.y]); } }, { say: [0, '(Cảm ơn cậu nha, cứu tớ một bàn thua!)'] });
+  return { map: 'class', me: [SEAT.x, SEAT.y, 3], cam: { x: 160, y: 96 }, title: `Trong giờ ${S.name} · nhắc bài cho ${F.name}`, hide: [fid], actors: [{ look: fid, x: sx, y: sy, dir: 3 }, { look, x: 186, y: 54, dir: 1 }], props: [prop], steps };
+}
 // Rủ nhau đi vệ sinh quá lâu: về tới cửa lớp thì bị hỏi tội
 function wcCaughtCut(fid, light) {
   const { look, co } = classTeacher();
@@ -5229,7 +5410,9 @@ async function classEvent(subj) {
   } else if (id === 'nhacbai') {
     const c = await UI.ask(T, `<p><b>${F.name}</b> bị gọi lên bảng trả bài, đứng ấp úng, liếc xuống bạn cầu cứu.</p>`, ['Nhắc bài cho bạn', 'Ngồi im']);
     if (c !== 0) { addFriend(fid, -1); return { delta, lines: L }; }
-    if (Math.random() < clamp(0.3 - 0.04 * (teacherLv() - 1), 0.08, 0.5)) { addFriend(fid, 3); addTeacher(-2); L.push(li(`${co} quay phắt lại: “Em nào nhắc bài đấy?” — cả hai bị phê bình.`, 'bad')); }
+    const caught = Math.random() < clamp(0.3 - 0.04 * (teacherLv() - 1), 0.08, 0.5);
+    if (inClassScene() && SEAT_OF[fid]) await playCut(promptCut(fid, subj, caught));
+    if (caught) { addFriend(fid, 3); addTeacher(-2); L.push(li(`${co} quay phắt lại: “Em nào nhắc bài đấy?” — cả hai bị phê bình.`, 'bad')); }
     else { addFriend(fid, 5); L.push(li(`Nhắc bài trót lọt, ${F.name} thoát hiểm.`, 'good')); }
   } else if (id === 'ngoaile') {
     G.stamina = Math.min(maxStam(), G.stamina + 4);
@@ -5240,9 +5423,17 @@ async function classEvent(subj) {
 }
 
 /* ---------- sự kiện giờ nghỉ trưa ---------- */
+// Lời rủ của bạn thân giờ trưa: chỉ khi đã thân (từ 1 tim) và đã cho số điện thoại — bạn nhắn tin, mình trả lời trong điện thoại
+const LUNCH_JOIN = {
+  onnhom: { fid: 'vy', msg: s => `Trưa nay tớ với mấy bạn ôn ${SUBJ[s].name} ở thư viện, cậu vào không? Tớ đang ôm một chồng sách ngoài sân, ra phụ tớ bê với!`, yes: 'Ok, tớ ra phụ cậu bê sách liền!' },
+  guitar: { fid: 'dat', msg: () => 'Ra ghế đá dưới gốc phượng đi, tớ mang guitar rồi, hát chung cho vui!', yes: 'Tới liền! Nhớ chừa chỗ cho tớ.' },
+  khao: { fid: 'khoa', msg: () => 'Hôm qua tớ trúng thưởng nắp chai! Ra căn tin tớ khao trà đá với bánh tráng nướng nè!', yes: 'Có khao là có tớ, ra liền!' },
+  tapchi: { fid: 'ngan', msg: () => 'Tớ mới mua tạp chí tuần này, có bài trắc nghiệm tính cách vui lắm. Ra ghế đá làm thử với tớ không?', yes: 'Ra liền, chờ tớ với!' },
+};
+const canPing = fid => !grudge(fid) && hasNum(fid) && hearts(fid) >= 1;
 function rollLunchEvent() {
   const list = ['bongda', 'trucnhat'];
-  if (!grudge('vy')) list.push('onnhom'); if (!grudge('dat')) list.push('guitar'); if (!grudge('khoa')) list.push('khao'); if (!grudge('ngan')) list.push('tapchi');
+  for (const k in LUNCH_JOIN) if (canPing(LUNCH_JOIN[k].fid)) list.push(k);
   if (cardCount()) list.push('giaithe');
   return pick(list);
 }
@@ -5259,33 +5450,64 @@ async function runLunchEvent(id) {
     if (r.win) for (const f in FRIENDS) addFriend(f, 2, true);
     advanceTime(30); RT.lock = false; UI.hud();
     UI.toast(r.win ? '10A1 thắng! Cả lớp reo hò.' : 'Thua sát nút… nhưng đá vui là chính.', r.win ? 'good' : 'info');
-  } else if (id === 'onnhom') {
-    const up = upcomingTests(8).find(t => t.day >= G.day && t.day <= G.day + 3 && BOOK_SUBJ.includes(t.subj)), s = up ? up.subj : pick(BOOK_SUBJ);
-    const c = await UI.ask(`${T} · Ôn bài nhóm`, `<p>Vy ôm tập đề cương đi ngang: “Tớ với mấy bạn ôn ${SUBJ[s].name} ở thư viện, cậu vào không?”</p>`, ['Vào ôn cùng', 'Thôi, tớ nghỉ trưa']);
-    if (c !== 0) return;
-    await activity(`Ôn ${SUBJ[s].name} cùng nhóm của Vy…`, 40, () => { useStam(4); addStat(s, 5); addFriend('vy', 4); if (up && up.day <= G.day + 1) G.review[s] = Math.max(G.review[s] === undefined ? -1 : G.review[s], up.day); });
-  } else if (id === 'guitar') {
-    const c = await UI.ask(`${T} · Ghế đá sân trường`, '<p>Đạt ôm cây guitar ra ghế đá dưới gốc phượng, mấy đứa xúm lại hát theo. “Ngồi xuống đây hát chung đi!”</p>', ['Ngồi xuống hát cùng', 'Thôi']);
-    if (c !== 0) return;
-    await activity('Nghêu ngao hát cùng Đạt…', 20, () => { gainStam(8); addStat('vannghe', 3); addStat('giaotiep', 1); addFriend('dat', 4); });
+  } else if (LUNCH_JOIN[id]) {
+    // bạn nhắn tin rủ — trả lời trong điện thoại
+    const J = LUNCH_JOIN[id], up = upcomingTests(8).find(t => t.day >= G.day && t.day <= G.day + 3 && BOOK_SUBJ.includes(t.subj)), s = up ? up.subj : pick(BOOK_SUBJ);
+    if (!canPing(J.fid)) return;
+    G.phone.act = { fid: J.fid, kind: id, subj: s, review: up && up.day <= G.day + 1 ? up.day : null, day: G.day, exp: PM_START - 15 };
+    inbox(J.fid, J.msg(s));
   } else if (id === 'trucnhat') {
     const c = await UI.ask(`${T} · Trực nhật`, '<p>Cô chủ nhiệm ghé lớp: “Em ở lại giúp cô lau bảng, tưới mấy chậu cây và xếp lại bàn ghế nhé?”</p>', ['Dạ, để em làm ạ', '“Em… em đang bận ạ”']);
     if (c !== 0) return;
     if (G.stamina < 5) return UI.toast('Mệt quá, làm không nổi.', 'bad');
     await activity('Đang trực nhật giúp cô…', 20, () => { useStam(5, true); addTeacher(TEACHER.duty, 'hanh'); addStat('kheotay', 2); if (G.conduct < 10) addConduct(0.25, 'chăm chỉ trực nhật'); });
-  } else if (id === 'khao') {
-    await UI.ask(`${T} · Khoa khao`, '<p>Khoa hí hửng chạy tới: “Hôm qua tớ trúng thưởng nắp chai! Ra căn tin, tớ khao cả bọn trà đá với bánh tráng nướng!”</p>', ['Đi liền!']);
-    await activity('Ăn vặt cùng cả bọn…', 10, () => { gainStam(10); addFriend('khoa', 3); addStat('giaotiep', 1); });
-  } else if (id === 'tapchi') {
-    const c = await UI.ask(`${T} · Tạp chí mới`, '<p>Ngân vẫy bạn ra ghế đá: “Tớ mới mua tạp chí tuần này, có bài trắc nghiệm tính cách vui lắm. Làm thử không?”</p>', ['Ngồi xem cùng', 'Thôi']);
-    if (c !== 0) return;
-    await activity('Đọc tạp chí cùng Ngân…', 20, () => { gainStam(5); addStat('giaotiep', 1); addFriend('ngan', 4); });
   } else if (id === 'giaithe') {
     const c = await UI.ask(`${T} · Giải đấu thẻ`, '<p>Đám con trai lớp bên bày thẻ cầu thủ ra bậc thềm: “Ai thắng được bọn tớ thì được thêm một gói bim bim!”</p>', ['Vào đấu', 'Thôi']);
     if (c !== 0) return;
     const r = await cardDuel('giai', null, 'cao thủ lớp bên', 'kha', { free: true });
     if (r === 1) await showPack(openPacks(1), 'Phần thưởng giải đấu');
   }
+}
+// lời rủ giờ trưa còn hiệu lực (chưa trả lời, chưa hết giờ nghỉ trưa)
+function lunchAct() {
+  const j = G.phone.act;
+  if (j && (j.day !== G.day || G.time >= j.exp)) { G.phone.act = null; pushMsg(j.fid, false, 'Thôi tụi tớ xong rồi, lần sau nha!'); return null; }
+  return j;
+}
+// Nhận lời qua điện thoại → hoạt cảnh làm cùng bạn rồi mới tính điểm, thời gian
+async function lunchJoin(fid, j) {
+  if (RT.lock) return;
+  RT.lock = true;
+  const F = FRIENDS[fid], s = j.subj, bob = () => Math.floor(performance.now() / 200) % 2;
+  if (j.kind === 'onnhom') {
+    const [dx, dy] = LIB_DOOR;
+    const books = now => { const sc = RT.scene; for (const a of [G, sc.actors[0]]) { wRect('#3b82c4', a.x - 5, a.y - 26 + bob(), 10, 3); wRect('#e2574c', a.x - 4, a.y - 29 + bob(), 9, 3); wRect('#f2c94c', a.x - 5, a.y - 32 + bob(), 10, 3); } };
+    await playCut({ map: 'school', me: [dx + 150, dy - 20, 1], cam: { x: dx + 80, y: dy - 20 }, title: 'Bê sách cùng Vy ra thư viện', hide: ['vy'], actors: [{ look: 'vy', x: dx + 130, y: dy - 24, dir: 2 }], props: [books],
+      steps: [{ say: [0, 'Cậu tới rồi! Cầm giúp tớ nửa chồng này nha, nặng ghê.'] }, { say: ['me', 'Đưa đây! Ôi, đề cương gì mà dày thế…'] },
+        { par: [{ move: [0, dx + 20, dy + 12, 1500] }, { move: ['me', dx + 40, dy + 14, 1500] }] }, { say: [0, `Hôm nay ôn ${SUBJ[s].name} nha, sắp kiểm tra rồi.`] },
+        { par: [{ move: [0, dx - 4, dy + 8, 500] }, { move: ['me', dx + 8, dy + 8, 500] }] }, { par: [{ move: [0, dx - 4, dy - 6, 300] }, { move: ['me', dx + 8, dy - 6, 300] }] }] });
+    const pages = now => { for (const [x, y] of [[58, 112], [78, 112], [66, 120], [86, 120]]) { wRect('#fffaf0', x, y, 8, 5); wRect('#8fa0ab', x + 1, y + 2 + (bob() && x % 2 ? 1 : 0), 6, 1); } };
+    await playCut({ map: 'thuvien', me: [96, 132, 1], cam: { x: 120, y: 100 }, title: `Ôn ${SUBJ[s].name} cùng nhóm của Vy`, actors: [{ look: 'vy', x: 40, y: 132, dir: 2 }, { look: 'c1', x: 52, y: 100, dir: 0 }, { look: 'c4', x: 84, y: 100, dir: 0 }], props: [pages],
+      steps: [{ say: [0, 'Phần này hay ra lắm, cậu ghi lại đi.'] }, { say: [1, 'Câu này làm sao vậy Vy?'] }, { say: ['me', 'À, để tớ giảng thử… à hiểu rồi!'] }, { say: [2, 'Ôn nhóm vui ghê, mai kiểm tra chắc ổn!'] }] });
+    advanceTime(40); useStam(4); addStat(s, 5); addFriend('vy', 4);
+    if (j.review) G.review[s] = Math.max(G.review[s] === undefined ? -1 : G.review[s], j.review);
+  } else if (j.kind === 'guitar') {
+    const [bx, by] = [136, 172], notes = now => { const t = now / 1000; for (let i = 0; i < 3; i++) { const k = (t * 0.8 + i / 3) % 1; wRect('#7a5fc9', bx + 6 + i * 8 + Math.sin(k * 6) * 3, by - 18 - k * 22, 2, 2); wRect('#7a5fc9', bx + 7 + i * 8 + Math.sin(k * 6) * 3, by - 22 - k * 22, 1, 4); } drawSpr(SPR.guitar, bx + 4, by - 20); };
+    await playCut({ map: 'school', me: [bx + 46, by + 12, 1], cam: { x: bx + 20, y: by }, title: 'Hát cùng Đạt dưới gốc phượng', hide: ['dat'], actors: [{ look: 'dat', x: bx + 12, y: by + 10, dir: 0 }, { look: 'c2', x: bx - 6, y: by + 22, dir: 2 }, { look: 'x3', x: bx + 30, y: by + 26, dir: 1 }], props: [notes],
+      steps: [{ say: [0, 'Ngồi xuống đây! Bài này ai cũng thuộc nè.'] }, { move: ['me', bx + 26, by + 14, 400] }, { fn: () => { G.dir = 1; } }, { say: ['me', 'La la la… hát to lên nào!'] }, { say: [1, 'Đạt đánh đàn hay ghê!'] }, { say: [0, 'Mai mốt tụi mình lập ban nhạc đi!'] }] });
+    advanceTime(20); gainStam(8); addStat('vannghe', 3); addStat('giaotiep', 1); addFriend('dat', 4);
+  } else if (j.kind === 'khao') {
+    const snack = now => { for (const [a, k] of [[G, 0], [RT.scene.actors[0], 1]]) { wRect('#c9862f', a.x + 4, a.y - 16 + ((bob() + k) % 2), 5, 3); wRect('#c9e9f2', a.x - 8, a.y - 18, 3, 5); } };
+    await playCut({ map: 'school', me: [96, 128, 3], cam: { x: 80, y: 110 }, title: 'Khoa khao ăn vặt ở căn tin', hide: ['khoa'], actors: [{ look: 'khoa', x: 72, y: 126, dir: 3 }, { look: 'c3', x: 56, y: 134, dir: 2 }], props: [snack],
+      steps: [{ say: [0, 'Cô ơi cho con ba ly trà đá với ba bịch bánh tráng nướng!'] }, { fn: sc => { G.dir = 1; sc.actors[0].dir = 2; } }, { say: ['me', 'Khoa hôm nay chơi lớn ghê!'] }, { say: [0, 'Trúng nắp chai mà, ăn đi đừng ngại!'] }, { say: [1, 'Giòn quá trời luôn!'] }] });
+    advanceTime(10); gainStam(10); addFriend('khoa', 3); addStat('giaotiep', 1);
+  } else if (j.kind === 'tapchi') {
+    const [bx, by] = [396, 172], mag = now => { const a = RT.scene.actors[0]; wRect('#e98fa5', a.x + 4, a.y - 20, 9, 7); wRect('#fffaf0', a.x + 5, a.y - 19 + bob(), 7, 2); };
+    await playCut({ map: 'school', me: [bx + 40, by + 12, 1], cam: { x: bx + 16, y: by }, title: 'Đọc tạp chí cùng Ngân', hide: ['ngan'], actors: [{ look: 'ngan', x: bx + 8, y: by + 12, dir: 2 }], props: [mag],
+      steps: [{ say: [0, 'Câu 1: Đi chơi cậu thích lên núi hay ra biển?'] }, { move: ['me', bx + 24, by + 12, 400] }, { fn: () => { G.dir = 1; } }, { say: ['me', 'Biển! Có trà sữa thì càng tốt.'] }, { say: [0, 'Kết quả: cậu là kiểu người vui vẻ, ai cũng quý! Đúng ghê!'] }, { say: ['me', 'Haha, tạp chí nói chuẩn quá!'] }] });
+    advanceTime(20); gainStam(5); addStat('giaotiep', 1); addFriend('ngan', 4);
+  }
+  RT.lock = false; UI.hud();
 }
 /* ---------- phố Hoa Phượng: trà sữa · TTTM · khu game · xiên que, kem ---------- */
 const withF = fid => (fid ? ` cùng ${FRIENDS[fid].name}` : '');
@@ -5369,7 +5591,7 @@ function packToast(res) { for (const { c, isNew } of res) UI.toast(`Bóc thẻ: 
 function cardHtml(c, tag, hidden) {
   const R = CARD_RARITY[c.r], t = tag ? `<i class="pc-t">${tag}</i>` : '';
   if (hidden) return `<div class="pcard back" style="--rc:${R.col}">${t}<div class="pc-q">?</div><div class="pc-n">${CARD_POS[c.pos]}</div><div class="pc-r">${starsOf(c)} ${R.name}</div></div>`;
-  return `<div class="pcard" style="--rc:${R.col}">${t}<span class="pc-b">${cardBadges(c)}</span><img src="${cardPortrait(c)}" alt=""><div class="pc-n">${c.name}</div><div class="pc-r">${starsOf(c)} ${CARD_POS[c.pos]}</div><div class="pc-s">${CARD_STATS.map(([k, , s]) => `<span>${s} <b>${c[k]}</b></span>`).join('')}</div></div>`;
+  return `<div class="pcard" style="--rc:${R.col}">${t}<span class="pc-b">${cardBadges(c)}</span><img src="${cardPortrait(c)}" alt=""><div class="pc-n">${c.name}</div><div class="pc-r">${starsOf(c)} ${CARD_POS[c.pos]}</div><div class="pc-s">${CARD_STATS.map(([k, n]) => `<span title="${n}">${statImg(k)}<b>${c[k]}</b></span>`).join('')}</div></div>`;
 }
 function showPack(res, title) {
   return UI.ask(title || 'Bóc thẻ', `<div class="pcards">${res.map(({ c, isNew }) => cardHtml(c, isNew ? 'MỚI' : '')).join('')}</div><p class="dim">Đã sưu tầm ${cardKinds()}/${CARDS.length} loại thẻ. Xem bộ sưu tập và xếp đội hình trong Menu → Thẻ cầu thủ.</p>`, ['OK']);
@@ -5402,7 +5624,8 @@ function phoneActions(id) {
     return a;
   }
   if (id === 'dad') return [['dad', 'Hỏi thăm bố']];
-  const p = G.phone.pend;
+  const p = G.phone.pend, j = lunchAct();
+  if (j && j.fid === id) { a.push(['jyes', LUNCH_JOIN[j.kind].yes]); a.push(['jno', 'Thôi, trưa nay tớ nghỉ']); }
   if (p && p.fid === id && p.day >= G.day) { a.push(['yes', 'Đi chứ!']); a.push(['no', 'Tớ bận rồi, để bữa khác']); }
   a.push(['tam', 'Tám chuyện']); a.push(['bai', 'Hỏi lịch kiểm tra']);
   if (!meetBusy()) a.push(['ru', 'Rủ đi chơi…']);
@@ -5443,6 +5666,15 @@ function phoneSend(id, act, arg) {
       say(`Tớ gửi cậu đề cương ${SUBJ[t0.subj].name} rồi đó, xem kỹ là ăn điểm.`); UI.toast(`Vy gửi đề cương ôn ${SUBJ[t0.subj].name}.`, 'good');
     }
   } else if (act === 'go') phoneInvite(id, arg);
+  else if (act === 'jyes' || act === 'jno') {
+    const j = lunchAct(); if (!j || j.fid !== id) return;
+    G.phone.act = null;
+    if (act === 'jno') { pushMsg(id, true, 'Thôi, trưa nay tớ nghỉ một chút. Lần sau nha!'); say('Ừ, vậy lần sau nhé!'); return; }
+    pushMsg(id, true, LUNCH_JOIN[j.kind].yes);
+    if (!G.atSchool || !inWin(G.time, AM_END, PM_START - 15)) { say('Ơ, cậu không ở trường à? Thôi để lần sau nha.'); return; }
+    say('Nhanh lên nha, tớ chờ!');
+    setTimeout(() => { UI.close(); setTimeout(() => lunchJoin(id, j), 120); }, 400);
+  }
   else if (act === 'yes') {
     const p = G.phone.pend; G.phone.pend = null; pushMsg(id, true, 'Đi chứ! Hẹn cậu ở đó nha.');
     setMeet(id, p.place, p.day, 0); say(`Chốt! ${meetWhen(G.meet)} ở ${PLACES[p.place].name} nha. Đừng cho tớ leo cây đó.`);
@@ -5524,8 +5756,8 @@ function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Ma
  * ============================================================ */
 const YARD_KIDS = ['khoa', 'vy', 'dat', 'ngan', 'm1', 'm3', 'm4', 'm5', 'x1', 'x2', 'x3', 'x4', 'sA', 'sB', 'sC', 'sD'];
 // chỗ đặt từng tụ: [x, y] tâm
-const YARD_SPOT = { dauthe: [86, 300], chat: [250, 256], chat2: [168, 326], danhbai: [200, 206], conquay: [384, 216], dacau: [302, 236], duoibat: [352, 300], rongran: [232, 316], dabong: [584, 250], trontim: [448, 304], eat: [150, 192], eat2: [80, 116] };
-const HIDE_SPOTS = [[448, 174], [110, 284], [70, 203], [110, 174], [44, 240]];          // núp sau gốc cây, bụi rậm
+const YARD_SPOT = { dauthe: [196, 272], chat: [250, 256], chat2: [168, 326], danhbai: [200, 206], conquay: [384, 216], dacau: [302, 236], duoibat: [352, 300], rongran: [232, 316], dabong: [584, 250], trontim: [448, 304], eat: [150, 192], eat2: [80, 116] };
+const HIDE_SPOTS = [[448, 174], [150, 334], [70, 203], [110, 174], [22, 200]];          // núp sau gốc cây, bụi rậm
 const EAT_SEATS = { eat: [[124, 187], [176, 187], [150, 199]], eat2: [[62, 112], [84, 113], [106, 112]] };          // hai bên ghế đá · trước quầy căn tin
 let YS = null;
 function yardState() {
@@ -5784,21 +6016,44 @@ ACT.nap = async (mx, my) => {
   advanceTime(NAP.mins); G.daily.nap = true; gainStam(NAP.stam);
   RT.lock = false; UI.hud();
 };
+// Thư viện mở trước giờ học, giờ ra chơi, nghỉ trưa và sau giờ tan học. Ra chơi thì chỉ đọc được tới lúc vào lớp.
+const LIB_TABLES = [[44, 104], [150, 104]];
+function libWindow() {
+  if (!(schoolToday() && G.atSchool && G.time >= PERIODS[0].start && G.time < CFG.SCHOOL_END)) return { mins: LIBRARY.mins };
+  const w = YARD_WINDOWS.find(([a, b2]) => inWin(G.time, a, b2));
+  return w ? { mins: Math.min(LIBRARY.mins, w[1] - G.time), brk: w[1] - w[0] <= 40 } : null;
+}
 ACT.readBook = async s => {
-  if (schoolToday() && G.atSchool && G.time < CFG.SCHOOL_END && !inWin(G.time, AM_END, PM_START - 10) && G.time >= PERIODS[0].start) return UI.say('Thư viện', 'Cô thủ thư: “Đang giờ học, về lớp đi em.”<p class="dim">Thư viện mở trước giờ học, giờ nghỉ trưa và sau giờ tan học.</p>');
+  if (RT.lock) return;
+  const W = libWindow();
+  if (!W) return UI.say('Thư viện', 'Cô thủ thư: “Đang giờ học, về lớp đi em.”<p class="dim">Thư viện mở trước giờ học, giờ ra chơi, giờ nghỉ trưa và sau giờ tan học.</p>');
+  if (W.mins < 8) return UI.toast('Sắp vào lớp rồi, không kịp đọc đâu. Để giờ ra chơi sau nhé.');
   if ((G.daily.lib || 0) >= LIBRARY.perDay) return UI.toast('Hôm nay bạn đọc sách ở thư viện đủ rồi.');
   if (G.stamina < LIBRARY.stam) return UI.toast('Mệt quá, đọc không vào.', 'bad');
-  const c = await UI.ask(`Tủ sách ${SUBJ[s].name}`, `<p>Lấy một cuốn ${SUBJ[s].name} xuống đọc ${LIBRARY.mins} phút?</p>`, ['Đọc sách', 'Thôi']);
+  const c = await UI.ask(`Tủ sách ${SUBJ[s].name}`, `<p>Lấy một cuốn ${SUBJ[s].name} ra bàn ngồi đọc ${W.mins} phút?${W.brk ? ' <span class="dim">(giờ ra chơi — đọc tới lúc vào lớp)</span>' : ''}</p>`, ['Đọc sách', 'Thôi']);
   if (c !== 0 || RT.lock) return;
   RT.lock = true;
-  UI.progress(`Đang đọc sách ${SUBJ[s].name}…`, 2000, SUBJ[s].color);
-  await playCut({ inPlace: true, bars: false, steps: [{ fn: () => { G.dir = 0; } }, { wait: 2000 }], props: [now => { drawSpr(SPR.book, G.x - 3, G.y - 13 + (Math.floor(now / 500) % 2)); if (Math.floor(now / 900) % 2) wRect('#fffaf0', G.x + 2, G.y - 12, 2, 1); }] });
-  advanceTime(LIBRARY.mins);
-  G.daily.lib = (G.daily.lib || 0) + 1; useStam(LIBRARY.stam); addStat(s, LIBRARY.pts);
-  if (!grudge('vy') && !isComp('vy') && Math.random() < 0.3) { addFriend('vy', 2); UI.toast('Gặp Vy cũng đang ngồi đọc sách.', 'good'); }
+  // hoạt cảnh: rút sách trên tủ → mang ra bàn → ngồi xuống ghế đẩu, mở sách đọc
+  const i = BOOK_SUBJ.indexOf(s), shelfX = 36 + i * 34, [tx, ty] = LIB_TABLES[shelfX < 120 ? 0 : 1], seat = [tx - 6, ty + 20];
+  const vy = !grudge('vy') && !isComp('vy') && Math.random() < 0.3, col = SUBJ[s].color, st = { ph: 0 };
+  const prop = now => {
+    const f = Math.floor(now / 500) % 2;
+    if (st.ph === 1) { wRect(col, G.x - 4, G.y - 22 + f, 8, 6); wRect('#fffaf0', G.x - 4, G.y - 17 + f, 8, 1); }           // ôm sách trên tay
+    if (st.ph === 2) { wRect('#fffaf0', tx + 6, ty + 6, 12, 7); wRect(col, tx + 5, ty + 5, 1, 9); wRect(col, tx + 18, ty + 5, 1, 9); wRect('#8fa0ab', tx + 7, ty + 8, 4, 1); wRect('#8fa0ab', tx + 13, ty + 8 + f, 4, 1); if (Math.floor(now / 1300) % 2) wRect('#efe6d2', tx + 12, ty + 6, 6, 7); }   // sách mở trên bàn, lật trang
+    if (vy && st.ph === 2) { wRect('#e98fa5', tx + 28, ty + 7, 9, 6); wRect('#fffaf0', tx + 29, ty + 8, 7, 1); }
+  };
+  UI.progress(`Đang đọc sách ${SUBJ[s].name}…`, 3600, col);
+  await playCut({ inPlace: true, bars: false, stay: true, actors: vy ? [{ look: 'vy', x: tx + 50, y: ty + 20, dir: 1 }] : [], hide: vy ? ['vy'] : [], props: [prop],
+    steps: [{ move: ['me', shelfX, 50, 380] }, { fn: () => { G.dir = 3; } }, { wait: 250 }, { fn: () => { st.ph = 1; } }, { wait: 200 },
+      { move: ['me', shelfX, 90, 360] }, { move: ['me', seat[0], 90, 380] }, { move: ['me', seat[0], seat[1], 260] }, { fn: () => { G.dir = 2; st.ph = 2; } }, { wait: 1500 }]
+      .concat(vy ? [{ say: [0, 'Ơ, cậu cũng ra thư viện đọc sách à? Ngồi cùng bàn đi!'] }] : [{ wait: 600 }]) });
+  advanceTime(W.mins);
+  const pts = Math.max(1, Math.round(LIBRARY.pts * W.mins / LIBRARY.mins));
+  G.daily.lib = (G.daily.lib || 0) + 1; useStam(LIBRARY.stam); addStat(s, pts);
+  if (vy) { addFriend('vy', 2); UI.toast('Đọc sách cùng bàn với Vy.', 'good'); }
   RT.lock = false; UI.hud();
 };
-ACT.library = () => UI.toast('Thư viện giờ là một phòng riêng: cửa lớn giữa dãy nhà chính của trường.');
+ACT.library = () => UI.toast('Thư viện là khu nhà riêng ở góc trái sân trường. Cửa giữa dãy nhà chính là cầu thang lên tầng 2 (các lớp anh chị khoá trên).');
 // Phòng nhạc: sân khấu tập nhảy (bấm mũi tên theo nhịp) · phòng thu tập hát (bấm nốt rơi) · ở nhà: micro
 ACT.music = async kind => {
   if (RT.lock) return;
@@ -6980,7 +7235,7 @@ function genDeck(tier, seed) {
 function ctile(c, o) {
   o = o || {};
   const R = CARD_RARITY[c.r], [n1, n2] = nickOf(c), bo = o.bonus || 0;
-  const st = CARD_STATS.map(([k, , s]) => `<span class="${o.stat === k ? 'hl' : ''}">${s} <b>${c[k]}${o.stat === k && bo ? `<i>+${bo}</i>` : ''}</b></span>`).join('');
+  const st = CARD_STATS.map(([k, n]) => `<span class="${o.stat === k ? 'hl' : ''}" title="${n}">${statImg(k)}<b>${c[k]}${o.stat === k && bo ? `<i>+${bo}</i>` : ''}</b></span>`).join('');
   return `<${o.act ? 'button' : 'div'} class="ct ${o.on ? 'on' : ''} ${o.dim ? 'dim' : ''}" ${o.act ? `data-act="${o.act}" data-id="${c.id}"` : ''} style="--rc:${R.col}">
     <i class="ct-pos p-${c.pos}">${POS_SHORT[c.pos]}</i><i class="ct-sal">${cardSal(c)}💰</i><img src="${cardPortrait(c)}" alt=""><b>${n1}</b><small>${n2}</small>
     <span class="ct-s">${st}</span><span class="ct-tags">${cardBadges(c)}</span></${o.act ? 'button' : 'div'}>`;
@@ -7019,26 +7274,26 @@ function cardMatch(o) {
         G.cards[c.id]--; if (!G.cards[c.id]) { delete G.cards[c.id]; if (G.squad) G.squad = G.squad.filter(x => x !== c.id); }
       }
     };
-    const head = () => `<div class="cm-head"><img src="${faceOf(G.gender, null)}" alt=""><b>Bạn ${M.sc[0]}</b><span>Lượt ${Math.min(M.round, MATCH.rounds)}/${MATCH.rounds} · thắng ${MATCH.win} lượt là thắng trận${M.used.length ? `<br><small>Đã so: ${M.used.map(k => CARD_STATS.find(x => x[0] === k)[2]).join(' · ')}</small>` : ''}</span><b>${M.sc[1]} ${who}</b><img src="${faceOf(o.look, o.outfit)}" alt=""></div>`;
+    const head = () => `<div class="cm-head"><img src="${faceOf(G.gender, null)}" alt=""><b>Bạn ${M.sc[0]}</b><span>Lượt ${Math.min(M.round, MATCH.rounds)}/${MATCH.rounds} · thắng ${MATCH.win} lượt là thắng trận${M.used.length ? `<br><small>Đã so: ${M.used.map(k => statImg(k)).join(' ')}</small>` : ''}</span><b>${M.sc[1]} ${who}</b><img src="${faceOf(o.look, o.outfit)}" alt=""></div>`;
     const render = () => {
       let h = head();
       if (M.phase === 'rps') {
         h += `<p class="cm-big">Oẳn tù xì giành quyền <b>ra lệnh lượt đầu</b>!</p><div class="btns rps">${RPS.map(([k, e, n]) => `<button class="btn" data-act="rps" data-id="${k}"><span class="emo">${e}</span>${n}</button>`).join('')}</div>`;
         if (M.rps) { const [a, b] = M.rps, A = RPS.find(x => x[0] === a), B = RPS.find(x => x[0] === b); h += `<p class="cm-big"><span class="emo">${A[1]}</span> vs <span class="emo">${B[1]}</span> — ${a === b ? 'Hoà! Oẳn lại nào.' : rpsWin(a, b) ? 'Bạn thắng, bạn ra lệnh trước!' : `${who} thắng, ${who} ra lệnh trước.`}</p>`; if (a !== b) h += '<div class="btns"><button class="btn primary" data-act="go">Bắt đầu lượt 1</button></div>'; }
       } else if (M.phase === 'cmd') {
-        h += `<p class="cm-big">Bạn <b>ra lệnh</b>: chọn chỉ số so tài và số lá mỗi bên ra sân.</p><p class="dim">Mỗi chỉ số chỉ được so <b>một lần</b> trong trận — chỉ số đã so thì gạch đi.</p><div class="btns stats6">${CARD_STATS.map(([k, n, s]) => `<button class="btn ${M.stat === k ? 'primary' : ''} ${M.used.includes(k) ? 'used' : ''}" data-act="stat" data-id="${k}" ${M.used.includes(k) ? 'disabled' : ''}>${s} · ${n}</button>`).join('')}</div>`;
+        h += `<p class="cm-big">Bạn <b>ra lệnh</b>: chọn chỉ số so tài và số lá mỗi bên ra sân.</p><p class="dim">Mỗi chỉ số chỉ được so <b>một lần</b> trong trận — chỉ số đã so thì gạch đi.</p><div class="btns stats6">${CARD_STATS.map(([k, n, s]) => `<button class="btn ${M.stat === k ? 'primary' : ''} ${M.used.includes(k) ? 'used' : ''}" data-act="stat" data-id="${k}" ${M.used.includes(k) ? 'disabled' : ''}>${statImg(k, 'sic big')} ${n}</button>`).join('')}</div>`;
         h += `<div class="btns">${[3, 4, 5].map(n => `<button class="btn ${M.n === n ? 'primary' : ''}" data-act="num" data-id="${n}">${n} lá</button>`).join('')}</div>`;
-        h += `<p class="dim">Mạnh nhất của bạn với ${M.n} lá: ${CARD_STATS.filter(([k]) => !M.used.includes(k)).map(([k, , s]) => `${s} ${bestSets(my, k, M.n)[0].v}`).join(' · ')} (đã cộng màu áo)</p><div class="btns"><button class="btn primary" data-act="order">Ra lệnh: ${statName(M.stat)}, ${M.n} lá</button></div>`;
+        h += `<p class="dim">Mạnh nhất của bạn với ${M.n} lá: ${CARD_STATS.filter(([k]) => !M.used.includes(k)).map(([k]) => `${statImg(k)} ${bestSets(my, k, M.n)[0].v}`).join(' · ')} (đã cộng màu áo)</p><div class="btns"><button class="btn primary" data-act="order">Ra lệnh: ${statImg(M.stat)} ${statName(M.stat)}, ${M.n} lá</button></div>`;
       } else if (M.phase === 'oppcmd') {
-        h += `<p class="cm-big">${who} <b>ra lệnh</b>: so <b>${statName(M.stat)}</b>, mỗi bên <b>${M.n} lá</b>.</p><div class="btns"><button class="btn primary" data-act="topick">Chọn cầu thủ</button></div>`;
+        h += `<p class="cm-big">${who} <b>ra lệnh</b>: so ${statImg(M.stat, 'sic big')} <b>${statName(M.stat)}</b>, mỗi bên <b>${M.n} lá</b>.</p><div class="btns"><button class="btn primary" data-act="topick">Chọn cầu thủ</button></div>`;
       } else if (M.phase === 'pick') {
         const sel = cardsOf(M.pick), b = teamBonus(sel).b;
-        h += `<p>So <b>${statName(M.stat)}</b> · chọn <b>${M.n}</b> lá (đã chọn ${sel.length}). Tổng tạm tính: <b class="cm-tot">${setTotal(sel, M.stat)}</b></p><p class="dim">${synergyText(sel)}</p>`;
+        h += `<p>So ${statImg(M.stat)} <b>${statName(M.stat)}</b> · chọn <b>${M.n}</b> lá (đã chọn ${sel.length}). Tổng tạm tính: <b class="cm-tot">${setTotal(sel, M.stat)}</b></p><p class="dim">${synergyText(sel)}</p>`;
         h += `<div class="cts">${my.map(c => ctile(c, { act: 'pk', on: M.pick.includes(c.id), stat: M.stat, bonus: b[c.id] || 0 })).join('')}</div>`;
         h += `<div class="btns"><button class="btn primary" data-act="play" ${sel.length === M.n ? '' : 'disabled'}>Ra sân!</button></div>`;
       } else if (M.phase === 'reveal') {
         const A = cardsOf(M.pick), B = cardsOf(M.opp), ba = teamBonus(A).b, bb = teamBonus(B).b, ta = setTotal(A, M.stat), tb = setTotal(B, M.stat);
-        h += `<p class="cm-big">So ${statName(M.stat)}: <b>${ta}</b> – <b>${tb}</b> · ${M.last === 1 ? 'Bạn thắng lượt này!' : M.last === -1 ? `${who} thắng lượt này.` : 'Hoà!'}</p>`;
+        h += `<p class="cm-big">So ${statImg(M.stat, 'sic big')} ${statName(M.stat)}: <b>${ta}</b> – <b>${tb}</b> · ${M.last === 1 ? 'Bạn thắng lượt này!' : M.last === -1 ? `${who} thắng lượt này.` : 'Hoà!'}</p>`;
         h += `<div class="cm-row"><b>Bạn</b><div class="cts sm">${A.map(c => ctile(c, { stat: M.stat, bonus: ba[c.id] })).join('')}</div><small>${synergyText(A)}</small></div>`;
         h += `<div class="cm-row"><b>${who}</b><div class="cts sm">${B.map(c => ctile(c, { stat: M.stat, bonus: bb[c.id] })).join('')}</div><small>${synergyText(B)}</small></div>`;
         h += `<div class="btns"><button class="btn primary" data-act="next">${M.sc[0] >= MATCH.win || M.sc[1] >= MATCH.win || M.round > MATCH.rounds ? 'Xem kết quả' : `Lượt ${M.round}: ${M.cmd === 'me' ? 'bạn' : who} ra lệnh`}</button></div>`;
@@ -7116,7 +7371,7 @@ async function cardGroupTalk(g, n) {
   }
   await page('“Em cũng mê thẻ cầu thủ à? Ngồi đây anh chỉ luật chơi mới cho. Không phải cứ rút một lá ra so là xong đâu!”');
   await page(`“Mỗi người xếp một <b>đội hình 11 người</b>: đúng 1 thủ môn, ít nhất 2 hậu vệ, 2 tiền vệ và 1 tiền đạo. Thẻ càng hiếm càng mạnh thì <b>lương</b> càng cao — tổng lương không được quá ${SQUAD.cap}, nên không ai nhồi toàn thẻ xịn được đâu.”`);
-  await page('“Trận đấu có <b>5 lượt</b>. Lượt đầu oẳn tù xì giành quyền <b>ra lệnh</b>. Người ra lệnh chọn so chỉ số nào và mỗi bên ra sân mấy lá, từ 3 tới 5. Có 6 chỉ số: Tấn công, Phòng thủ, Tốc độ, Sức mạnh, Kỹ thuật, Tư duy — <b>mỗi chỉ số chỉ được so một lần</b> trong trận, nên đừng dồn hết vào một chỉ số nha!”');
+  await page('“Trận đấu có <b>5 lượt</b>. Lượt đầu oẳn tù xì giành quyền <b>ra lệnh</b>. Người ra lệnh chọn so chỉ số nào và mỗi bên ra sân mấy lá, từ 3 tới 5. Mỗi thẻ có 6 chỉ số, nhìn icon là biết:”</p><div class="stat-legend">' + CARD_STATS.map(([k, n]) => `<span>${statImg(k, 'sic big')} ${n}</span>`).join('') + '</div><p>“<b>Mỗi chỉ số chỉ được so một lần</b> trong trận, nên đừng dồn hết vào một chỉ số nha!”');
   await page('“Hai bên chọn đúng số lá đó, cộng tổng chỉ số, ai cao hơn thắng lượt. <b>Người thua lượt</b> được ra lệnh lượt sau — để còn gỡ lại. Ai thắng 3 lượt trước là thắng trận.”');
   await page('“Mẹo nè: cầu thủ <b>cùng câu lạc bộ</b> hoặc <b>cùng quốc tịch</b> ra sân chung thì ăn ý, mỗi người được cộng thêm. Hai người +1, ba người +2… càng đông càng mạnh. Thắng trận thì được mở album của người thua, chọn 1 thẻ mang về.”');
   await page('“Giờ em cầm tạm bộ thẻ này của anh, đấu thử với anh một trận cho quen tay nhé!”');
@@ -7967,7 +8222,7 @@ MV.cards = {
     if (t === 'album') {
       h += `<p>Đã sưu tầm <b>${cardKinds()}/${CARDS.length}</b> loại · tổng <b>${cardCount()}</b> lá.${G.cardDone === CARDS.length ? ' <b class="tag">Đủ bộ!</b>' : ''}</p><div class="pcards">`;
       for (const c of CARDS) h += G.cards[c.id] ? cardHtml(c, '×' + G.cards[c.id]) : `<div class="pcard none" style="--rc:${CARD_RARITY[c.r].col}"><div class="pc-q">?</div><div class="pc-n">Số ${c.no}</div><div class="pc-r">${starsOf(c)} ${CARD_RARITY[c.r].name}</div></div>`;
-      return h + `</div><p class="dim">Mỗi gói bim bim Sao Vàng có 1 thẻ (hôm nào may mắn dễ ra thẻ hiếm). ${CARD_STATS.map(([, n, sh]) => `${sh} = ${n}`).join(' · ')}. Đấu thẻ: mỗi chỉ số chỉ được so một lần trong trận. Đủ bộ ${CARDS.length} thẻ được thưởng ${fmtMoney(CARD_SET_REWARD)}.</p>`;
+      return h + `</div><p class="dim">Mỗi gói bim bim Sao Vàng có 1 thẻ (hôm nào may mắn dễ ra thẻ hiếm). ${CARD_STATS.map(([k, n]) => `${statImg(k)} ${n}`).join(' · ')}. Đấu thẻ: mỗi chỉ số chỉ được so một lần trong trận. Đủ bộ ${CARDS.length} thẻ được thưởng ${fmtMoney(CARD_SET_REWARD)}.</p>`;
     }
     const s = UI._sq || (UI._sq = (G.squad || []).filter(id => G.cards[id] > 0)), cs = cardsOf(s), is = squadIssues(s), cnt = p => cs.filter(c => c.pos === p).length;
     h += `<p>Lương <b class="${squadSal(s) > SQUAD.cap ? 'bad' : ''}">${squadSal(s)}/${SQUAD.cap}</b> · ${cs.length}/${SQUAD.size} người · TM ${cnt('tm')} · HV ${cnt('hv')} · TV ${cnt('tv')} · TĐ ${cnt('td')}</p>`;

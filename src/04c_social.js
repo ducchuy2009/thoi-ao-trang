@@ -648,7 +648,9 @@ async function classEvent(subj) {
   } else if (id === 'nhacbai') {
     const c = await UI.ask(T, `<p><b>${F.name}</b> bị gọi lên bảng trả bài, đứng ấp úng, liếc xuống bạn cầu cứu.</p>`, ['Nhắc bài cho bạn', 'Ngồi im']);
     if (c !== 0) { addFriend(fid, -1); return { delta, lines: L }; }
-    if (Math.random() < clamp(0.3 - 0.04 * (teacherLv() - 1), 0.08, 0.5)) { addFriend(fid, 3); addTeacher(-2); L.push(li(`${co} quay phắt lại: “Em nào nhắc bài đấy?” — cả hai bị phê bình.`, 'bad')); }
+    const caught = Math.random() < clamp(0.3 - 0.04 * (teacherLv() - 1), 0.08, 0.5);
+    if (inClassScene() && SEAT_OF[fid]) await playCut(promptCut(fid, subj, caught));
+    if (caught) { addFriend(fid, 3); addTeacher(-2); L.push(li(`${co} quay phắt lại: “Em nào nhắc bài đấy?” — cả hai bị phê bình.`, 'bad')); }
     else { addFriend(fid, 5); L.push(li(`Nhắc bài trót lọt, ${F.name} thoát hiểm.`, 'good')); }
   } else if (id === 'ngoaile') {
     G.stamina = Math.min(maxStam(), G.stamina + 4);
@@ -659,9 +661,17 @@ async function classEvent(subj) {
 }
 
 /* ---------- sự kiện giờ nghỉ trưa ---------- */
+// Lời rủ của bạn thân giờ trưa: chỉ khi đã thân (từ 1 tim) và đã cho số điện thoại — bạn nhắn tin, mình trả lời trong điện thoại
+const LUNCH_JOIN = {
+  onnhom: { fid: 'vy', msg: s => `Trưa nay tớ với mấy bạn ôn ${SUBJ[s].name} ở thư viện, cậu vào không? Tớ đang ôm một chồng sách ngoài sân, ra phụ tớ bê với!`, yes: 'Ok, tớ ra phụ cậu bê sách liền!' },
+  guitar: { fid: 'dat', msg: () => 'Ra ghế đá dưới gốc phượng đi, tớ mang guitar rồi, hát chung cho vui!', yes: 'Tới liền! Nhớ chừa chỗ cho tớ.' },
+  khao: { fid: 'khoa', msg: () => 'Hôm qua tớ trúng thưởng nắp chai! Ra căn tin tớ khao trà đá với bánh tráng nướng nè!', yes: 'Có khao là có tớ, ra liền!' },
+  tapchi: { fid: 'ngan', msg: () => 'Tớ mới mua tạp chí tuần này, có bài trắc nghiệm tính cách vui lắm. Ra ghế đá làm thử với tớ không?', yes: 'Ra liền, chờ tớ với!' },
+};
+const canPing = fid => !grudge(fid) && hasNum(fid) && hearts(fid) >= 1;
 function rollLunchEvent() {
   const list = ['bongda', 'trucnhat'];
-  if (!grudge('vy')) list.push('onnhom'); if (!grudge('dat')) list.push('guitar'); if (!grudge('khoa')) list.push('khao'); if (!grudge('ngan')) list.push('tapchi');
+  for (const k in LUNCH_JOIN) if (canPing(LUNCH_JOIN[k].fid)) list.push(k);
   if (cardCount()) list.push('giaithe');
   return pick(list);
 }
@@ -678,33 +688,64 @@ async function runLunchEvent(id) {
     if (r.win) for (const f in FRIENDS) addFriend(f, 2, true);
     advanceTime(30); RT.lock = false; UI.hud();
     UI.toast(r.win ? '10A1 thắng! Cả lớp reo hò.' : 'Thua sát nút… nhưng đá vui là chính.', r.win ? 'good' : 'info');
-  } else if (id === 'onnhom') {
-    const up = upcomingTests(8).find(t => t.day >= G.day && t.day <= G.day + 3 && BOOK_SUBJ.includes(t.subj)), s = up ? up.subj : pick(BOOK_SUBJ);
-    const c = await UI.ask(`${T} · Ôn bài nhóm`, `<p>Vy ôm tập đề cương đi ngang: “Tớ với mấy bạn ôn ${SUBJ[s].name} ở thư viện, cậu vào không?”</p>`, ['Vào ôn cùng', 'Thôi, tớ nghỉ trưa']);
-    if (c !== 0) return;
-    await activity(`Ôn ${SUBJ[s].name} cùng nhóm của Vy…`, 40, () => { useStam(4); addStat(s, 5); addFriend('vy', 4); if (up && up.day <= G.day + 1) G.review[s] = Math.max(G.review[s] === undefined ? -1 : G.review[s], up.day); });
-  } else if (id === 'guitar') {
-    const c = await UI.ask(`${T} · Ghế đá sân trường`, '<p>Đạt ôm cây guitar ra ghế đá dưới gốc phượng, mấy đứa xúm lại hát theo. “Ngồi xuống đây hát chung đi!”</p>', ['Ngồi xuống hát cùng', 'Thôi']);
-    if (c !== 0) return;
-    await activity('Nghêu ngao hát cùng Đạt…', 20, () => { gainStam(8); addStat('vannghe', 3); addStat('giaotiep', 1); addFriend('dat', 4); });
+  } else if (LUNCH_JOIN[id]) {
+    // bạn nhắn tin rủ — trả lời trong điện thoại
+    const J = LUNCH_JOIN[id], up = upcomingTests(8).find(t => t.day >= G.day && t.day <= G.day + 3 && BOOK_SUBJ.includes(t.subj)), s = up ? up.subj : pick(BOOK_SUBJ);
+    if (!canPing(J.fid)) return;
+    G.phone.act = { fid: J.fid, kind: id, subj: s, review: up && up.day <= G.day + 1 ? up.day : null, day: G.day, exp: PM_START - 15 };
+    inbox(J.fid, J.msg(s));
   } else if (id === 'trucnhat') {
     const c = await UI.ask(`${T} · Trực nhật`, '<p>Cô chủ nhiệm ghé lớp: “Em ở lại giúp cô lau bảng, tưới mấy chậu cây và xếp lại bàn ghế nhé?”</p>', ['Dạ, để em làm ạ', '“Em… em đang bận ạ”']);
     if (c !== 0) return;
     if (G.stamina < 5) return UI.toast('Mệt quá, làm không nổi.', 'bad');
     await activity('Đang trực nhật giúp cô…', 20, () => { useStam(5, true); addTeacher(TEACHER.duty, 'hanh'); addStat('kheotay', 2); if (G.conduct < 10) addConduct(0.25, 'chăm chỉ trực nhật'); });
-  } else if (id === 'khao') {
-    await UI.ask(`${T} · Khoa khao`, '<p>Khoa hí hửng chạy tới: “Hôm qua tớ trúng thưởng nắp chai! Ra căn tin, tớ khao cả bọn trà đá với bánh tráng nướng!”</p>', ['Đi liền!']);
-    await activity('Ăn vặt cùng cả bọn…', 10, () => { gainStam(10); addFriend('khoa', 3); addStat('giaotiep', 1); });
-  } else if (id === 'tapchi') {
-    const c = await UI.ask(`${T} · Tạp chí mới`, '<p>Ngân vẫy bạn ra ghế đá: “Tớ mới mua tạp chí tuần này, có bài trắc nghiệm tính cách vui lắm. Làm thử không?”</p>', ['Ngồi xem cùng', 'Thôi']);
-    if (c !== 0) return;
-    await activity('Đọc tạp chí cùng Ngân…', 20, () => { gainStam(5); addStat('giaotiep', 1); addFriend('ngan', 4); });
   } else if (id === 'giaithe') {
     const c = await UI.ask(`${T} · Giải đấu thẻ`, '<p>Đám con trai lớp bên bày thẻ cầu thủ ra bậc thềm: “Ai thắng được bọn tớ thì được thêm một gói bim bim!”</p>', ['Vào đấu', 'Thôi']);
     if (c !== 0) return;
     const r = await cardDuel('giai', null, 'cao thủ lớp bên', 'kha', { free: true });
     if (r === 1) await showPack(openPacks(1), 'Phần thưởng giải đấu');
   }
+}
+// lời rủ giờ trưa còn hiệu lực (chưa trả lời, chưa hết giờ nghỉ trưa)
+function lunchAct() {
+  const j = G.phone.act;
+  if (j && (j.day !== G.day || G.time >= j.exp)) { G.phone.act = null; pushMsg(j.fid, false, 'Thôi tụi tớ xong rồi, lần sau nha!'); return null; }
+  return j;
+}
+// Nhận lời qua điện thoại → hoạt cảnh làm cùng bạn rồi mới tính điểm, thời gian
+async function lunchJoin(fid, j) {
+  if (RT.lock) return;
+  RT.lock = true;
+  const F = FRIENDS[fid], s = j.subj, bob = () => Math.floor(performance.now() / 200) % 2;
+  if (j.kind === 'onnhom') {
+    const [dx, dy] = LIB_DOOR;
+    const books = now => { const sc = RT.scene; for (const a of [G, sc.actors[0]]) { wRect('#3b82c4', a.x - 5, a.y - 26 + bob(), 10, 3); wRect('#e2574c', a.x - 4, a.y - 29 + bob(), 9, 3); wRect('#f2c94c', a.x - 5, a.y - 32 + bob(), 10, 3); } };
+    await playCut({ map: 'school', me: [dx + 150, dy - 20, 1], cam: { x: dx + 80, y: dy - 20 }, title: 'Bê sách cùng Vy ra thư viện', hide: ['vy'], actors: [{ look: 'vy', x: dx + 130, y: dy - 24, dir: 2 }], props: [books],
+      steps: [{ say: [0, 'Cậu tới rồi! Cầm giúp tớ nửa chồng này nha, nặng ghê.'] }, { say: ['me', 'Đưa đây! Ôi, đề cương gì mà dày thế…'] },
+        { par: [{ move: [0, dx + 20, dy + 12, 1500] }, { move: ['me', dx + 40, dy + 14, 1500] }] }, { say: [0, `Hôm nay ôn ${SUBJ[s].name} nha, sắp kiểm tra rồi.`] },
+        { par: [{ move: [0, dx - 4, dy + 8, 500] }, { move: ['me', dx + 8, dy + 8, 500] }] }, { par: [{ move: [0, dx - 4, dy - 6, 300] }, { move: ['me', dx + 8, dy - 6, 300] }] }] });
+    const pages = now => { for (const [x, y] of [[58, 112], [78, 112], [66, 120], [86, 120]]) { wRect('#fffaf0', x, y, 8, 5); wRect('#8fa0ab', x + 1, y + 2 + (bob() && x % 2 ? 1 : 0), 6, 1); } };
+    await playCut({ map: 'thuvien', me: [96, 132, 1], cam: { x: 120, y: 100 }, title: `Ôn ${SUBJ[s].name} cùng nhóm của Vy`, actors: [{ look: 'vy', x: 40, y: 132, dir: 2 }, { look: 'c1', x: 52, y: 100, dir: 0 }, { look: 'c4', x: 84, y: 100, dir: 0 }], props: [pages],
+      steps: [{ say: [0, 'Phần này hay ra lắm, cậu ghi lại đi.'] }, { say: [1, 'Câu này làm sao vậy Vy?'] }, { say: ['me', 'À, để tớ giảng thử… à hiểu rồi!'] }, { say: [2, 'Ôn nhóm vui ghê, mai kiểm tra chắc ổn!'] }] });
+    advanceTime(40); useStam(4); addStat(s, 5); addFriend('vy', 4);
+    if (j.review) G.review[s] = Math.max(G.review[s] === undefined ? -1 : G.review[s], j.review);
+  } else if (j.kind === 'guitar') {
+    const [bx, by] = [136, 172], notes = now => { const t = now / 1000; for (let i = 0; i < 3; i++) { const k = (t * 0.8 + i / 3) % 1; wRect('#7a5fc9', bx + 6 + i * 8 + Math.sin(k * 6) * 3, by - 18 - k * 22, 2, 2); wRect('#7a5fc9', bx + 7 + i * 8 + Math.sin(k * 6) * 3, by - 22 - k * 22, 1, 4); } drawSpr(SPR.guitar, bx + 4, by - 20); };
+    await playCut({ map: 'school', me: [bx + 46, by + 12, 1], cam: { x: bx + 20, y: by }, title: 'Hát cùng Đạt dưới gốc phượng', hide: ['dat'], actors: [{ look: 'dat', x: bx + 12, y: by + 10, dir: 0 }, { look: 'c2', x: bx - 6, y: by + 22, dir: 2 }, { look: 'x3', x: bx + 30, y: by + 26, dir: 1 }], props: [notes],
+      steps: [{ say: [0, 'Ngồi xuống đây! Bài này ai cũng thuộc nè.'] }, { move: ['me', bx + 26, by + 14, 400] }, { fn: () => { G.dir = 1; } }, { say: ['me', 'La la la… hát to lên nào!'] }, { say: [1, 'Đạt đánh đàn hay ghê!'] }, { say: [0, 'Mai mốt tụi mình lập ban nhạc đi!'] }] });
+    advanceTime(20); gainStam(8); addStat('vannghe', 3); addStat('giaotiep', 1); addFriend('dat', 4);
+  } else if (j.kind === 'khao') {
+    const snack = now => { for (const [a, k] of [[G, 0], [RT.scene.actors[0], 1]]) { wRect('#c9862f', a.x + 4, a.y - 16 + ((bob() + k) % 2), 5, 3); wRect('#c9e9f2', a.x - 8, a.y - 18, 3, 5); } };
+    await playCut({ map: 'school', me: [96, 128, 3], cam: { x: 80, y: 110 }, title: 'Khoa khao ăn vặt ở căn tin', hide: ['khoa'], actors: [{ look: 'khoa', x: 72, y: 126, dir: 3 }, { look: 'c3', x: 56, y: 134, dir: 2 }], props: [snack],
+      steps: [{ say: [0, 'Cô ơi cho con ba ly trà đá với ba bịch bánh tráng nướng!'] }, { fn: sc => { G.dir = 1; sc.actors[0].dir = 2; } }, { say: ['me', 'Khoa hôm nay chơi lớn ghê!'] }, { say: [0, 'Trúng nắp chai mà, ăn đi đừng ngại!'] }, { say: [1, 'Giòn quá trời luôn!'] }] });
+    advanceTime(10); gainStam(10); addFriend('khoa', 3); addStat('giaotiep', 1);
+  } else if (j.kind === 'tapchi') {
+    const [bx, by] = [396, 172], mag = now => { const a = RT.scene.actors[0]; wRect('#e98fa5', a.x + 4, a.y - 20, 9, 7); wRect('#fffaf0', a.x + 5, a.y - 19 + bob(), 7, 2); };
+    await playCut({ map: 'school', me: [bx + 40, by + 12, 1], cam: { x: bx + 16, y: by }, title: 'Đọc tạp chí cùng Ngân', hide: ['ngan'], actors: [{ look: 'ngan', x: bx + 8, y: by + 12, dir: 2 }], props: [mag],
+      steps: [{ say: [0, 'Câu 1: Đi chơi cậu thích lên núi hay ra biển?'] }, { move: ['me', bx + 24, by + 12, 400] }, { fn: () => { G.dir = 1; } }, { say: ['me', 'Biển! Có trà sữa thì càng tốt.'] }, { say: [0, 'Kết quả: cậu là kiểu người vui vẻ, ai cũng quý! Đúng ghê!'] }, { say: ['me', 'Haha, tạp chí nói chuẩn quá!'] }] });
+    advanceTime(20); gainStam(5); addStat('giaotiep', 1); addFriend('ngan', 4);
+  }
+  RT.lock = false; UI.hud();
 }
 /* ---------- phố Hoa Phượng: trà sữa · TTTM · khu game · xiên que, kem ---------- */
 const withF = fid => (fid ? ` cùng ${FRIENDS[fid].name}` : '');
@@ -788,7 +829,7 @@ function packToast(res) { for (const { c, isNew } of res) UI.toast(`Bóc thẻ: 
 function cardHtml(c, tag, hidden) {
   const R = CARD_RARITY[c.r], t = tag ? `<i class="pc-t">${tag}</i>` : '';
   if (hidden) return `<div class="pcard back" style="--rc:${R.col}">${t}<div class="pc-q">?</div><div class="pc-n">${CARD_POS[c.pos]}</div><div class="pc-r">${starsOf(c)} ${R.name}</div></div>`;
-  return `<div class="pcard" style="--rc:${R.col}">${t}<span class="pc-b">${cardBadges(c)}</span><img src="${cardPortrait(c)}" alt=""><div class="pc-n">${c.name}</div><div class="pc-r">${starsOf(c)} ${CARD_POS[c.pos]}</div><div class="pc-s">${CARD_STATS.map(([k, , s]) => `<span>${s} <b>${c[k]}</b></span>`).join('')}</div></div>`;
+  return `<div class="pcard" style="--rc:${R.col}">${t}<span class="pc-b">${cardBadges(c)}</span><img src="${cardPortrait(c)}" alt=""><div class="pc-n">${c.name}</div><div class="pc-r">${starsOf(c)} ${CARD_POS[c.pos]}</div><div class="pc-s">${CARD_STATS.map(([k, n]) => `<span title="${n}">${statImg(k)}<b>${c[k]}</b></span>`).join('')}</div></div>`;
 }
 function showPack(res, title) {
   return UI.ask(title || 'Bóc thẻ', `<div class="pcards">${res.map(({ c, isNew }) => cardHtml(c, isNew ? 'MỚI' : '')).join('')}</div><p class="dim">Đã sưu tầm ${cardKinds()}/${CARDS.length} loại thẻ. Xem bộ sưu tập và xếp đội hình trong Menu → Thẻ cầu thủ.</p>`, ['OK']);
@@ -821,7 +862,8 @@ function phoneActions(id) {
     return a;
   }
   if (id === 'dad') return [['dad', 'Hỏi thăm bố']];
-  const p = G.phone.pend;
+  const p = G.phone.pend, j = lunchAct();
+  if (j && j.fid === id) { a.push(['jyes', LUNCH_JOIN[j.kind].yes]); a.push(['jno', 'Thôi, trưa nay tớ nghỉ']); }
   if (p && p.fid === id && p.day >= G.day) { a.push(['yes', 'Đi chứ!']); a.push(['no', 'Tớ bận rồi, để bữa khác']); }
   a.push(['tam', 'Tám chuyện']); a.push(['bai', 'Hỏi lịch kiểm tra']);
   if (!meetBusy()) a.push(['ru', 'Rủ đi chơi…']);
@@ -862,6 +904,15 @@ function phoneSend(id, act, arg) {
       say(`Tớ gửi cậu đề cương ${SUBJ[t0.subj].name} rồi đó, xem kỹ là ăn điểm.`); UI.toast(`Vy gửi đề cương ôn ${SUBJ[t0.subj].name}.`, 'good');
     }
   } else if (act === 'go') phoneInvite(id, arg);
+  else if (act === 'jyes' || act === 'jno') {
+    const j = lunchAct(); if (!j || j.fid !== id) return;
+    G.phone.act = null;
+    if (act === 'jno') { pushMsg(id, true, 'Thôi, trưa nay tớ nghỉ một chút. Lần sau nha!'); say('Ừ, vậy lần sau nhé!'); return; }
+    pushMsg(id, true, LUNCH_JOIN[j.kind].yes);
+    if (!G.atSchool || !inWin(G.time, AM_END, PM_START - 15)) { say('Ơ, cậu không ở trường à? Thôi để lần sau nha.'); return; }
+    say('Nhanh lên nha, tớ chờ!');
+    setTimeout(() => { UI.close(); setTimeout(() => lunchJoin(id, j), 120); }, 400);
+  }
   else if (act === 'yes') {
     const p = G.phone.pend; G.phone.pend = null; pushMsg(id, true, 'Đi chứ! Hẹn cậu ở đó nha.');
     setMeet(id, p.place, p.day, 0); say(`Chốt! ${meetWhen(G.meet)} ở ${PLACES[p.place].name} nha. Đừng cho tớ leo cây đó.`);

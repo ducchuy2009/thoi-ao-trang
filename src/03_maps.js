@@ -416,15 +416,15 @@ function buildSchool() {
   const mates = [['khoa', 'Khoa', 'khoa'], ['vy', 'Vy', 'vy'], ['dat', 'Đạt', 'dat'], ['m1', 'Bạn cùng lớp', 'c1'], ['ngan', 'Ngân', 'ngan'], ['m3', 'Bạn cùng lớp', 'c3'], ['m4', 'Bạn cùng lớp', 'c4'], ['m5', 'Bạn cùng lớp', 'c5']];
   mates.forEach(([id, name, look], i) => {
     const fr = !!FRIENDS[id];
-    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(id) && !!yardPos(id), label: () => name, act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
+    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(id) && !!yardPos(id) && !sceneHides(id), label: () => name, act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
   });
 }
 
 /* ---------------- LỚP HỌC ---------------- */
 const SEAT = { x: 111, y: 134 };
-// Chỗ có người ngồi trong lớp (cột, hàng, bên): 8 bạn có tên + vài bạn khác — lớp không còn kín chỗ
+// Chỗ có người ngồi trong lớp (cột, hàng, bên)
 const CLASS_SEATED = new Set();
-const seatTaken = (c, r, sd, sp) => !!sp || (c * 3 + r * 5 + sd * 7) % 4 === 1;
+const seatTaken = () => true;                       // lớp đủ sĩ số: 16 bàn, mỗi bàn 2 bạn
 function buildClass() {
   const m = mapNew('class', 'Lớp 10A1', 20, 14, true);
   paint(m, 'void', 0, 0, 20, 14, 1);
@@ -438,6 +438,7 @@ function buildClass() {
   drawWin(m.x, 34, 9, 22, 13); drawWin(m.x, 262, 9, 22, 13);
   ell(m.x, '#2a2136', 240, 12, 5.5, 5.5); ell(m.x, '#fffaf0', 240, 12, 4.5, 4.5); R(m.x, '#2a2136', 240, 9, 1, 4); R(m.x, '#2a2136', 240, 12, 3, 1);
   addObj(m, { s: 'tdesk', x: 38, y: 34, sol: [1, 2, 32, 19] });
+  addObj(m, { s: 'hoportrait', x: 73, y: 6, base: 0 });                // ảnh Bác Hồ treo trên tường cạnh bảng
   const X = [40, 104, 184, 248], Y = [70, 104, 138, 172];
   const looks = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'];
   const special = { '1,1,1': 'khoa', '2,1,0': 'vy', '1,2,0': 'dat', '0,1,1': 'ngan', '0,0,0': 'm1', '3,0,0': 'm3', '2,2,1': 'm4', '3,3,0': 'm5' };
@@ -495,4 +496,5 @@ function buildMaps() {
   buildRide('ride', false); buildRide('rail', true);
   buildRooms();
   addMeetNpcs(); buildFamily();
+  seasonTrees();                                   // cây đổi màu theo mùa
 }

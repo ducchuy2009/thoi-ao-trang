@@ -134,6 +134,32 @@ function classFunCut(kind, fid, caught, only) {
   steps.push({ move: [1, 160, 46, 420] }, { fn: sc => { sc.actors[1].dir = 3; sc.st.write = true; sc.st.sweat = false; } }, { wait: 500 });
   return { map: 'class', me: S.me, cam: { x: 160, y: 96 }, title: `Trong giờ học · ${K.title}`, actors, hide, props: funProps(K, S.p), steps };
 }
+// Bạn bị gọi lên bảng trả bài, mình ngồi dưới nhắc bài · caught: bị thầy cô phát hiện
+const SEAT_OF = { khoa: [125, 134], vy: [191, 134], ngan: [61, 134], dat: [111, 168] };
+const SEAT_AISLE = { khoa: 150, vy: 170, ngan: 86, dat: 150 };
+const PROMPT_HINT = { toan: ['bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông…', 'Dạ… bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông ạ!'], van: ['bài thơ viết năm 1948… tình đồng chí…', 'Dạ… bài thơ ra đời năm 1948, nói về tình đồng chí ạ!'], anh: ['have/has cộng quá khứ phân từ…', 'Dạ… thì hiện tại hoàn thành là have hoặc has cộng quá khứ phân từ ạ!'], ly: ['F bằng m nhân a…', 'Dạ… lực bằng khối lượng nhân gia tốc ạ!'], hoa: ['hai H một O…', 'Dạ… công thức của nước là H2O ạ!'], sinh: ['ti thể… nhà máy năng lượng…', 'Dạ… ti thể là nơi tạo năng lượng cho tế bào ạ!'], su: ['năm 1945… mùng 2 tháng 9…', 'Dạ… ngày 2 tháng 9 năm 1945 ạ!'], dia: ['sông Hồng… phù sa…', 'Dạ… đồng bằng sông Hồng do phù sa bồi đắp ạ!'] };
+function promptCut(fid, subj, caught) {
+  const F = FRIENDS[fid], S = SUBJ[subj], { look, co } = classTeacher(), Co = co[0].toUpperCase() + co.slice(1);
+  const [sx, sy] = SEAT_OF[fid] || SEAT_OF.khoa, ax = SEAT_AISLE[fid] || 150, bx = 132, by = 60, [hint, ans] = PROMPT_HINT[subj] || ['trang 25 trong sách đó…', 'Dạ… như trong sách trang 25 ạ!'];
+  const st = {};
+  const go = [{ move: [0, ax, sy, 300] }, { move: [0, ax, 66, 500] }, { move: [0, bx, by, 300] }], back = [{ move: [0, ax, 66, 300] }, { move: [0, ax, sy, 500] }, { move: [0, sx, sy, 300] }];
+  const prop = now => {
+    const sc = RT.scene, T = sc.actors[1], fr = sc.actors[0];
+    if (st.whisper) { const x = G.x + 8, y = G.y - 36; wRect('#2a2136', x - 1, y - 1, 13, 7); wRect('#fffaf0', x, y, 11, 5); for (let i = 0; i < 3; i++) if (Math.floor(now / 200) % 4 > i) wRect('#2a2136', x + 2 + i * 3, y + 2, 1, 1); wRect('#f8d0a8', G.x + 4, G.y - 22, 3, 3); }
+    if (st.bang) drawSpr(SPR.emoBang, T.x - 3, T.y - 38 - (Math.floor(now / 150) % 2));
+    if (st.sweat) for (const a of [G, fr]) wRect('#7fc8f0', a.x + 6, a.y - 25 + (Math.floor(now / 200) % 3), 2, 3);
+    if (st.chalk) { const n = Math.floor(now / 120) % 16; wRect('#eef7ee', 110, 16, Math.min(n, 10), 1); }
+  };
+  const steps = [{ say: [1, `Em ${F.name}, lên bảng trả bài cũ!`] }, ...go, { fn: sc => { sc.actors[0].dir = 0; st.chalk = true; } },
+    { say: [0, 'Dạ… thưa ' + co + '… bài này… ờ…'] }, { say: [1, 'Sao? Không thuộc bài à?'] },
+    { fn: sc => { sc.actors[0].dir = faceTo(sc.actors[0], [G.x, G.y]); st.whisper = true; } }, { say: ['me', `(Pssst… ${hint})`] },
+    { fn: sc => { st.whisper = false; sc.actors[0].dir = 0; } }, { say: [0, ans] }];
+  if (caught) steps.push({ fn: sc => { st.bang = true; sc.actors[1].dir = faceTo(sc.actors[1], [G.x, G.y]); } }, { wait: 400 },
+    { say: [1, `Em nào nhắc bài đấy? Em ${G.name}, đứng lên!`] }, { hop: 'me' }, { fn: () => { st.bang = false; st.sweat = true; } },
+    { say: ['me', `Dạ… em xin lỗi ${co} ạ…`] }, { say: [1, `Cả hai em đều bị phê bình. ${F.name} về chỗ, lần sau học bài cho kỹ!`] }, ...back, { fn: sc => { sc.actors[0].dir = 3; } }, { say: [0, '(Tại tớ hết… xin lỗi nha.)'] });
+  else steps.push({ say: [1, 'Ừ… cũng được. Lần sau học kỹ hơn nhé. Về chỗ!'] }, ...back, { fn: sc => { sc.actors[0].dir = faceTo(sc.actors[0], [G.x, G.y]); } }, { say: [0, '(Cảm ơn cậu nha, cứu tớ một bàn thua!)'] });
+  return { map: 'class', me: [SEAT.x, SEAT.y, 3], cam: { x: 160, y: 96 }, title: `Trong giờ ${S.name} · nhắc bài cho ${F.name}`, hide: [fid], actors: [{ look: fid, x: sx, y: sy, dir: 3 }, { look, x: 186, y: 54, dir: 1 }], props: [prop], steps };
+}
 // Rủ nhau đi vệ sinh quá lâu: về tới cửa lớp thì bị hỏi tội
 function wcCaughtCut(fid, light) {
   const { look, co } = classTeacher();

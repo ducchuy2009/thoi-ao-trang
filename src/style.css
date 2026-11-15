@@ -374,3 +374,10 @@ b.bad{color:#d9534f}
 .task dl{display:grid;grid-template-columns:auto 1fr;gap:1px 8px;margin:0;font-size:12.5px}.task dt{font-weight:800;color:#8a7f6a}.task dd{margin:0}
 .task dd .ok{color:#2f7d5b}.task dd .cur{font-weight:800;color:#c9862f}.task dd.bad{color:#d9534f;font-weight:700}
 .task .btn{flex:none;align-self:center}
+
+/* icon chỉ số thẻ cầu thủ */
+.sic,.ct .sic,.pcard .sic,.cm-head .sic{display:inline-block;width:11px;height:11px;image-rendering:pixelated;vertical-align:-1px;margin:0 2px 0 0;border:0;background:none}
+.sic.big,.ct .sic.big,.cm-head .sic.big{width:18px;height:18px;vertical-align:-4px}
+.ct-s span{display:inline-flex;align-items:center}.pcard .pc-s span{display:inline-flex;align-items:center;justify-content:center;gap:1px}
+.stat-legend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;margin:6px 0 8px;font-weight:700}.stat-legend span{display:flex;align-items:center;gap:4px}
+.btns.stats6 .btn{display:flex;align-items:center;justify-content:center;gap:6px}

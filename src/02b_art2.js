@@ -355,6 +355,9 @@ function buildSprites2() {
   });
   def('stonelamp', 12, 24, x => { R(x, '#a8a39a', 3, 18, 6, 6); R(x, '#cfcac0', 1, 16, 10, 2); R(x, '#bfbab0', 2, 8, 8, 8); R(x, '#ffe9a0', 4, 10, 4, 4); R(x, '#a8a39a', 0, 5, 12, 3); R(x, '#cfcac0', 2, 2, 8, 3); R(x, '#a8a39a', 5, 0, 2, 2); });
   def('chaumai', 16, 26, x => { R(x, '#c8583f', 3, 19, 10, 7); R(x, '#e07a5f', 2, 18, 12, 2); R(x, '#6f472c', 7, 9, 2, 10); line(x, '#6f472c', 8, 12, 3, 6); line(x, '#6f472c', 8, 11, 13, 5); for (const [a, b] of [[3, 5], [5, 3], [8, 4], [11, 3], [13, 5], [2, 8], [14, 8], [6, 7], [10, 7], [8, 1]]) { R(x, '#ffd23a', a, b, 2, 2); R(x, '#f2a93b', a, b + 1, 1, 1); } });
+  // Tết miền Bắc: chậu đào hồng và chậu quất trĩu quả (treo bao lì xì)
+  def('chaudao', 16, 28, x => { R(x, '#c8583f', 3, 21, 10, 7); R(x, '#e07a5f', 2, 20, 12, 2); R(x, '#ffd23a', 6, 23, 4, 2); R(x, '#5b3d27', 7, 9, 2, 12); line(x, '#5b3d27', 8, 13, 2, 5); line(x, '#5b3d27', 8, 11, 14, 4); line(x, '#5b3d27', 8, 9, 6, 1); for (const [a, b] of [[1, 4], [3, 6], [2, 2], [6, 1], [9, 2], [13, 3], [14, 6], [11, 5], [5, 8], [12, 9], [7, 4], [4, 10]]) { R(x, '#f3a6c0', a, b, 2, 2); R(x, '#ffe3ec', a, b, 1, 1); } R(x, '#d9534f', 12, 11, 2, 3); });
+  def('chauquat', 18, 26, x => { R(x, '#c8583f', 4, 19, 10, 7); R(x, '#e07a5f', 3, 18, 12, 2); R(x, '#ffd23a', 7, 21, 4, 2); R(x, '#5b3d27', 8, 13, 2, 6); ell(x, '#3f8f3a', 9, 8, 8.5, 7.5); ell(x, '#57a548', 7, 6, 4, 3); for (const [a, b] of [[3, 6], [6, 3], [10, 4], [14, 6], [5, 10], [9, 9], [13, 11], [11, 13], [7, 13], [2, 9], [15, 9]]) { R(x, '#f2a93b', a, b, 2, 2); R(x, '#ffd23a', a, b, 1, 1); } R(x, '#d9534f', 12, 5, 2, 3); R(x, '#d9534f', 4, 12, 2, 3); });
   def('lanterns', 80, 24, x => {
     R(x, '#6f472c', 0, 0, 2, 24); R(x, '#6f472c', 78, 0, 2, 24);
     for (let i = 0; i <= 76; i++) R(x, '#3a2a22', 2 + i, 2 + Math.round(Math.sin(i / 76 * Math.PI) * 6), 1, 1);
@@ -387,6 +390,34 @@ function buildSprites2() {
   shopFront('fb_doan', '#f2a93b', x => { ell(x, '#5f656f', 12, 5, 8, 4); R(x, '#5f656f', 4, 5, 17, 4); ell(x, '#8b8f9c', 12, 4, 7, 2); R(x, 'rgba(240,240,240,.7)', 9, 0, 1, 2); R(x, 'rgba(240,240,240,.7)', 14, 0, 1, 2); for (let i = 0; i < 3; i++) { R(x, '#3f8f3a', 36 + i * 5, 3 - (i % 2), 5, 5); R(x, '#d9c690', 38 + i * 5, 3 - (i % 2), 1, 5); } R(x, '#d9534f', 0, 13, 54, 1); });
 
 
+  // khu nhà thư viện riêng trong sân trường
+  def('libhouse', 120, 84, x => {
+    const wall = '#f6efd8', wallS = '#e3d6b4', roof = '#3f7d5c', roofS = '#2f5f45';
+    R(x, roofS, 2, 2, 116, 22); R(x, roof, 4, 0, 112, 20); for (let i = 4; i < 116; i += 8) { R(x, roofS, i, 4, 1, 14); } R(x, shade(roof, 25), 4, 0, 112, 2); R(x, roofS, 0, 20, 120, 4);
+    R(x, wall, 6, 24, 108, 56); R(x, wallS, 6, 24, 108, 3); R(x, wallS, 6, 76, 108, 4);
+    for (const a of [6, 38, 78, 110]) R(x, '#d8bd80', a, 27, 4, 49);
+    for (const a of [14, 90]) drawWin(x, a, 34, 18, 20, '#3f7d5c');
+    R(x, '#24406b', 36, 30, 48, 10); R(x, '#3b6fb6', 37, 31, 46, 8); R(x, '#ffd23a', 37, 39, 46, 1);
+    R(x, '#5b3d27', 48, 46, 24, 34); drawDoor(x, 50, 48, 10, 32, '#8a5a3a'); drawDoor(x, 60, 48, 10, 32, '#8a5a3a');
+    R(x, '#c9c2b3', 42, 80, 36, 4); R(x, '#e2ddd2', 42, 80, 36, 1);
+    for (const a of [26, 94]) { R(x, '#3a2a22', a, 24, 1, 3); ell(x, '#e2574c', a, 30, 2.5, 3); }
+  });
+  // cầu thang lên tầng 2 ở cửa giữa dãy nhà chính
+  def('stairs', 36, 34, x => {
+    R(x, '#3a2f4a', 0, 0, 36, 34); R(x, '#2a2136', 0, 0, 36, 3);
+    for (let i = 0; i < 7; i++) { const y = 30 - i * 4, l = 2 + i * 3; R(x, '#c9c2b3', l, y, 34 - l, 3); R(x, '#e2ddd2', l, y, 34 - l, 1); R(x, '#8b8f9c', l, y + 3, 34 - l, 1); }
+    for (let i = 0; i <= 26; i++) R(x, '#8a5a3a', 2 + i, 22 - Math.round(i * 0.75), 1, 1);
+    R(x, '#8a5a3a', 2, 22, 1, 10); R(x, '#8a5a3a', 28, 2, 1, 10);
+  }, true);
+  // lỗ cầu thang đi xuống ở hành lang tầng 2
+  def('stairdown', 34, 18, x => { R(x, '#5f565f', 0, 0, 34, 18); for (let i = 0; i < 5; i++) { R(x, '#c9c2b3', 1, 1 + i * 3.4, 32, 2); R(x, '#8b8f9c', 1, 3 + i * 3.4, 32, 1); } R(x, '#8a5a3a', 0, 0, 2, 18); R(x, '#8a5a3a', 32, 0, 2, 18); }, true);
+  // ảnh Bác Hồ treo trên tường lớp học
+  def('hoportrait', 14, 18, x => {
+    R(x, '#c9962a', 0, 0, 14, 18); R(x, '#ffd23a', 1, 1, 12, 1); R(x, '#efe6d2', 2, 2, 10, 14);
+    R(x, '#e8e4dc', 4, 3, 6, 2); R(x, '#e8b48a', 4, 5, 6, 4); R(x, '#2a2136', 5, 6, 1, 1); R(x, '#2a2136', 8, 6, 1, 1);
+    R(x, '#f4f2ea', 5, 9, 4, 3); R(x, '#f4f2ea', 6, 12, 2, 1); R(x, '#c9b58a', 3, 12, 8, 4); R(x, '#a89060', 6, 12, 2, 4);
+    R(x, '#da251d', 0, 17, 14, 1);
+  });
   // bảng thông báo ở sân trường: khung gỗ, tấm bần, giấy ghim
   def('bangtin', 36, 30, x => {
     R(x, '#6f472c', 3, 18, 3, 12); R(x, '#6f472c', 30, 18, 3, 12);
@@ -617,6 +648,20 @@ function natFlag(k) {
   else if (k === 'BR') { F(1, 1, 14, 9, '#009c3b'); const y = '#ffdf00'; F(7, 2, 2, 1, y); F(5, 3, 6, 1, y); F(3, 4, 10, 3, y); F(5, 7, 6, 1, y); F(7, 8, 2, 1, y); F(6, 4, 4, 3, '#1f3c88'); F(6, 5, 4, 1, '#fbfbf7'); }
   return (_badges['n' + k] = c.toDataURL());
 }
+// icon 6 chỉ số thẻ cầu thủ: Tấn công (bóng sút) · Phòng thủ (khiên) · Tốc độ (tia chớp) · Sức mạnh (tạ) · Kỹ thuật (ngôi sao) · Tư duy (bộ não)
+function statIcon(k) {
+  if (_badges['s' + k]) return _badges['s' + k];
+  const c = mk(12, 12), x = cx(c);
+  if (k === 'atk') { ell(x, '#fffaf0', 7, 6, 4, 4); R(x, '#2a2136', 6, 5, 2, 2); R(x, '#2a2136', 9, 3, 1, 1); R(x, '#2a2136', 4, 8, 1, 1); R(x, '#2a2136', 9, 8, 1, 1); R(x, '#e2574c', 0, 3, 3, 1); R(x, '#e2574c', 0, 6, 2, 1); R(x, '#e2574c', 0, 9, 3, 1); }
+  else if (k === 'def') { for (const [l, r2, y] of [[1, 10, 1], [1, 10, 2], [1, 10, 3], [1, 10, 4], [1, 10, 5], [2, 9, 6], [2, 9, 7], [3, 8, 8], [4, 7, 9], [5, 6, 10]]) R(x, '#3b82c4', l, y, r2 - l + 1, 1); R(x, '#8fc1e3', 3, 2, 2, 4); R(x, '#fffaf0', 5, 3, 2, 5); R(x, '#fffaf0', 4, 4, 4, 2); }
+  else if (k === 'spd') { pat(x, ['.....###', '....###.', '...###..', '..######', '.....##.', '....##..', '...##...', '..##....', '.##.....'], 2, 1, '#f2c94c', '#f2c94c'); R(x, '#fff6a8', 6, 1, 1, 1); }
+  else if (k === 'str') { R(x, '#5f656f', 0, 3, 3, 6); R(x, '#5f656f', 9, 3, 3, 6); R(x, '#8b8f9c', 0, 3, 3, 1); R(x, '#8b8f9c', 9, 3, 3, 1); R(x, '#3a3f55', 3, 5, 6, 2); R(x, '#c9ccd4', 3, 5, 6, 1); }
+  else if (k === 'tec') { pat(x, ['....#....', '....#....', '...###...', '#########', '.#######.', '..#####..', '..##.##..', '.##...##.', '##.....##'], 1, 1, '#7a5fc9', '#7a5fc9'); R(x, '#c9b8f2', 5, 4, 1, 2); }
+  else if (k === 'iq') { ell(x, '#e98fa5', 6, 6, 5, 4.5); R(x, '#c9667f', 6, 2, 1, 8); R(x, '#c9667f', 3, 4, 2, 1); R(x, '#c9667f', 8, 5, 2, 1); R(x, '#c9667f', 3, 7, 2, 1); R(x, '#c9667f', 8, 8, 2, 1); R(x, '#ffd2dc', 3, 3, 1, 1); }
+  return (_badges['s' + k] = outline(c).toDataURL());
+}
+const statName2 = k => CARD_STATS.find(s2 => s2[0] === k)[1];
+const statImg = (k, cls) => `<img class="${cls || 'sic'}" src="${statIcon(k)}" alt="${statName2(k)}" title="${statName2(k)}">`;
 // <img> huy hiệu / cờ, kèm tên khi rê chuột
 const badgeImg = (kind, k, cls) => kind === 'club'
   ? `<img class="${cls || 'bdg'}" src="${clubCrest(k)}" alt="${CARD_CLUBS[k].name}" title="CLB ${CARD_CLUBS[k].name}">`

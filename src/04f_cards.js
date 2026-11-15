@@ -84,7 +84,7 @@ function genDeck(tier, seed) {
 function ctile(c, o) {
   o = o || {};
   const R = CARD_RARITY[c.r], [n1, n2] = nickOf(c), bo = o.bonus || 0;
-  const st = CARD_STATS.map(([k, , s]) => `<span class="${o.stat === k ? 'hl' : ''}">${s} <b>${c[k]}${o.stat === k && bo ? `<i>+${bo}</i>` : ''}</b></span>`).join('');
+  const st = CARD_STATS.map(([k, n]) => `<span class="${o.stat === k ? 'hl' : ''}" title="${n}">${statImg(k)}<b>${c[k]}${o.stat === k && bo ? `<i>+${bo}</i>` : ''}</b></span>`).join('');
   return `<${o.act ? 'button' : 'div'} class="ct ${o.on ? 'on' : ''} ${o.dim ? 'dim' : ''}" ${o.act ? `data-act="${o.act}" data-id="${c.id}"` : ''} style="--rc:${R.col}">
     <i class="ct-pos p-${c.pos}">${POS_SHORT[c.pos]}</i><i class="ct-sal">${cardSal(c)}💰</i><img src="${cardPortrait(c)}" alt=""><b>${n1}</b><small>${n2}</small>
     <span class="ct-s">${st}</span><span class="ct-tags">${cardBadges(c)}</span></${o.act ? 'button' : 'div'}>`;
@@ -123,26 +123,26 @@ function cardMatch(o) {
         G.cards[c.id]--; if (!G.cards[c.id]) { delete G.cards[c.id]; if (G.squad) G.squad = G.squad.filter(x => x !== c.id); }
       }
     };
-    const head = () => `<div class="cm-head"><img src="${faceOf(G.gender, null)}" alt=""><b>Bạn ${M.sc[0]}</b><span>Lượt ${Math.min(M.round, MATCH.rounds)}/${MATCH.rounds} · thắng ${MATCH.win} lượt là thắng trận${M.used.length ? `<br><small>Đã so: ${M.used.map(k => CARD_STATS.find(x => x[0] === k)[2]).join(' · ')}</small>` : ''}</span><b>${M.sc[1]} ${who}</b><img src="${faceOf(o.look, o.outfit)}" alt=""></div>`;
+    const head = () => `<div class="cm-head"><img src="${faceOf(G.gender, null)}" alt=""><b>Bạn ${M.sc[0]}</b><span>Lượt ${Math.min(M.round, MATCH.rounds)}/${MATCH.rounds} · thắng ${MATCH.win} lượt là thắng trận${M.used.length ? `<br><small>Đã so: ${M.used.map(k => statImg(k)).join(' ')}</small>` : ''}</span><b>${M.sc[1]} ${who}</b><img src="${faceOf(o.look, o.outfit)}" alt=""></div>`;
     const render = () => {
       let h = head();
       if (M.phase === 'rps') {
         h += `<p class="cm-big">Oẳn tù xì giành quyền <b>ra lệnh lượt đầu</b>!</p><div class="btns rps">${RPS.map(([k, e, n]) => `<button class="btn" data-act="rps" data-id="${k}"><span class="emo">${e}</span>${n}</button>`).join('')}</div>`;
         if (M.rps) { const [a, b] = M.rps, A = RPS.find(x => x[0] === a), B = RPS.find(x => x[0] === b); h += `<p class="cm-big"><span class="emo">${A[1]}</span> vs <span class="emo">${B[1]}</span> — ${a === b ? 'Hoà! Oẳn lại nào.' : rpsWin(a, b) ? 'Bạn thắng, bạn ra lệnh trước!' : `${who} thắng, ${who} ra lệnh trước.`}</p>`; if (a !== b) h += '<div class="btns"><button class="btn primary" data-act="go">Bắt đầu lượt 1</button></div>'; }
       } else if (M.phase === 'cmd') {
-        h += `<p class="cm-big">Bạn <b>ra lệnh</b>: chọn chỉ số so tài và số lá mỗi bên ra sân.</p><p class="dim">Mỗi chỉ số chỉ được so <b>một lần</b> trong trận — chỉ số đã so thì gạch đi.</p><div class="btns stats6">${CARD_STATS.map(([k, n, s]) => `<button class="btn ${M.stat === k ? 'primary' : ''} ${M.used.includes(k) ? 'used' : ''}" data-act="stat" data-id="${k}" ${M.used.includes(k) ? 'disabled' : ''}>${s} · ${n}</button>`).join('')}</div>`;
+        h += `<p class="cm-big">Bạn <b>ra lệnh</b>: chọn chỉ số so tài và số lá mỗi bên ra sân.</p><p class="dim">Mỗi chỉ số chỉ được so <b>một lần</b> trong trận — chỉ số đã so thì gạch đi.</p><div class="btns stats6">${CARD_STATS.map(([k, n, s]) => `<button class="btn ${M.stat === k ? 'primary' : ''} ${M.used.includes(k) ? 'used' : ''}" data-act="stat" data-id="${k}" ${M.used.includes(k) ? 'disabled' : ''}>${statImg(k, 'sic big')} ${n}</button>`).join('')}</div>`;
         h += `<div class="btns">${[3, 4, 5].map(n => `<button class="btn ${M.n === n ? 'primary' : ''}" data-act="num" data-id="${n}">${n} lá</button>`).join('')}</div>`;
-        h += `<p class="dim">Mạnh nhất của bạn với ${M.n} lá: ${CARD_STATS.filter(([k]) => !M.used.includes(k)).map(([k, , s]) => `${s} ${bestSets(my, k, M.n)[0].v}`).join(' · ')} (đã cộng màu áo)</p><div class="btns"><button class="btn primary" data-act="order">Ra lệnh: ${statName(M.stat)}, ${M.n} lá</button></div>`;
+        h += `<p class="dim">Mạnh nhất của bạn với ${M.n} lá: ${CARD_STATS.filter(([k]) => !M.used.includes(k)).map(([k]) => `${statImg(k)} ${bestSets(my, k, M.n)[0].v}`).join(' · ')} (đã cộng màu áo)</p><div class="btns"><button class="btn primary" data-act="order">Ra lệnh: ${statImg(M.stat)} ${statName(M.stat)}, ${M.n} lá</button></div>`;
       } else if (M.phase === 'oppcmd') {
-        h += `<p class="cm-big">${who} <b>ra lệnh</b>: so <b>${statName(M.stat)}</b>, mỗi bên <b>${M.n} lá</b>.</p><div class="btns"><button class="btn primary" data-act="topick">Chọn cầu thủ</button></div>`;
+        h += `<p class="cm-big">${who} <b>ra lệnh</b>: so ${statImg(M.stat, 'sic big')} <b>${statName(M.stat)}</b>, mỗi bên <b>${M.n} lá</b>.</p><div class="btns"><button class="btn primary" data-act="topick">Chọn cầu thủ</button></div>`;
       } else if (M.phase === 'pick') {
         const sel = cardsOf(M.pick), b = teamBonus(sel).b;
-        h += `<p>So <b>${statName(M.stat)}</b> · chọn <b>${M.n}</b> lá (đã chọn ${sel.length}). Tổng tạm tính: <b class="cm-tot">${setTotal(sel, M.stat)}</b></p><p class="dim">${synergyText(sel)}</p>`;
+        h += `<p>So ${statImg(M.stat)} <b>${statName(M.stat)}</b> · chọn <b>${M.n}</b> lá (đã chọn ${sel.length}). Tổng tạm tính: <b class="cm-tot">${setTotal(sel, M.stat)}</b></p><p class="dim">${synergyText(sel)}</p>`;
         h += `<div class="cts">${my.map(c => ctile(c, { act: 'pk', on: M.pick.includes(c.id), stat: M.stat, bonus: b[c.id] || 0 })).join('')}</div>`;
         h += `<div class="btns"><button class="btn primary" data-act="play" ${sel.length === M.n ? '' : 'disabled'}>Ra sân!</button></div>`;
       } else if (M.phase === 'reveal') {
         const A = cardsOf(M.pick), B = cardsOf(M.opp), ba = teamBonus(A).b, bb = teamBonus(B).b, ta = setTotal(A, M.stat), tb = setTotal(B, M.stat);
-        h += `<p class="cm-big">So ${statName(M.stat)}: <b>${ta}</b> – <b>${tb}</b> · ${M.last === 1 ? 'Bạn thắng lượt này!' : M.last === -1 ? `${who} thắng lượt này.` : 'Hoà!'}</p>`;
+        h += `<p class="cm-big">So ${statImg(M.stat, 'sic big')} ${statName(M.stat)}: <b>${ta}</b> – <b>${tb}</b> · ${M.last === 1 ? 'Bạn thắng lượt này!' : M.last === -1 ? `${who} thắng lượt này.` : 'Hoà!'}</p>`;
         h += `<div class="cm-row"><b>Bạn</b><div class="cts sm">${A.map(c => ctile(c, { stat: M.stat, bonus: ba[c.id] })).join('')}</div><small>${synergyText(A)}</small></div>`;
         h += `<div class="cm-row"><b>${who}</b><div class="cts sm">${B.map(c => ctile(c, { stat: M.stat, bonus: bb[c.id] })).join('')}</div><small>${synergyText(B)}</small></div>`;
         h += `<div class="btns"><button class="btn primary" data-act="next">${M.sc[0] >= MATCH.win || M.sc[1] >= MATCH.win || M.round > MATCH.rounds ? 'Xem kết quả' : `Lượt ${M.round}: ${M.cmd === 'me' ? 'bạn' : who} ra lệnh`}</button></div>`;
@@ -220,7 +220,7 @@ async function cardGroupTalk(g, n) {
   }
   await page('“Em cũng mê thẻ cầu thủ à? Ngồi đây anh chỉ luật chơi mới cho. Không phải cứ rút một lá ra so là xong đâu!”');
   await page(`“Mỗi người xếp một <b>đội hình 11 người</b>: đúng 1 thủ môn, ít nhất 2 hậu vệ, 2 tiền vệ và 1 tiền đạo. Thẻ càng hiếm càng mạnh thì <b>lương</b> càng cao — tổng lương không được quá ${SQUAD.cap}, nên không ai nhồi toàn thẻ xịn được đâu.”`);
-  await page('“Trận đấu có <b>5 lượt</b>. Lượt đầu oẳn tù xì giành quyền <b>ra lệnh</b>. Người ra lệnh chọn so chỉ số nào và mỗi bên ra sân mấy lá, từ 3 tới 5. Có 6 chỉ số: Tấn công, Phòng thủ, Tốc độ, Sức mạnh, Kỹ thuật, Tư duy — <b>mỗi chỉ số chỉ được so một lần</b> trong trận, nên đừng dồn hết vào một chỉ số nha!”');
+  await page('“Trận đấu có <b>5 lượt</b>. Lượt đầu oẳn tù xì giành quyền <b>ra lệnh</b>. Người ra lệnh chọn so chỉ số nào và mỗi bên ra sân mấy lá, từ 3 tới 5. Mỗi thẻ có 6 chỉ số, nhìn icon là biết:”</p><div class="stat-legend">' + CARD_STATS.map(([k, n]) => `<span>${statImg(k, 'sic big')} ${n}</span>`).join('') + '</div><p>“<b>Mỗi chỉ số chỉ được so một lần</b> trong trận, nên đừng dồn hết vào một chỉ số nha!”');
   await page('“Hai bên chọn đúng số lá đó, cộng tổng chỉ số, ai cao hơn thắng lượt. <b>Người thua lượt</b> được ra lệnh lượt sau — để còn gỡ lại. Ai thắng 3 lượt trước là thắng trận.”');
   await page('“Mẹo nè: cầu thủ <b>cùng câu lạc bộ</b> hoặc <b>cùng quốc tịch</b> ra sân chung thì ăn ý, mỗi người được cộng thêm. Hai người +1, ba người +2… càng đông càng mạnh. Thắng trận thì được mở album của người thua, chọn 1 thẻ mang về.”');
   await page('“Giờ em cầm tạm bộ thẻ này của anh, đấu thử với anh một trận cho quen tay nhé!”');
