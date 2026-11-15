@@ -3,7 +3,7 @@
  *  04f. ĐẤU THẺ CẦU THỦ (chiến thuật)
  *  - Đội hình 11 người đủ vị trí, tổng lương không vượt trần (SQUAD)
  *  - Trận 5 lượt (MATCH): lượt đầu oẳn tù xì giành quyền ra lệnh; người ra lệnh chọn chỉ số + số lá (3–5);
- *    hai bên chọn đúng số lá đó; cùng CLB / đội tuyển thì mỗi cầu thủ được cộng thêm; tổng cao hơn thắng lượt;
+ *    hai bên chọn đúng số lá đó; cùng CLB / quốc tịch thì mỗi cầu thủ được cộng thêm; tổng cao hơn thắng lượt;
  *    người thua lượt được ra lệnh lượt sau; ai thắng 3 lượt trước thắng trận
  *  - Thắng: mở album người thua, chọn 1 thẻ · Thua: đối thủ lấy 1 thẻ trong đội hình của mình
  *  - Tụ đấu thẻ ngoài sân: lần đầu anh Phong hướng dẫn, cho mượn bộ thẻ, đấu thử, rồi tặng 11 thẻ
@@ -12,7 +12,7 @@ const POS_SHORT = { tm: 'TM', hv: 'HV', tv: 'TV', td: 'TĐ' };
 const cardsOf = ids => ids.map(id => CARD_BY_ID[id]).filter(Boolean);
 const statName = k => CARD_STATS.find(s => s[0] === k)[1];
 const nickOf = c => { const m = c.name.match(/^(.*?)\s*“(.*)”$/); return m ? [m[1], m[2]] : [c.name, '']; };
-// Cộng chỉ số nhờ “màu áo”: mỗi nhóm k cầu thủ cùng CLB (hoặc cùng đội tuyển) → mỗi người +(k − 1)
+// Cộng chỉ số nhờ “màu áo”: mỗi nhóm k cầu thủ cùng CLB (hoặc cùng quốc tịch) → mỗi người +(k − 1)
 function teamBonus(cards) {
   const b = {}, groups = [];
   for (const c of cards) b[c.id] = 0;
@@ -89,7 +89,7 @@ function ctile(c, o) {
     <i class="ct-pos p-${c.pos}">${POS_SHORT[c.pos]}</i><i class="ct-sal">${cardSal(c)}💰</i><img src="${cardPortrait(c)}" alt=""><b>${n1}</b><small>${n2}</small>
     <span class="ct-s">${st}</span><span class="ct-tags">${cardBadges(c)}</span></${o.act ? 'button' : 'div'}>`;
 }
-const synergyText = cards => { const { groups } = teamBonus(cards); return groups.length ? groups.map(g => `${badgeImg(g.key, g.k, 'bdg in')} ${g.key === 'club' ? CARD_CLUBS[g.k].name : 'Tuyển ' + CARD_NATS[g.k].name} ×${g.n} (+${g.n - 1}/người)`).join(' · ') : 'Chưa có cặp cùng CLB hay cùng đội tuyển'; };
+const synergyText = cards => { const { groups } = teamBonus(cards); return groups.length ? groups.map(g => `${badgeImg(g.key, g.k, 'bdg in')} ${g.key === 'club' ? CARD_CLUBS[g.k].name : CARD_NATS[g.k].name} ×${g.n} (+${g.n - 1}/người)`).join(' · ') : 'Chưa có cặp cùng CLB hay cùng quốc tịch'; };
 
 /* ---------- TRẬN ĐẤU ---------- */
 const RPS = [['bua', '✊', 'Búa'], ['keo', '✌️', 'Kéo'], ['bao', '✋', 'Bao']];
@@ -222,7 +222,7 @@ async function cardGroupTalk(g, n) {
   await page(`“Mỗi người xếp một <b>đội hình 11 người</b>: đúng 1 thủ môn, ít nhất 2 hậu vệ, 2 tiền vệ và 1 tiền đạo. Thẻ càng hiếm càng mạnh thì <b>lương</b> càng cao — tổng lương không được quá ${SQUAD.cap}, nên không ai nhồi toàn thẻ xịn được đâu.”`);
   await page('“Trận đấu có <b>5 lượt</b>. Lượt đầu oẳn tù xì giành quyền <b>ra lệnh</b>. Người ra lệnh chọn so chỉ số nào (Tấn công, Phòng thủ hay Tốc độ) và mỗi bên ra sân mấy lá, từ 3 tới 5.”');
   await page('“Hai bên chọn đúng số lá đó, cộng tổng chỉ số, ai cao hơn thắng lượt. <b>Người thua lượt</b> được ra lệnh lượt sau — để còn gỡ lại. Ai thắng 3 lượt trước là thắng trận.”');
-  await page('“Mẹo nè: cầu thủ <b>cùng câu lạc bộ</b> hoặc <b>cùng đội tuyển</b> ra sân chung thì ăn ý, mỗi người được cộng thêm. Hai người +1, ba người +2… càng đông càng mạnh. Thắng trận thì được mở album của người thua, chọn 1 thẻ mang về.”');
+  await page('“Mẹo nè: cầu thủ <b>cùng câu lạc bộ</b> hoặc <b>cùng quốc tịch</b> ra sân chung thì ăn ý, mỗi người được cộng thêm. Hai người +1, ba người +2… càng đông càng mạnh. Thắng trận thì được mở album của người thua, chọn 1 thẻ mang về.”');
   await page('“Giờ em cầm tạm bộ thẻ này của anh, đấu thử với anh một trận cho quen tay nhé!”');
   const lend = genDeck('kha', 'lend:' + G.day), mineD = genDeck('kha', 'phong:' + G.day);
   const r = await cardMatch({ name: 'anh Phong', look: 'sC', deck: mineD, album: mineD, tier: 'lop', mine: lend, borrowed: true, noPrize: true });

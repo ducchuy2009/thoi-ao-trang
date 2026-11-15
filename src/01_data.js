@@ -504,7 +504,7 @@ const PICNIC = { mins: 90, base: 12, friend: 14 };
 const GIFT_FRIEND = 10;           // tặng gấu bông gắp được
 
 /* ---------- Thẻ cầu thủ sưu tầm (trong gói bim bim Sao Vàng) ---------- */
-// r: độ hiếm 0 Thường · 1 Hiếm · 2 Siêu hiếm · 3 Huyền thoại · club: câu lạc bộ · nat: đội tuyển quốc gia (không phải ai cũng lên tuyển)
+// r: độ hiếm 0 Thường · 1 Hiếm · 2 Siêu hiếm · 3 Huyền thoại · club: câu lạc bộ · nat: quốc tịch (cầu thủ nào cũng có đủ CLB và quốc tịch)
 const CARD_RARITY = [
   { name: 'Thường', w: 62, col: '#8fa0ab' }, { name: 'Hiếm', w: 28, col: '#3b82c4' },
   { name: 'Siêu hiếm', w: 9, col: '#f2a93b' }, { name: 'Huyền thoại', w: 1, col: '#d9534f' },
@@ -514,19 +514,19 @@ const CARD_POS = { tm: 'Thủ môn', hv: 'Hậu vệ', tv: 'Tiền vệ', td: 'T
 const CARD_CLUBS = { HP: { name: 'Hoa Phượng FC', col: '#d9534f', kit: ['#d9534f', '#ffe066'] }, SX: { name: 'Sông Xanh', col: '#3b82c4', kit: ['#3b82c4', '#fffaf0'] }, CB: { name: 'Cảng Biển', col: '#2e9e86', kit: ['#2e9e86', '#fffaf0'] }, ND: { name: 'Núi Đá', col: '#8a5a3a', kit: ['#8a5a3a', '#f2c94c'] } };
 const CARD_NATS = { VN: { name: 'Việt Nam', col: '#da251d' }, NB: { name: 'Nhật Bản', col: '#ffffff', fg: '#bc002d' }, TH: { name: 'Thái Lan', col: '#2d2a4a' }, BR: { name: 'Brazil', col: '#009c3b', fg: '#ffdf00' } };
 const CARDS = [
-  ['Tùng “Tay Nhện”', 'tm', 0, 2, 6, 3, 'HP', 'VN'], ['Đức “Găng Sắt”', 'tm', 0, 1, 7, 3, 'SX'],
-  ['Lâm “Lá Chắn”', 'hv', 0, 2, 6, 4, 'CB'], ['Hùng “Xe Ủi”', 'hv', 0, 3, 6, 2, 'ND'], ['Phong “Bóng Ma”', 'hv', 0, 3, 5, 5, 'HP'],
-  ['Nam “Con Thoi”', 'tv', 0, 4, 4, 5, 'SX'], ['Quân “Nhạc Trưởng”', 'tv', 0, 5, 4, 3, 'CB', 'VN'], ['Bảo “Máy Quét”', 'tv', 0, 3, 5, 4, 'ND'], ['Tài “Ong Thợ”', 'tv', 0, 4, 5, 4, 'HP'],
-  ['Minh “Chớp”', 'td', 0, 5, 2, 6, 'CB'], ['Sơn “Búa Tạ”', 'td', 0, 6, 3, 2, 'ND', 'VN'], ['Việt “Cáo Già”', 'td', 0, 6, 2, 4, 'SX'],
+  ['Tùng “Tay Nhện”', 'tm', 0, 2, 6, 3, 'HP', 'VN'], ['Đức “Găng Sắt”', 'tm', 0, 1, 7, 3, 'SX', 'VN'],
+  ['Lâm “Lá Chắn”', 'hv', 0, 2, 6, 4, 'CB', 'VN'], ['Hùng “Xe Ủi”', 'hv', 0, 3, 6, 2, 'ND', 'VN'], ['Phong “Bóng Ma”', 'hv', 0, 3, 5, 5, 'HP', 'VN'],
+  ['Nam “Con Thoi”', 'tv', 0, 4, 4, 5, 'SX', 'VN'], ['Quân “Nhạc Trưởng”', 'tv', 0, 5, 4, 3, 'CB', 'VN'], ['Bảo “Máy Quét”', 'tv', 0, 3, 5, 4, 'ND', 'VN'], ['Tài “Ong Thợ”', 'tv', 0, 4, 5, 4, 'HP', 'VN'],
+  ['Minh “Chớp”', 'td', 0, 5, 2, 6, 'CB', 'VN'], ['Sơn “Búa Tạ”', 'td', 0, 6, 3, 2, 'ND', 'VN'], ['Việt “Cáo Già”', 'td', 0, 6, 2, 4, 'SX', 'VN'],
   ['Khánh “Người Nhện”', 'tm', 1, 2, 9, 5, 'CB', 'VN'], ['Trung “Bức Tường”', 'hv', 1, 4, 9, 4, 'HP', 'VN'], ['Hải “Mũi Khoan”', 'hv', 1, 6, 7, 7, 'SX', 'VN'],
-  ['Long “Phù Thuỷ”', 'tv', 1, 8, 5, 6, 'ND', 'VN'], ['Kiên “La Bàn”', 'tv', 1, 7, 7, 5, 'HP'], ['Duy “Tia Chớp”', 'td', 1, 7, 3, 9, 'SX', 'VN'], ['Thắng “Sát Thủ”', 'td', 1, 9, 3, 6, 'CB'],
-  ['Vũ “Thần Giữ Cửa”', 'tm', 2, 3, 11, 7, 'ND', 'VN'], ['Cường “Đá Tảng”', 'hv', 2, 6, 11, 6, 'SX'], ['An “Bậc Thầy”', 'tv', 2, 10, 8, 8, 'CB', 'VN'], ['Hoàng “Vua Phá Lưới”', 'td', 2, 11, 5, 9, 'HP', 'VN'],
+  ['Long “Phù Thuỷ”', 'tv', 1, 8, 5, 6, 'ND', 'VN'], ['Kiên “La Bàn”', 'tv', 1, 7, 7, 5, 'HP', 'VN'], ['Duy “Tia Chớp”', 'td', 1, 7, 3, 9, 'SX', 'VN'], ['Thắng “Sát Thủ”', 'td', 1, 9, 3, 6, 'CB', 'VN'],
+  ['Vũ “Thần Giữ Cửa”', 'tm', 2, 3, 11, 7, 'ND', 'VN'], ['Cường “Đá Tảng”', 'hv', 2, 6, 11, 6, 'SX', 'VN'], ['An “Bậc Thầy”', 'tv', 2, 10, 8, 8, 'CB', 'VN'], ['Hoàng “Vua Phá Lưới”', 'td', 2, 11, 5, 9, 'HP', 'VN'],
   ['Rồng Vàng “Số 10 huyền thoại”', 'tv', 3, 12, 10, 11, 'HP', 'VN'],
   ['Kenji “Samurai”', 'tv', 1, 7, 6, 7, 'CB', 'NB'], ['Somchai “Voi Chiến”', 'hv', 1, 5, 9, 4, 'SX', 'TH'], ['Rafael “Vũ Công”', 'td', 2, 11, 4, 10, 'HP', 'BR'],
   ['Takumi “Mũi Tên”', 'td', 0, 6, 2, 6, 'ND', 'NB'], ['Anan “Rắn Hổ Mang”', 'tv', 0, 5, 4, 4, 'CB', 'TH'], ['Lucas “Thần Đèn”', 'tm', 1, 2, 9, 6, 'ND', 'BR'],
   ['Hiro “Lá Thép”', 'hv', 0, 2, 7, 3, 'HP', 'NB'], ['Chaiya “Cơn Lốc”', 'td', 1, 8, 3, 8, 'ND', 'TH'], ['Diego “Bò Tót”', 'hv', 2, 7, 11, 6, 'CB', 'BR'],
   ['Yuto “Cánh Én”', 'tv', 0, 4, 3, 6, 'SX', 'NB'], ['Pedro “Pháp Sư”', 'tv', 3, 11, 9, 12, 'SX', 'BR'], ['Quang “Đội Trưởng”', 'hv', 1, 5, 8, 5, 'HP', 'VN'],
-].map(([name, pos, r, atk, def, spd, club, nat], i) => ({ id: 'c' + String(i + 1).padStart(2, '0'), no: i + 1, name, pos, r, atk, def, spd, club, nat: nat || null }));
+].map(([name, pos, r, atk, def, spd, club, nat], i) => ({ id: 'c' + String(i + 1).padStart(2, '0'), no: i + 1, name, pos, r, atk, def, spd, club, nat }));
 const CARD_BY_ID = {}; for (const c of CARDS) CARD_BY_ID[c.id] = c;
 // Lương cầu thủ: hiếm và mạnh thì lương cao — tổng lương đội hình không được vượt trần
 const cardSal = c => [3, 5, 8, 12][c.r] + Math.max(0, Math.floor((c.atk + c.def + c.spd - 12) / 6));

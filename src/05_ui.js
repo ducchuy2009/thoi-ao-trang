@@ -453,7 +453,7 @@ MV.cards = {
     h += is.length ? `<p class="warnbox">${is.join(' · ')}</p>` : '<p class="okbox">Đội hình hợp lệ!' + (JSON.stringify(s) === JSON.stringify(G.squad) ? ' (đã lưu)' : ' Bấm “Lưu đội hình”.') + '</p>';
     h += `<p class="dim">Màu áo trong đội: ${synergyText(cs)}</p><div class="btns"><button class="btn primary" data-act="sqsave">Lưu đội hình</button><button class="btn" data-act="sqauto">Xếp tự động</button><button class="btn ghost" data-act="sqclear">Bỏ chọn hết</button></div>`;
     h += `<div class="cts">${CARDS.filter(c => G.cards[c.id] > 0).sort((a, b) => 'tm hv tv td'.indexOf(a.pos) - 'tm hv tv td'.indexOf(b.pos) || b.r - a.r).map(c => ctile(c, { act: 'sq', on: s.includes(c.id) })).join('') || '<p class="dim">Chưa có thẻ nào.</p>'}</div>`;
-    return h + `<p class="dim">Đội hình: đúng 1 thủ môn, ít nhất 2 hậu vệ, 2 tiền vệ, 1 tiền đạo; tổng lương ≤ ${SQUAD.cap}. Cầu thủ cùng CLB hoặc cùng đội tuyển ra sân chung được cộng chỉ số.</p>`;
+    return h + `<p class="dim">Đội hình: đúng 1 thủ môn, ít nhất 2 hậu vệ, 2 tiền vệ, 1 tiền đạo; tổng lương ≤ ${SQUAD.cap}. Cầu thủ nào cũng có CLB (huy hiệu) và quốc tịch (lá cờ); cùng CLB hoặc cùng quốc tịch ra sân chung được cộng chỉ số.</p>`;
   },
 };
 

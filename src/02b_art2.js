@@ -520,7 +520,7 @@ function cardPortrait(c) {
   x.drawImage(f, 0, 0, 18, 24, 0, 0, 72, 96);
   return (_portraits[c.id] = cv2.toDataURL());
 }
-/* ---------- huy hiệu CLB và cờ đội tuyển trên thẻ cầu thủ ---------- */
+/* ---------- huy hiệu CLB và cờ quốc tịch trên thẻ cầu thủ ---------- */
 const _badges = {};
 const SHIELD = [[1, 10], [0, 11], [0, 11], [0, 11], [0, 11], [0, 11], [0, 11], [0, 11], [0, 11], [1, 10], [2, 9], [3, 8], [4, 7], [5, 6]];
 function clubCrest(k) {
@@ -550,5 +550,5 @@ function natFlag(k) {
 // <img> huy hiệu / cờ, kèm tên khi rê chuột
 const badgeImg = (kind, k, cls) => kind === 'club'
   ? `<img class="${cls || 'bdg'}" src="${clubCrest(k)}" alt="${CARD_CLUBS[k].name}" title="CLB ${CARD_CLUBS[k].name}">`
-  : `<img class="${cls || 'bdg'} flag" src="${natFlag(k)}" alt="${CARD_NATS[k].name}" title="Đội tuyển ${CARD_NATS[k].name}">`;
-const cardBadges = (c, cls) => badgeImg('club', c.club, cls) + (c.nat ? badgeImg('nat', c.nat, cls) : '');
+  : `<img class="${cls || 'bdg'} flag" src="${natFlag(k)}" alt="${CARD_NATS[k].name}" title="Quốc tịch ${CARD_NATS[k].name}">`;
+const cardBadges = (c, cls) => badgeImg('club', c.club, cls) + badgeImg('nat', c.nat, cls);
