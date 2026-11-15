@@ -188,6 +188,7 @@ const UI = {
     if (cardCount()) add('the', cardCount(), 'Thẻ cầu thủ — bấm để xem bộ sưu tập', 'cards');
     if (G.inv.gaubong) add('gaubong', G.inv.gaubong, 'Gấu bông — bấm để cầm lên rồi bấm vào bạn để tặng', 'hold');
     if (G.inv.voso) add('voso', G.inv.voso, 'Vỏ sò — bấm để cầm lên rồi bấm vào bạn để tặng', 'hold');
+    for (const k in PARENT_ITEMS) if (G.inv[k]) add(k, 1, `${PARENT_ITEMS[k]} — bấm để cầm lên rồi bấm vào bố / mẹ để đưa tận tay`, 'hold');
     if (G.inv.denongsao) add('denongsao', G.inv.denongsao, 'Đèn ông sao tự làm — bấm để cầm lên (rước đèn, hoặc tặng bạn)', 'hold');
     for (const m of TT_MATS) if (G.inv[m.id]) add(m.id, G.inv[m.id], `${m.name} — nguyên liệu làm đèn ông sao (mang tới sạp làm đèn lồng đêm Trung thu)`);
     if (fishCount()) add('ca', fishCount(), 'Cá câu được — bán cho Cô Ba hoặc đưa mẹ nấu');
@@ -212,7 +213,7 @@ const UI = {
     this.panel('Túi đồ', () => {
       const inBag = Object.keys(ITEMS).filter(i => G.bag[i]);
       let h = '<h4>Đang mang trong cặp</h4><div class="chips">' + (inBag.length ? inBag.map(i => `<span class="it on">${ITEMS[i].name}</span>`).join('') : '<span class="dim">Cặp trống.</span>') + '</div>';
-      if (schoolToday() && G.time < CFG.SCHOOL_END) { const ms = missingToday(); h += ms.length ? `<p class="warnbox">So với thời khoá biểu hôm nay còn thiếu ${ms.length} món. Chỉ soạn cặp được ở bàn học tại nhà.</p>` : '<p class="okbox">Đủ đồ cho thời khoá biểu hôm nay.</p>'; }
+      if (schoolToday() && G.time < schoolEndT()) { const ms = missingToday(); h += ms.length ? `<p class="warnbox">So với thời khoá biểu hôm nay còn thiếu ${ms.length} món. Chỉ soạn cặp được ở bàn học tại nhà.</p>` : '<p class="okbox">Đủ đồ cho thời khoá biểu hôm nay.</p>'; }
       h += '<h4>Đồ ăn mang theo</h4><div class="rows">';
       let any = false;
       for (const id in FOODS) if (G.inv[id]) { any = true; h += `<div class="rowi"><span><b>${FOODS[id].name}</b> ×${G.inv[id]} <small>+${FOODS[id].stam} thể lực</small></span><button class="btn sm" data-act="hold" data-id="${id}">${RT.hold === id ? 'Cất đi' : 'Cầm lên'}</button></div>`; }
@@ -275,7 +276,7 @@ const UI = {
       if (day !== null) {
         const tt = TIMETABLE[cal(day).dow];
         miss = neededItems(day).filter(i => !G.bag[i] && i !== 'thehs' && i !== 'vethang').length;
-        left = `<div class="pcol"><h4>${day === G.day ? 'Hôm nay' : 'Ngày học tới'} · ${dateLabel(day)}</h4><ol class="ttl">` + tt.map((s, i) => `<li class="${i === 4 ? 'pm' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span>${SUBJ[s].name}</li>`).join('') + '</ol></div>';
+        left = `<div class="pcol"><h4>${day === G.day ? 'Hôm nay' : 'Ngày học tới'} · ${dateLabel(day)}</h4><ol class="ttl">` + tt.map((s, i) => s ? `<li class="${i === 4 ? 'pm' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span>${SUBJ[s].name}</li>` : (i === 4 ? '<li class="pm"><i>Chiều nghỉ học</i></li>' : '')).join('') + '</ol></div>';
       }
       let right = '<div class="pcol"><h4>Dụng cụ</h4><div class="chips">' + it('hopbut') + it('thehs') + (G.busPassUntil >= G.day ? it('vethang') : '') + '</div><h4>Đồng phục</h4><div class="chips">' + it('dp_td') + it('dp_qp') + '</div><h4>Sách</h4><div class="bgrid">';
       for (const s of BOOK_SUBJ) right += it('sach_' + s);
@@ -365,11 +366,11 @@ MV.tt = {
     let h = '<table class="tt"><tr><th></th>' + [0, 1, 2, 3, 4].map(d => `<th class="${sd && c.dow === d ? 'now' : ''}">${DOW[d]}<small>${cal(mon + d).dos} ${cal(mon + d).sName}</small></th>`).join('') + '</tr>';
     for (let p = 0; p < 9; p++) {
       if (p === 4) h += `<tr class="gap"><td colspan="6">Nghỉ trưa · ${fmtTime(AM_END)} – ${fmtTime(PM_START)}</td></tr>`;
-      h += `<tr><td class="pn">Tiết ${p + 1}<small>${fmtTime(PERIODS[p].start)}</small></td>` + [0, 1, 2, 3, 4].map(d => { const s = TIMETABLE[d][p], ev = cut[d].has(p + 1) && evs[d].find(e => e.periods.includes(p + 1)); if (ev) return `<td class="${sd && c.dow === d ? 'now' : ''}"><span class="chip ev" style="background:${ev.col}">${ev.short}</span></td>`; return `<td class="${sd && c.dow === d ? 'now' : ''} ${sd && c.dow === d && cp && cp.n === p + 1 ? 'cur' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td>`; }).join('') + '</tr>';
+      h += `<tr><td class="pn">Tiết ${p + 1}<small>${fmtTime(PERIODS[p].start)}</small></td>` + [0, 1, 2, 3, 4].map(d => { const s = TIMETABLE[d][p], ev = cut[d].has(p + 1) && evs[d].find(e => e.periods.includes(p + 1)); if (ev) return `<td class="${sd && c.dow === d ? 'now' : ''}"><span class="chip ev" style="background:${ev.col}">${ev.short}</span></td>`; if (!s) return `<td class="${sd && c.dow === d ? 'now' : ''}"><span class="chip off">Nghỉ</span></td>`; return `<td class="${sd && c.dow === d ? 'now' : ''} ${sd && c.dow === d && cp && cp.n === p + 1 ? 'cur' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td>`; }).join('') + '</tr>';
     }
     const up = []; for (let d = G.day; d < G.day + 14; d++) for (const e of schoolEventsOn(d)) up.push(`<b>${dateLabel(d)}</b>: ${e.name} ${fmtTime(e.from)}–${fmtTime(e.to)} — nghỉ tiết ${e.periods.join(', ')}`);
     if (up.length) h += '</table><p class="okbox">Sự kiện của trường: ' + up.join(' · ') + '</p><table class="tt" style="display:none">';
-    return h + `</table><p class="dim">Ô “TH” là buổi thực hành riêng. Mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 20'; tan học ${fmtTime(CFG.SCHOOL_END)}. Lịch kiểm tra xem ở tab Lịch.</p>`;
+    return h + `</table><p class="dim">Ô “TH” là buổi thực hành riêng. Mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 20'; tan học ${fmtTime(CFG.SCHOOL_END)}, riêng thứ 4 và thứ 6 chỉ học buổi sáng (tan học ${fmtTime(AM_END)}). Lịch kiểm tra xem ở tab Lịch.</p>`;
   },
 };
 
@@ -476,6 +477,7 @@ function cityLayout() {
   L.bien = [L.ga[0] - M.bien.pw - g, L.ga[1] - 96];                  // tàu hoả ra biển
   L.song = [L.pho[0] + 440 - 320, M.pho.ph + g];                     // lối xuống bờ sông
   L.chua = [0, M.town.ph + g];                                       // dưới khu phố nhà mình, bên trái bờ sông
+  L.dong = [L.song[0] + M.song.pw + g, L.song[1] - 120];              // phố Bờ Đông: bên phải bờ sông
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
   for (const k in L) { x0 = Math.min(x0, L[k][0]); y0 = Math.min(y0, L[k][1]); x1 = Math.max(x1, L[k][0] + M[k].pw); y1 = Math.max(y1, L[k][1] + M[k].ph); }
   const pad = 56;                                                    // lề quanh bản đồ để tên khu không bị cắt
@@ -487,10 +489,11 @@ const CITY_POI = [
   ['pho', 175, 86, 'Nhà các bạn'], ['pho', 524, 86, 'Trà sữa'], ['pho', 660, 66, 'TTTM'], ['pho', 806, 86, 'Khu game'], ['pho', 218, 166, 'Trạm bus'], ['pho', 640, 316, 'Xiên que'], ['pho', 136, 344, 'Sân bóng'],
   ['school', 352, 66, 'Dãy lớp học'], ['school', 79, 80, 'Căn tin'], ['school', 572, 84, 'Nhà xe'], ['school', 664, 64, 'Vệ sinh'], ['school', 584, 232, 'Sân thể dục'], ['school', 352, 352, 'Cổng'], ['school', 130, 406, 'Trạm bus'],
   ['nui', 200, 290, 'Bãi picnic'], ['song', 320, 180, 'Câu cá'], ['chua', 321, 222, 'Lư hương · xin xăm'],
+  ['pho', MOM_CO.x + 76, 70, 'Công ty của mẹ'], ['dong', DONG.factory + 100, 70, 'Nhà máy của bố'], ['dong', DONG.rest + 55, 86, 'Nhà hàng'], ['dong', DONG.kara + 50, 86, 'Karaoke'], ['dong', 150, 86, 'Nhà hàng xóm'], ['school', LIB_DOOR[0], 250, 'Thư viện'],
 ];
 // Chỗ mình đang ở trên bản đồ chung (ở trong nhà / phòng thì lấy cửa ra vào)
 function whereAmI() {
-  const R0 = { home: ['town', 96, 128, 'trong nhà'], class: ['school', 244, 104, 'lớp 10A1'], lab: ['school', 461, 104, 'phòng thí nghiệm'], yte: ['school', 213, 104, 'trạm y tế'], nhac: ['school', 275, 104, 'phòng nhạc'], thuvien: ['school', 352, 104, 'thư viện'], ngutrua: ['school', 430, 104, 'phòng ngủ trưa'], wcnam: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh nam'], wcnu: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh nữ'], wc: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh'], wcm: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh'], tttm: ['pho', 660, 128, 'trong TTTM'], arc: ['pho', 806, 128, 'trong khu game'], fhome: ['pho', (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1] + 49, 128, 'nhà ' + ((FRIENDS[G.visit] || FRIENDS.khoa).name)] };
+  const R0 = { home: ['town', 96, 128, 'trong nhà'], class: ['school', 244, 104, 'lớp 10A1'], lab: ['school', 461, 104, 'phòng thí nghiệm'], yte: ['school', 213, 104, 'trạm y tế'], nhac: ['school', 275, 104, 'phòng nhạc'], thuvien: ['school', LIB_DOOR[0], LIB_DOOR[1] - 10, 'thư viện'], ngutrua: ['school', 430, 104, 'phòng ngủ trưa'], wcnam: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh nam'], wcnu: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh nữ'], wc: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh'], wcm: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh'], tttm: ['pho', 660, 128, 'trong TTTM'], arc: ['pho', 806, 128, 'trong khu game'], phongbm: ['town', 96, 128, 'phòng bố mẹ'], congty: ['pho', MOM_CO.x + 76, 128, 'công ty của mẹ'], nhamay: ['dong', DONG.factory + 100, 128, 'nhà máy của bố'], nhahang: ['dong', DONG.rest + 55, 128, 'nhà hàng Sen Hồng'], karaoke: ['dong', DONG.kara + 50, 128, 'karaoke Âm Vang'], tang2: ['school', 352, 104, 'tầng 2'], l11a1: ['school', 352, 104, 'lớp 11A1'], l11a3: ['school', 352, 104, 'lớp 11A3'], l12a1: ['school', 352, 104, 'lớp 12A1'], l12a2: ['school', 352, 104, 'lớp 12A2'], fhome: ['pho', (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1] + 49, 128, 'nhà ' + ((FRIENDS[G.visit] || FRIENDS.khoa).name)] };
   if (R0[G.map]) { const [a, x, y, room] = R0[G.map]; return { a, x, y, room }; }
   if (MAPS[G.map] && !MAPS[G.map].indoor && G.map !== 'ride' && G.map !== 'rail') return { a: G.map, x: G.x, y: G.y, room: '' };
   return null;
@@ -502,7 +505,7 @@ function cityMapImage() {
   x.fillStyle = '#6aa05a'; for (let i = 0; i < c.width; i += 22) for (let j = (i / 22) % 2 * 11; j < c.height; j += 22) x.fillRect(i, j, 3, 3);
   // đường nối giữa các khu
   const road = (pts, w, col) => { x.strokeStyle = col; x.lineWidth = w * S; x.lineJoin = 'round'; x.beginPath(); pts.forEach(([a, px, py], i) => { const [X, Y] = P(a, px, py); i ? x.lineTo(X, Y) : x.moveTo(X, Y); }); x.stroke(); };
-  road([['town', 790, 216], ['pho', 10, 216]], 48, '#5f656f'); road([['pho', 886, 216], ['school', -10, 430]], 48, '#5f656f');
+  road([['town', 790, 216], ['pho', 10, 216]], 48, '#5f656f'); road([['pho', MAPS.pho.pw - 10, 216], ['school', -10, 430]], 48, '#5f656f'); road([['song', MAPS.song.pw - 6, 70], ['dong', 10, 216]], 36, '#d9ccb2');
   road([['pho', 456, 6], ['ga', 288, 314]], 40, '#d9ccb2'); road([['town', 176, 410], ['chua', 176, 6]], 32, '#d9ccb2'); road([['chua', 634, 176], ['song', 6, 70]], 32, '#d9ccb2'); road([['pho', 440, 410], ['song', 320, 10]], 40, '#d9ccb2'); road([['school', 736, 4], ['nui', 320, 470]], 30, '#b89a6a');
   x.setLineDash([10, 8]); road([['ga', 0, 250], ['bien', MAPS.bien.pw, 250]], 10, '#8a5a3a'); x.setLineDash([]);
   // từng khu: nền + đồ vật

@@ -160,14 +160,14 @@ function addBusStop(m, id, sx, sy, bx, by, noSol) {
  * Trái: về khu phố nhà mình · Phải: sang trường · Trên: ga tàu · Dưới: bờ sông */
 const FRIEND_HOUSE = { khoa: ['houseB', 12], dat: ['houseC', 120], vy: ['houseD', 228], ngan: ['houseE', 336] };
 function buildPho() {
-  const m = mapNew('pho', 'Phố Hoa Phượng', 56, 26, false);
-  paint(m, 'grass', 0, 0, 56, 26, 0);
+  const m = mapNew('pho', 'Phố Hoa Phượng', PHO_W, 26, false);
+  paint(m, 'grass', 0, 0, PHO_W, 26, 0);
   [[1, 2], [7, 1], [13, 3], [20, 2], [25, 1], [33, 3], [54, 5], [54, 2], [1, 19], [17, 23], [18, 19], [36, 20], [37, 24], [47, 19], [50, 23], [53, 21], [45, 24]].forEach(([a, b]) => paint(m, 'flowers', a, b, 1, 1, 0));
-  paint(m, 'walk', 0, 8, 56, 4, 0); paint(m, 'road', 0, 12, 56, 3, 0); paint(m, 'walk', 0, 15, 56, 2, 0);
+  paint(m, 'walk', 0, 8, PHO_W, 4, 0); paint(m, 'road', 0, 12, PHO_W, 3, 0); paint(m, 'walk', 0, 15, PHO_W, 2, 0);
   paint(m, 'walk', 27, 0, 3, 8, 0);                                   // đường lên ga tàu
-  for (let i = 0; i < 56; i += 2) R(m.x, '#f3e6a8', i * 16 + 4, 13 * 16 + 7, 12, 2);
+  for (let i = 0; i < PHO_W; i += 2) R(m.x, '#f3e6a8', i * 16 + 4, 13 * 16 + 7, 12, 2);
   for (let k = 0; k < 6; k++) R(m.x, '#f4f2ea', 27 * 16 + 10, 12 * 16 + 2 + k * 8, 28, 4);
-  R(m.x, '#aaa392', 0, 190, 896, 2); R(m.x, '#aaa392', 0, 240, 896, 2);
+  R(m.x, '#aaa392', 0, 190, PHO_W * 16, 2); R(m.x, '#aaa392', 0, 240, PHO_W * 16, 2);
   // dãy nhà bạn bè
   for (const fid in FRIEND_HOUSE) {
     const [spr, hx] = FRIEND_HOUSE[fid], F = FRIENDS[fid];
@@ -187,12 +187,16 @@ function buildPho() {
   // bốn hướng
   addObj(m, { s: 'signpostL', x: 22, y: 148, sol: [10, 22, 8, 8], label: () => '← Khu phố nhà mình, tạp hoá Cô Ba', act: () => ACT.go('pho', 'town') });
   m.zones.push({ x: 0, y: 160, w: 8, h: 112, fn: () => ACT.go('pho', 'town'), bx: 6 });
-  addObj(m, { s: 'signpost', x: 866, y: 150, sol: [10, 22, 8, 8], label: () => 'Trường THPT Hoa Phượng →', act: () => ACT.go('pho', 'school') });
-  m.zones.push({ x: 888, y: 160, w: 8, h: 112, fn: () => ACT.go('pho', 'school'), bx: -6 });
+  addObj(m, { s: 'signpost', x: PHO_W * 16 - 30, y: 150, sol: [10, 22, 8, 8], label: () => 'Trường THPT Hoa Phượng →', act: () => ACT.go('pho', 'school') });
+  m.zones.push({ x: PHO_W * 16 - 8, y: 160, w: 8, h: 112, fn: () => ACT.go('pho', 'school'), bx: -6 });
+  // công ty của mẹ (cuối phố, gần trường): vào trong gặp mẹ
+  addObj(m, { s: 'congty', x: MOM_CO.x, y: 18, sol: [1, 34, 150, 47], label: () => 'Công ty Sen Vàng — chỗ mẹ làm việc', act: () => ACT.enterWork('mom') });
+  m.labels.push({ x: MOM_CO.x + 76, y: 33.5, text: 'CÔNG TY SEN VÀNG', size: 8, col: '#ffffff', maxw: 120 });
+  for (const lx of [1040]) addObj(m, { s: 'lamp', x: lx, y: 112, sol: [3, 38, 6, 6] });
   addObj(m, { s: 'trailsign', x: 406, y: 16, sol: [9, 16, 6, 8], label: () => '↑ Ga tàu (tàu ra biển)', act: () => ACT.go('pho', 'ga') });
   m.zones.push({ x: 432, y: 5, w: 48, h: 7, fn: () => ACT.go('pho', 'ga'), by: 10 });
   // phía dưới: sân bóng mini · quảng trường đài phun nước · xe xiên que · lối xuống bờ sông
-  for (let i = 0; i < 56; i++) { if (i >= 26 && i <= 28) continue; addObj(m, { s: 'hedge', x: i * 16, y: 270, sol: [0, 4, 18, 12] }); }
+  for (let i = 0; i < PHO_W; i++) { if (i >= 26 && i <= 28) continue; addObj(m, { s: 'hedge', x: i * 16, y: 270, sol: [0, 4, 18, 12] }); }
   paint(m, 'court', 2, 18, 13, 7, 0);
   const W = '#eef7ee'; R(m.x, W, 36, 292, 200, 1); R(m.x, W, 36, 395, 200, 1); R(m.x, W, 36, 292, 1, 104); R(m.x, W, 235, 292, 1, 104); R(m.x, W, 36, 344, 200, 1); ring(m.x, W, 136, 344, 14);
   addObj(m, { s: 'goal', x: 116, y: 276, sol: [1, 2, 38, 8], label: () => 'Sân bóng mini — chơi thể thao', act: () => ACT.field() });
@@ -211,6 +215,8 @@ function buildPho() {
   NPCS.push({ id: 'pho_c', name: 'Người đi dạo', look: 'c3', outfit: () => 'cas_khoa', map: 'pho', x: 400, y: 304, dir: 0, wander: 22, vis: () => inWin(G.time, 540, 1260) });
 }
 
+const PHO_W = 68;                                 // phố Hoa Phượng (đã nối dài thêm đoạn có công ty của mẹ)
+const MOM_CO = { x: 900 };
 /* ---------------- NÚI SAU TRƯỜNG: đường mòn, bãi cỏ picnic, hồ, đỉnh núi ---------------- */
 // Lên núi: từ vỉa hè trước cổng trường, theo lối mòn vòng bên ngoài hàng rào ra phía sau khuôn viên
 function buildHill() {
@@ -495,6 +501,6 @@ function buildMaps() {
   buildWC('wc', 'Nhà vệ sinh nữ', '#fbe4ea', '#eab2c2', '#e98fa5', 'wtile'); buildWC('wcm', 'Nhà vệ sinh nam', '#e4eef7', '#a9c6dc', '#5a8fd6', 'ltile');
   buildRide('ride', false); buildRide('rail', true);
   buildRooms();
-  addMeetNpcs(); buildFamily();
+  addMeetNpcs(); buildFamily(); buildFamilyPlaces();
   seasonTrees();                                   // cây đổi màu theo mùa
 }

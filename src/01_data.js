@@ -69,14 +69,16 @@ const THEORY = ['toan', 'van', 'anh', 'ly', 'hoa', 'su', 'dia'];              //
 const PRACTICE = ['qp', 'th_ly', 'th_hoa', 'th_sinh'];                        // Thực hành = TB cấp: Quốc phòng + thực hành Lý, Hoá, Sinh
 const statOfSubj = s => (s === 'td' ? 'thethao' : s === 'th_qp' ? 'qp' : s);
 
-/* ---------- Thời khoá biểu (T2→T6, 4 tiết sáng + 5 tiết chiều) ---------- */
+/* ---------- Thời khoá biểu (T2→T6, 4 tiết sáng + 5 tiết chiều) ----------
+ * null = không có tiết: thứ 4 và thứ 6 chỉ học buổi sáng (chiều nghỉ, tan học lúc nghỉ trưa) */
 const TIMETABLE = [
   ['cc', 'toan', 'toan', 'van', 'anh', 'ly', 'hoa', 'su', 'td'],
   ['van', 'van', 'anh', 'toan', 'th_ly', 'sinh', 'dia', 'qp', 'th_qp'],
-  ['toan', 'toan', 'hoa', 'anh', 'van', 'van', 'su', 'th_sinh', 'td'],
-  ['ly', 'van', 'toan', 'dia', 'anh', 'th_hoa', 'sinh', 'van', 'toan'],
-  ['van', 'toan', 'ly', 'hoa', 'anh', 'su', 'dia', 'td', 'shl'],
+  ['toan', 'toan', 'hoa', 'anh', null, null, null, null, null],
+  ['ly', 'van', 'toan', 'dia', 'th_hoa', 'sinh', 'th_sinh', 'td', 'shl'],
+  ['van', 'toan', 'su', 'van', null, null, null, null, null],
 ];
+const HALF_DAYS = [2, 4];                        // thứ 4, thứ 6: nghỉ buổi chiều
 // Tiết 1 lúc 08:00; mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 20'; nghỉ trưa 10:20–13:30; tan học 16:40
 const PERIODS = [
   { n: 1, start: 480 }, { n: 2, start: 510 }, { n: 3, start: 560 }, { n: 4, start: 590 },
@@ -159,6 +161,7 @@ const BUS_STOPS = {
   pho: { name: 'Phố Hoa Phượng', map: 'pho', x: 276, y: 186, pos: 1, off: 0 },
   truong: { name: 'Trường THPT Hoa Phượng', map: 'school', x: 182, y: 408, pos: 2, off: 0 },
   ga: { name: 'Ga tàu', map: 'ga', x: 458, y: 200, pos: 1, off: 1 },
+  dong: { name: 'Phố Bờ Đông', map: 'dong', x: 320, y: 196, pos: 2, off: 1 },
 };
 const busMins = (a, b) => BUS_MIN_PER_HOP * Math.max(1, Math.abs(BUS_STOPS[a].pos - BUS_STOPS[b].pos) + BUS_STOPS[a].off + BUS_STOPS[b].off);
 const PARENT_RIDE_MIN = 10;
@@ -287,6 +290,21 @@ const TASKS = {
   mohinh: { tid: 'quan', name: 'Kiểm đếm mô hình súng tập', desc: 'Thầy nhờ em đếm lại các mô hình súng tập ở góc sân thể dục và ghi vào sổ trước buổi Quốc phòng tới.', steps: [{ map: 'school', x: 586, y: 172, do: 'Đếm mô hình, ghi vào sổ', where: 'Góc sân thể dục' }], mins: 25, win: [390, 1080], days: 3, until: 1080, pay: 5000, aff: 6 },
 };
 
+/* ---------- Việc bố mẹ nhờ (nhắn qua điện thoại, KHÔNG nhắn trong giờ học) ----------
+ * Ngày đi làm: nhắn lúc nghỉ trưa (hạn trước giờ vào học buổi chiều) hoặc sau giờ tan học (hạn trước khi bố mẹ tan làm).
+ * Nghỉ hè: nhắn buổi sáng. Cuối tuần: việc ở nhà. Phải tới chỗ lấy đồ (cho vào túi), rồi cầm lên, bấm vào bố/mẹ để đưa tận tay.
+ * where: chỗ đưa · lunch: chỉ nhắn lúc nghỉ trưa · off: việc cuối tuần (bố mẹ ở nhà) · cost: tiền bỏ ra mua (bố mẹ trả lại) */
+const PARENT_TASK = { chance: 0.3, slots: { lunch: [630, PM_START - 15], after: [1010, 1050], summer: [540, 1050], off: [540, 720] }, pay: 8000, aff: 3 };
+const PARENT_TASKS = {
+  tailieu: { who: 'dad', name: 'Mang tài liệu cho bố', msg: 'Con ơi, bố để quên tập tài liệu trong hộc bàn làm việc ở phòng bố mẹ. Con mang lên nhà máy giúp bố được không? Chiều nay bố phải nộp rồi.', item: 'tailieu', pick: { map: 'phongbm', x: 37, y: 60, do: 'Lấy tập tài liệu trong hộc bàn của bố', where: 'Phòng bố mẹ (bàn làm việc)' }, where: 'Nhà máy bánh kẹo (phố Bờ Đông)' },
+  comtrua: { who: 'mom', name: 'Mang cơm trưa cho mẹ', msg: 'Mẹ để quên hộp cơm trưa trên bàn ăn ở nhà rồi. Trưa nay con mang qua công ty giúp mẹ nhé, công ty Sen Vàng ở cuối phố Hoa Phượng đó!', item: 'comme', lunch: true, pick: { map: 'home', x: 416, y: 146, do: 'Lấy hộp cơm trưa mẹ để quên trên bàn ăn', where: 'Nhà mình (bàn ăn)' }, where: 'Công ty Sen Vàng (cuối phố Hoa Phượng)' },
+  vi: { who: 'dad', name: 'Mang ví cho bố', msg: 'Bố quên cái ví ở tủ đầu giường rồi. Con mang lên nhà máy cho bố nhé, chiều bố còn đổ xăng.', item: 'vibo', pick: { map: 'phongbm', x: 160, y: 70, do: 'Lấy cái ví bố để ở tủ đầu giường', where: 'Phòng bố mẹ (tủ đầu giường)' }, where: 'Nhà máy bánh kẹo (phố Bờ Đông)' },
+  kinh: { who: 'mom', name: 'Mang kính cho mẹ', msg: 'Mẹ để quên cặp kính trên bàn trang điểm, không có kính mẹ không đọc được giấy tờ. Con mang qua công ty giúp mẹ nhé!', item: 'kinhme', pick: { map: 'phongbm', x: 210, y: 62, do: 'Lấy cặp kính trên bàn trang điểm của mẹ', where: 'Phòng bố mẹ (bàn trang điểm)' }, where: 'Công ty Sen Vàng (cuối phố Hoa Phượng)' },
+  usb: { who: 'dad', name: 'Mang USB cho bố', msg: 'Cái USB bố cắm ở máy tính bàn làm việc ngoài phòng khách có file bố cần gấp. Con rút ra mang lên nhà máy giúp bố với!', item: 'usb', pick: { map: 'home', x: 299, y: 64, do: 'Rút cái USB ở máy tính bàn làm việc', where: 'Nhà mình (bàn làm việc phòng khách)' }, where: 'Nhà máy bánh kẹo (phố Bờ Đông)' },
+  nuocmam: { who: 'mom', name: 'Mua nước mắm cho mẹ', msg: 'Nhà hết nước mắm rồi con ơi. Con chạy ra tạp hoá Cô Ba mua giúp mẹ một chai, về mẹ gửi lại tiền nhé!', item: 'nuocmam', off: true, cost: 25000, pick: { map: 'town', x: 290, y: 150, do: 'Mua một chai nước mắm ở tạp hoá Cô Ba', where: 'Tạp hoá Cô Ba (khu phố nhà mình)' }, where: 'Mẹ (ở nhà)' },
+};
+const PARENT_ITEMS = { tailieu: 'Tập tài liệu của bố', comme: 'Hộp cơm trưa của mẹ', vibo: 'Cái ví của bố', kinhme: 'Kính của mẹ', usb: 'USB của bố', nuocmam: 'Chai nước mắm' };
+
 /* ---------- Làm việc riêng trong giờ học (sev: 1 nhẹ, 2 nặng) ---------- */
 const CLASS_FUN_CHANCE = 0.22;
 const CLASS_FUN = [
@@ -407,6 +425,9 @@ const SOCIETY = {
   su: { name: 'Sư thầy', note: 'Trụ trì chùa Hoa Phượng', look: 'monk' },
   hieutruong: { name: 'Thầy hiệu trưởng', note: 'Hiệu trưởng trường THPT Hoa Phượng', look: 'principal' },
   thitruong: { name: 'Ông thị trưởng', note: 'Thị trưởng thành phố Hoa Phượng', look: 'mayor' },
+  bac_tu: { name: 'Bác Tư', note: 'Hàng xóm phố Bờ Đông · về hưu', look: 'principal' },
+  co_lanh: { name: 'Cô Lành', note: 'Hàng xóm phố Bờ Đông · bán bánh cuốn', look: 'vendor' },
+  anh_long: { name: 'Anh Long', note: 'Đầu bếp nhà hàng Sen Hồng', look: 'c7', outfit: 'cas_dat' },
 };
 const SOC_GAIN = 2;
 // Mã thử nghiệm (dán vào ô "Dán mã" trong Cài đặt, không phân biệt hoa thường)

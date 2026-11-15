@@ -23,7 +23,7 @@ const EAT_SEATS = { eat: [[124, 187], [176, 187], [150, 199]], eat2: [[62, 112],
 let YS = null;
 function yardState() {
   if (!G || !schoolToday() || (RT.scene && !RT.scene.yard)) return null;
-  const wi = YARD_WINDOWS.findIndex(([a, b]) => inWin(G.time, a, b)); if (wi < 0) return null;
+  const wi = YARD_WINDOWS.findIndex(([a, b]) => inWin(G.time, a, b)); if (wi < 0 || (halfDay(G.day) && wi > 2)) return null;   // chiều nghỉ học: ăn trưa xong ai về nhà nấy
   const key = G.day * 10 + wi; if (YS && YS.key === key) return YS;
   const rnd01 = mulberry(key * 7919 + 13), sh = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd01() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const kids = sh(YARD_KIDS.slice()), groups = [], where = {}, lunch = wi === 2;
@@ -40,6 +40,36 @@ function yardState() {
   else if (kids.length) { const g = groups[groups.length - 1]; where[kids[0]] = [g, g.mem.length]; g.mem.push(kids[0]); }
   return (YS = { key, wi, groups, where });
 }
+/* ---------- tan học: hết giờ ở sân thì các bạn lần lượt đi bộ ra cổng trường rồi mới khuất ---------- */
+const LEAVE = { gate: [352, 366], out: [352, 412], speed: 44, gap: 0.35, late: 30 };
+function leaveTick() {
+  if (!G || G.map !== 'school' || !schoolToday()) return;
+  const W = halfDay(G.day) ? YARD_WINDOWS[2] : YARD_WINDOWS[YARD_WINDOWS.length - 1];
+  if (inWin(G.time, W[0], W[1]) && !(RT.scene && RT.scene.type === 'cut')) {
+    // còn giờ ra sân sau tan học: nhớ chỗ từng bạn đang đứng
+    const at = {}; for (const n of NPCS) if (n.map === 'school' && n.id.startsWith('y_') && n.cx !== undefined && n.vis && n.vis()) at[n.id] = [n.cx, n.cy];
+    RT.lastYard = { day: G.day, at, real: performance.now() };
+  } else if (G.time >= W[1] && G.time < W[1] + LEAVE.late && RT.lastYard && RT.lastYard.day === G.day && performance.now() - RT.lastYard.real < 3000 && !(RT.leave && RT.leave.day === G.day)) {
+    const g = LEAVE.gate, ids = Object.keys(RT.lastYard.at).sort((a, b) => Math.hypot(RT.lastYard.at[a][0] - g[0], RT.lastYard.at[a][1] - g[1]) - Math.hypot(RT.lastYard.at[b][0] - g[0], RT.lastYard.at[b][1] - g[1]));
+    RT.leave = { day: G.day, t0: performance.now(), list: {} };
+    ids.forEach((id, i) => { const [x, y] = RT.lastYard.at[id]; RT.leave.list[id] = { x, y, d: i * LEAVE.gap }; });
+  }
+}
+// Vị trí của một bạn đang trên đường ra cổng (null nếu không / đã ra khỏi trường)
+function leavePos(n) {
+  const L = RT.leave; if (!L || L.day !== G.day || G.map !== 'school' || (RT.scene && RT.scene.type === 'cut')) return null;
+  const e = L.list[n.id]; if (!e) return null;
+  const t = (performance.now() - L.t0) / 1000 - e.d, pts = [[e.x, e.y], [LEAVE.gate[0] + (n.id.length % 5 - 2) * 6, LEAVE.gate[1]], LEAVE.out];
+  if (t < 0) return { x: e.x, y: e.y, dir: dirOf(pts[1][0] - e.x, pts[1][1] - e.y) };
+  let s = t * LEAVE.speed;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, ay] = pts[i], [bx, by] = pts[i + 1], d = Math.hypot(bx - ax, by - ay);
+    if (s <= d) { const k = d ? s / d : 1; return { x: ax + (bx - ax) * k, y: ay + (by - ay) * k, dir: dirOf(bx - ax, by - ay), walk: t }; }
+    s -= d;
+  }
+  return null;
+}
+
 // Vị trí + dáng của một học sinh trong tụ chơi (gọi mỗi khung hình)
 function yardPos(sid) {
   const st = yardState(); if (!st) return null;
@@ -280,7 +310,7 @@ ACT.nap = async (mx, my) => {
 // Thư viện mở trước giờ học, giờ ra chơi, nghỉ trưa và sau giờ tan học. Ra chơi thì chỉ đọc được tới lúc vào lớp.
 const LIB_TABLES = [[44, 104], [150, 104]];
 function libWindow() {
-  if (!(schoolToday() && G.atSchool && G.time >= PERIODS[0].start && G.time < CFG.SCHOOL_END)) return { mins: LIBRARY.mins };
+  if (!(schoolToday() && G.atSchool && G.time >= PERIODS[0].start && G.time < schoolEndT())) return { mins: LIBRARY.mins };
   const w = YARD_WINDOWS.find(([a, b2]) => inWin(G.time, a, b2));
   return w ? { mins: Math.min(LIBRARY.mins, w[1] - G.time), brk: w[1] - w[0] <= 40 } : null;
 }
@@ -319,7 +349,7 @@ ACT.library = () => UI.toast('Thư viện là khu nhà riêng ở góc trái sâ
 ACT.music = async kind => {
   if (RT.lock) return;
   const home = kind === 'home', sing = kind !== 'dance';
-  if (!home && schoolToday() && G.atSchool && G.time < CFG.SCHOOL_END && !inWin(G.time, AM_END, PM_START - 10) && G.time >= PERIODS[0].start) return UI.say('Phòng nhạc', 'Đang giờ học, phòng nhạc khoá cửa phòng thu.<p class="dim">Tập được trước giờ học, giờ nghỉ trưa và sau giờ tan học.</p>');
+  if (!home && schoolToday() && G.atSchool && G.time < schoolEndT() && !inWin(G.time, AM_END, PM_START - 10) && G.time >= PERIODS[0].start) return UI.say('Phòng nhạc', 'Đang giờ học, phòng nhạc khoá cửa phòng thu.<p class="dim">Tập được trước giờ học, giờ nghỉ trưa và sau giờ tan học.</p>');
   if ((G.daily.music || 0) >= MUSIC.perDay) return UI.toast('Hôm nay tập văn nghệ đủ rồi, khản cả giọng.');
   if (G.stamina < MUSIC.stam) return UI.toast('Mệt quá, không tập nổi.', 'bad');
   const c = await UI.ask(sing ? (home ? 'Micro ở nhà' : 'Phòng thu') : 'Sân khấu', sing ? '<p>Bật nhạc nền lên rồi luyện thanh: bấm đúng nốt khi nốt chạm vạch.</p>' : '<p>Bật nhạc lên rồi nhảy: bấm mũi tên theo đúng chuỗi động tác.</p>', ['Bắt đầu', 'Thôi']);
@@ -765,8 +795,8 @@ ACT.senior = async soc => {
  *  CẦM VẬT PHẨM: bấm món đồ trong túi / thanh đồ để cầm lên
  *  Đang cầm mà tương tác với người khác → tặng quà · bấm vào mình hoặc chỗ trống → ăn (nếu ăn được)
  * ============================================================ */
-const holdName = id => (FOODS[id] ? FOODS[id].name : id === 'gaubong' ? 'Gấu bông' : id === 'voso' ? 'Vỏ sò' : id === 'denongsao' ? 'Đèn ông sao' : id);
-const holdable = id => !!(FOODS[id] || id === 'gaubong' || id === 'voso' || id === 'denongsao');
+const holdName = id => (FOODS[id] ? FOODS[id].name : id === 'gaubong' ? 'Gấu bông' : id === 'voso' ? 'Vỏ sò' : id === 'denongsao' ? 'Đèn ông sao' : PARENT_ITEMS[id] || id);
+const holdable = id => !!(FOODS[id] || id === 'gaubong' || id === 'voso' || id === 'denongsao' || PARENT_ITEMS[id]);
 function toggleHold(id) {
   if (!holdable(id) || !G.inv[id]) return;
   RT.hold = RT.hold === id ? null : id;
@@ -779,7 +809,7 @@ function giftTarget(t) {
   const n = t.npc; if (!n) return null;
   if (n.id === 'fh') return { kind: 'friend', id: G.visit };
   if (n.fid && FRIENDS[n.fid]) return { kind: 'friend', id: n.fid };
-  if (n.fam) return { kind: 'parent', id: n.fam };
+  if (n.fam || n.pf) return { kind: 'parent', id: n.fam || n.pf };
   if (n.id === 'teacher') return { kind: 'teacher', id: RT.tid || 'hanh' };
   if (n.tid) return { kind: 'teacher', id: n.tid };
   const soc = n.soc || { guard: 'baove', su: 'su' }[n.id];
@@ -788,6 +818,7 @@ function giftTarget(t) {
 }
 async function giveHeld(t) {
   const id = RT.hold, T = giftTarget(t); if (!id || !T || !G.inv[id]) return;
+  if (PARENT_ITEMS[id]) { if (T.kind === 'parent' && await parentDeliver(T.id)) return; return UI.toast(`${PARENT_ITEMS[id]} là đồ của ${Object.values(PARENT_TASKS).find(P => P.item === id).who === 'dad' ? 'bố' : 'mẹ'} — mang tới đưa tận tay nhé.`, 'info'); }
   const key = 'g_' + T.kind + '_' + T.id, isFood = !!FOODS[id], it = holdName(id).toLowerCase();
   let who, name, line, done = () => { };
   if (T.kind === 'friend') {

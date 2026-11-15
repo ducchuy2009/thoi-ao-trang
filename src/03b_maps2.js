@@ -125,7 +125,8 @@ function buildRooms() {
   for (const [id, soc] of [['sA', 'a_hung'], ['sB', 'c_mai'], ['sC', 'a_phong'], ['sD', 'c_thao']]) { const S = SOCIETY[soc]; NPCS.push({ id: 'y_' + id, sid: id, soc, name: `${S.name} · ${S.note.split(' · ')[1].split(',')[0]}`, look: id, map: 'school', x: 300, y: 260, dir: 0, vis: () => yardTime() && !!yardPos(id), label: () => S.name, act: () => ACT.senior(soc) }); }
   // học sinh ngoài sân: đứng theo tụ chơi; nói chuyện với bạn nào thì bạn đó hỏi có vào chơi cùng không
   for (const n of NPCS) if (n.id.startsWith('y_')) {
-    n.pos = () => yardPos(n.sid); n.act0 = n.act; n.act = () => ACT.yardTalk(n);
+    const v0 = n.vis; n.vis = () => !!leavePos(n) || (!v0 || v0());       // tan học: đi bộ ra cổng rồi mới khuất
+    n.pos = () => leavePos(n) || yardPos(n.sid); n.act0 = n.act; n.act = () => ACT.yardTalk(n);
     n.label = () => { const st = yardState(), w = st && st.where[n.sid]; return w ? `${n.name} — đang ${yardVerb(w[0].kind)}` : n.name; };
   }
 

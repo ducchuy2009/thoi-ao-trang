@@ -190,6 +190,7 @@ function update(dt) {
     else UI.hint(null);
   } else { if (!(RT.scene && RT.scene.meMove)) RT.walkT = -1; UI.hint(null); }
   updateFamily(dt, busy);
+  leaveTick();                                     // tan học: các bạn đi bộ ra cổng
   updateNpcs(dt, busy);
   updateFollower(dt, busy);
   for (const f of RT.floats) f.t += dt;

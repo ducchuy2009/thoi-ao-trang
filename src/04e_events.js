@@ -377,7 +377,10 @@ const contestDay = year => { const x = year * YEAR_DAYS + 2 * CFG.DAYS_PER_SEASO
 const bcY = () => { const y = cal(G.day).year; return (G.bc[y] = G.bc[y] || {}); };
 // sự kiện của trường diễn ra trong ngày, và các tiết bị thay
 const schoolEventsOn = day => SCHOOL_EVENTS.filter(e => isSchoolDay(day) && e.when(cal(day).year) === day);
-function cutPeriods(day) { const s = new Set(); for (const e of schoolEventsOn(day)) for (const n of e.periods) s.add(n); return s; }
+function cutPeriods(day) { const s = new Set(); for (const e of schoolEventsOn(day)) for (const n of e.periods) s.add(n); TIMETABLE[cal(day).dow] && TIMETABLE[cal(day).dow].forEach((x, i) => { if (!x) s.add(i + 1); }); return s; }
+// ngày chỉ học buổi sáng: tan học lúc nghỉ trưa
+const halfDay = day => isSchoolDay(day) && HALF_DAYS.includes(cal(day).dow) && !schoolEventsOn(day).length;   // ngày có sự kiện của trường thì vẫn ở lại trường cả chiều
+const schoolEndT = () => (G && halfDay(G.day) ? AM_END : CFG.SCHOOL_END);
 const bcDecor = () => !!G && G.day === contestDay(cal(G.day).year) && (RT.bcFest || (G.time >= AM_END && !bcY().done));
 const bcWho = { look: 'principal' };
 function startBcFest() {

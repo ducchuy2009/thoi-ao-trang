@@ -25,13 +25,14 @@ const LINKS = {
   'town>pho': { at: ['pho', 16, 204, 2], hop: WALK_HOP, label: 'Đi sang phố Hoa Phượng…' },
   'pho>town': { at: ['town', 782, 204, 1], hop: WALK_HOP, label: 'Đi về khu phố nhà mình…' },
   'pho>school': { at: ['school', 14, 408, 2], hop: WALK_HOP, label: 'Đi sang trường…' },
-  'school>pho': { at: ['pho', 878, 204, 1], hop: WALK_HOP, label: 'Đi về phố Hoa Phượng…' },
+  'school>pho': { at: ['pho', PHO_W * 16 - 18, 204, 1], hop: WALK_HOP, label: 'Đi về phố Hoa Phượng…' },
   'pho>ga': { at: ['ga', 288, 300, 3], hop: 0 }, 'ga>pho': { at: ['pho', 456, 22, 0], hop: 0 },
   'pho>song': { at: ['song', 320, 24, 0], hop: 0 }, 'song>pho': { at: ['pho', 440, 396, 3], hop: 0 },
   'school>nui': { at: ['nui', 320, 456, 3], hop: HILL_CLIMB, foot: true, hours: HILL_HOURS, label: 'Theo lối mòn sau trường lên núi…' },
   'nui>school': { at: ['school', 736, 26, 0], hop: HILL_CLIMB, foot: true, label: 'Xuống núi…' },
   'town>chua': { at: ['chua', 176, 24, 0], hop: WALK_HOP, label: 'Đi xuống chùa…' }, 'chua>town': { at: ['town', 176, 396, 3], hop: WALK_HOP, label: 'Về khu phố nhà mình…' },
   'song>chua': { at: ['chua', 620, 176, 1], hop: WALK_HOP, label: 'Đi sang chùa…' }, 'chua>song': { at: ['song', 20, 70, 2], hop: WALK_HOP, label: 'Ra bờ sông…' },
+  'song>dong': { at: ['dong', 16, 204, 2], hop: WALK_HOP, label: 'Đi sang phố Bờ Đông…' }, 'dong>song': { at: ['song', 620, 70, 1], hop: WALK_HOP, label: 'Về bờ sông…' },
 };
 ACT.go = (from, to) => {
   if (RT.lock) return;
@@ -78,7 +79,7 @@ function dismount(quiet) {
 }
 const shedLabel = () => (G && G.park && G.park.shed ? `Nhà xe — lấy ${VEHICLES[G.park.id].name.toLowerCase()}` : 'Nhà xe học sinh');
 // Xe gửi ở nhà xe trường: chỉ lấy được khi đã hết mọi tiết học (hoặc được cho về vì ngất); lấy xe thì dắt ra cổng rồi mới lên xe
-const classesOver = () => !schoolToday() || G.time >= CFG.SCHOOL_END || !!G.daily.fainted;
+const classesOver = () => !schoolToday() || G.time >= schoolEndT() || !!G.daily.fainted;
 ACT.shed = async () => {
   if (RT.lock) return;
   if (!G.park || !G.park.shed) return UI.toast('Nhà xe học sinh. Đi xe đến trường thì xe gửi ở đây.');
@@ -133,7 +134,7 @@ ACT.bus = async from => {
   advanceTime(busMins(from, to)); setMap(B.map, B.x, B.y, 0); RT.snapNpcs = true;
   await UI.fade(false);
   RT.lock = false; UI.hud();
-  if (to === 'truong' && schoolToday() && G.time < CFG.SCHOOL_END) UI.toast('Xuống xe trước cổng trường. Đi qua cổng để vào trường.', 'info');
+  if (to === 'truong' && schoolToday() && G.time < schoolEndT()) UI.toast('Xuống xe trước cổng trường. Đi qua cổng để vào trường.', 'info');
 };
 // Tàu hoả: chỉ có tàu mới ra được biển
 ACT.train = async from => {
@@ -856,12 +857,14 @@ const meetWhen = m => (m.day === G.day ? 'Hôm nay' : 'Ngày mai') + ' ' + meetT
 // Các câu trả lời nhanh trong khung chat
 function phoneActions(id) {
   const a = [];
+  const pti = (id === 'mom' || id === 'dad') && ptInvite();
+  if (pti && pti.who === id) { a.push(['pyes', 'Dạ, con mang tới ngay ạ!']); a.push(['pno', 'Con đang bận ạ']); }
   if (id === 'mom') {
     if (!G.daily.momAsk && !G.daily.outPerm && G.time < 1320) a.push(['late', 'Xin phép về muộn']);
     a.push(['hoi', 'Hỏi mẹ tối nay ăn gì']);
     return a;
   }
-  if (id === 'dad') return [['dad', 'Hỏi thăm bố']];
+  if (id === 'dad') return a.concat([['dad', 'Hỏi thăm bố']]);
   const p = G.phone.pend, j = lunchAct();
   if (j && j.fid === id) { a.push(['jyes', LUNCH_JOIN[j.kind].yes]); a.push(['jno', 'Thôi, trưa nay tớ nghỉ']); }
   if (p && p.fid === id && p.day >= G.day) { a.push(['yes', 'Đi chứ!']); a.push(['no', 'Tớ bận rồi, để bữa khác']); }
@@ -871,6 +874,7 @@ function phoneActions(id) {
   return a;
 }
 function phoneSend(id, act, arg) {
+  if (act === 'pyes' || act === 'pno') return parentReply(id, act === 'pyes');
   if (id === 'mom') {
     if (act === 'late') {
       pushMsg('mom', true, 'Mẹ ơi, hôm nay con xin phép về muộn một chút ạ.'); G.daily.momAsk = true;
@@ -929,7 +933,7 @@ function phoneSend(id, act, arg) {
 // Rủ bạn đi chơi qua tin nhắn: đang trong giờ học thì hẹn sau khi tan; muộn quá thì hẹn hôm sau
 function phoneInvite(fid, place) {
   const F = FRIENDS[fid], P = PLACES[place], last = Math.min(MEET_END, P.open[1]) - 90;
-  let day = G.day, from = schoolToday() && G.time < CFG.SCHOOL_END ? AFTER_SCHOOL : Math.ceil((G.time + 30) / 10) * 10;
+  let day = G.day, from = schoolToday() && G.time < schoolEndT() ? (halfDay(G.day) ? AM_END + 20 : AFTER_SCHOOL) : Math.ceil((G.time + 30) / 10) * 10;
   if (from > last) { day = G.day + 1; from = 0; }
   const when = day > G.day ? 'Mai' : (from === AFTER_SCHOOL ? 'Chiều nay tan học' : 'Lát nữa');
   pushMsg(fid, true, `${when} đi ${P.short} không?`);
@@ -956,6 +960,7 @@ function friendPing(evening) {
   inbox(fid, pick(MSG_TAM[fid]));
 }
 function socialTick(t) {
+  parentPing(t);                                                                  // bố mẹ nhắn nhờ việc (ngoài giờ học)
   if (t === 1170 && Math.random() < 0.5) friendPing(true);                       // 19:30
   else if (t === 510 && !schoolToday() && Math.random() < 0.45) friendPing(false);   // sáng ngày nghỉ
   const m = meetOn();

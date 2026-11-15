@@ -381,3 +381,4 @@ b.bad{color:#d9534f}
 .ct-s span{display:inline-flex;align-items:center}.pcard .pc-s span{display:inline-flex;align-items:center;justify-content:center;gap:1px}
 .stat-legend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;margin:6px 0 8px;font-weight:700}.stat-legend span{display:flex;align-items:center;gap:4px}
 .btns.stats6 .btn{display:flex;align-items:center;justify-content:center;gap:6px}
+.chip.off{background:#d9d0bd;color:#6b6170}
