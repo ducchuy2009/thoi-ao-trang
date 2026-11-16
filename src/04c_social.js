@@ -24,7 +24,7 @@ async function goPlace(map, x, y, dir, mins, label) {
 const LINKS = {
   'town>pho': { at: ['pho', 16, 204, 2], hop: WALK_HOP, label: 'Đi sang phố Hoa Phượng…' },
   'pho>town': { at: ['town', 782, 204, 1], hop: WALK_HOP, label: 'Đi về khu phố nhà mình…' },
-  'pho>school': { at: ['school', 14, 408, 2], hop: WALK_HOP, label: 'Đi sang trường…' },
+  'pho>school': { at: ['school', 14, 456, 2], hop: WALK_HOP, label: 'Đi sang trường…' },
   'school>pho': { at: ['pho', PHO_W * 16 - 18, 204, 1], hop: WALK_HOP, label: 'Đi về phố Hoa Phượng…' },
   'pho>ga': { at: ['ga', 288, 300, 3], hop: 0 }, 'ga>pho': { at: ['pho', 456, 22, 0], hop: 0 },
   'pho>song': { at: ['song', 320, 24, 0], hop: 0 }, 'song>pho': { at: ['pho', 440, 396, 3], hop: 0 },
@@ -53,7 +53,7 @@ const RIDE_TILES = ['road', 'walk'];
 function rideOk(m, x, y) {
   if (!m.tile || m.indoor) return !m.indoor;
   if (m.id === 'town' && x < 272 && y < 160) return true;          // sân nhà mình: dắt xe ra cổng
-  if (m.id === 'school' && x >= GATE.x && x < GATE.x + GATE.w && y >= 368 && y < 400) return true;   // chạy tới cổng trường để gửi xe
+  if (m.id === 'school' && x >= GATE.x && x < GATE.x + GATE.w && y >= 416 && y < 448) return true;   // chạy tới cổng trường để gửi xe
   return RIDE_TILES.includes(m.tile[(y >> 4) * m.w + (x >> 4)]);
 }
 ACT.mount = async id => {
@@ -337,7 +337,7 @@ ACT.friend = async (fid, where) => {
 /* ---------- hoạt cảnh ---------- */
 // o: { map, me:[x,y,dir], actors:[{look,x,y,dir,hidden}], cam, props:[fn(now)], hide:[sid], title, below,
 //      steps:[…] hoặc lines:[[who,text]] · inPlace: diễn ngay tại chỗ, không chuyển cảnh · bars:false: không có dải đen · stay: diễn xong ở lại chỗ mới }
-// Bước: {say:[who,text]} · {move:[who,x,y,ms,hop,keep]} · {hop:who} · {wait:ms} · {fn} · {par:[bước…]} — who: 'me' hoặc chỉ số actor
+// Bước: {say:[who,text]} · {move:[who,x,y,ms,hop,keep]} · {hop:who} · {wait:ms} · {fn} · {par:[bước…]} · {live: async sc => …} — who: 'me' hoặc chỉ số actor
 function tween(who, x, y, ms, hop, keep) {
   return new Promise(res => {
     const sc = RT.scene, e = who === 'me' ? 'me' : sc.actors[who], cur = e === 'me' ? G : e;
@@ -355,6 +355,7 @@ async function runStep(st, o) {
   else if (st.wait) await UI.wait(st.wait);
   else if (st.fn) st.fn(sc);
   else if (st.par) await Promise.all(st.par.map(q => runStep(q, o)));
+  else if (st.live) await st.live(sc);              // đoạn chơi được: hàm tự điều khiển cảnh (sc.drive mỗi khung hình), xong thì trả về
 }
 async function playCut(o) {
   const back = { map: G.map, x: G.x, y: G.y, dir: G.dir }, prev = RT.scene;      // đang trong tiết học mà diễn hoạt cảnh thì xong trả lại cảnh lớp học
@@ -413,34 +414,34 @@ function massageCut(n) {
 }
 // Trèo tường: trốn ra (backIn = false) hoặc trèo về lại trường (backIn = true; caught: giám thị đứng chờ sẵn)
 function wallCut(fid, backIn, caught) {
-  const A = [150, 358], B = [174, 358], A2 = [150, 402], B2 = [174, 402], gt = { look: 'giamthi', x: 262, y: 352, dir: 1, hidden: true };
+  const A = [150, 406], B = [174, 406], A2 = [150, 450], B2 = [174, 450], gt = { look: 'giamthi', x: 262, y: 400, dir: 1, hidden: true };
   const bang = sc => { sc.bang = true; if (sc.actors[1]) sc.actors[1].hidden = false; };
   const steps = backIn
     ? [{ say: ['me', 'Trèo vào lẹ lên, sắp hết giờ rồi!'] }, { move: ['me', A[0], A[1], 520, 26] }, { move: [0, B[0], B[1], 520, 26] }]
         .concat(caught
-          ? [{ fn: bang }, { par: [{ hop: 'me' }, { hop: 0 }] }, { move: [1, 206, 356, 550] }, { say: [1, 'Đứng lại! Hai em trốn học phải không? Lên phòng giám thị ngay!'] }]
+          ? [{ fn: bang }, { par: [{ hop: 'me' }, { hop: 0 }] }, { move: [1, 206, 404, 550] }, { say: [1, 'Đứng lại! Hai em trốn học phải không? Lên phòng giám thị ngay!'] }]
           : [{ say: [0, 'Phù… không ai thấy. Về lớp thôi!'] }])
     : [{ say: [0, 'Suỵt… bác bảo vệ đang quay lưng. Trèo lẹ!'] }, { move: ['me', A2[0], A2[1], 520, 26] }, { move: [0, B2[0], B2[1], 520, 26] }, { say: ['me', 'Thoát rồi! Chạy lẹ ra phố Hoa Phượng!'] }];
   return {
     map: 'school', me: backIn ? [A2[0], A2[1], 3] : [A[0], A[1], 0], actors: [{ look: fid, x: backIn ? B2[0] : B[0], y: backIn ? B2[1] : B[1], dir: backIn ? 3 : 0 }, gt],
-    cam: { x: 176, y: 372 }, title: backIn ? 'Trèo tường về lại trường' : 'Trèo tường trốn học', steps, props: [bangProp],
+    cam: { x: 176, y: 420 }, title: backIn ? 'Trèo tường về lại trường' : 'Trèo tường trốn học', steps, props: [bangProp],
   };
 }
 // Rình lúc bác bảo vệ sơ ý rồi lẻn qua cổng
 function sneakCut(fid) {
   return {
-    map: 'school', me: [338, 350, 0], actors: [{ look: fid, x: 362, y: 350, dir: 0 }], cam: { x: 350, y: 372 }, title: 'Rình bác bảo vệ sơ ý',
-    steps: [{ say: [0, 'Bác bảo vệ đang gật gù kìa. Đi nhẹ thôi…'] }, { par: [{ move: ['me', 338, 404, 1000] }, { move: [0, 362, 404, 1000] }] }, { say: ['me', 'Trót lọt! Đi thôi!'] }],
+    map: 'school', me: [338, 398, 0], actors: [{ look: fid, x: 362, y: 398, dir: 0 }], cam: { x: 350, y: 420 }, title: 'Rình bác bảo vệ sơ ý',
+    steps: [{ say: [0, 'Bác bảo vệ đang gật gù kìa. Đi nhẹ thôi…'] }, { par: [{ move: ['me', 338, 452, 1000] }, { move: [0, 362, 452, 1000] }] }, { say: ['me', 'Trót lọt! Đi thôi!'] }],
   };
 }
 // Quay lại trường sau khi trốn học: lẻn qua cổng; bị bắt thì giám thị đứng chờ, hai đứa giật mình nhảy dựng lên
 function gateBackCut(fid, caught) {
-  const steps = [{ par: [{ move: ['me', 338, 354, 900] }, { move: [0, 362, 354, 900] }] }];
-  if (caught) steps.push({ fn: sc => { sc.bang = true; sc.actors[1].hidden = false; } }, { par: [{ hop: 'me' }, { hop: 0 }] }, { move: [1, 300, 350, 500] }, { say: [1, 'Đứng lại! Hai em trốn học đi đâu về đấy? Lên phòng giám thị ngay!'] });
+  const steps = [{ par: [{ move: ['me', 338, 402, 900] }, { move: [0, 362, 402, 900] }] }];
+  if (caught) steps.push({ fn: sc => { sc.bang = true; sc.actors[1].hidden = false; } }, { par: [{ hop: 'me' }, { hop: 0 }] }, { move: [1, 300, 398, 500] }, { say: [1, 'Đứng lại! Hai em trốn học đi đâu về đấy? Lên phòng giám thị ngay!'] });
   else steps.push({ say: [0, 'Phù… không ai thấy. Về lớp thôi!'] });
   return {
-    map: 'school', me: [338, 404, 3], actors: [{ look: fid, x: 362, y: 404, dir: 3 }, { look: 'giamthi', x: 240, y: 330, dir: 2, hidden: true }],
-    cam: { x: 350, y: 372 }, title: 'Lẻn về trường', steps, props: [bangProp],
+    map: 'school', me: [338, 452, 3], actors: [{ look: fid, x: 362, y: 452, dir: 3 }, { look: 'giamthi', x: 240, y: 378, dir: 2, hidden: true }],
+    cam: { x: 350, y: 420 }, title: 'Lẻn về trường', steps, props: [bangProp],
   };
 }
 // Phụ mẹ nấu ăn: đứng cạnh mẹ ở bếp thái rau, nồi bốc khói
@@ -549,7 +550,6 @@ async function breakFunCore(fid, id, inClass) {
   G.daily.brk[fid] = (G.daily.brk[fid] || 0) + 1;
   addFriend(fid, B.friend);
   L.push(li(`${BREAK_DONE[kind]} cùng ${F.name}.`, 'good'));
-  if (B.giaotiep) addStat('giaotiep', B.giaotiep);
   if (B.kheotay) addStat('kheotay', B.kheotay);
   const risk = (B.risk || 0) + (inClass ? IN_CLASS.riskAdd : 0);
   if (risk) {
@@ -596,7 +596,7 @@ async function classAction(p, subj) {
   if (a === 'chat') {
     const caught = roll(IN_CLASS.chat.risk), light = G.caughtCycle === 0;
     if (inClassScene()) await playCut(classFunCut('tam', fid, caught ? (light ? 'light' : 'hard') : null));
-    addFriend(fid, IN_CLASS.chat.friend); addStat('giaotiep', 1); L.push(li(`Thì thầm tám chuyện với ${F.name}.`, 'warn'));
+    addFriend(fid, IN_CLASS.chat.friend); L.push(li(`Thì thầm tám chuyện với ${F.name}.`, 'warn'));
     if (caught) L.push(...caughtInClass({ sev: 1 }));
   } else if (a === 'duel') {
     const r = await cardDuel('f_' + fid, fid, F.name, F.duel); L.push(li(r === null ? 'Chưa kịp đấu thì thôi.' : `Đấu thẻ dưới gầm bàn với ${F.name}.`, 'warn'));
@@ -607,7 +607,7 @@ async function classAction(p, subj) {
 }
 
 /* ---------- quên sách: quay sang hỏi mượn bạn ---------- */
-const borrowChance = fid => clamp((fid === 'khoa' ? BORROW.deskmate : BORROW.other) + BORROW.perHeart * hearts(fid) + BORROW.perTalk * lv('giaotiep') + (grudge(fid) ? BORROW.grudge : 0), 0.03, 0.95);
+const borrowChance = fid => clamp((fid === 'khoa' ? BORROW.deskmate : BORROW.other) + BORROW.perHeart * hearts(fid) + (grudge(fid) ? BORROW.grudge : 0), 0.03, 0.95);
 async function askBorrow(subj) {
   const item = `sách ${SUBJ[subj].short}`, fids = Object.keys(FRIENDS), L = [];
   const c = await pickPerson('Quên sách', `<p><i>Thôi chết… lục tung cả cặp mà không thấy ${item} đâu. Chắc để quên ở nhà rồi. Quay sang hỏi mượn ai bây giờ?</i></p>`, friendPeople(fids), 'Thôi, ngồi nghe chay');
@@ -634,8 +634,8 @@ async function classEvent(subj) {
   if (id === 'phatbieu') {
     const c = await UI.ask(T, `<p>${co} đặt một câu hỏi khó rồi nhìn quanh lớp: “Bạn nào trả lời được nào?”</p>`, ['Giơ tay phát biểu', 'Ngồi im']);
     if (c !== 0) return { delta, lines: L };
-    if (Math.random() < clamp(0.35 + 0.1 * lv(stat), 0.2, 0.95)) { delta = 2; addTeacher(TEACHER.answer); addStat('giaotiep', 1); L.push(li(`Giơ tay trả lời đúng — ${co.toLowerCase()} khen trước lớp.`, 'good')); }
-    else { addStat('giaotiep', 1); L.push(li(`Trả lời chưa đúng, nhưng ${co.toLowerCase()} khen tinh thần xây dựng bài.`, 'warn')); }
+    if (Math.random() < clamp(0.35 + 0.1 * lv(stat), 0.2, 0.95)) { delta = 2; addTeacher(TEACHER.answer); L.push(li(`Giơ tay trả lời đúng — ${co.toLowerCase()} khen trước lớp.`, 'good')); }
+    else { L.push(li(`Trả lời chưa đúng, nhưng ${co.toLowerCase()} khen tinh thần xây dựng bài.`, 'warn')); }
   } else if (id === 'thutay') {
     const c = await UI.ask(T, `<p>Một mẩu giấy gấp tư được chuyền tới bàn bạn. Chữ của <b>${F.name}</b>: “Tan học đi chơi không? Trả lời tớ nha!”</p>`, ['Viết trả lời rồi chuyền lại', 'Cất đi, tập trung học']);
     if (c !== 0) return { delta: 1, lines: L };
@@ -734,17 +734,17 @@ async function lunchJoin(fid, j) {
     const [bx, by] = [136, 172], notes = now => { const t = now / 1000; for (let i = 0; i < 3; i++) { const k = (t * 0.8 + i / 3) % 1; wRect('#7a5fc9', bx + 6 + i * 8 + Math.sin(k * 6) * 3, by - 18 - k * 22, 2, 2); wRect('#7a5fc9', bx + 7 + i * 8 + Math.sin(k * 6) * 3, by - 22 - k * 22, 1, 4); } drawSpr(SPR.guitar, bx + 4, by - 20); };
     await playCut({ map: 'school', me: [bx + 46, by + 12, 1], cam: { x: bx + 20, y: by }, title: 'Hát cùng Đạt dưới gốc phượng', hide: ['dat'], actors: [{ look: 'dat', x: bx + 12, y: by + 10, dir: 0 }, { look: 'c2', x: bx - 6, y: by + 22, dir: 2 }, { look: 'x3', x: bx + 30, y: by + 26, dir: 1 }], props: [notes],
       steps: [{ say: [0, 'Ngồi xuống đây! Bài này ai cũng thuộc nè.'] }, { move: ['me', bx + 26, by + 14, 400] }, { fn: () => { G.dir = 1; } }, { say: ['me', 'La la la… hát to lên nào!'] }, { say: [1, 'Đạt đánh đàn hay ghê!'] }, { say: [0, 'Mai mốt tụi mình lập ban nhạc đi!'] }] });
-    advanceTime(20); gainStam(8); addStat('vannghe', 3); addStat('giaotiep', 1); addFriend('dat', 4);
+    advanceTime(20); gainStam(8); addStat('vannghe', 3); addFriend('dat', 4);
   } else if (j.kind === 'khao') {
     const snack = now => { for (const [a, k] of [[G, 0], [RT.scene.actors[0], 1]]) { wRect('#c9862f', a.x + 4, a.y - 16 + ((bob() + k) % 2), 5, 3); wRect('#c9e9f2', a.x - 8, a.y - 18, 3, 5); } };
     await playCut({ map: 'school', me: [96, 128, 3], cam: { x: 80, y: 110 }, title: 'Khoa khao ăn vặt ở căn tin', hide: ['khoa'], actors: [{ look: 'khoa', x: 72, y: 126, dir: 3 }, { look: 'c3', x: 56, y: 134, dir: 2 }], props: [snack],
       steps: [{ say: [0, 'Cô ơi cho con ba ly trà đá với ba bịch bánh tráng nướng!'] }, { fn: sc => { G.dir = 1; sc.actors[0].dir = 2; } }, { say: ['me', 'Khoa hôm nay chơi lớn ghê!'] }, { say: [0, 'Trúng nắp chai mà, ăn đi đừng ngại!'] }, { say: [1, 'Giòn quá trời luôn!'] }] });
-    advanceTime(10); gainStam(10); addFriend('khoa', 3); addStat('giaotiep', 1);
+    advanceTime(10); gainStam(10); addFriend('khoa', 3); 
   } else if (j.kind === 'tapchi') {
     const [bx, by] = [396, 172], mag = now => { const a = RT.scene.actors[0]; wRect('#e98fa5', a.x + 4, a.y - 20, 9, 7); wRect('#fffaf0', a.x + 5, a.y - 19 + bob(), 7, 2); };
     await playCut({ map: 'school', me: [bx + 40, by + 12, 1], cam: { x: bx + 16, y: by }, title: 'Đọc tạp chí cùng Ngân', hide: ['ngan'], actors: [{ look: 'ngan', x: bx + 8, y: by + 12, dir: 2 }], props: [mag],
       steps: [{ say: [0, 'Câu 1: Đi chơi cậu thích lên núi hay ra biển?'] }, { move: ['me', bx + 24, by + 12, 400] }, { fn: () => { G.dir = 1; } }, { say: ['me', 'Biển! Có trà sữa thì càng tốt.'] }, { say: [0, 'Kết quả: cậu là kiểu người vui vẻ, ai cũng quý! Đúng ghê!'] }, { say: ['me', 'Haha, tạp chí nói chuẩn quá!'] }] });
-    advanceTime(20); gainStam(5); addStat('giaotiep', 1); addFriend('ngan', 4);
+    advanceTime(20); gainStam(5); addFriend('ngan', 4);
   }
   RT.lock = false; UI.hud();
 }
@@ -777,7 +777,7 @@ ACT.picnic = async () => {
   const gain = PICNIC.base + (best ? Math.round(FOODS[best].stam * 1.5) : 0);
   const c = await UI.ask('Bãi cỏ picnic', `<p>Bãi cỏ thoai thoải đầy hoa dại, gió thổi lồng lộng.${best ? ` Bạn mang theo ${FOODS[best].name.toLowerCase()}.` : ' Bạn không mang gì để ăn, chỉ nằm hóng gió được thôi.'}</p>`, [`Trải bạt picnic${wf}`, 'Thôi']);
   if (c !== 0) return;
-  await jointAct(`Đang picnic${wf}…`, PICNIC.mins, 'picnic', fid, () => { G.daily.hill.picnic = true; if (best) G.inv[best]--; gainStam(gain); addStat('giaotiep', fid ? 3 : 1); palGain('nui', PICNIC.friend); addMemo('scene', 'picnic'); });
+  await jointAct(`Đang picnic${wf}…`, PICNIC.mins, 'picnic', fid, () => { G.daily.hill.picnic = true; if (best) G.inv[best]--; gainStam(gain); palGain('nui', PICNIC.friend); addMemo('scene', 'picnic'); });
 };
 ACT.summit = async () => {
   if (G.daily.hill.view) return UI.toast('Hôm nay bạn ngắm cảnh trên đỉnh rồi.');
@@ -895,7 +895,7 @@ function phoneSend(id, act, arg) {
     pushMsg(id, true, pick(MSG_ME));
     if (grudge(id)) return say('Đã xem.');
     say(pick(MSG_TAM[id]));
-    if (!G.daily.msg[id]) { G.daily.msg[id] = true; addFriend(id, 2); addStat('giaotiep', 1); }
+    if (!G.daily.msg[id]) { G.daily.msg[id] = true; addFriend(id, 2); }
   } else if (act === 'bai') {
     pushMsg(id, true, 'Sắp tới có kiểm tra môn gì không? Tớ quên mất rồi.');
     if (grudge(id)) return say('Tự đi mà xem bảng tin.');

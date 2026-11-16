@@ -336,12 +336,12 @@ MV.stats = {
   render() {
     const st = UI._stab || 'ly';
     const bar = (cur, need, col) => `<div class="pb"><div style="width:${need ? Math.round(100 * cur / need) : 100}%;background:${col || ''}"></div></div>`;
-    const cell = k => { const i = lvlInfo(G.stats[k]), col = SUBJ[k] ? SUBJ[k].color : ({ thethao: '#d9742b', buonban: '#c9862b', giaotiep: '#e06a9a', kheotay: '#3f8f9b', vannghe: '#9a72d6' })[k]; return `<div class="st"><div class="sth"><b>${STAT_NAMES[k]}</b><span class="lv">Lv ${i.lv}</span></div>${bar(i.cur, i.need, col)}<small>${i.lv >= 10 ? 'Tối đa' : `${i.cur}/${i.need}`}</small></div>`; };
+    const cell = k => { const i = lvlInfo(G.stats[k]), col = SUBJ[k] ? SUBJ[k].color : ({ thethao: '#d9742b', buonban: '#c9862b', kheotay: '#3f8f9b', vannghe: '#9a72d6' })[k]; return `<div class="st"><div class="sth"><b>${STAT_NAMES[k]}</b><span class="lv">Lv ${i.lv}</span></div>${bar(i.cur, i.need, col)}<small>${i.lv >= 10 ? 'Tối đa' : `${i.cur}/${i.need}`}</small></div>`; };
     const big = (name, v, note) => `<div class="st big"><div class="sth"><b>${name}</b><span class="lv">${fmtAvg(v)}</span></div><small>${note}</small></div>`;
     let h = subTabs('stab', st, [['ly', 'Lý thuyết'], ['th', 'Thực hành'], ['khac', 'Khác']]);
     if (st === 'ly') h += big('Lý thuyết', lyThuyet(), 'Trung bình cấp các môn Toán, Văn, Anh, Lý, Hoá, Sử, Địa') + '<div class="sgrid">' + ['toan', 'van', 'anh', 'ly', 'hoa', 'sinh', 'su', 'dia'].map(cell).join('') + '</div>';
     else if (st === 'th') h += big('Thực hành', thucHanh(), 'Trung bình cấp Quốc phòng và thực hành Lý, Hoá, Sinh') + '<div class="sgrid">' + PRACTICE.map(cell).join('') + '</div>';
-    else h += '<div class="sgrid">' + ['thethao', 'buonban', 'giaotiep', 'kheotay', 'vannghe'].map(cell).join('') + '</div>';
+    else h += '<div class="sgrid">' + ['thethao', 'buonban', 'kheotay', 'vannghe'].map(cell).join('') + '</div>';
     return h;
   },
 };
@@ -375,7 +375,7 @@ MV.tt = {
     }
     const up = []; for (let d = G.day; d < G.day + 14; d++) for (const e of schoolEventsOn(d)) up.push(`<b>${dateLabel(d)}</b>: ${e.name} ${fmtTime(e.from)}–${fmtTime(e.to)} — nghỉ tiết ${e.periods.join(', ')}`);
     if (up.length) h += '</table><p class="okbox">Sự kiện của trường: ' + up.join(' · ') + '</p><table class="tt" style="display:none">';
-    return h + `</table><p class="dim">Ô “TH” là buổi thực hành riêng. Mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 20'; tan học ${fmtTime(CFG.SCHOOL_END)}, riêng thứ 4 và thứ 6 chỉ học buổi sáng (tan học ${fmtTime(AM_END)}). Lịch kiểm tra xem ở tab Lịch.</p>`;
+    return h + `</table><p class="dim">Ô “TH” là buổi thực hành riêng. Mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 30'; tan học ${fmtTime(CFG.SCHOOL_END)}, riêng thứ 4 và thứ 6 chỉ học buổi sáng (tan học ${fmtTime(AM_END)}). Lịch kiểm tra xem ở tab Lịch.</p>`;
   },
 };
 
@@ -424,19 +424,22 @@ MV.cal = {
     for (let i = 0; i < cal(base).dow; i++) h += '<div class="cd x"></div>';
     for (let d = 0; d < CFG.DAYS_PER_SEASON; d++) {
       const day = base + d, c = cal(day), ev = [], hol = holidayOf(day), sem = semOf(day);
-      if (sem && c.doy === sem.from) ev.push(`<span class="ev sem">Bắt đầu ${sem.name}</span>`);
-      if (sem && c.doy === sem.to) ev.push(`<span class="ev sem">Tổng kết ${sem.name}</span>`);
-      if (hol) ev.push(`<span class="ev hol">${hol.name}</span>`);
-      for (const f of FESTIVALS) if (f.season === se && f.day === d + 1) ev.push(`<span class="ev fes">${f.name}</span>`);
-      for (const e of schoolEventsOn(day)) ev.push(`<span class="ev fes">${e.short}</span>`);
-      for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, day)) ev.push(`<span class="ev bd">Sinh nhật ${FRIENDS[f].name}</span>`);
-      for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], day)) ev.push(`<span class="ev bd">Sinh nhật ${PNAME[w].toLowerCase()}</span>`);
-      for (const t of tests[day] || []) ev.push(`<span class="ev ts ${t.done ? 'done' : ''}" style="--c:${SUBJ[t.subj].color}" title="${TEST_NAME[t.type]} · ${SUBJ[t.subj].name}">${SUBJ[t.subj].short} · ${t.type === 'thi' ? 'thi' : '1 tiết'}</span>`);
-      if (G.meet && G.meet.day === day) ev.push(`<span class="ev mt">Hẹn ${FRIENDS[G.meet.fid].name}</span>`);
+      // sự kiện hiện thành icon (di chuột / giữ ngón tay lên icon để xem tên)
+      if (sem && c.doy === sem.from) ev.push(calIco('ci_sem', `Bắt đầu ${sem.name}`, 'sem'));
+      if (sem && c.doy === sem.to) ev.push(calIco('ci_semend', `Tổng kết ${sem.name}`, 'sem'));
+      if (hol) ev.push(calIco(/Tết/.test(hol.name) ? 'ci_tet' : 'ci_hol', hol.name, 'hol'));
+      if (isEveDay(day)) ev.push(calIco('sc_giaothua', 'Đón giao thừa trên núi', 'fes'));
+      for (const f of FESTIVALS) if (f.season === se && f.day === d + 1) ev.push(calIco(f.icon || 'ci_fes', f.name, 'fes'));
+      for (const e of schoolEventsOn(day)) ev.push(calIco(e.id === 'banhchung' ? 'sc_banhchung' : 'ci_fes', e.name, 'fes'));
+      if (isHkDay(day)) ev.push(calIco('sc_hkpd', 'Hội khoẻ Phù Đổng', 'fes'));
+      for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, day)) ev.push(calIco('ci_bd', `Sinh nhật ${FRIENDS[f].name}`, 'bd'));
+      for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], day)) ev.push(calIco('ci_bd', `Sinh nhật ${PNAME[w].toLowerCase()}`, 'bd'));
+      for (const t of tests[day] || []) ev.push(calIco('ci_test', `${TEST_NAME[t.type]} · ${SUBJ[t.subj].name}${t.done ? ' (đã làm)' : ''}`, `ts ${t.done ? 'done' : ''}`, `--c:${SUBJ[t.subj].color}`));
+      if (G.meet && G.meet.day === day) ev.push(calIco('ci_meet', `Hẹn ${FRIENDS[G.meet.fid].name}`, 'mt'));
       const off = c.dow >= 5 || !SEASONS[se].school || hol;
-      h += `<div class="cd ${day === G.day ? 'today' : ''} ${day < G.day ? 'past' : ''} ${off ? 'we' : ''} ${tv ? 'pick' : ''}" ${tv ? `data-act="jump" data-id="${day}"` : ''}><b>${d + 1}</b>${ev.join('')}</div>`;
+      h += `<div class="cd ${day === G.day ? 'today' : ''} ${day < G.day ? 'past' : ''} ${off ? 'we' : ''} ${tv ? 'pick' : ''}" ${tv ? `data-act="jump" data-id="${day}"` : ''}><b>${d + 1}</b><div class="evs">${ev.join('')}</div></div>`;
     }
-    h += '</div><div class="callegend"><span class="ev ts" style="--c:#7a7085">Kiểm tra 1 tiết / thi</span><span class="ev bd">Sinh nhật</span><span class="ev hol">Ngày lễ</span><span class="ev fes">Lễ hội</span><span class="ev mt">Cuộc hẹn</span><span class="ev sem">Học kỳ</span></div>';
+    h += '</div><div class="callegend">' + [['ci_test', 'Kiểm tra 1 tiết / thi (màu theo môn)', 'ts', '--c:#7a7085'], ['ci_bd', 'Sinh nhật', 'bd'], ['ci_tet', 'Ngày lễ, Tết', 'hol'], ['ci_fes', 'Lễ hội, sự kiện', 'fes'], ['ci_meet', 'Cuộc hẹn', 'mt'], ['ci_sem', 'Học kỳ', 'sem']].map(([i, t, c, st]) => `<span>${calIco(i, t, c, st)}${t}</span>`).join('') + '</div><p class="dim">Di chuột (hoặc chạm) vào icon để xem tên sự kiện.</p>';
     return h + `<p class="dim">${SEASONS[se].school ? 'Ô màu nhạt là ngày nghỉ (thứ 7, chủ nhật, ngày lễ).' : 'Nghỉ hè — không có tiết học.'} Lịch kiểm tra của một học kỳ được xếp vào ngày đầu học kỳ đó.${FESTIVALS.length ? '' : ' Lễ hội sẽ được bổ sung sau.'}</p>`;
   },
 };
@@ -492,13 +495,15 @@ function cityLayout() {
 const CITY_POI = [
   ['town', 95, 100, 'Nhà mình'], ['town', 351, 86, 'Tạp hoá Cô Ba'], ['town', 479, 86, 'Học thêm'], ['town', 630, 166, 'Trạm bus'], ['town', 380, 334, 'Công viên'],
   ['pho', 175, 86, 'Nhà các bạn'], ['pho', 524, 86, 'Trà sữa'], ['pho', 660, 66, 'TTTM'], ['pho', 806, 86, 'Khu game'], ['pho', 218, 166, 'Trạm bus'], ['pho', 640, 316, 'Xiên que'], ['pho', 136, 344, 'Sân bóng'],
-  ['school', 352, 66, 'Dãy lớp học'], ['school', 79, 80, 'Căn tin'], ['school', 572, 84, 'Nhà xe'], ['school', 664, 64, 'Vệ sinh'], ['school', 584, 232, 'Sân thể dục'], ['school', 352, 352, 'Cổng'], ['school', 130, 406, 'Trạm bus'],
+  ['school', 352, 66, 'Dãy lớp học'], ['school', 79, 80, 'Căn tin'], ['school', 572, 84, 'Nhà xe'], ['school', 664, 64, 'Vệ sinh'], ['school', 584, 232, 'Sân thể dục'], ['school', 352, 400, 'Cổng'], ['school', 130, 454, 'Trạm bus'],
   ['nui', 200, 290, 'Bãi picnic'], ['song', 320, 180, 'Câu cá'], ['chua', 321, 222, 'Lư hương · xin xăm'],
   ['pho', MOM_CO.x + 76, 70, 'Công ty của mẹ'], ['dong', DONG.factory + 100, 70, 'Nhà máy của bố'], ['dong', DONG.rest + 55, 86, 'Nhà hàng'], ['dong', DONG.kara + 50, 86, 'Karaoke'], ['dong', 150, 86, 'Nhà hàng xóm'], ['school', LIB_DOOR[0], 250, 'Thư viện'],
 ];
+// Icon sự kiện trên lịch (tên sự kiện ở tooltip)
+const calIco = (id, t, cls, st) => `<i class="evi ${cls || ''}" title="${t}"${st ? ` style="${st}"` : ''}><img src="${itemIcon(id)}" alt="${t}"></i>`;
 // Chỗ mình đang ở trên bản đồ chung (ở trong nhà / phòng thì lấy cửa ra vào)
 function whereAmI() {
-  const R0 = { home: ['town', 96, 128, 'trong nhà'], class: ['school', 244, 104, 'lớp 10A1'], lab: ['school', 461, 104, 'phòng thí nghiệm'], yte: ['school', 213, 104, 'trạm y tế'], nhac: ['school', 275, 104, 'phòng nhạc'], thuvien: ['school', LIB_DOOR[0], LIB_DOOR[1] - 10, 'thư viện'], ngutrua: ['school', 430, 104, 'phòng ngủ trưa'], wcnam: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh nam'], wcnu: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh nữ'], wc: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh'], wcm: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh'], tttm: ['pho', 660, 128, 'trong TTTM'], arc: ['pho', 806, 128, 'trong khu game'], phongbm: ['town', 96, 128, 'phòng bố mẹ'], congty: ['pho', MOM_CO.x + 76, 128, 'công ty của mẹ'], nhamay: ['dong', DONG.factory + 100, 128, 'nhà máy của bố'], nhahang: ['dong', DONG.rest + 55, 128, 'nhà hàng Sen Hồng'], karaoke: ['dong', DONG.kara + 50, 128, 'karaoke Âm Vang'], tang2: ['school', 352, 104, 'tầng 2'], l11a1: ['school', 352, 104, 'lớp 11A1'], l11a3: ['school', 352, 104, 'lớp 11A3'], l12a1: ['school', 352, 104, 'lớp 12A1'], l12a2: ['school', 352, 104, 'lớp 12A2'], fhome: ['pho', (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1] + 49, 128, 'nhà ' + ((FRIENDS[G.visit] || FRIENDS.khoa).name)] };
+  const R0 = { home: ['town', 96, 128, 'trong nhà'], class: ['school', 244, 104, 'lớp 10A1'], lab: ['school', 461, 104, 'phòng thí nghiệm'], yte: ['school', 213, 104, 'trạm y tế'], nhac: ['school', 275, 104, 'phòng nhạc'], thuvien: ['school', LIB_DOOR[0], LIB_DOOR[1] - 10, 'thư viện'], ngutrua: ['school', 430, 104, 'phòng ngủ trưa'], wcnam: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh nam'], wcnu: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh nữ'], wc: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh'], wcm: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh'], tttm: ['pho', 660, 128, 'trong TTTM'], arc: ['pho', 806, 128, 'trong khu game'], phongbm: ['town', 96, 128, 'phòng bố mẹ'], congty: ['pho', MOM_CO.x + 76, 128, 'công ty của mẹ'], nhamay: ['dong', DONG.factory + 100, 128, 'nhà máy của bố'], nhahang: ['dong', DONG.rest + 55, 128, 'nhà hàng Sen Hồng'], karaoke: ['dong', DONG.kara + 50, 128, 'karaoke Âm Vang'], tang2: ['school', 352, 104, 'tầng 2'], l11a1: ['school', 352, 104, 'lớp 11A1'], l11a3: ['school', 352, 104, 'lớp 11A3'], l12a1: ['school', 352, 104, 'lớp 12A1'], l12a2: ['school', 352, 104, 'lớp 12A2'], l10a2: ['school', 319, 104, 'lớp 10A2'], l10a3: ['school', 385, 104, 'lớp 10A3'], l10a4: ['school', 494, 104, 'lớp 10A4'], fhome: ['pho', (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1] + 49, 128, 'nhà ' + ((FRIENDS[G.visit] || FRIENDS.khoa).name)] };
   if (R0[G.map]) { const [a, x, y, room] = R0[G.map]; return { a, x, y, room }; }
   if (MAPS[G.map] && !MAPS[G.map].indoor && G.map !== 'ride' && G.map !== 'rail') return { a: G.map, x: G.x, y: G.y, room: '' };
   return null;
@@ -510,7 +515,7 @@ function cityMapImage() {
   x.fillStyle = '#6aa05a'; for (let i = 0; i < c.width; i += 22) for (let j = (i / 22) % 2 * 11; j < c.height; j += 22) x.fillRect(i, j, 3, 3);
   // đường nối giữa các khu
   const road = (pts, w, col) => { x.strokeStyle = col; x.lineWidth = w * S; x.lineJoin = 'round'; x.beginPath(); pts.forEach(([a, px, py], i) => { const [X, Y] = P(a, px, py); i ? x.lineTo(X, Y) : x.moveTo(X, Y); }); x.stroke(); };
-  road([['town', 790, 216], ['pho', 10, 216]], 48, '#5f656f'); road([['pho', MAPS.pho.pw - 10, 216], ['school', -10, 430]], 48, '#5f656f'); road([['song', MAPS.song.pw - 6, 70], ['dong', 10, 216]], 36, '#d9ccb2');
+  road([['town', 790, 216], ['pho', 10, 216]], 48, '#5f656f'); road([['pho', MAPS.pho.pw - 10, 216], ['school', -10, 478]], 48, '#5f656f'); road([['song', MAPS.song.pw - 6, 70], ['dong', 10, 216]], 36, '#d9ccb2');
   road([['pho', 456, 6], ['ga', 288, 314]], 40, '#d9ccb2'); road([['town', 176, 410], ['chua', 176, 6]], 32, '#d9ccb2'); road([['chua', 634, 176], ['song', 6, 70]], 32, '#d9ccb2'); road([['pho', 440, 410], ['song', 320, 10]], 40, '#d9ccb2'); road([['school', 736, 4], ['nui', 320, 470]], 30, '#b89a6a');
   x.setLineDash([10, 8]); road([['ga', 0, 250], ['bien', MAPS.bien.pw, 250]], 10, '#8a5a3a'); x.setLineDash([]);
   // từng khu: nền + đồ vật
@@ -571,6 +576,7 @@ MV.set = {
       if (up === CHEATS.money) { addMoney(CHEAT_MONEY, true); UI.toast(`Tiền tiêu vặt +${fmtMoney(CHEAT_MONEY)}.`, 'good'); }
       else if (up === CHEATS.love) { cheatLove(); UI.toast(`Mọi nhân vật quý bạn hơn (+${CHEAT_LOVE} thiện cảm).`, 'good'); }
       else if (up === CHEATS.level) { const n = cheatLevel(); UI.toast(n ? `Thiên tài! Tất cả ${n} môn học tăng thêm 1 cấp.` : 'Các môn đều đã đạt cấp tối đa.', 'good'); }
+      else if (CHEAT_STAT[up]) { const k = CHEAT_STAT[up], lvN = cheatStat(k); UI.toast(lvN ? `${STAT_NAMES[k]} lên cấp ${lvN}!` : `${STAT_NAMES[k]} đã đạt cấp tối đa.`, 'good'); }
       else if (up === CHEATS.time) { UI._travel = true; UI._tab = 'cal'; MV.cal.init(); UI.toast('Du hành thời gian: chọn một ngày trên lịch.', 'info'); }
       else if (importCode(v)) { save(); UI.close(-1); UI.toast('Đã nhập mã lưu.', 'good'); }
       else UI.toast('Mã không hợp lệ.', 'bad');
@@ -602,6 +608,13 @@ function cheatLevel() {
   }
   return n;
 }
+// Mã thử nghiệm: một chỉ số hỗ trợ lên thêm 1 cấp (giữ phần trăm của cấp hiện tại). Trả về cấp mới, 0 nếu đã tối đa
+function cheatStat(k) {
+  const i = lvlInfo(G.stats[k]); if (i.lv >= 10) return 0;
+  let start = 0, need = 50; for (let l = 0; l <= i.lv; l++) { start += need; need += 20; }
+  G.stats[k] = start + (i.lv + 1 >= 10 ? 0 : Math.floor(i.frac * need)); UI.hud();
+  return i.lv + 1;
+}
 // Mã thử nghiệm: +thiện cảm với mọi nhân vật
 function cheatLove() {
   for (const f in FRIENDS) addFriend(f, CHEAT_LOVE, true);
@@ -631,7 +644,7 @@ function timeTravel(day, time) {
     G.time = time;
     if (isSchoolDay(day)) {
       for (const p of PERIODS) if (p.start < time) G.daily.done[p.n] = true;
-      if (time === 450) setMap('school', 350, 404, 3);
+      if (time === 450) setMap('school', 350, 452, 3);
       else if (time <= CFG.SCHOOL_END) { G.atSchool = true; G.daily.arrived = true; setMap('school', 300, 300, 0); }
     }
   }

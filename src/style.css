@@ -208,6 +208,12 @@ body.cut #hotbar{opacity:0;pointer-events:none}
 .ev.bd{background:#e06a9a}.ev.hol{background:var(--red)}.ev.fes{background:var(--orange);color:var(--ink)}.ev.mt{background:var(--green)}.ev.sem{background:var(--blue)}
 .callegend{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
 .callegend .ev{display:inline-block}
+.cd .evs{display:flex;flex-wrap:wrap;gap:2px}
+.evi{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;border:2px solid var(--dim);background:#fff;cursor:help;flex:none}
+.evi img{width:16px;height:16px;image-rendering:pixelated}
+.evi.ts{border-color:var(--c);background:var(--c)}.evi.ts.done{opacity:.45}
+.evi.bd{border-color:#e06a9a;background:#fde3ee}.evi.hol{border-color:var(--red);background:#fde3e0}.evi.fes{border-color:var(--orange);background:#fff1d6}.evi.mt{border-color:var(--green);background:#e3f4da}.evi.sem{border-color:var(--blue);background:#e2eefa}
+.callegend span{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700}
 
 /* ---------- điện thoại ---------- */
 .crow{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:2px 10px;text-align:left;font:600 14px/1.25 inherit;font-family:inherit;color:var(--ink);background:#fff;border:3px solid var(--ink);border-radius:11px;box-shadow:0 3px 0 var(--ink);padding:6px 12px;cursor:pointer}
@@ -398,3 +404,32 @@ b.bad{color:#d9534f}
 .stat-legend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;margin:6px 0 8px;font-weight:700}.stat-legend span{display:flex;align-items:center;gap:4px}
 .btns.stats6 .btn{display:flex;align-items:center;justify-content:center;gap:6px}
 .chip.off{background:#d9d0bd;color:#6b6170}
+
+/* ---------- bảng tính tiền sau khi ngủ ---------- */
+.bill{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px}
+.bill td,.bill th{padding:3px 8px;text-align:left}
+.bill td:last-child{text-align:right;font-weight:700;white-space:nowrap}
+.bill tr.in td:last-child{color:#3f8f3a}
+.bill tr.tot td{border-top:2px dashed #c9b98f;font-weight:700}
+.bill tr.net td{font-size:15px;color:#3f8f3a}
+.bill tr.bal td{border-top:2px solid var(--ink);color:#5f656f;font-size:13px}
+
+/* ---------- Hội khoẻ Phù Đổng: bảng tỉ số khi đang thi + bảng xếp hạng ---------- */
+#arena{position:fixed;left:0;right:0;margin:0 auto;top:calc(8.5vh + 8px);z-index:30;display:none;flex-direction:column;align-items:center;gap:8px;pointer-events:none;width:min(440px,92vw)}
+#arena.on{display:flex}
+#arena .ah{background:rgba(255,246,227,.94);border:3px solid var(--ink);border-radius:12px;box-shadow:0 3px 0 var(--ink);padding:4px 12px;text-align:center;font-weight:700;color:var(--ink);width:100%}
+#arena .ah:empty{display:none}
+#arena .ah>b:first-child{display:block;font-size:13px;color:#8a5a3a}
+#arena .ah .sc{font-size:20px;font-weight:800;line-height:1.2}
+#arena .ah .sc i{font-style:normal;color:#c8312b;margin:0 6px}
+#arena .ah small{display:block;font-size:12px;color:#5f656f}
+#arena .bar{height:8px;border:2px solid var(--ink);border-radius:6px;background:#e9dcc0;margin:4px 0;overflow:hidden}
+#arena .bar span{display:block;height:100%;background:linear-gradient(90deg,#ffd23a,#e2574c)}
+#arena .ab{pointer-events:auto;position:fixed;right:18px;bottom:96px;width:92px;height:92px;border-radius:50%;border:4px solid var(--ink);background:#e2574c;color:#fff6e3;font:800 18px/1 inherit;font-family:inherit;box-shadow:0 5px 0 var(--ink);cursor:pointer;touch-action:manipulation}
+#arena .ab:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+.hktab{width:100%;border-collapse:collapse;font-size:14px;margin:4px 0 8px}
+.hktab th,.hktab td{padding:4px 8px;text-align:center;border-bottom:2px solid #e9dcc0}
+.hktab th{background:#f1e4c6;font-size:13px}
+.hktab tr.me td{background:#eaf6e2;font-weight:800}
+.hktab .md{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);margin-right:4px;vertical-align:-1px}
+.hktab .md.g{background:#ffd23a}.hktab .md.s{background:#d6dbe3}.hktab .md.b{background:#c8834a}

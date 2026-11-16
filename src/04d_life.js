@@ -7,7 +7,7 @@
  *  - Bên trong TTTM, khu game, nhà bạn · cửa hàng dạng icon · danh bạ điện thoại
  * ============================================================ */
 const dirOf = (dx, dy) => (Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 1 : 2) : (dy < 0 ? 3 : 0));
-const meWho = () => ({ look: G.gender, outfit: RT.outfit || (schoolToday() ? null : 'casual') });
+const meWho = () => ({ look: G.gender, outfit: RT.outfit || (schoolToday() || hkUniform() ? null : 'casual') });
 const meSay = (html, buttons) => UI.ask(G.name, html, buttons || ['OK'], { who: meWho() });       // tự sự: hội thoại dưới màn hình, chân dung của mình
 const coOf = subj => (TEACHER_OF[subj] === 'teacherC' || subj === 'qp' || subj === 'td' ? 'Thầy' : 'Cô');
 function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -41,7 +41,7 @@ function yardState() {
   return (YS = { key, wi, groups, where });
 }
 /* ---------- tan học: hết giờ ở sân thì các bạn lần lượt đi bộ ra cổng trường rồi mới khuất ---------- */
-const LEAVE = { gate: [352, 366], out: [352, 412], speed: 44, gap: 0.35, late: 30 };
+const LEAVE = { gate: [352, 414], out: [352, 460], speed: 44, gap: 0.35, late: 30 };
 function leaveTick() {
   if (!G || G.map !== 'school' || !schoolToday()) return;
   const W = halfDay(G.day) ? YARD_WINDOWS[2] : YARD_WINDOWS[YARD_WINDOWS.length - 1];
@@ -171,7 +171,7 @@ ACT.yardJoin = async (g, n) => {
   const names = fr.map(kidName);
   for (const k of fr) addFriend(k, YARD_JOIN.friend, true);
   if (fr.length) UI.float(`+${YARD_JOIN.friend} thân thiết với ${names.join(', ')}`, '#ff9fc0');
-  addStat('giaotiep', fr.length ? 2 : 1);
+  
   if (Y.sport) { useStam(5, true); addStat('thethao', Y.sport); }
   if (g.kind === 'conquay' || g.kind === 'danhbai') addStat('kheotay', 1);
   if (g.kind === 'eat') { const f = ['comhop', 'banhmi', 'sua'].find(k => G.inv[k]); if (f) eat(f); else gainStam(3); }
@@ -421,7 +421,7 @@ ACT.stallShop = id => {
   const items = () => MALL_GOODS[id].map(it => Object.assign({}, it, { owned: !!(it.own && G.owned[it.own]), desc: (it.desc || '') + (it.duo && fid ? ` (đi${wf})` : '') }));
   UI.store(name, '“Mời em xem hàng.”', items, async it => {
     if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
-    if (it.act === 'movie') { UI.close(); return jointAct(`Đang xem phim${wf}…`, M.movie.mins, 'movie', fid, () => { if (fid) addMemo('scene', 'movie'); addMoney(-it.price); gainStam(M.movie.stam); addStat('giaotiep', fid ? 3 : 1); palGain('mall', M.movie.friend); }); }
+    if (it.act === 'movie') { UI.close(); return jointAct(`Đang xem phim${wf}…`, M.movie.mins, 'movie', fid, () => { if (fid) addMemo('scene', 'movie'); addMoney(-it.price); gainStam(M.movie.stam); palGain('mall', M.movie.friend); }); }
     if (it.act === 'book') {
       if (G.daily.book) return UI.toast('Hôm nay bạn mua sách tham khảo rồi, đọc hết cuốn đó đã.');
       UI.close();
@@ -524,8 +524,8 @@ ACT.machine = async (kind, mx) => {
   await playCut(machineCut(kind, mx, res, fid));
   if (kind === 'claw') { addStat('kheotay', res === 'win' ? 3 : 1); if (res === 'win') { G.inv.gaubong = (G.inv.gaubong || 0) + 1; addMemo('item', 'gaubong'); UI.toast('Được một con gấu bông! Đem tặng bạn thân nhé.', 'good'); } advanceTime(10); }
   else if (kind === 'slot') { const n = res === 'big' ? 8 : res === 'small' ? 2 : 0; if (n) { G.inv.xeng += n; UI.toast(`Máy nhả ra ${n} xèng! Đang có ${G.inv.xeng} xèng.`, 'good'); } advanceTime(5); }
-  else if (kind === 'fight') { addStat('kheotay', res === 'win' ? 2 : 1); gainStam(3); if (fid) { addStat('giaotiep', 2); palGain('arcade', res === 'win' ? 8 : 6); } if (res === 'win') { G.inv.xeng += 1; UI.toast('Thắng trận, máy thưởng 1 xèng.', 'good'); } advanceTime(15); }
-  else if (kind === 'race') { gainStam(A.cab.stam); addStat('giaotiep', fid ? 3 : 1); addStat('kheotay', 1); palGain('arcade', A.cab.friend); if (res === 1) { G.inv.xeng += 1; UI.toast('Về nhất, máy thưởng 1 xèng.', 'good'); } advanceTime(A.cab.mins / 2); }
+  else if (kind === 'fight') { addStat('kheotay', res === 'win' ? 2 : 1); gainStam(3); if (fid) { palGain('arcade', res === 'win' ? 8 : 6); } if (res === 'win') { G.inv.xeng += 1; UI.toast('Thắng trận, máy thưởng 1 xèng.', 'good'); } advanceTime(15); }
+  else if (kind === 'race') { gainStam(A.cab.stam); addStat('kheotay', 1); palGain('arcade', A.cab.friend); if (res === 1) { G.inv.xeng += 1; UI.toast('Về nhất, máy thưởng 1 xèng.', 'good'); } advanceTime(A.cab.mins / 2); }
   else { useStam(A.dance.stam, true); addStat('vannghe', Math.round(1 + A.dance.pts * res)); addStat('thethao', 1); palGain('arcade', A.dance.friend); advanceTime(A.dance.mins); }
   RT.lock = false; UI.hud();
 };
@@ -570,7 +570,7 @@ ACT.fh = async kind => {
   RT.lock = true;
   if (kind === 'tv') {
     await playCut({ inPlace: true, title: `Nhà ${F.name}`, hide: ['fh'], actors: [{ look: fid, outfit: friendOutfit(fid), x: 110, y: 138, dir: 3 }], steps: [{ move: ['me', 86, 138, 500] }, { fn: () => { G.dir = 3; } }, { say: [0, 'Tập này hay lắm, coi đi!'] }, { say: ['me', 'Ha ha ha! Tua lại khúc đó đi!'] }], stay: true });
-    gainStam(6); addStat('giaotiep', 1);
+    gainStam(6); 
   } else {
     await playCut({ inPlace: true, title: `Phòng riêng của ${F.name}`, hide: ['fh'], actors: [{ look: fid, outfit: friendOutfit(fid), x: 262, y: 184, dir: 3 }], steps: [{ move: ['me', 226, 184, 400] }, { fn: () => { G.dir = 3; } }, { say: [0, 'Chơi đối kháng không? Thua rửa bát nha!'] }], stay: true });
     const r = await playGame('arrows', 2, 'Chơi điện tử', 'Ra chiêu');
@@ -788,7 +788,6 @@ ACT.senior = async soc => {
   meetSoc(soc);
   const tips = SENIOR_TIPS[soc], tip = tips[(G.day + (G.soc[soc] || 0)) % tips.length];
   const c = await UI.ask(S.name, `<p>“${tip}”</p>`, ['Dạ, em cảm ơn ạ', 'Rời đi'], { who: { look: S.look } });
-  if (c === 0 && first) addStat('giaotiep', 1);
 };
 
 /* ============================================================
@@ -848,7 +847,7 @@ async function giveHeld(t) {
   } else {
     who = { look: T.look, outfit: T.outfit }; name = T.name || 'Bạn';
     line = isFood ? 'Cho tớ thật hả? Cảm ơn nha!' : 'Ơ… cho tớ á? Cảm ơn cậu!';
-    done = () => addStat('giaotiep', 1);
+    done = () => { };
   }
   if (G.daily.gift[key]) return UI.ask(name, '<p>“Hôm nay cậu tặng quà rồi mà, giữ lại mà dùng đi!”</p>', ['OK'], { who });
   G.daily.gift[key] = true; G.inv[id]--; if (!G.inv[id]) RT.hold = null;

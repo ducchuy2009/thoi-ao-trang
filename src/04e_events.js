@@ -320,7 +320,7 @@ ACT.festJoin = async kind => {
   steps.push({ say: ['me', kind === 'rope' ? 'Mười lăm… mười sáu… vẫn chưa vướng!' : 'Đỡ này! Má trong má ngoài!'] });
   if (fid) steps.push({ say: [0, 'Cậu nhảy giỏi ghê!'.replace('nhảy', kind === 'rope' ? 'nhảy' : 'đá')] });
   await playCut({ inPlace: true, title: kind === 'rope' ? 'Nhảy dây đêm giao thừa' : 'Đá cầu đêm giao thừa', actors: fid ? [{ look: fid, outfit: friendOutfit(fid), x: X + 34, y: Y + 8, dir: 1 }] : [], hide: ['fh'], steps });
-  addStat('thethao', 2); addStat('giaotiep', 1); if (fid) addFriend(fid, FEST_GAME.friend);
+  addStat('thethao', 2); if (fid) addFriend(fid, FEST_GAME.friend);
   RT.lock = false; UI.hud();
 };
 ACT.festSkip = async () => {
@@ -339,7 +339,7 @@ ACT.festSkip = async () => {
   RT.lock = false; UI.hud();
 };
 function festChat(i, look, of, line) {
-  const k = 'fc' + i; if (!G.daily[k]) { G.daily[k] = true; addStat('giaotiep', 1); }
+  const k = 'fc' + i; if (!G.daily[k]) { G.daily[k] = true; }
   UI.ask('Người dự hội', `<p>“${line}”</p>`, ['Chúc mừng năm mới!'], { who: { look, outfit: of } });
 }
 // Dây nhảy quay, quả cầu bay, ánh lồng đèn trong hội chợ
@@ -354,6 +354,7 @@ function drawFestProps(now) {
 
 /* ---------- điều phối sự kiện mỗi khung hình (khi không bận) ---------- */
 function eventTick() {
+  if (hkEventTick()) return true;                                   // Hội khoẻ Phù Đổng: qua cổng trường là vào hội
   if (isTetDay1() && G.map === 'home' && G.time < 720 && !tetYear().ask) { tetMorning(); return true; }
   if (isEveDay(G.day) && !G.daily.eveAsked && !RT.fest && G.time < EVE.from) { eveInvite(); return true; }   // sáng ngày cuối năm: được rủ đón giao thừa
   if (G.map === 'nui' && !RT.fest && eveOk() && G.time < EVE.from && !G.daily.eveEarly) { G.daily.eveEarly = true; UI.toast(`Lễ hội đón giao thừa bắt đầu lúc ${fmtTime(EVE.from)}. Mọi người đang dựng sạp, treo lồng đèn…`, 'info'); }
@@ -424,7 +425,7 @@ ACT.bcTable = async i => {
     props: [now => { const k = Math.floor((now - t0.v) / 300) % 4; wRect('#3f8f3a', G.x - 4 + (k % 2) * 2, G.y - 10, 7, 5); if (k > 1) wRect('#fbf7ee', G.x - 2, G.y - 9, 3, 3); }],
   });
   for (const m of T.mem) if (m.fid) addFriend(m.fid, 4);
-  addStat('kheotay', 1); addStat('giaotiep', 1);
+  addStat('kheotay', 1); 
   RT.lock = false; UI.hud();
   UI.toast('Gói xong một chiếc bánh vuông vức! Cả tụ khen khéo tay.', 'good');
 };
@@ -520,7 +521,7 @@ async function bcContest(join) {
   const meRow = board.find(b => b.me);
   await UI.ask('Thầy hiệu trưởng', `<p>“Kết quả phần thi gói bánh chưng!”</p>${html}<p>${win ? `“Chúc mừng ${G.name} — <b>Vua gói bánh chưng</b> năm nay!”` : meRow && meRow.n === board[0].n ? `“Em bằng số bánh với ${board[0].name} rồi — phải gói nhiều hơn mới vô địch được. Tiếc ghê!”` : `“Chúc mừng ${board[0].name}!${join ? ' Các em đều gói rất khéo.' : ''}”`}</p>`, [win ? 'Lên nhận cúp!' : 'Vỗ tay!'], { who: bcWho });
   await awardCut(win, board[0]);
-  if (join) { addStat('kheotay', win ? 5 : 2); addStat('giaotiep', 2); }
+  if (join) { addStat('kheotay', win ? 5 : 2); }
   if (win) { B.won = true; addTeacher(5, 'hanh'); await winPhotoCut(); addMemo('item', 'cup'); addMemo('item', 'photo'); }
   RT.lock = false;
   await endBcFest(winner);

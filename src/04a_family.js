@@ -229,7 +229,7 @@ async function parentDrive(who) {
   if (RT.lock) return;
   RT.lock = true;
   await rideCut('moto', `${PNAME[who]} chở đi học`, true, who);
-  advanceTime(PARENT_RIDE_MIN); setMap('school', 330, 404, 3); RT.snapNpcs = true;
+  advanceTime(PARENT_RIDE_MIN); setMap('school', 330, 452, 3); RT.snapNpcs = true;
   await UI.fade(false);
   RT.lock = false; UI.hud();
   UI.toast(`${PNAME[who]} thả bạn trước cổng trường. Đi qua cổng để vào trường.`, 'info');

@@ -113,14 +113,13 @@ async function groupDeliver(who) {
   if (r) r.st = 'done';
   grAff(who, late ? GROUP.lateAff : T.aff);
   if (T.cost) addMoney(T.cost, true);
-  if (!late) addStat('giaotiep', 1);
   grPush(who, late ? 'Nhận được rồi, hơi muộn chút nhưng vẫn cảm ơn nha.' : pick([`Nhận được rồi! Cảm ơn ${G.name} nhiều nha ❤️`, `${G.name} đáng yêu quá, cảm ơn nhiều!`, `Xong rồi nha mọi người, ${G.name} giúp mình rồi 🙌`]));
   G.phone.unread.group = Math.max(0, (G.phone.unread.group || 0) - 1);
   UI._hb = null; UI.hud();
   const line = late ? (fr ? 'Hơi muộn rồi… nhưng thôi, cảm ơn cậu đã mang tới.' : 'Hơi muộn rồi em ạ, nhưng vẫn cảm ơn em nhé.')
     : fr ? pick(['Đúng cái tớ cần luôn! Cảm ơn cậu nha, hôm nào tớ khao trà sữa.', 'Cậu nhanh ghê! Không có cậu chắc tớ toi rồi.', 'Cảm ơn cậu nhiều nha, cậu tốt bụng nhất lớp!'])
       : pick(['Cảm ơn em nhé! Có gì cần cứ hỏi anh chị.', 'Em nhanh nhẹn ghê, cảm ơn em nhiều!', 'Đúng cái anh chị cần, em giỏi quá!']);
-  await UI.ask(W.name, `<p>“${line}”</p><p class="dim">${late ? `+${GROUP.lateAff}` : `+${T.aff}`} ${fr ? '♥ thân thiết' : 'quen thân'}${T.cost ? ` · được trả lại ${fmtMoney(T.cost)}` : ''}${late ? '' : ' · +1 Giao tiếp'}</p>`, ['Không có gì!'], { who: { look: W.look, outfit: W.outfit } });
+  await UI.ask(W.name, `<p>“${line}”</p><p class="dim">${late ? `+${GROUP.lateAff}` : `+${T.aff}`} ${fr ? '♥ thân thiết' : 'quen thân'}${T.cost ? ` · được trả lại ${fmtMoney(T.cost)}` : ''}</p>`, ['Không có gì!'], { who: { look: W.look, outfit: W.outfit } });
   return true;
 }
 // đầu ngày: việc của các bạn đã nhận mà quá hạn

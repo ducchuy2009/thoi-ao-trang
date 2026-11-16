@@ -52,7 +52,7 @@ async function leaveTT() {
   return true;
 }
 function ttChat(i, look, of) {
-  const k = 'ttc' + i; if (!G.daily[k]) { G.daily[k] = true; addStat('giaotiep', 1); }
+  const k = 'ttc' + i; if (!G.daily[k]) { G.daily[k] = true; }
   UI.ask('Người xem hội', `<p>“${TT_CHAT[i % TT_CHAT.length]}”</p>`, ['Trung thu vui vẻ!'], { who: { look, outfit: of } });
 }
 
@@ -104,7 +104,7 @@ ACT.ttNieu = async () => {
   };
   await playCut({ inPlace: true, bars: false, title: 'Đập niêu', props: [prop], hide: [],
     steps: [{ move: ['me', nx + 22, ny + 44, 400] }, { fn: () => { G.dir = 3; } }, { hop: 'me' }, { fn: () => { t0.v = performance.now(); } }, { wait: 700 }, { say: ['me', win ? 'Bốp! Vỡ rồi! Kẹo rơi đầy nè!' : 'Ơ… đập trượt rồi! Cả đám cười ầm…'] }] });
-  if (win) { addMemo('badge', 'dapnieu'); gainStam(5); if (!G.daily.ttNieu) { G.daily.ttNieu = true; addStat('kheotay', 2); addStat('giaotiep', 1); } }
+  if (win) { addMemo('badge', 'dapnieu'); gainStam(5); if (!G.daily.ttNieu) { G.daily.ttNieu = true; addStat('kheotay', 2); } }
   if (fid) addFriend(fid, 3);
   RT.lock = false; UI.hud();
 };
@@ -112,13 +112,12 @@ ACT.ttKeoco = async () => {
   if (RT.lock) return;
   if (!ttOn()) return ttClosed('Kéo co');
   const fid = G.comp && G.comp.fid, fam = !!ttY().fam, mates = [fid && FRIENDS[fid].name, fam && 'bố'].filter(Boolean);
-  const c = await UI.ask('Trọng tài kéo co', `<p>“Đội Hoa Phượng đang thiếu người! Vào kéo với đội Bờ Sông không? Kéo dải lụa đỏ qua vạch bên mình trước là thắng!”</p>${mates.length ? `<p class="dim">${mates.join(' và ')} vào đội cùng bạn.</p>` : ''}`, ['Vào đội!', 'Thôi'], { who: { look: 'c5', outfit: 'cas_khoa' } });
+  const c = await UI.ask('Trọng tài kéo co', `<p>“Đội Hoa Phượng đang thiếu người! Vào kéo với đội Bờ Sông không? Kéo dải lụa đỏ qua vạch bên mình trước là thắng!”</p><p class="dim">Bấm <b>Space</b> thật nhanh (hoặc nút KÉO!) để cả đội kéo.</p>${mates.length ? `<p class="dim">${mates.join(' và ')} vào đội cùng bạn.</p>` : ''}`, ['Vào đội!', 'Thôi'], { who: { look: 'c5', outfit: 'cas_khoa' } });
   if (c !== 0) return;
   RT.lock = true;
-  const r = await playGame('keoco', 2, mates.join(', '), mates.length);
-  RT.lock = false;
+  let r;
+  try { const m = await ttTug(fid, fam); r = { score: m.win ? 1 : 0.3 }; } finally { RT.lock = false; arenaClose(); }   // kéo co dạng cắt cảnh chơi được (04k)
   if (r.score >= 0.95) { addMemo('badge', 'keoco'); UI.toast('Đội Hoa Phượng thắng! Cả đội ôm nhau nhảy cẫng lên.', 'good'); if (!G.daily.ttKeo) { G.daily.ttKeo = true; addStat('thethao', 3); } }
-  else if (r.score >= 0.6) UI.toast('Hết giờ — đội mình nhỉnh hơn một chút!', 'good');
   else UI.toast('Đội Bờ Sông khoẻ quá, đội mình thua rồi…', 'info');
   addStat('thethao', 1); if (fid) addFriend(fid, TT.keocoFriend);
   UI.hud();

@@ -103,7 +103,7 @@ ACT.karaoke = async () => {
   addMoney(-price, true); RT.lock = true;
   const r = await playGame('notes', 1 + Math.min(3, Math.floor(lv('vannghe') / 3)), 'Hát karaoke');
   advanceTime(KARAOKE.mins); useStam(8, true);
-  addStat('vannghe', 3 + Math.round(3 * r.score)); addStat('giaotiep', 1);
+  addStat('vannghe', 3 + Math.round(3 * r.score)); 
   if (fid) addFriend(fid, 5);
   RT.lock = false; UI.hud();
   UI.toast(r.score >= 0.8 ? 'Hát hay như ca sĩ! Màn hình chấm 98 điểm.' : r.score >= 0.5 ? 'Hát cũng ổn, màn hình chấm 85 điểm.' : 'Hơi lạc giọng… nhưng vui là chính!', 'good');

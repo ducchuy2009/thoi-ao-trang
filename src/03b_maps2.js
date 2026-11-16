@@ -20,7 +20,7 @@ const LIB_HOUSE = [4, 236], LIB_DOOR = [64, 330];
 const TANG2 = { stair: 224, rooms: [['l11a1', '11A1', 40, ['sC', 'sG', 'sE', 'sH', 'sA', 'sF']], ['l11a3', '11A3', 130, ['sD', 'sH', 'sG', 'sF', 'sE', 'sC']], ['l12a1', '12A1', 300, ['sA', 'sE', 'sF', 'sG', 'sH', 'sB']], ['l12a2', '12A2', 390, ['sB', 'sF', 'sE', 'sH', 'sA', 'sD']]] };
 const SENIOR_OF = { l11a1: 'a_phong', l11a3: 'c_thao', l12a1: 'a_hung', l12a2: 'c_mai' };
 const SENIOR_TALK = ['Năm cuối rồi, ôn thi đại học muốn xỉu luôn em ạ.', 'Em lớp 10 hả? Có bài gì khó cứ lên đây hỏi anh chị.', 'Đề cương ôn thi dày như cuốn từ điển ấy…', 'Tuần sau lớp chị diễn văn nghệ, nhớ xuống xem nha!', 'Đội bóng khối 11 đang tuyển thêm người đó, em đá được không?', 'Hồi lớp 10 anh cũng hay trốn lên đây ngắm sân trường.', 'Ra chơi mà lên tận tầng 2 chơi à? Dũng cảm ghê!', 'Thư viện có cuốn đề cương Toán hay lắm, xuống mượn đi em.'];
-const seniorChat = (key, name, look, i) => { const k = 'snr_' + key; if (!G.daily[k]) { G.daily[k] = true; addStat('giaotiep', 1); } UI.ask(name, `<p>“${SENIOR_TALK[i % SENIOR_TALK.length]}”</p>`, ['Dạ, em cảm ơn anh chị!'], { who: { look } }); };
+const seniorChat = (key, name, look, i) => { const k = 'snr_' + key; if (!G.daily[k]) { G.daily[k] = true; } UI.ask(name, `<p>“${SENIOR_TALK[i % SENIOR_TALK.length]}”</p>`, ['Dạ, em cảm ơn anh chị!'], { who: { look } }); };
 function buildUpstairs() {
   // hành lang tầng 2: tường có 4 cửa lớp, lan can nhìn xuống sân, lỗ cầu thang ở giữa
   const m = mapNew('tang2', 'Tầng 2 · các lớp khối 11, 12', 30, 9, true);
@@ -52,15 +52,46 @@ function buildUpstairs() {
     addObj(r, { s: 'hoportrait', x: 73, y: 6, base: 0 });
     addObj(r, { s: 'tdesk', x: 38, y: 34, sol: [1, 2, 32, 19] });
     r.labels.push({ x: 160, y: 30, text: label, size: 4.6, col: '#2a2136', maxw: 18 });
+    // lớp anh chị ít người: bàn ghế dồn chung thành 1 hàng đầu, ngồi kín (không để thưa thớt rải rác)
     const X = [40, 104, 184, 248], Y = [70, 120, 170], seats = [];
-    for (let row = 0; row < 3; row++) for (let c = 0; c < 4; c++) if ((row * 4 + c + label.charCodeAt(2)) % 3 !== 0) { addObj(r, { s: 'sdesk', x: X[c] - 1, y: Y[row] - 1, sol: [1, 1, 28, 12] }); seats.push([X[c] + 7, Y[row] + 30], [X[c] + 21, Y[row] + 30]); }
+    for (let k = 0; k < 4; k++) { const row = Math.floor(k / 4), c = k % 4; addObj(r, { s: 'sdesk', x: X[c] - 1, y: Y[row] - 1, sol: [1, 1, 28, 12] }); seats.push([X[c] + 7, Y[row] + 30], [X[c] + 21, Y[row] + 30]); }
     const soc = SENIOR_OF[id], S = SOCIETY[soc];
-    seats.filter((_, k) => k % 2 === 0 || k % 5 === 1).slice(0, 7).forEach(([a, b], k) => {
+    seats.forEach(([a, b], k) => {
       const named = k === 1, look = named ? S.look : looks[k % looks.length], name = named ? S.name : (['sB', 'sD', 'sF', 'sH'].includes(look) ? 'Chị lớp ' : 'Anh lớp ') + label;
       NPCS.push({ id: `${id}_${k}`, sid: named ? 'r_' + soc : null, soc: named ? soc : null, name, look, map: id, x: a, y: b, dir: 3, solid: true,
         vis: named ? () => !(yardTime() && !!yardPos(S.look)) : null, label: () => name + (named ? '' : ' — trò chuyện'), act: () => (named ? ACT.senior(soc) : seniorChat(`${id}${k}`, name, look, k)) });
     });
     roomExit(r, { map: 'tang2', x: dx + 11, y: 46, dir: 0 });
+  }
+}
+/* ---------- các lớp khối 10 khác (cửa hai bên cầu thang và cuối dãy nhà chính) ----------
+ * [id phòng, tên lớp, x cửa trên dãy nhà, các dáng học sinh, bạn có tên ngồi trong lớp khi không ra sân] */
+const GRADE10_ROOMS = [['l10a2', '10A2', 308, ['c2', 'c5', 'c8', 'c1', 'c6', 'c3'], ['x1', 'x2']], ['l10a3', '10A3', 374, ['c7', 'c4', 'c1', 'c8', 'c5', 'c2'], ['x3']], ['l10a4', '10A4', 483, ['c3', 'c6', 'c5', 'c2', 'c7', 'c4'], ['x4']]];
+const G10_NAME = { x1: 'Tú', x2: 'Linh', x3: 'Bảo', x4: 'Nhi' };
+const G10_TALK = ['Lớp tớ sắp kiểm tra Lý, ôn muốn rụng tóc luôn.', 'Ê, lớp 10A1 các cậu hôm nay học gì thế?', 'Hội khoẻ Phù Đổng năm nay lớp tớ quyết lấy cúp đấy nhé!', 'Cô chủ nhiệm lớp tớ hiền lắm, ghen tị không?', 'Giờ ra chơi sang lớp tớ chơi cờ caro không?', 'Tớ nghe nói căn tin sắp bán xôi xéo buổi sáng đó.'];
+function buildGrade10() {
+  const sch = MAPS.school;
+  for (const [id, label, dx, looks, named] of GRADE10_ROOMS) {
+    addObj(sch, { s: 'sdoor', x: dx, y: 64, base: 106 });
+    sch.warps.push({ x: dx + 2, y: 102, w: 18, h: 12, dir: 3, to: { map: id, x: 289, y: 204, dir: 3 } });
+    sch.labels.push({ x: dx + 11, y: 68.5, text: label, size: 4.2, col: '#2a2136', maxw: 15 });
+    const r = roomBase(id, 'Lớp ' + label, '#f7efd0', '#8fc7a8', 'ctile');
+    R(r.x, '#2a2136', 95, 5, 130, 22); R(r.x, '#8a5a3a', 96, 6, 128, 20); R(r.x, '#2f6b4f', 98, 8, 124, 15); R(r.x, '#dfeee6', 106, 12, 40, 1); R(r.x, '#dfeee6', 106, 16, 28, 1);
+    drawWin(r.x, 34, 9, 22, 13); drawWin(r.x, 262, 9, 22, 13);
+    addObj(r, { s: 'hoportrait', x: 73, y: 6, base: 0 });
+    addObj(r, { s: 'tdesk', x: 38, y: 34, sol: [1, 2, 32, 19] });
+    r.labels.push({ x: 160, y: 30, text: label, size: 4.6, col: '#2a2136', maxw: 18 });
+    const X = [40, 104, 184, 248], Y = [70, 120, 170], seats = [];
+    for (let row = 0; row < 3; row++) for (let c = 0; c < 4; c++) { addObj(r, { s: 'sdesk', x: X[c] - 1, y: Y[row] - 1, sol: [1, 1, 28, 12] }); seats.push([X[c] + 7, Y[row] + 30], [X[c] + 21, Y[row] + 30]); }
+    // lớp đông đủ: gần như ghế nào cũng có người (chừa 1–2 ghế cho người hay đi muộn)
+    seats.forEach(([a, b], k) => {
+      if (k === 23 || k === 13) return;
+      const nm = named[k % 7 === 2 ? Math.floor(k / 7) : -1];
+      if (nm) { NPCS.push({ id: `${id}_${k}`, sid: 'r_' + nm, name: `${G10_NAME[nm]} · ${label}`, look: nm, map: id, x: a, y: b, dir: 3, solid: true, vis: () => !(yardTime() && !!yardPos(nm)), label: () => `${G10_NAME[nm]} · ${label}`, act: () => ACT.mate(nm) }); return; }
+      const look = looks[(k * 5 + label.charCodeAt(2)) % looks.length], name = (['c2', 'c4', 'c6', 'c8'].includes(look) ? 'Bạn nữ lớp ' : 'Bạn nam lớp ') + label;
+      NPCS.push({ id: `${id}_${k}`, name, look, map: id, x: a, y: b, dir: 3, solid: true, label: () => name + ' — trò chuyện', act: () => { const kk = 'g10_' + id + k; if (!G.daily[kk]) { G.daily[kk] = true; } UI.ask(name, `<p>“${G10_TALK[(k + G.day) % G10_TALK.length]}”</p>`, ['Ừ, chào cậu!'], { who: { look } }); } });
+    });
+    roomExit(r, { map: 'school', x: dx + 11, y: 118, dir: 0 });
   }
 }
 // Phòng chữ nhật có cửa ra ở góc dưới bên phải (giống lớp học)
@@ -119,6 +150,8 @@ function buildRooms() {
   sch.labels.push({ x: lx + 60, y: ly + 35.5, text: 'THƯ VIỆN', size: 6, col: '#ffffff', maxw: 44 });
   sch.warps.push({ x: lx + 50, y: ly + 76, w: 20, h: 12, dir: 3, to: { map: 'thuvien', x: 289, y: 204, dir: 3 } });
   buildUpstairs();
+  buildGrade10();
+  buildHkpd();                                                       // Hội khoẻ Phù Đổng (04k)
   // thêm học sinh ra sân cho đông vui + cho mọi học sinh ngoài sân nhập vào các tụ chơi
   for (const [id, a, b, name] of [['x1', 150, 240, 'Tú · 10A2'], ['x2', 420, 300, 'Linh · 10A2'], ['x3', 260, 200, 'Bảo · 10A3'], ['x4', 340, 330, 'Nhi · 10A4']]) NPCS.push({ id: 'y_' + id, sid: id, name, look: id, map: 'school', x: a, y: b, dir: 0, wander: 30, vis: () => yardTime() && !!yardPos(id), label: () => name, act: () => ACT.mate(id) });
   // anh chị khoá trên (11, 12): nói chuyện riêng thì được chỉ mẹo học hành, đi lại trong trường

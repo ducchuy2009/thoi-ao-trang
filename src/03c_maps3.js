@@ -16,7 +16,7 @@ const NEIGHBOR_TALK = {
 };
 function neighborTalk(soc) {
   const S = SOCIETY[soc]; meetSoc(soc);
-  const k = 'nb_' + soc; if (!G.daily[k]) { G.daily[k] = true; addStat('giaotiep', 1); }
+  const k = 'nb_' + soc; if (!G.daily[k]) { G.daily[k] = true; }
   UI.ask(S.name, `<p>“${pick(NEIGHBOR_TALK[soc])}”</p>`, ['Dạ, cháu chào ạ!'], { who: { look: S.look } });
 }
 function buildFamilyPlaces() {

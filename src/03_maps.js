@@ -147,7 +147,7 @@ function buildTown() {
     NPCS.push({ id: 'p_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'town', x: a, y: b, dir: d, wander: wd, vis: () => parkT() && !meetToday(fid) && !isComp(fid), label: () => F.name, act: () => ACT.friend(fid, 'park') });
   }
 }
-const friendOutfit = fid => (schoolToday() ? null : 'cas_' + fid);
+const friendOutfit = fid => (schoolToday() || hkUniform() ? null : 'cas_' + fid);
 const busHere = () => !G || inWin(G.time, BUS_HOURS[0], BUS_HOURS[1]);
 // Trạm xe bus: nhà chờ + biển báo + chiếc xe bus đỗ sẵn ở bến (bấm vào xe để lên xe, chọn điểm đến)
 function addBusStop(m, id, sx, sy, bx, by, noSol) {
@@ -375,16 +375,17 @@ function addMeetNpcs() {
 /* ---------------- TRƯỜNG (bên phải phố Hoa Phượng) ----------------
  * Trong tường rào là khuôn viên (G.atSchool). Ngoài tường: vỉa hè trước cổng có trạm xe bus;
  * mép trái về phố Hoa Phượng; mép phải có lối mòn vòng bên ngoài hàng rào ra sau trường để lên núi. */
-const GATE = { x: 303, w: 97, yIn: 366, yOut: 396 };
+// Sân trường đã nới rộng thêm 3 hàng ô (48px) phía trên tường rào: tường, cổng, vỉa hè, đường đều lùi xuống
+const GATE = { x: 303, w: 97, yIn: 414, yOut: 444 };
 function buildSchool() {
-  const m = mapNew('school', 'Trường THPT Hoa Phượng', 47, 30, false);
-  paint(m, 'yard', 0, 0, 44, 24, 0); paint(m, 'grass', 44, 0, 3, 24, 0); paint(m, 'dirt', 45, 0, 2, 24, 0);
-  paint(m, 'grass', 0, 7, 6, 16, 0); paint(m, 'flowers', 1, 9, 1, 1, 0); paint(m, 'flowers', 4, 13, 1, 1, 0); paint(m, 'flowers', 2, 19, 1, 1, 0); paint(m, 'flowers', 4, 21, 1, 1, 0);
+  const m = mapNew('school', 'Trường THPT Hoa Phượng', 47, 33, false);
+  paint(m, 'yard', 0, 0, 44, 27, 0); paint(m, 'grass', 44, 0, 3, 27, 0); paint(m, 'dirt', 45, 0, 2, 27, 0);
+  paint(m, 'grass', 0, 7, 6, 19, 0); paint(m, 'flowers', 1, 9, 1, 1, 0); paint(m, 'flowers', 4, 13, 1, 1, 0); paint(m, 'flowers', 2, 19, 1, 1, 0); paint(m, 'flowers', 4, 21, 1, 1, 0);
   paint(m, 'court', 30, 8, 13, 13, 0);
   const W = '#eef7ee'; R(m.x, W, 484, 132, 200, 1); R(m.x, W, 484, 331, 200, 1); R(m.x, W, 484, 132, 1, 200); R(m.x, W, 683, 132, 1, 200); R(m.x, W, 484, 232, 200, 1); ring(m.x, W, 584, 232, 18);
-  paint(m, 'walk', 0, 24, 47, 3, 0); paint(m, 'road', 0, 27, 47, 3, 1); paint(m, 'dirt', 45, 23, 2, 2, 0);
-  for (let i = 0; i < 47; i += 2) R(m.x, '#f3e6a8', i * 16 + 4, 28 * 16 + 7, 12, 2);
-  R(m.x, '#aaa392', 0, 430, 752, 2);
+  paint(m, 'walk', 0, 27, 47, 3, 0); paint(m, 'road', 0, 30, 47, 3, 1); paint(m, 'dirt', 45, 26, 2, 2, 0);
+  for (let i = 0; i < 47; i += 2) R(m.x, '#f3e6a8', i * 16 + 4, 31 * 16 + 7, 12, 2);
+  R(m.x, '#aaa392', 0, 478, 752, 2);
   addObj(m, { s: 'school', x: 191, y: 3, sol: [1, 22, 320, 79], label: () => 'Bảng tin — thời khoá biểu', act: () => UI.timetable() });
   m.warps.push({ x: 235, y: 102, w: 18, h: 12, dir: 3, to: { map: 'class', x: 289, y: 204, dir: 3 } });
   m.labels.push({ x: 352, y: 30.5, text: 'THPT HOA PHƯỢNG', size: 9, col: '#ffffff', maxw: 74 });
@@ -401,21 +402,21 @@ function buildSchool() {
   addObj(m, { s: 'goal', x: 564, y: 118, sol: [1, 2, 38, 8], label: () => 'Sân thể dục — chơi thể thao', act: () => ACT.field() });
   addObj(m, { s: 'ball', x: 600, y: 250, flat: true });
   // tường rào + cổng + hàng rào phía đông
-  for (let i = 0; i <= 44; i++) { if (i >= 18 && i <= 25) continue; addObj(m, { s: 'wallseg', x: i * 16 - 1, y: 363, sol: [0, 8, 18, 14] }); }
-  for (let j = 0; j < 23; j++) addObj(m, { s: 'hedge', x: 704, y: 2 + j * 16, sol: [0, 4, 18, 12] });
-  addObj(m, { s: 'gate', x: 287, y: 340, label: () => 'Cổng trường', act: () => ACT.guard() });
-  m.solids.push([288, 372, 15, 14], [400, 372, 15, 14]);
-  m.labels.push({ x: 351.5, y: 348.5, text: 'TRƯỜNG THPT HOA PHƯỢNG', size: 7, col: '#ffffff', maxw: 96 });
-  addObj(m, { s: 'booth', x: 422, y: 322, sol: [1, 14, 30, 27] });
-  m.zones.push({ x: GATE.x, y: 377, w: GATE.w, h: 9, fn: () => gateCross() });
+  for (let i = 0; i <= 44; i++) { if (i >= 18 && i <= 25) continue; addObj(m, { s: 'wallseg', x: i * 16 - 1, y: 411, sol: [0, 8, 18, 14] }); }
+  for (let j = 0; j < 26; j++) addObj(m, { s: 'hedge', x: 704, y: 2 + j * 16, sol: [0, 4, 18, 12] });
+  addObj(m, { s: 'gate', x: 287, y: 388, label: () => 'Cổng trường', act: () => ACT.guard() });
+  m.solids.push([288, 420, 15, 14], [400, 420, 15, 14]);
+  m.labels.push({ x: 351.5, y: 396.5, text: 'TRƯỜNG THPT HOA PHƯỢNG', size: 7, col: '#ffffff', maxw: 96 });
+  addObj(m, { s: 'booth', x: 422, y: 370, sol: [1, 14, 30, 27] });
+  m.zones.push({ x: GATE.x, y: 425, w: GATE.w, h: 9, fn: () => gateCross() });
   // ngoài cổng: trạm xe bus, đường về phố, lối mòn vòng ra sau trường
-  addBusStop(m, 'truong', 110, 386, 96, 436, true);
-  addObj(m, { s: 'signpostL', x: 20, y: 380, sol: [10, 22, 8, 8], label: () => '← Phố Hoa Phượng', act: () => ACT.go('school', 'pho') });
-  m.zones.push({ x: 0, y: 386, w: 8, h: 46, fn: () => ACT.go('school', 'pho'), bx: 6 });
-  addObj(m, { s: 'trailsign', x: 690, y: 384, sol: [9, 16, 6, 8], label: () => 'Lối mòn vòng ra sau trường → lên núi', act: () => UI.toast('Đi theo lối đất bên ngoài hàng rào lên phía trên là tới núi.') });
+  addBusStop(m, 'truong', 110, 434, 96, 484, true);
+  addObj(m, { s: 'signpostL', x: 20, y: 428, sol: [10, 22, 8, 8], label: () => '← Phố Hoa Phượng', act: () => ACT.go('school', 'pho') });
+  m.zones.push({ x: 0, y: 434, w: 8, h: 46, fn: () => ACT.go('school', 'pho'), bx: 6 });
+  addObj(m, { s: 'trailsign', x: 690, y: 432, sol: [9, 16, 6, 8], label: () => 'Lối mòn vòng ra sau trường → lên núi', act: () => UI.toast('Đi theo lối đất bên ngoài hàng rào lên phía trên là tới núi.') });
   m.zones.push({ x: 720, y: 5, w: 32, h: 7, fn: () => ACT.go('school', 'nui'), by: 10 });
 
-  NPCS.push({ id: 'guard', name: 'Bác bảo vệ', look: 'guard', map: 'school', x: 392, y: 362, dir: 1, vis: () => G.time < 1200, label: () => 'Bác bảo vệ', act: () => ACT.guard() });
+  NPCS.push({ id: 'guard', name: 'Bác bảo vệ', look: 'guard', map: 'school', x: 392, y: 410, dir: 1, vis: () => G.time < 1200, label: () => 'Bác bảo vệ', act: () => ACT.guard() });
   // học sinh ra sân giờ ra chơi
   const yard = () => yardTime();
   const spots = [[250, 250], [300, 300], [180, 220], [220, 320], [380, 240], [330, 200], [200, 280], [360, 310]];

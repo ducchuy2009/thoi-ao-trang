@@ -204,7 +204,7 @@ async function cardDuel(sid, fid, name, tier, o) {
   const r = await cardMatch({ name, look, outfit: fid ? friendOutfit(fid) : o.outfit, deck: D.deck, album: D.album, tier: tier || 'lop', mine: G.squad, onTake: id => oppLost(sid).push(id) });
   if (r.res === null) return null;                                  // bỏ ngang: không tính lượt đấu hôm nay
   if (!o.free) G.daily.duel[sid] = true;
-  addStat('giaotiep', 1); if (fid) addFriend(fid, 2);
+  if (fid) addFriend(fid, 2);
   return r.res;
 }
 // Tụ đấu thẻ ngoài sân: lần đầu anh Phong hướng dẫn, cho mượn thẻ đấu thử, rồi tặng 11 thẻ

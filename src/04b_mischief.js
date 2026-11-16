@@ -22,7 +22,6 @@ async function classFun() {
   if (inClassScene()) await playCut(classFunCut(ev.id, fid, caught ? (light ? 'light' : 'hard') : null));
   L.push(li(`${ev.join} cùng ${F.name}, hơi mất tập trung.`, 'warn'));
   if (ev.stam) G.stamina = Math.min(maxStam(), G.stamina + ev.stam);
-  if (ev.giaotiep) addStat('giaotiep', ev.giaotiep);
   if (caught) { L.push(...caughtInClass(ev)); if (!light && FUN_KIND[ev.id].take) L.push(li(FUN_KIND[ev.id].take.replace(/\{co\}/g, co).replace(/^./, c => c.toUpperCase()), 'warn')); }
   else L.push(li(`${co[0].toUpperCase() + co.slice(1)} không để ý. Trót lọt!`, 'dim'));
   return { delta: -2, lines: L };
@@ -245,7 +244,7 @@ async function startSkip(fid) {
   RT.lock = true;
   await playCut(Math.random() < 0.5 ? wallCut(fid, false, false) : sneakCut(fid));
   G.atSchool = false; RT.skip = { missed: [], fid }; G.daily.skips++;
-  setMap('school', 150, 404, 0); setComp(fid, true);
+  setMap('school', 150, 452, 0); setComp(fid, true);
   RT.lock = false; UI.hud(); addMemo('scene', 'skip');
   UI.toast('Ra ngoài rồi! Đi chơi đâu thì đi. Khi nào quay lại, đi qua cổng trường là về lớp.', 'info');
 }
@@ -286,7 +285,7 @@ async function doMischief(id, fid) {
   if (M.cost) addMoney(-M.cost, true);
   if (M.stam) G.stamina = Math.min(maxStam(), G.stamina + M.stam);
   if (M.stamCost) useStam(M.stamCost, !M.smoke);
-  for (const k of ['giaotiep', 'thethao', 'th_hoa']) if (M[k]) addStat(k, M[k]);
+  for (const k of ['thethao', 'th_hoa']) if (M[k]) addStat(k, M[k]);
   if (M.smoke) L.push(li('Ho sặc sụa, người mệt hẳn đi.', 'bad'));
   if (skipped.length && tt) L.push(li('Bỏ lỡ ' + skipped.map(n => `tiết ${n} (${SUBJ[tt[n - 1]].short})`).join(', ') + '.', 'warn'));
   if (caught) L.push(...mischiefCaught(M, skipped, tt, fid));

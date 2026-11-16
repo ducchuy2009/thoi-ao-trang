@@ -375,7 +375,7 @@ function storeGain(it) {
   if (it.mins) g.push(`${it.drink ? 'ngồi uống' : 'ăn tại chỗ'} ${it.mins} phút`); else if (it.stam) g.push(it.drink ? 'mang đi' : 'dùng ngay');
   if (it.friend) g.push(`+${it.friend} thân thiết`);
   if (it.pack) g.push(`+${it.pack} thẻ cầu thủ`);
-  if (it.act === 'movie') g.push(`+${MALL.movie.stam} thể lực`, '+Giao tiếp', `${MALL.movie.mins} phút`);
+  if (it.act === 'movie') g.push(`+${MALL.movie.stam} thể lực`, `${MALL.movie.mins} phút`);
   if (it.act === 'chicken') g.push(`+${MALL.chicken.stam} thể lực`, `${MALL.chicken.mins} phút`);
   if (it.act === 'teamall') g.push('+12 thể lực', '20 phút');
   if (it.act === 'book') g.push(`+${MALL.book.pts} điểm môn tự chọn`);

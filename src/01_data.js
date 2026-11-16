@@ -12,7 +12,7 @@ const CFG = {
   GATE_TIME: 8 * 60,         // đến trường đúng giờ = TRƯỚC 08:00
   PARENT_LEAVE: 7 * 60 + 30, // bố mẹ đi làm lúc 07:30
   RIDE_DEADLINE: 7 * 60 + 20,// nhờ bố/mẹ chở phải hỏi trước 07:20
-  SCHOOL_END: 16 * 60 + 40,  // tan học 16:40 (không còn nghỉ 10' giữa các tiết)
+  SCHOOL_END: 17 * 60,       // tan học 17:00 (cứ 2 tiết thì ra chơi 30')
   LATE_HOME: 20 * 60,        // NGÀY ĐI HỌC: 20:00 chưa có mặt ở nhà thì bố mẹ phiền lòng (trừ khi đã về rồi mới đi chơi tiếp, hoặc đã xin phép). Thứ 7, Chủ nhật, ngày nghỉ: về muộn thoải mái.
   ORAL_AFTER_SCHOOLDAYS: 5,  // sau tuần học đầu tiên: có thể bị kiểm tra miệng
   P15_AFTER_SCHOOLDAYS: 10,  // sau tuần thứ 2: có thể bị kiểm tra 15' đột xuất
@@ -79,16 +79,16 @@ const TIMETABLE = [
   ['van', 'toan', 'su', 'van', null, null, null, null, null],
 ];
 const HALF_DAYS = [2, 4];                        // thứ 4, thứ 6: nghỉ buổi chiều
-// Tiết 1 lúc 08:00; mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 20'; nghỉ trưa 10:20–13:30; tan học 16:40
+// Tiết 1 lúc 08:00; mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 30'; nghỉ trưa 10:30–13:30; tan học 17:00
 const PERIODS = [
-  { n: 1, start: 480 }, { n: 2, start: 510 }, { n: 3, start: 560 }, { n: 4, start: 590 },
-  { n: 5, start: 810 }, { n: 6, start: 840 }, { n: 7, start: 890 }, { n: 8, start: 920 }, { n: 9, start: 970 },
+  { n: 1, start: 480 }, { n: 2, start: 510 }, { n: 3, start: 570 }, { n: 4, start: 600 },
+  { n: 5, start: 810 }, { n: 6, start: 840 }, { n: 7, start: 900 }, { n: 8, start: 930 }, { n: 9, start: 990 },
 ];
 const PERIOD_LEN = 30;
-const AM_END = 620, PM_START = 810;             // nghỉ trưa
-// Khoảng thời gian học sinh ra sân (trước giờ học, ra chơi 20', nghỉ trưa, tan học)
-const YARD_WINDOWS = [[360, 480], [540, 560], [AM_END, PM_START], [870, 890], [950, 970], [CFG.SCHOOL_END, CFG.SCHOOL_END + 40]];
-const INVITE_TIMES = [540, AM_END, 870, 950];   // đầu giờ ra chơi: bạn có thể rủ rê
+const AM_END = 630, PM_START = 810;             // nghỉ trưa
+// Khoảng thời gian học sinh ra sân (trước giờ học, ra chơi 30', nghỉ trưa, tan học)
+const YARD_WINDOWS = [[360, 480], [540, 570], [AM_END, PM_START], [870, 900], [960, 990], [CFG.SCHOOL_END, CFG.SCHOOL_END + 40]];
+const INVITE_TIMES = [540, AM_END, 870, 960];   // đầu giờ ra chơi: bạn có thể rủ rê
 const AFTER_SCHOOL = CFG.SCHOOL_END + 20;       // bạn bè rời trường (ra công viên, tới chỗ hẹn)
 
 /* ---------- Chỉ số ---------- */
@@ -123,7 +123,7 @@ const PARENT = {
 const STAT_NAMES = {
   toan: 'Toán', van: 'Văn', anh: 'Tiếng Anh', ly: 'Lý', hoa: 'Hoá', su: 'Sử', dia: 'Địa', sinh: 'Sinh học', qp: 'Quốc phòng',
   th_ly: 'TH Lý', th_hoa: 'TH Hoá', th_sinh: 'TH Sinh',
-  thethao: 'Thể thao', buonban: 'Buôn bán', giaotiep: 'Giao tiếp', kheotay: 'Khéo tay', vannghe: 'Văn nghệ',
+  thethao: 'Thể thao', buonban: 'Buôn bán', kheotay: 'Khéo tay', vannghe: 'Văn nghệ',
 };
 
 /* ---------- Việc nhà ---------- */
@@ -159,7 +159,7 @@ const BUS_MIN_PER_HOP = 10, BUS_HOURS = [300, 1320];
 const BUS_STOPS = {
   home: { name: 'Khu phố nhà mình', map: 'town', x: 684, y: 186, pos: 0, off: 0 },
   pho: { name: 'Phố Hoa Phượng', map: 'pho', x: 276, y: 186, pos: 1, off: 0 },
-  truong: { name: 'Trường THPT Hoa Phượng', map: 'school', x: 182, y: 408, pos: 2, off: 0 },
+  truong: { name: 'Trường THPT Hoa Phượng', map: 'school', x: 182, y: 456, pos: 2, off: 0 },
   ga: { name: 'Ga tàu', map: 'ga', x: 458, y: 200, pos: 1, off: 1 },
   dong: { name: 'Phố Bờ Đông', map: 'dong', x: 320, y: 196, pos: 2, off: 1 },
 };
@@ -280,13 +280,13 @@ const SELL_CARD = [3000, 9000, 25000, 80000];
 const TASK_BOARD = { open: 3, maxActive: 3, failAff: -3, dropAff: -1, stam: 4 };
 const TASKS = {
   xepsach: { tid: 'lan', name: 'Xếp lại sách thư viện', desc: 'Sau giờ đọc, các kệ sách bị xáo trộn hết. Cô cần một bạn xếp lại sách theo từng môn.', steps: [{ map: 'thuvien', x: 92, y: 48, do: 'Xếp sách lên kệ theo môn', where: 'Thư viện (kệ sách)' }], mins: 40, win: [390, 1080], days: 3, until: 1080, pay: 6000, aff: 6, stat: ['kheotay', 2] },
-  laubang: { tid: 'hanh', name: 'Trực nhật lớp sau giờ học', desc: 'Tan học rồi em lau bảng, kê lại bàn ghế và quét lớp 10A1 giúp cô nhé.', steps: [{ map: 'class', x: 160, y: 54, do: 'Lau bảng, kê bàn ghế, quét lớp', where: 'Lớp 10A1 (trước bảng)' }], mins: 30, win: [1000, 1110], days: 2, until: 1110, pay: 5000, aff: 6, stat: ['kheotay', 1] },
+  laubang: { tid: 'hanh', name: 'Trực nhật lớp sau giờ học', desc: 'Tan học rồi em lau bảng, kê lại bàn ghế và quét lớp 10A1 giúp cô nhé.', steps: [{ map: 'class', x: 160, y: 54, do: 'Lau bảng, kê bàn ghế, quét lớp', where: 'Lớp 10A1 (trước bảng)' }], mins: 30, win: [CFG.SCHOOL_END, 1110], days: 2, until: 1110, pay: 5000, aff: 6, stat: ['kheotay', 1] },
   tuoicay: { tid: 'tung', name: 'Tưới cây phượng sân trường', desc: 'Mấy hôm nay nắng to quá, thầy nhờ em tưới mấy gốc phượng trước sân trường.', steps: [{ map: 'school', x: 114, y: 194, do: 'Xách bình tưới các gốc phượng', where: 'Sân trường (gốc phượng bên trái)' }], mins: 20, win: [390, 1080], days: 2, until: 1080, pay: 4000, aff: 5, stat: ['thethao', 1] },
-  dungcu: { tid: 'manh', name: 'Dọn dụng cụ thể dục', desc: 'Sau giờ thể dục bóng, cầu, dây nhảy vương vãi khắp sân. Thầy nhờ em gom lại cất vào kho.', steps: [{ map: 'school', x: 600, y: 214, do: 'Gom bóng, cầu, dây nhảy cất vào kho', where: 'Sân thể dục' }], mins: 30, win: [1000, 1110], days: 3, until: 1110, pay: 6000, aff: 7, stat: ['thethao', 2] },
+  dungcu: { tid: 'manh', name: 'Dọn dụng cụ thể dục', desc: 'Sau giờ thể dục bóng, cầu, dây nhảy vương vãi khắp sân. Thầy nhờ em gom lại cất vào kho.', steps: [{ map: 'school', x: 600, y: 214, do: 'Gom bóng, cầu, dây nhảy cất vào kho', where: 'Sân thể dục' }], mins: 30, win: [CFG.SCHOOL_END, 1110], days: 3, until: 1110, pay: 6000, aff: 7, stat: ['thethao', 2] },
   decuong: { tid: 'tung', name: 'Mang đề cương ôn tập về lớp', desc: 'Thầy để xấp đề cương ôn tập Toán ở bàn thủ thư. Em lấy giúp thầy rồi đặt lên bàn giáo viên lớp 10A1.', steps: [{ map: 'thuvien', x: 252, y: 154, do: 'Nhận xấp đề cương ở bàn thủ thư', where: 'Thư viện (bàn thủ thư)' }, { map: 'class', x: 56, y: 64, do: 'Đặt đề cương lên bàn giáo viên', where: 'Lớp 10A1 (bàn giáo viên)' }], mins: 16, win: [390, 1080], days: 2, until: 1080, pay: 4000, aff: 6 },
   phan: { tid: 'hanh', name: 'Mua giúp cô hộp phấn', desc: 'Lớp mình hết phấn rồi. Em ghé tạp hoá Cô Ba mua giúp cô một hộp phấn trắng rồi để lên bàn giáo viên nhé, tiền phấn cô gửi lại.', steps: [{ map: 'town', x: 290, y: 150, do: 'Mua hộp phấn ở tạp hoá Cô Ba', where: 'Tạp hoá Cô Ba (khu phố nhà mình)', win: [360, 1260] }, { map: 'class', x: 56, y: 64, do: 'Để hộp phấn lên bàn giáo viên', where: 'Lớp 10A1 (bàn giáo viên)' }], mins: 20, win: [390, 1080], days: 3, until: 1080, pay: 5000, aff: 6 },
   phongnhac: { tid: 'lan', name: 'Dọn phòng nhạc trước buổi văn nghệ', desc: 'Sắp có buổi văn nghệ, cô nhờ lau sân khấu nhỏ và cuộn gọn dây loa trong phòng nhạc.', steps: [{ map: 'nhac', x: 150, y: 132, do: 'Lau sân khấu, cuộn dây loa', where: 'Phòng nhạc' }], mins: 30, win: [390, 1110], days: 4, until: 1110, pay: 5000, aff: 5, stat: ['vannghe', 1] },
-  baotuong: { tid: 'hanh', name: 'Trang trí báo tường của lớp', desc: 'Sắp tới đợt thi đua, cô nhờ em vẽ tranh, cắt dán báo tường treo ở cuối lớp.', steps: [{ map: 'class', x: 230, y: 196, do: 'Vẽ tranh, cắt dán báo tường', where: 'Lớp 10A1 (cuối lớp)' }], mins: 45, win: [1000, 1140], days: 4, until: 1140, pay: 7000, aff: 7, stat: ['kheotay', 3] },
+  baotuong: { tid: 'hanh', name: 'Trang trí báo tường của lớp', desc: 'Sắp tới đợt thi đua, cô nhờ em vẽ tranh, cắt dán báo tường treo ở cuối lớp.', steps: [{ map: 'class', x: 230, y: 196, do: 'Vẽ tranh, cắt dán báo tường', where: 'Lớp 10A1 (cuối lớp)' }], mins: 45, win: [CFG.SCHOOL_END, 1140], days: 4, until: 1140, pay: 7000, aff: 7, stat: ['kheotay', 3] },
   mohinh: { tid: 'quan', name: 'Kiểm đếm mô hình súng tập', desc: 'Thầy nhờ em đếm lại các mô hình súng tập ở góc sân thể dục và ghi vào sổ trước buổi Quốc phòng tới.', steps: [{ map: 'school', x: 586, y: 172, do: 'Đếm mô hình, ghi vào sổ', where: 'Góc sân thể dục' }], mins: 25, win: [390, 1080], days: 3, until: 1080, pay: 5000, aff: 6 },
 };
 
@@ -294,7 +294,7 @@ const TASKS = {
  * Ngày đi làm: nhắn lúc nghỉ trưa (hạn trước giờ vào học buổi chiều) hoặc sau giờ tan học (hạn trước khi bố mẹ tan làm).
  * Nghỉ hè: nhắn buổi sáng. Cuối tuần: việc ở nhà. Phải tới chỗ lấy đồ (cho vào túi), rồi cầm lên, bấm vào bố/mẹ để đưa tận tay.
  * where: chỗ đưa · lunch: chỉ nhắn lúc nghỉ trưa · off: việc cuối tuần (bố mẹ ở nhà) · cost: tiền bỏ ra mua (bố mẹ trả lại) */
-const PARENT_TASK = { chance: 0.3, slots: { lunch: [630, PM_START - 15], after: [1010, 1050], summer: [540, 1050], off: [540, 720] }, pay: 8000, aff: 3 };
+const PARENT_TASK = { chance: 0.3, slots: { lunch: [630, PM_START - 15], after: [CFG.SCHOOL_END + 10, CFG.SCHOOL_END + 50], summer: [540, 1050], off: [540, 720] }, pay: 8000, aff: 3 };
 const PARENT_TASKS = {
   tailieu: { who: 'dad', name: 'Mang tài liệu cho bố', msg: 'Con ơi, bố để quên tập tài liệu trong hộc bàn làm việc ở phòng bố mẹ. Con mang lên nhà máy giúp bố được không? Chiều nay bố phải nộp rồi.', item: 'tailieu', pick: { map: 'phongbm', x: 37, y: 60, do: 'Lấy tập tài liệu trong hộc bàn của bố', where: 'Phòng bố mẹ (bàn làm việc)' }, where: 'Nhà máy bánh kẹo (phố Bờ Đông)' },
   comtrua: { who: 'mom', name: 'Mang cơm trưa cho mẹ', msg: 'Mẹ để quên hộp cơm trưa trên bàn ăn ở nhà rồi. Trưa nay con mang qua công ty giúp mẹ nhé, công ty Sen Vàng ở cuối phố Hoa Phượng đó!', item: 'comme', lunch: true, pick: { map: 'home', x: 416, y: 146, do: 'Lấy hộp cơm trưa mẹ để quên trên bàn ăn', where: 'Nhà mình (bàn ăn)' }, where: 'Công ty Sen Vàng (cuối phố Hoa Phượng)' },
@@ -311,7 +311,7 @@ const PARENT_ITEMS = { tailieu: 'Tập tài liệu của bố', comme: 'Hộp c�
  * bấm vào người nhờ để đưa tận tay. Thưởng: điểm thân thiết (♥ với bạn thân, quen thân với anh chị). Để lâu không ai nhận thì bạn khác giúp mất.
  * slots: giờ đăng (đầu giờ, ra chơi, nghỉ trưa, ra chơi chiều) · claim: sau bao nhiêu phút chưa ai nhận thì bạn khác nhận
  * who: ai có thể nhờ việc này (bạn thân hoặc anh chị khoá trên) · cost: tiền bỏ ra mua (người nhờ trả lại) · days: 1 = hạn tới buổi học hôm sau */
-const GROUP = { name: 'Học sinh THPT Hoa Phượng', slots: [400, 540, AM_END + 10, 870, 950], chance: 0.45, max: 2, maxActive: 2, claim: 80, aff: 5, socAff: 8, lateAff: 1, failAff: -2, chat: [410, 550, 700, 880, 1200, 1290], chatChance: 0.3 };
+const GROUP = { name: 'Học sinh THPT Hoa Phượng', slots: [400, 540, AM_END + 10, 870, 960], chance: 0.45, max: 2, maxActive: 2, claim: 80, aff: 5, socAff: 8, lateAff: 1, failAff: -2, chat: [410, 550, 700, 880, 1200, 1290], chatChance: 0.3 };
 const GROUP_REQS = {
   gr_vo: { name: 'Lấy giúp vở ghi Hoá', item: 'gr_vo', who: ['khoa', 'dat', 'ngan'], msg: 'Ai còn ở lớp không, mình để quên quyển vở ghi Hoá trong ngăn bàn cuối lớp rồi 😭 Cầm ra giúp mình với, chiều nay cô kiểm tra vở!', pick: { map: 'class', x: 176, y: 172, do: 'Lấy quyển vở ghi Hoá trong ngăn bàn', where: 'Lớp 10A1 (ngăn bàn cuối lớp)' } },
   gr_sach: { name: 'Mượn giúp sách tham khảo', item: 'gr_sach', who: ['vy', 'c_thao', 'a_hung'], msg: 'Có ai qua thư viện mượn giúp mình cuốn “Bài tập Toán nâng cao” không? Mình đang kẹt việc, cảm ơn nhiều nha!', pick: { map: 'thuvien', x: 160, y: 50, do: 'Mượn cuốn “Bài tập Toán nâng cao” ở kệ sách', where: 'Thư viện (kệ sách)' } },
@@ -320,7 +320,7 @@ const GROUP_REQS = {
   gr_bong: { name: 'Lấy bóng cho đội bóng', item: 'gr_bong', who: ['a_phong', 'khoa', 'dat'], msg: 'Đội bóng thiếu bóng tập! Ai tiện ghé góc sân thể dục lấy giúp quả bóng trong rổ mang lại đây với!', pick: { map: 'school', x: 630, y: 196, do: 'Lấy quả bóng trong rổ dụng cụ', where: 'Góc sân thể dục (rổ bóng)' } },
   gr_micro: { name: 'Lấy micro tập văn nghệ', item: 'gr_micro', who: ['c_mai', 'dat'], msg: 'Đội văn nghệ cần cái micro ở phòng nhạc để tập, ai lấy giúp mang ra sân với nha! 🎤', pick: { map: 'nhac', x: 110, y: 120, do: 'Lấy cái micro ở phòng nhạc', where: 'Phòng nhạc' } },
   gr_the: { name: 'Tìm giúp thẻ học sinh', item: 'gr_the', who: ['ngan', 'vy', 'khoa', 'c_thao'], msg: 'Ai thấy thẻ học sinh của mình không 😢 Hình như rơi ở gốc cây to bên trái sân trường lúc sáng…', pick: { map: 'school', x: 132, y: 196, do: 'Nhặt tấm thẻ học sinh rơi dưới gốc cây', where: 'Sân trường (gốc cây to bên trái)' } },
-  gr_sotay: { name: 'Lấy giúp sổ tay Đoàn', item: 'gr_sotay', who: ['a_hung'], msg: 'Mình để quên sổ tay Đoàn trên bàn lớp 12A1, em nào lên tầng 2 lấy giúp mang cho mình với!', pick: { map: 'l12a1', x: 118, y: 150, do: 'Lấy cuốn sổ tay Đoàn trên bàn', where: 'Lớp 12A1 (tầng 2)' } },
+  gr_sotay: { name: 'Lấy giúp sổ tay Đoàn', item: 'gr_sotay', who: ['a_hung'], msg: 'Mình để quên sổ tay Đoàn trên bàn giáo viên lớp 12A1, em nào lên tầng 2 lấy giúp mang cho mình với!', pick: { map: 'l12a1', x: 56, y: 66, do: 'Lấy cuốn sổ tay Đoàn trên bàn giáo viên', where: 'Lớp 12A1 (tầng 2, bàn giáo viên)' } },
   gr_butmau: { name: 'Mua giúp hộp bút màu', item: 'gr_butmau', cost: 12000, days: 1, who: ['ngan', 'vy', 'c_mai'], msg: 'Mai có giờ Mĩ thuật mà mình hết bút màu rồi, ai về qua tạp hoá Cô Ba mua giúp hộp bút chì màu với, mai lên lớp gửi tiền nha!', pick: { map: 'town', x: 290, y: 150, do: 'Mua hộp bút chì màu ở tạp hoá Cô Ba', where: 'Tạp hoá Cô Ba (khu phố nhà mình)' } },
 };
 const GROUP_ITEMS = { gr_vo: 'Vở ghi Hoá', gr_sach: 'Sách “Bài tập Toán nâng cao”', gr_nuoc: 'Chai nước suối', gr_banh: 'Ổ bánh mì', gr_bong: 'Quả bóng đá', gr_micro: 'Cái micro', gr_the: 'Thẻ học sinh', gr_sotay: 'Sổ tay Đoàn', gr_butmau: 'Hộp bút chì màu' };
@@ -342,7 +342,7 @@ const GROUP_CHAT = [
 const CLASS_FUN_CHANCE = 0.22;
 const CLASS_FUN = [
   { id: 'banhtrang', text: 'chìa bịch bánh tráng trộn dưới gầm bàn: “Ăn không?”', join: 'Ăn vụng', risk: 0.22, sev: 1, friend: 4, stam: 4 },
-  { id: 'tam', text: 'quay sang thì thầm kể chuyện hôm qua', join: 'Tám chuyện', risk: 0.18, sev: 1, friend: 4, giaotiep: 2 },
+  { id: 'tam', text: 'quay sang thì thầm kể chuyện hôm qua', join: 'Tám chuyện', risk: 0.18, sev: 1, friend: 4 },
   { id: 'game', text: 'rủ chơi game trên điện thoại dưới gầm bàn', join: 'Chơi game', risk: 0.38, sev: 2, friend: 6, stam: 3 },
   { id: 'video', text: 'mở video hài rồi đưa cho một bên tai nghe', join: 'Xem video', risk: 0.33, sev: 2, friend: 5, stam: 3 },
 ];
@@ -350,12 +350,12 @@ const CLASS_FUN = [
 /* ---------- Quậy cùng bạn ở trường (sev: 1 nhẹ → 3 rất nặng) ---------- */
 // leave: rời khỏi trường (trốn tiết nếu trùng giờ học). Càng rủi ro thì điểm tình bạn càng nhiều.
 const MISCHIEF = {
-  trasua: { name: 'Trốn ra ngoài uống trà sữa', verb: 'Đi uống trà sữa', mins: 60, cost: 25000, leave: true, risk: 0.20, sev: 1, friend: 12, giaotiep: 4, stam: 10 },
+  trasua: { name: 'Trốn ra ngoài uống trà sữa', verb: 'Đi uống trà sữa', mins: 60, cost: 25000, leave: true, risk: 0.20, sev: 1, friend: 12, stam: 10 },
   dabong: { name: 'Trốn ra sân bóng gần trường', verb: 'Đi đá bóng', mins: 60, leave: true, risk: 0.20, sev: 1, friend: 12, thethao: 6, stamCost: 15 },
-  arcade: { name: 'Trốn ra trung tâm thương mại chơi arcade', verb: 'Đi chơi arcade', mins: 90, cost: 30000, leave: true, risk: 0.28, sev: 2, friend: 16, giaotiep: 4, stam: 6 },
-  tttm: { name: 'Trốn ra trung tâm thương mại xem phim', verb: 'Đi xem phim', mins: 110, cost: 45000, leave: true, risk: 0.26, sev: 2, friend: 18, giaotiep: 3, stam: 12 },
+  arcade: { name: 'Trốn ra trung tâm thương mại chơi arcade', verb: 'Đi chơi arcade', mins: 90, cost: 30000, leave: true, risk: 0.28, sev: 2, friend: 16, stam: 6 },
+  tttm: { name: 'Trốn ra trung tâm thương mại xem phim', verb: 'Đi xem phim', mins: 110, cost: 45000, leave: true, risk: 0.26, sev: 2, friend: 18, stam: 12 },
   nui: { name: 'Cúp tiết leo núi sau trường', verb: 'Leo núi sau trường', mins: 80, leave: true, risk: 0.18, sev: 1, friend: 14, thethao: 4, stamCost: 10, day: true },
-  cantin: { name: 'Cúp tiết ngồi lì dưới căn tin', verb: 'Ngồi căn tin', mins: 40, cost: 10000, leave: true, inside: true, risk: 0.30, sev: 1, friend: 9, giaotiep: 2, stam: 8 },
+  cantin: { name: 'Cúp tiết ngồi lì dưới căn tin', verb: 'Ngồi căn tin', mins: 40, cost: 10000, leave: true, inside: true, risk: 0.30, sev: 1, friend: 9, stam: 8 },
   thinghiem: { name: 'Làm thí nghiệm dởm trong phòng hoá', verb: 'Nghịch trong phòng hoá', mins: 20, risk: 0.30, sev: 2, friend: 14, th_hoa: 2 },
   hutthuoc: { name: 'Hút thuốc trong nhà vệ sinh', verb: 'Trốn trong nhà vệ sinh', mins: 10, risk: 0.35, sev: 3, friend: 15, stamCost: 8, thethao: -2, smoke: true },
 };
@@ -414,7 +414,7 @@ const BDAY_FRIEND = 8, BDAY_PARENT = 4;
 // Lễ hội — ĐỂ SẴN, sẽ định nghĩa sau: { season, day, name }. Lịch tự hiển thị.
 // Lễ hội trên Lịch: { season, day, name, desc } — desc là câu bản tin đọc khi sắp tới lễ
 const FESTIVALS = [
-  { season: 0, day: 15, name: 'Tết Trung thu', desc: 'Đêm hội trăng rằm ở phố Hoa Phượng (20:00–23:00): múa lân, rước đèn, đập niêu, kéo co, làm đèn ông sao.' },
+  { season: 0, day: 15, icon: 'sc_trungthu', name: 'Tết Trung thu', desc: 'Đêm hội trăng rằm ở phố Hoa Phượng (20:00–23:00): múa lân, rước đèn, đập niêu, kéo co, làm đèn ông sao.' },
   { season: 1, day: 30, name: 'Đêm giao thừa', desc: 'Núi sau trường mở hội chợ đón giao thừa, có sạp trò chơi, đồ ăn và pháo hoa lúc nửa đêm.' },
 ];
 /* ---------- Tết Trung thu (giữa mùa thu) ở phố Hoa Phượng ----------
@@ -472,7 +472,9 @@ const SOCIETY = {
 };
 const SOC_GAIN = 2;
 // Mã thử nghiệm (dán vào ô "Dán mã" trong Cài đặt, không phân biệt hoa thường)
-const CHEATS = { money: 'HI!IAMBILLGATES', time: 'HI!IAMCIRI', love: 'HI!IAMBALDER', level: 'HI!IAMDAVINCI' };
+const CHEATS = { money: 'HI!IAMBILLGATES', time: 'HI!IAMCIRI', love: 'HI!IAMBALDER', level: 'HI!IAMDAVINCI', sport: 'HI!IAMRONALDO', trade: 'HI!IAMTRUMP', craft: 'HI!IAMMOM', art: 'HI!IAMJACKSON' };
+// mã tăng 1 cấp một chỉ số hỗ trợ
+const CHEAT_STAT = { [CHEATS.sport]: 'thethao', [CHEATS.trade]: 'buonban', [CHEATS.craft]: 'kheotay', [CHEATS.art]: 'vannghe' };
 const CHEAT_MONEY = 100000000, CHEAT_LOVE = 2;
 // Trốn học cùng bạn (đi thật ra ngoài, thời gian trôi thật): nguy cơ bị bắt khi quay lại / khi tan học mà chưa về
 const SKIP = { friend: 6, risk: 0.18, perMissed: 0.1, accept: 0.4, perHeart: 0.11, freeBonus: 0.3, perDay: 3, endAt: 1290 };
@@ -484,7 +486,7 @@ const SNITCH = { friend: -15, others: -2, grudgeDays: 7, friendClass: -10 };
 const IN_CLASS = { delta: -2, riskAdd: 0.18, chat: { friend: 3, risk: 0.15 }, duelRisk: 0.2 };
 
 /* ---------- Mượn sách khi quên (quay sang hỏi bạn) ---------- */
-const BORROW = { deskmate: 0.35, other: 0.22, perHeart: 0.12, perTalk: 0.03, grudge: -0.5, scold: 0.15 };
+const BORROW = { deskmate: 0.35, other: 0.22, perHeart: 0.12, grudge: -0.5, scold: 0.15 };
 
 /* ---------- Xin tiền bố mẹ đi chơi (sau khi đã về nhà) ---------- */
 const OUTING = { base: 10000, perLv: 4000, perWeek: 2, chance: 0.45, perLvChance: 0.05 };
@@ -492,10 +494,10 @@ const OUTING = { base: 10000, perLv: 4000, perWeek: 2, chance: 0.45, perLvChance
 /* ---------- Trò riêng với bạn cùng giới (giờ ra chơi, hoặc lén làm trong giờ học) ---------- */
 // g: giới tính nhân vật được rủ trò này (bạn cùng giới) · risk: nguy cơ bị giám thị / cô nhắc
 const BREAK_FUN = {
-  wc: { g: 'girl', name: 'Rủ đi vệ sinh chung', friend: 5, giaotiep: 1, risk: 0.08 },
+  wc: { g: 'girl', name: 'Rủ đi vệ sinh chung', friend: 5, risk: 0.08 },
   yoyo: { g: 'boy', name: 'Rủ chơi yoyo', friend: 4, kheotay: 1 },
   conquay: { g: 'boy', name: 'Rủ chơi con quay', friend: 4, kheotay: 1 },
-  danhbai: { g: 'boy', name: 'Rủ đánh bài tiến lên', friend: 6, giaotiep: 1, risk: 0.14 },
+  danhbai: { g: 'boy', name: 'Rủ đánh bài tiến lên', friend: 6, risk: 0.14 },
 };
 const BREAK_FUN_MIN_HEARTS = 1, BREAK_FUN_PER_DAY = 2, BREAK_FUN_MINS = 10;
 
@@ -545,20 +547,47 @@ const MEMO_ITEMS = {
   voso: { name: 'Vỏ sò biển Hoa Phượng', desc: 'Áp lên tai nghe được tiếng sóng.', hint: 'Đi biển nhặt vỏ sò' },
   anhgiaothua: { name: 'Ảnh đón giao thừa', desc: 'Gia đình và bạn bè chụp chung dưới bầu trời pháo hoa.', hint: 'Ngắm pháo hoa giao thừa trên núi', photo: true },
   denongsao: { name: 'Đèn ông sao tự làm', desc: 'Khung nan tre, giấy bóng kính đỏ, ánh nến lung linh.', hint: 'Tự ghép đèn lồng ở hội Trung thu' },
+  anhhkpd: { name: 'Ảnh lớp ngày Hội khoẻ Phù Đổng', desc: 'Cả lớp đứng chụp chung sau lễ trao giải, ai thi đấu thì đứng hàng trước.', hint: 'Dự lễ trao giải Hội khoẻ Phù Đổng', photo: true },
   anhtrungthu: { name: 'Ảnh rước đèn Trung thu', desc: 'Cả đoàn rước đèn ông sao dưới trăng rằm.', hint: 'Rước đèn cùng mọi người đêm Trung thu', photo: true },
 };
 // Danh hiệu & huy hiệu trong lưu bút
+/* ---------- Hội khoẻ Phù Đổng: thứ 7 đầu tiên của mùa đông, ở sân trường ----------
+ * from–until: phải vào trường (qua cổng) trong khoảng này, không thì lớp bị xử thua cả 4 môn — mọi thầy cô và bạn bè mất điểm thân thiết
+ * Trong hội thời gian đứng yên. 4 môn: kéo co, cướp cờ, tung còn đấu vòng tròn với 3 lớp (đối thủ khó dần HK_ORDER);
+ * nhảy bao bố tiếp sức là một lượt đua chung cả 4 lớp. Xong cả 4 môn thì gặp thầy hiệu trưởng → trao giải → ảnh lớp → end (17:00).
+ * str: sức mạnh lớp bạn (0–3) · team: bạn cùng lớp thi cùng mình ở mỗi môn */
+const HKPD = { season: 1, open: 360, from: 480, until: 660, end: 1020, failTeacher: -8, failFriend: -10, cupFriend: 6, cupTeacher: 4, playFriend: 2 };
+const HK_CLASSES = {
+  a1: { suf: 'A1', str: 0, col: '#3b82c4' },
+  a2: { suf: 'A2', str: 3, col: '#e2574c', looks: ['x1', 'x2', 'c5', 'c8', 'c1', 'c6', 'c7', 'c2'] },
+  a3: { suf: 'A3', str: 2, col: '#3f8f3a', looks: ['x3', 'c7', 'c4', 'c1', 'c8', 'c5', 'c3', 'c2'] },
+  a4: { suf: 'A4', str: 1, col: '#c9962a', looks: ['x4', 'c3', 'c6', 'c5', 'c2', 'c7', 'c4', 'c1'] },
+};
+const HK_ORDER = ['a4', 'a3', 'a2'];        // đối thủ lần lượt của lớp mình: dễ → khó
+const HK_MATES = { khoa: 'Khoa', vy: 'Vy', dat: 'Đạt', ngan: 'Ngân', c1: 'Minh', c3: 'Hà', c4: 'Thảo', c5: 'Tuấn', c2: 'Mai', c6: 'Hương', c7: 'Long', c8: 'Trang' };
+const HK_SPORTS = {
+  keoco: { name: 'Kéo co', ref: 'manh', team: ['khoa', 'dat', 'c5', 'c7', 'c3'], rule: 'Hai lớp cầm dây, dải lụa đỏ ở giữa. <b>Bấm Space thật nhanh</b> (hoặc nút BẤM) để cả đội kéo về phía mình — kéo dải lụa qua vạch bên mình là thắng. Điểm Thể thao càng cao kéo càng khoẻ.' },
+  cuopco: { name: 'Cướp cờ', ref: 'quan', team: ['vy', 'ngan', 'khoa', 'dat'], rule: 'Hai đội đứng hai hàng đối diện, mỗi người một số, lá cờ ở giữa. Trọng tài gọi số nào thì hai bạn số đó chạy ra cướp cờ mang về hàng mình. Cầm cờ mà bị đối phương chạm vào là mất điểm. <b>Chỉ khi gọi đúng số của mình</b> mới được chạy (W A S D / phím mũi tên); chạy ra sai lượt hoặc bị gọi "về" mà không chạy về vạch là phạm quy — 3 lần phạm quy mất 1 điểm. 5 lượt, ai được 3 điểm trước là thắng.' },
+  tungcon: { name: 'Tung còn', ref: 'lan', team: ['vy', 'ngan', 'c3'], rule: 'Mỗi lớp một cột còn, trên đỉnh có vòng tròn. <b>Nhấn giữ chuột rồi kéo</b> để vẽ hướng và lực ném, thả ra để tung. Để ý gió thổi làm còn bay lệch! Ngày may mắn thì còn dễ lọt vòng hơn. Hết giờ, lớp nào tung lọt nhiều hơn thì thắng.' },
+  baobo: { name: 'Nhảy bao bố', ref: 'tung', team: ['khoa', 'vy', 'c5'], rule: 'Cả 4 lớp cùng nhảy tiếp sức một vòng quanh sân trường. Bạn điều khiển lần lượt cả 4 bạn trong đội lớp mình: <b>bấm Space thật nhanh</b> để nhảy, tới chỗ bạn kế tiếp là đổi người. Lớp nào về đích trước xếp trên.' },
+};
+const HK_FOOD = [{ id: 'nuocmia', name: 'Nước mía', price: 10000 }, { id: 'kem', name: 'Kem ốc quế', price: 15000 }, { id: 'xoi', name: 'Xôi gấc', price: 15000 }, { id: 'banhmi', name: 'Bánh mì', price: 12000 }, { id: 'xien', name: 'Xiên que', price: 10000 }];
+const HK_CHEER = ['Cố lên 10A1 ơi!', 'Một, hai, ba… cố lên!', 'Tập trung nào các em!', 'Hay lắm, giữ vững nhé!', 'Đừng bỏ cuộc!'];
 const MEMO_BADGES = {
   giaothua: { name: 'Người đón giao thừa', icon: 'b_giaothua', desc: 'Cùng gia đình, bạn bè ngắm pháo hoa giao thừa trên núi.', hint: 'Ngắm pháo hoa giao thừa' },
   trungthu: { name: 'Huy hiệu Trung thu', icon: 'b_trungthu', desc: 'Tự tay ghép thành công một chiếc đèn ông sao.', hint: 'Làm đèn lồng ở hội Trung thu' },
   dapnieu: { name: 'Cao thủ đập niêu', icon: 'b_dapnieu', desc: 'Bịt mắt mà vẫn đập vỡ niêu kẹo đêm Trung thu.', hint: 'Bịt mắt đập niêu ở hội Trung thu' },
   keoco: { name: 'Lực sĩ kéo co', icon: 'b_keoco', desc: 'Kéo đội bạn qua vạch trong hội Trung thu.', hint: 'Thắng kéo co ở hội Trung thu' },
+  capybara: { name: 'Capybara', icon: 'b_capybara', desc: 'Hiền lành, dễ mến như chú capybara — chơi thân hết mức với tất cả bạn bè.', hint: 'Thân thiết tối đa với mọi người bạn' },
+  connoan: { name: 'Con Ngoan Trò Giỏi', icon: 'b_connoan', desc: 'Được bố mẹ và tất cả thầy cô thương quý hết mức.', hint: 'Thiện cảm tối đa với bố mẹ và mọi thầy cô' },
+  phudong: { name: 'Phù Đổng', icon: 'b_phudong', desc: 'Cùng cả lớp giành cúp tập thể ở Hội khoẻ Phù Đổng.', hint: 'Giành cúp tập thể ở Hội khoẻ Phù Đổng' },
 };
 const MEMO_SCENES = {
   giaothua: { name: 'Đón giao thừa trên núi', icon: 'sc_giaothua', desc: 'Pháo hoa nở rực trời lúc nửa đêm, cả thành phố chào năm mới.' },
   chuatet: { name: 'Đi chùa đầu năm', icon: 'sc_chua', desc: 'Sáng mùng 1 cùng bố mẹ thắp nhang cầu may.' },
   tetvisit: { name: 'Đi chúc Tết', icon: 'sc_tetvisit', desc: 'Đi chúc Tết bạn bè, thầy cô và nhận lì xì.' },
   trungthu: { name: 'Đêm hội Trung thu', icon: 'sc_trungthu', desc: 'Xem múa lân, rước đèn ông sao quanh phố Hoa Phượng dưới trăng rằm.' },
+  hkpd: { name: 'Hội khoẻ Phù Đổng', icon: 'sc_hkpd', desc: 'Cả lớp thi kéo co, cướp cờ, tung còn, nhảy bao bố với các lớp khác trong trường.' },
   banhchung: { name: 'Hội gói bánh chưng', icon: 'sc_banhchung', desc: 'Cả trường nghỉ học buổi chiều, ngồi quanh mâm lá dong gói bánh đón Tết.' },
   xinxam: { name: 'Xin xăm ở chùa', icon: 'sc_xinxam', desc: 'Lắc ống xăm, hồi hộp chờ thẻ rơi ra.' },
   skip: { name: 'Lần đầu trốn học', icon: 'sc_skip', desc: 'Trèo tường trốn ra ngoài cùng bạn — tim đập thình thịch.' },
