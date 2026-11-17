@@ -94,6 +94,12 @@ function buildGrade10() {
     roomExit(r, { map: 'school', x: dx + 11, y: 118, dir: 0 });
   }
 }
+// Dây cờ đuôi nheo căng giữa hai cột tre (không treo lơ lửng). Vẽ theo chân cột: người đứng trước che dây, người đứng sau thì bị dây che
+function addBunting(m, a, b, vis) {
+  addObj(m, { s: 'bunting', x: a, y: b, base: b + 44, vis });
+  addObj(m, { s: 'buntpole', x: a - 2, y: b - 1, base: b + 45, sol: [0, 41, 4, 4], vis });
+  addObj(m, { s: 'buntpole', x: a + 94, y: b - 1, base: b + 45, sol: [0, 41, 4, 4], vis });
+}
 // Phòng chữ nhật có cửa ra ở góc dưới bên phải (giống lớp học)
 function roomBase(id, name, wall, lower, floor, w, h) {
   w = w || 20; h = h || 14;
@@ -330,8 +336,8 @@ function buildFest() {
   const clear = [[386, 330], [430, 380], [500, 400], [340, 380], [96, 380], [220, 390], [240, 440], [290, 340], [410, 260]];
   for (const o of m.objs) if (clear.some(([a, b]) => o.x === a && o.y === b)) { const v0 = o.vis; o.vis = () => !festDecor() && (!v0 || v0()); }
   // lồng đèn, cờ, dây cờ
-  for (const [a, b] of [[280, 444], [190, 236], [430, 316], [90, 360], [520, 196]]) addObj(m, { s: 'lanterns', x: a, y: b, base: 900, glow: true, vis: festDecor });
-  for (const [a, b] of [[150, 196], [330, 196], [380, 440]]) addObj(m, { s: 'bunting', x: a, y: b, base: 900, vis: festDecor });
+  for (const [a, b] of [[280, 444], [190, 236], [430, 316], [90, 360], [520, 196]]) addObj(m, { s: 'lanterns', x: a, y: b, base: b + 23, glow: true, vis: festDecor });
+  for (const [a, b] of [[150, 196], [330, 196], [380, 440]]) addBunting(m, a, b, festDecor);
   for (const [a, b] of [[170, 238], [300, 234]]) addObj(m, { s: 'flagpole', x: a, y: b, sol: [3, 52, 14, 9], vis: festDecor });
   // sạp trò chơi, sạp đồ ăn (có người bán đứng quầy)
   const booth = (id, a, name, label, act, look, of) => {
@@ -374,8 +380,8 @@ function buildTrungThu() {
   const clear = [[620, 290], [580, 352], [700, 292], [840, 290], [780, 348], [690, 362], [600, 340], [760, 300], [740, 380], [498, 296], [498, 380], [150, 338]];
   for (const o of m.objs) if (clear.some(([a, b]) => o.x === a && o.y === b)) { const v0 = o.vis; o.vis = () => !ttDecor() && (!v0 || v0()); }
   // đèn lồng, dây cờ
-  for (const [a, b] of [[40, 230], [210, 230], [560, 230], [740, 230], [160, 110], [332, 110], [650, 110]]) addObj(m, { s: 'lanterns', x: a, y: b, base: 900, glow: true, vis: ttDecor });
-  for (const [a, b] of [[44, 284], [584, 282], [334, 282]]) addObj(m, { s: 'bunting', x: a, y: b, base: 900, vis: ttDecor });
+  for (const [a, b] of [[40, 230], [210, 230], [560, 230], [740, 230], [160, 110], [332, 110], [650, 110]]) addObj(m, { s: 'lanterns', x: a, y: b, base: b + 23, glow: true, vis: ttDecor });
+  for (const [a, b] of [[44, 284], [584, 282], [334, 282]]) addBunting(m, a, b, ttDecor);
   // sân khấu + thị trưởng
   addObj(m, { s: 'ttstage', x: K.stage[0], y: K.stage[1], sol: [0, 30, 100, 16], vis: ttDecor });
   m.labels.push({ x: K.stage[0] + 40, y: K.stage[1] + 17, text: 'ĐÊM HỘI TRĂNG RẰM', size: 7, col: '#ffe066', maxw: 62, vis: ttDecor });
@@ -433,7 +439,7 @@ function buildBcFest() {
   m.labels.push({ x: 280, y: 121, text: 'HỘI GÓI BÁNH CHƯNG', size: 5.4, col: '#ffe066', maxw: 88, vis: bcDecor });
   addObj(m, { s: 'tdesk', x: 290, y: 148, sol: [1, 2, 32, 19], vis: bcDecor }); addObj(m, { s: 'bccup', x: 297, y: 136, base: 175, vis: bcDecor });
   addObj(m, { s: 'noibanh0', x: 420, y: 318, sol: [0, 20, 34, 10], smoke: [16, 0], dyn: () => 'noibanh' + (Math.floor(performance.now() / 260) % 2), vis: bcDecor, label: () => 'Nồi luộc bánh chưng', act: () => UI.toast('Nồi bánh sôi lục bục, thơm mùi lá dong. Phải luộc cả đêm mới chín!') });
-  for (const [a, b] of [[160, 236], [400, 236], [480, 150]]) addObj(m, { s: 'bunting', x: a, y: b, base: 900, vis: bcDecor });
+  for (const [a, b] of [[160, 236], [400, 236], [480, 150]]) addBunting(m, a, b, bcDecor);
   BC_GROUPS.forEach((T, i) => {
     const [cx, cy] = T.at;
     addObj(m, { s: 'bctable', x: cx - 18, y: cy - 10, sol: [0, 4, 36, 12], vis: bcFestOn, label: () => `${T.name} — ngồi gói bánh cùng`, act: () => ACT.bcTable(i) });

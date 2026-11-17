@@ -367,6 +367,8 @@ function buildSprites2() {
     for (let i = 0; i <= 94; i++) R(x, '#5f656f', 1 + i, 1 + Math.round(Math.sin(i / 94 * Math.PI) * 4), 1, 1);
     for (let k = 0; k < 8; k++) { const a = 4 + k * 11, b = 2 + Math.round(Math.sin((a + 3) / 94 * Math.PI) * 4); if (k % 2) { R(x, '#da251d', a, b, 8, 6); R(x, '#ffde59', a + 3, b + 2, 2, 2); R(x, '#ffde59', a + 4, b + 1, 1, 1); } else { tri(x, '#ffde59', a + 4, b, 7, 4); } }
   });
+  // cột tre căng dây cờ (đứng ở hai đầu mỗi dây)
+  def('buntpole', 4, 46, x => { R(x, '#8a5a3a', 1, 1, 2, 41); R(x, '#a9703f', 1, 1, 1, 41); R(x, '#6f472c', 1, 14, 2, 1); R(x, '#6f472c', 1, 28, 2, 1); R(x, '#c9a467', 0, 0, 4, 2); R(x, '#8b8f9c', 0, 42, 4, 4); R(x, '#b3aea3', 0, 42, 4, 1); });
   /* ---------- sạp hội chợ đêm giao thừa (2 lớp: sạp + quầy) ---------- */
   const boothBack = (name, col, fn) => def(name + '_b', 54, 44, x => {
     for (let i = 0; i < 7; i++) { R(x, i % 2 ? '#fbf7ee' : col, i * 8 - 1, 0, 8, 9); R(x, i % 2 ? '#e3ddd0' : shade(col, -25), i * 8 - 1, 9, 8, 1); ell(x, i % 2 ? '#fbf7ee' : col, i * 8 + 3, 10, 4, 2); }

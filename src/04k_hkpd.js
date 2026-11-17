@@ -65,6 +65,7 @@ function buildHkpd() {
   const m = MAPS.school;
   addObj(m, { s: 'hkbanner', x: 300, y: 40, base: 106, vis: hkDecor });
   m.labels.push({ x: 352, y: 47.5, text: 'HỘI KHOẺ PHÙ ĐỔNG', size: 6.4, col: '#ffe066', maxw: 96, vis: hkDecor });
+  for (const [a, b] of [[388, 122], [470, 344]]) addBunting(m, a, b, hkDecor);      // dây cờ căng giữa các cột tre
   addObj(m, { s: 'hkpodium', x: HK_SPOT.podium[0], y: HK_SPOT.podium[1], base: 170, sol: [0, 6, 66, 22], vis: hkDecor });
   const sign = (id, x, y, text) => { addObj(m, { s: 'hksign', x, y, sol: [14, 26, 6, 4], vis: hkDecor, label: () => `Khu thi ${HK_SPORTS[id].name.toLowerCase()}`, act: () => ACT.hkSport(id) }); m.labels.push({ x: x + 17, y: y + 9.5, text, size: 4.6, col: '#2a2136', maxw: 30, vis: hkDecor }); };
   sign('keoco', 620, 104, 'KÉO CO'); sign('cuopco', 446, 296, 'CƯỚP CỜ'); sign('tungcon', 128, 246 + 60, 'TUNG CÒN'); sign('baobo', 222, 362, 'BAO BỐ');
@@ -102,8 +103,6 @@ ACT.hkFood = (name, items) => {
 // đồ trang trí: dây cờ đuôi nheo, dây kéo co nằm trên sân, cờ, cột còn, vạch đường đua (vẽ trước lớp tối)
 function drawHkProps(now) {
   if (G.map !== 'school' || !hkDecor()) return;
-  const cols = ['#e2574c', '#ffd23a', '#3b82c4', '#3f8f3a', '#fffaf0'];
-  for (let i = 0; i < 40; i++) { const x = 192 + i * 8, sag = Math.sin(i / 39 * Math.PI) * 6; wRect('#5f656f', x, 108 + sag, 8, 0.6); wRect(cols[i % 5], x + 2, 108.6 + sag, 3, 3); wRect(cols[i % 5], x + 3, 111.6 + sag, 1, 1); }
   if (RT.scene && RT.scene.type === 'cut') return;
   const [kx, ky] = HK_SPOT.keoco; for (let i = -50; i <= 50; i++) wRect('#c9a467', kx + i, ky + Math.sin(i / 7) * 0.8, 1, 1.4);
   wRect('#e2574c', kx - 1, ky - 3, 2, 6); wRect('#fffaf0', kx - 17, ky - 8, 1, 16); wRect('#fffaf0', kx + 16, ky - 8, 1, 16);
@@ -132,7 +131,7 @@ ACT.hkSport = async id => {
   const S = HK_SPORTS[id], H = hkY(), who = { look: TEACHERS[S.ref].look };
   if (!RT.hkFest) return UI.ask(TEACHERS[S.ref].name, `<p>“Khu thi ${S.name.toLowerCase()} của Hội khoẻ Phù Đổng đây. ${isHkDay(G.day) && !H.done ? 'Vào hội rồi hẵng thi nhé.' : 'Hội đã kết thúc rồi em ạ.'}”</p>`, ['Dạ'], { who });
   if (H.sp[id]) return UI.ask(TEACHERS[S.ref].name, `<p>“Lớp ${hkName('a1')} thi môn ${S.name.toLowerCase()} xong rồi — xếp <b>hạng ${H.sp[id].place}</b>. ${hkLeft().length ? 'Sang khu khác thi tiếp đi em!' : 'Xong cả 4 môn rồi, ra gặp thầy hiệu trưởng ở bục trao giải nhé!'}”</p>`, ['Dạ!'], { who });
-  const vs = id === 'baobo' ? 'Cả 4 lớp cùng đua một lượt.' : `Đấu vòng tròn 3 trận, lần lượt gặp ${HK_ORDER.map(hkName).join(' → ')} (càng về sau càng khó).`;
+  const vs = id === 'baobo' ? 'Cả 4 lớp cùng đua một lượt.' : `Thi loại trực tiếp: lần lượt gặp ${HK_ORDER.map(hkName).join(' → ')} (càng về sau càng khó, trận cuối là chung kết). <b>Thua trận nào là bị loại ngay.</b>`;
   const c = await UI.ask(TEACHERS[S.ref].name, `<p>“Lớp ${hkName('a1')} thi môn <b>${S.name}</b> nhé! ${vs}”</p><p class="dim">${S.rule}</p><p class="dim">Đội lớp mình: bạn, ${S.team.map(k => HK_MATES[k]).join(', ')}.</p>`, ['Vào thi!', 'Để sau'], { who });
   if (c !== 0) return;
   RT.lock = true;
@@ -141,21 +140,34 @@ ACT.hkSport = async id => {
     else await hkGroup(id);
   } finally { RT.lock = false; arenaClose(); UI.hud(); }
 };
-// đấu vòng tròn: lớp mình gặp 3 lớp (khó dần), các trận còn lại giữa các lớp bạn thì tính ngẫu nhiên theo sức
+// Thi loại trực tiếp (kéo co, cướp cờ, tung còn): lần lượt gặp 10A4 → 10A3 → chung kết với 10A2 (khó dần), THUA LÀ BỊ LOẠI NGAY
 async function hkGroup(id) {
-  const S = HK_SPORTS[id], ms = [];
+  const S = HK_SPORTS[id], path = [];
+  let lostTo = null;
   for (let i = 0; i < HK_ORDER.length; i++) {
     const o = HK_ORDER[i];
     const r = id === 'keoco' ? await hkTugRound(o, i) : id === 'cuopco' ? await hkFlagRound(o, i) : await hkConRound(o, i);
-    ms.push({ a: 'a1', b: o, sa: r.sa, sb: r.sb });
-    const res = r.sa > r.sb ? 'thắng' : r.sa < r.sb ? 'thua' : 'hoà';
-    if (i < HK_ORDER.length - 1) await UI.ask(S.name, `<p>Trận ${i + 1}: ${hkName('a1')} <b>${res}</b> ${hkName(o)}${id === 'keoco' ? '' : ` (${r.sa} – ${r.sb})`}.</p><p>Trận tiếp theo gặp <b>${hkName(HK_ORDER[i + 1])}</b> — khó hơn đấy!</p>`, ['Thi tiếp!']);
+    const win = r.win !== undefined ? !!r.win : r.sa > r.sb;
+    path.push({ o, sa: r.sa, sb: r.sb, win });
+    if (!win) { lostTo = o; break; }
+    if (i < HK_ORDER.length - 1) await UI.ask(S.name, `<p>${hkRound(i)[0].toUpperCase() + hkRound(i).slice(1)}: ${hkName('a1')} <b>thắng</b> ${hkName(o)}${id === 'keoco' ? '' : ` (${r.sa} – ${r.sb})`}, được đi tiếp!</p><p>${i + 1 === HK_ORDER.length - 1 ? 'Vào <b>chung kết</b>' : 'Vòng tiếp theo'} gặp <b>${hkName(HK_ORDER[i + 1])}</b> — khó hơn đấy!</p>`, ['Thi tiếp!']);
   }
-  for (let i = 0; i < HK_ORDER.length; i++) for (let j = i + 1; j < HK_ORDER.length; j++) ms.push(hkSimMatch(id, HK_ORDER[i], HK_ORDER[j]));
-  const order = hkRank(ms), place = order.indexOf('a1') + 1, wins = ms.filter(x => x.a === 'a1' && x.sa > x.sb).length;
+  const wins = path.filter(p => p.win).length, order = hkKoOrder(lostTo, wins), place = order.indexOf('a1') + 1;
   hkFinish(id, order, wins);
-  const rows = order.map((k, i) => { const st = hkStats(ms, k); return `<tr class="${k === 'a1' ? 'me' : ''}"><td>${i + 1}</td><td>${hkName(k)}</td><td>${st.w}</td><td>${st.d}</td><td>${st.l}</td><td>${id === 'keoco' ? '' : st.f + '–' + st.a}</td><td>${st.pts}</td></tr>`; }).join('');
-  await UI.ask(`Bảng xếp hạng môn ${S.name}`, `<table class="hktab"><tr><th>#</th><th>Lớp</th><th>Thắng</th><th>Hoà</th><th>Thua</th><th>${id === 'keoco' ? '' : 'Bàn'}</th><th>Điểm</th></tr>${rows}</table><p>${place <= 3 ? `Lớp ${hkName('a1')} xếp <b>hạng ${place}</b> — được huy chương ${['vàng', 'bạc', 'đồng'][place - 1]}!` : `Lớp ${hkName('a1')} xếp hạng ${place}. Không sao, còn các môn khác!`}</p><p class="dim">Thắng 3 điểm, hoà 1 điểm. ${hkLeft().length ? `Còn ${hkLeft().length} môn: ${hkLeft().map(k => HK_SPORTS[k].name.toLowerCase()).join(', ')}.` : 'Xong cả 4 môn rồi — ra gặp thầy hiệu trưởng ở bục trao giải!'}</p>`, ['OK']);
+  const rows = path.map((p, i) => `<tr class="${p.win ? 'me' : ''}"><td>${hkRound(i)}</td><td>${hkName('a1')} – ${hkName(p.o)}</td><td>${id === 'keoco' ? (p.win ? 'thắng' : 'thua') : `${p.sa} – ${p.sb}`}</td><td>${p.win ? 'đi tiếp' : 'bị loại'}</td></tr>`).join('');
+  await UI.ask(`Kết quả môn ${S.name}`, `<table class="hktab"><tr><th>Vòng</th><th>Trận</th><th>Kết quả</th><th></th></tr>${rows}</table>
+    <table class="hktab"><tr><th>#</th><th>Lớp</th></tr>${order.map((k, i) => `<tr class="${k === 'a1' ? 'me' : ''}"><td>${i + 1}</td><td>${hkName(k)}</td></tr>`).join('')}</table>
+    <p>${lostTo ? `Lớp ${hkName('a1')} thua ${hkName(lostTo)} ở ${hkRound(path.length - 1)} nên bị loại — ` : `Lớp ${hkName('a1')} thắng cả 3 trận — `}xếp <b>hạng ${place}</b>${place <= 3 ? `, được huy chương ${['vàng', 'bạc', 'đồng'][place - 1]}!` : '.'}</p><p class="dim">Thi loại trực tiếp: thua trận nào là dừng ở trận đó. ${hkLeft().length ? `Còn ${hkLeft().length} môn: ${hkLeft().map(k => HK_SPORTS[k].name.toLowerCase()).join(', ')}.` : 'Xong cả 4 môn rồi — ra gặp thầy hiệu trưởng ở bục trao giải!'}</p>`, ['OK']);
+}
+// thứ hạng sau thi loại trực tiếp: thắng cả 3 trận → nhất, thua ở chung kết → nhì, thua ở vòng 2 → ba, thua ngay vòng 1 → bét.
+// Lớp thắng mình luôn xếp trên mình; các lớp còn lại xếp theo sức (có chút may rủi)
+function hkKoOrder(lostTo, wins) {
+  const place = HK_ORDER.length + 1 - wins, score = {};
+  for (const k of HK_ORDER) score[k] = HK_CLASSES[k].str + Math.random() * 1.6;
+  const others = HK_ORDER.filter(k => k !== lostTo).sort((a, b) => score[b] - score[a]), above = lostTo ? [lostTo] : [], below = [];
+  for (const k of others) (above.length < place - 1 ? above : below).push(k);
+  above.sort((a, b) => score[b] - score[a]);
+  return above.concat(['a1'], below);
 }
 function hkFinish(id, order, wins) {
   const H = hkY(), place = order.indexOf('a1') + 1;
@@ -229,7 +241,9 @@ function wText(t, x, y, size, col, stroke) {
   ctx.fillStyle = col; ctx.fillText(t, X, Y);
 }
 // chạy một đoạn chơi được trong cắt cảnh: tick(dt) mỗi khung hình, trả về true khi xong
+// tick trả về true = xong; giá trị khác (1 / 0) = mình có đang bước đi không (để vẽ chân bước)
 const liveLoop = (sc, tick) => new Promise(res => { sc.drive = dt0 => { const r = tick(Math.min(0.05, dt0) * hkSpeed()); if (r === true) { sc.drive = null; res(); return false; } return !!r; }; });
+const hkRound = r => ['vòng 1', 'vòng 2', 'chung kết'][r] || `vòng ${r + 1}`;
 const mmss = t => `${Math.floor(Math.max(0, t) / 60)}:${String(Math.ceil(Math.max(0, t)) % 60).padStart(2, '0')}`;
 const medalCol = p => ['#ffd23a', '#d6dbe3', '#c8834a'][p - 1];
 // sau trận: đội thắng nhảy cẫng lên, đội thua cúi đầu
@@ -294,7 +308,7 @@ async function tugMatch(o) {
 function hkTugRound(opp, round) {
   const [cx, cy] = HK_SPOT.keoco, S = HK_SPORTS.keoco;
   return tugMatch({ map: 'school', cx, cy, L: S.team.map(hkMate), R: hkOpp(opp, 6, round), opp: [0.95, 1.15, 1.35][round], time: 25,
-    title: `Kéo co · trận ${round + 1}/3`, names: [hkName('a1'), hkName(opp)], intro: `Trận ${round + 1}: ${hkName('a1')} gặp ${hkName(opp)}! Hai đội cầm chắc dây!`,
+    title: `Kéo co · ${hkRound(round)}`, names: [hkName('a1'), hkName(opp)], intro: `Kéo co ${hkRound(round)}: ${hkName('a1')} gặp ${hkName(opp)}! Hai đội cầm chắc dây!`,
     cheer: [{ look: TEACHERS.manh.look, x: cx, y: cy - 28, dir: 0 }, { look: 'teacherA', x: cx - 70, y: cy + 26, dir: 3 }] });
 }
 // Kéo co ở hội Trung thu: đội Hoa Phượng (mình, bạn thân, bố, các bạn nhỏ) đấu đội Bờ Sông
@@ -338,40 +352,64 @@ async function hkFlagRound(opp, round) {
     }
   };
   let win = false;
-  await playCut({ map: 'school', me: [XL, Y(myNo - 1), 2], cam: { x: cx, y: cy - 6 }, title: `Cướp cờ · trận ${round + 1}/3`, actors, props: [prop], hide: ['hk'],
-    steps: [{ say: [iRef, `Trận ${round + 1}: ${hkName('a1')} gặp ${hkName(opp)}! Nhớ số của mình nhé!`] }, { say: ['me', `Mình là số ${myNo}!`] }, { live: async sc => {
+  await playCut({ map: 'school', me: [XL, Y(myNo - 1), 2], cam: { x: cx, y: cy - 6 }, title: `Cướp cờ · ${hkRound(round)}`, actors, props: [prop], hide: ['hk'],
+    steps: [{ say: [iRef, `Cướp cờ ${hkRound(round)}: ${hkName('a1')} gặp ${hkName(opp)}! Nhớ số của mình nhé!`] }, { say: ['me', `Mình là số ${myNo}!`] }, { live: async sc => {
       arenaOpen(() => {}, null);
       const R = sc.actors[iRef], say = (txt, ms) => { sc.bubble = { x: R.x, y: R.y - 27, text: txt }; st.bubT = (ms || 1400) / 1000; };
-      const hud = () => arenaText(`<b>Cướp cờ · trận ${round + 1}/3</b><div class="sc">${hkName('a1')} <i>${st.sa} – ${st.sb}</i> ${hkName(opp)}</div><small>Số của bạn: <b>${myNo}</b> · Phạm quy: ${st.fouls}/3</small><small>${st.msg || 'Chờ trọng tài gọi đúng số của mình rồi mới chạy (W A S D)'}</small>`);
+      const hud = () => arenaText(`<b>Cướp cờ · ${hkRound(round)}</b><div class="sc">${hkName('a1')} <i>${st.sa} – ${st.sb}</i> ${hkName(opp)}</div><small>Số của bạn: <b>${myNo}</b> · Phạm quy: ${st.fouls}/3</small><small>${st.msg || 'Chờ trọng tài gọi đúng số của mình rồi mới chạy (W A S D)'}</small>`);
       const keysMove = () => { let vx = 0, vy = 0; if (KEYS.a || KEYS.arrowleft) vx--; if (KEYS.d || KEYS.arrowright) vx++; if (KEYS.w || KEYS.arrowup) vy--; if (KEYS.s || KEYS.arrowdown) vy++; if (JOY.id !== null && Math.hypot(JOY.dx, JOY.dy) > 12) { vx = JOY.dx; vy = JOY.dy; } const l = Math.hypot(vx, vy); return l ? [vx / l, vy / l] : [0, 0]; };
       const dist = (p, q) => Math.hypot(p.x - q.x, p.y - q.y);
       const moveTo = (a, tx, ty, v, dt) => { const dx = tx - a.x, dy = ty - a.y, l = Math.hypot(dx, dy); if (l < 0.5) return true; const k = Math.min(1, v * dt / l); a.x += dx * k; a.y += dy * k; if (a !== G) { a.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 1 : 2) : (dy < 0 ? 3 : 0); a.walk = (a.walk >= 0 ? a.walk : 0) + dt; } else G.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 1 : 2) : (dy < 0 ? 3 : 0); return l <= v * dt; };
       const reset = () => { st.flag = [cx, cy - 2]; st.holder = null; for (let n = 1; n <= 5; n++) { const [ax, ay] = home('L', n), [bx, by] = home('R', n); if (ours[n] === 'me') { G.x = ax; G.y = ay; G.dir = 2; } else Object.assign(sc.actors[ours[n]], { x: ax, y: ay, dir: 2, walk: -1 }); Object.assign(sc.actors[thrs[n]], { x: bx, y: by, dir: 1, walk: -1 }); } };
       const point = (us, why) => { if (us) st.sa++; else st.sb++; st.msg = why; st.ph = 'point'; st.t = 0; say(why, 1600); };
-      const foul = why => { st.fouls++; st.msg = why; say(`Phạm quy! ${why}`, 1400); if (st.fouls >= 3) { st.fouls = 0; point(false, `Phạm quy 3 lần — ${hkName(opp)} được 1 điểm!`); } };
-      const call = () => { reset(); const w = [1, 2, 3, 4, 5].map(n => (n === myNo ? 3 : 1)), tot = w.reduce((a, b) => a + b, 0); let r = Math.random() * tot, n = 1; for (; n <= 5; n++) { r -= w[n - 1]; if (r <= 0) break; } st.num = Math.min(5, n); st.ph = 'run'; st.t = 0; st.back = st.num === myNo && Math.random() < 0.25 ? 0.7 + Math.random() * 0.8 : -1; st.aiD = react * (0.8 + Math.random() * 0.5); st.ours = 44 + Math.random() * 16; st.thr = sp - 4 + Math.random() * 10; st.msg = st.num === myNo ? 'Gọi số của bạn — CHẠY ra cướp cờ!' : `Số ${st.num} đang thi — đứng yên trong hàng!`; say(`Số ${st.num}!`, 1000); };
-      st.ph = 'wait'; st.t = 0; st.cool = 0; reset();
-      await liveLoop(sc, dt => {
-        st.t += dt; st.cool = Math.max(0, st.cool - dt); if (st.bubT !== undefined) { st.bubT -= dt; if (st.bubT <= 0) { sc.bubble = null; st.bubT = undefined; } }
+      const foul = why => { if (!st.foulNow) st.foulNow = why; };           // dừng lại diễn cảnh phạm quy (bên dưới)
+      // mỗi lượt chỉ gọi MỘT số: chỉ khi có đội ăn điểm mới gọi số mới; bị hô "về" hoặc lâu quá thì gọi lại đúng số đó
+      const call = () => {
+        reset();
+        if (st.fresh || !st.num) { const w = [1, 2, 3, 4, 5].map(n => (n === myNo ? 3 : 1)), tot = w.reduce((a, b) => a + b, 0); let r = Math.random() * tot, n = 1; for (; n <= 5; n++) { r -= w[n - 1]; if (r <= 0) break; } st.num = Math.min(5, n); st.backDone = false; }
+        st.fresh = false; st.ph = 'run'; st.t = 0;
+        st.back = st.num === myNo && !st.backDone && Math.random() < 0.25 ? 0.7 + Math.random() * 0.8 : -1;
+        st.aiD = react * (0.8 + Math.random() * 0.5); st.ours = 44 + Math.random() * 16; st.thr = sp - 4 + Math.random() * 10;
+        st.msg = st.num === myNo ? 'Gọi số của bạn — CHẠY ra cướp cờ!' : `Số ${st.num} đang thi — đứng yên trong hàng!`; say(`Số ${st.num}!`, 1000);
+      };
+      // cảnh phạm quy: trọng tài thổi còi, đi tới nhắc, mình xin lỗi rồi về vạch. 3 lần phạm quy: lớp mình bị trừ 1 điểm, trận đấu vẫn tiếp tục
+      const foulScene = async why => {
+        const rx = R.x, ry = R.y, [hx, hy] = home('L', myNo);
+        sc.bubble = null; arenaText(`<b>Cướp cờ · ${hkRound(round)}</b><div class="sc">${hkName('a1')} <i>${st.sa} – ${st.sb}</i> ${hkName(opp)}</div><small>Phạm quy!</small>`);
+        await runStep({ say: [iRef, 'Tuýt! Tuýt! Dừng lại!'] }, {});
+        await runStep({ move: [iRef, clamp(G.x + 18, XL + 10, XR - 10), G.y + 2, 500] }, {});
+        R.dir = 1; G.dir = 2;
+        await runStep({ say: [iRef, `Phạm quy! ${why}`] }, {});
+        await runStep({ par: [{ hop: 'me' }, { say: ['me', pick(['Em xin lỗi thầy ạ…', 'Chết, em lỡ chân…', 'Em không cố ý đâu ạ…'])] }] }, {});
+        st.fouls++;
+        if (st.fouls >= 3) { st.fouls = 0; st.sa -= 1; st.msg = `Phạm quy 3 lần — ${hkName('a1')} bị trừ 1 điểm`; await runStep({ say: [iRef, `Phạm quy 3 lần rồi! ${hkName('a1')} bị trừ 1 điểm!`] }, {}); }
+        else { st.msg = `Phạm quy lần ${st.fouls}/3`; await runStep({ say: [iRef, `Phạm quy lần ${st.fouls}. Đủ 3 lần là bị trừ 1 điểm đấy!`] }, {}); }
+        await runStep({ par: [{ move: ['me', hx, hy, 500] }, { move: [iRef, rx, ry, 500] }] }, {});
+        R.dir = 3; G.dir = 2; for (const k in KEYS) KEYS[k] = false;
+        st.ph = 'wait'; st.t = 0;                                              // chơi tiếp lượt đang dở: gọi lại đúng số đó
+      };
+      const tick = dt => {
+        st.t += dt; if (st.bubT !== undefined) { st.bubT -= dt; if (st.bubT <= 0) { sc.bubble = null; st.bubT = undefined; } }
         let meMove = false;
         const [mx, my] = UI._mgBot ? [0, 0] : keysMove(), mine = st.num === myNo && st.ph === 'run';
         const home0 = home('L', myNo);
         // mình: được chạy khi đúng số; sai lượt mà rời hàng là phạm quy
         if (st.ph !== 'point' && st.ph !== 'over') {
           if (mx || my) { G.x = clamp(G.x + mx * meV * dt, XL - 6, XR + 6); G.y = clamp(G.y + my * meV * dt, cy - 44, cy + 38); G.dir = Math.abs(mx) > Math.abs(my) ? (mx < 0 ? 1 : 2) : (my < 0 ? 3 : 0); meMove = true; }
-          if (!mine && st.ph !== 'back' && Math.hypot(G.x - home0[0], G.y - home0[1]) > 5) { [G.x, G.y] = home0; if (st.cool <= 0) { st.cool = 1; foul(`Số ${myNo} chưa được gọi mà đã chạy ra!`); } }
+          if (!mine && st.ph !== 'back' && Math.hypot(G.x - home0[0], G.y - home0[1]) > 5) foul(`Số ${myNo} chưa được gọi mà đã chạy ra!`);
         }
+        if (st.foulNow) return true;
         if (st.ph === 'wait') { if (st.t > 0.8) call(); }
-        else if (st.ph === 'point') { if (st.t > 1.8) { if (st.sa >= 3 || st.sb >= 3) { st.ph = 'over'; return true; } st.ph = 'wait'; st.t = 0; reset(); } }
+        else if (st.ph === 'point') { if (st.t > 1.8) { if (st.sa >= 3 || st.sb >= 3) { st.ph = 'over'; return true; } st.ph = 'wait'; st.t = 0; st.fresh = true; reset(); } }
         else if (st.ph === 'back') {
-          // trọng tài hô "về": hai bạn phải chạy về vạch xuất phát
+          // trọng tài hô "về": hai bạn phải chạy về vạch xuất phát rồi trọng tài gọi lại đúng số đó
           const b = sc.actors[thrs[st.num]], [bx, by] = home('R', st.num); moveTo(b, bx, by, st.thr, dt);
           if (UI._mgBot) moveTo(G, home0[0], home0[1], meV, dt);
-          if (st.t > 2.5) { if (G.x > XL + 4) foul(`Số ${myNo} không chạy về vạch!`); if (st.ph === 'back') { st.ph = 'wait'; st.t = 0; reset(); } }
+          if (st.t > 2.5) { st.backDone = true; if (G.x > XL + 4) { foul(`Số ${myNo} không chạy về vạch!`); return true; } st.ph = 'wait'; st.t = 0; reset(); }
         }
         else if (st.ph === 'run') {
           const n = st.num, b = sc.actors[thrs[n]], A = ours[n] === 'me' ? G : sc.actors[ours[n]], f = { x: st.flag[0], y: st.flag[1] };
-          if (st.back > 0 && st.t > st.back && !st.holder) { st.ph = 'back'; st.t = 0; st.msg = `Trọng tài hô "Số ${n} về!" — chạy về vạch ngay!`; say(`Số ${n} về!`, 1200); return meMove; }
+          if (st.back > 0 && st.t > st.back && !st.holder) { st.ph = 'back'; st.t = 0; st.msg = `Trọng tài hô "Số ${n} về!" — chạy về vạch ngay!`; say(`Số ${n} về!`, 1200); return meMove ? 1 : 0; }
           // người của đội mình (máy hoặc chế độ tự chơi)
           if (A !== G || UI._mgBot) {
             if (!st.holder) { if (moveTo(A, f.x - 3, f.y, A === G ? meV * 0.9 : st.ours, dt)) st.holder = 'L'; }
@@ -390,11 +428,18 @@ async function hkFlagRound(opp, round) {
           else if (st.holder === 'R' && tag) point(true, `${hkName('a1')} chạm được người cầm cờ!`);
           else if (st.holder === 'L' && A.x <= XL + 2) point(true, `${hkName('a1')} mang cờ về hàng!`);
           else if (st.holder === 'R' && b.x >= XR - 2) point(false, `${hkName(opp)} mang cờ về hàng!`);
-          else if (st.t > 12) { st.ph = 'wait'; st.t = 0; say('Lâu quá! Gọi số khác nào!', 1000); }
+          else if (st.t > 12) { st.ph = 'wait'; st.t = 0; say(`Lâu quá! Về vạch, gọi lại số ${n}!`, 1000); }
         }
         hud();
-        return meMove;
-      });
+        return meMove ? 1 : 0;                                                // (true là tín hiệu xong trận — đi lại thì trả về 1)
+      };
+      st.ph = 'wait'; st.t = 0; st.fresh = true; reset();
+      for (;;) {
+        st.foulNow = null;
+        await liveLoop(sc, tick);
+        if (st.foulNow) { await foulScene(st.foulNow); continue; }
+        break;
+      }
       arenaClose();
       win = st.sa > st.sb; st.num = 0;
       const mine = Object.values(ours), theirs = Object.values(thrs);
@@ -432,21 +477,22 @@ async function hkConRound(opp, round) {
     if (who !== null) who.oy = -3;
   };
   let res = null;
-  await playCut({ map: 'school', me: [164, GY, 3], cam: { x: 196, y: 230 }, title: `Tung còn · trận ${round + 1}/3`, actors, props: [prop], hide: ['hk'],
-    steps: [{ say: [iRef, `Trận ${round + 1}: ${hkName('a1')} gặp ${hkName(opp)}! Mỗi quả lọt vòng được 1 điểm!`] }, { live: async sc => {
-      let t = 0, windT = 0;
-      const ai = actors.map(() => 1 + Math.random() * 2.5);
+  await playCut({ map: 'school', me: [164, GY, 3], cam: { x: 196, y: 230 }, title: `Tung còn · ${hkRound(round)}`, actors, props: [prop], hide: ['hk'],
+    steps: [{ say: [iRef, `Tung còn ${hkRound(round)}: ${hkName('a1')} gặp ${hkName(opp)}! Mỗi quả lọt vòng được 1 điểm!`] }, { live: async sc => {
+      let t = 0, windT = 0, limit = T;                                       // limit: hết giờ (cộng thêm hiệp phụ khi hoà)
+      const ai = actors.map(() => 1 + Math.random() * 2.5), over = () => t >= limit + 1.5;
       const toW = e => [(e.clientX * VIEW.dpr - VIEW.ox) / VIEW.S, (e.clientY * VIEW.dpr - VIEW.oy) / VIEW.S];
-      const pd = e => { if (UI.isOpen() || t < 1.5 || res) return; e.preventDefault(); e.stopPropagation(); if (!st.ready) return; const [x, y] = toW(e); st.aim = { s: [x, y], v: [0, 0] }; };
+      const pd = e => { if (UI.isOpen() || t < 1.5 || res || over()) return; e.preventDefault(); e.stopPropagation(); if (!st.ready) return; const [x, y] = toW(e); st.aim = { s: [x, y], v: [0, 0] }; };
       const pm = e => { if (!st.aim) return; e.preventDefault(); const [x, y] = toW(e); let vx = (x - st.aim.s[0]) * 4.2, vy = (y - st.aim.s[1]) * 4.2; const l = Math.hypot(vx, vy); if (l > 270) { vx *= 270 / l; vy *= 270 / l; } st.aim.v = [vx, vy]; };
-      const pu = e => { if (!st.aim) return; e.preventDefault(); const [vx, vy] = st.aim.v; st.aim = null; if (Math.hypot(vx, vy) < 30 || !st.ready) return; st.cons.push({ x: G.x + 3, y: G.y - 16, vx, vy, side: 'L', me: true, done: false }); st.ready = false; st.cd = 0.9; sc.meOy = -3; };
+      const pu = e => { if (!st.aim) return; e.preventDefault(); const [vx, vy] = st.aim.v; st.aim = null; if (Math.hypot(vx, vy) < 30 || !st.ready || over()) return; st.cons.push({ x: G.x + 3, y: G.y - 16, vx, vy, side: 'L', me: true, done: false }); st.ready = false; st.cd = 0.9; sc.meOy = -3; };
       cv.addEventListener('pointerdown', pd, true); window.addEventListener('pointermove', pm, true); window.addEventListener('pointerup', pu, true);
       arenaOpen(() => {}, null);
       try {
         await liveLoop(sc, dt => {
           t += dt; windT -= dt;
           if (windT <= 0) { windT = 6 + Math.random() * 3; st.wind = Math.round((Math.random() * 2 - 1) * 10) / 10; }
-          if (t >= 1.5 && t < T + 1.5) {
+          if (over()) st.aim = null;
+          if (t >= 1.5 && !over()) {
             // các bạn khác ném theo máy
             actors.forEach((a, i) => { if (i === iRef) return; ai[i] -= dt; a.oy = Math.min(0, (a.oy || 0) + dt * 20); if (ai[i] <= 0) { ai[i] = 2.6 + Math.random() * 1.4; const side = ours.includes(i) ? 'L' : 'R'; throwAt(a, a.x + 3, a.y - 16, side, Math.random() < (side === 'L' ? 0.3 : [0.25, 0.32, 0.4][round])); } });
             if (UI._mgBot && st.ready) { st.ready = false; st.cd = 1.6; throwAt(null, G.x + 3, G.y - 16, 'L', Math.random() < 0.45); st.cons[st.cons.length - 1].me = true; }
@@ -464,17 +510,22 @@ async function hkConRound(opp, round) {
           if (st.bubT !== undefined) { st.bubT -= dt; if (st.bubT <= 0) { sc.bubble = null; st.bubT = undefined; } }
           if (t < 1.5) sc.bubble = { x: 112, y: 273, text: t < 0.8 ? 'Chuẩn bị…' : 'Bắt đầu!' }; else if (t < 1.6) sc.bubble = null;
           const wtxt = st.wind === 0 ? 'lặng gió' : `${st.wind < 0 ? '←'.repeat(Math.ceil(Math.abs(st.wind) * 3)) : '→'.repeat(Math.ceil(Math.abs(st.wind) * 3))} ${Math.abs(st.wind) > 0.6 ? 'gió mạnh' : 'gió nhẹ'}`;
-          arenaText(`<b>Tung còn · trận ${round + 1}/3</b><div class="sc">${hkName('a1')} <i>${st.sa} – ${st.sb}</i> ${hkName(opp)}</div><small>⏱ ${mmss(T + 1.5 - t)} · Gió: <b>${wtxt}</b>${luckK() > 0.2 ? ' · ngày may mắn ✨' : ''}</small><small>${st.ready ? 'Nhấn giữ chuột, kéo theo hướng muốn ném rồi thả ra' : 'Đang lấy quả còn mới…'}</small>`);
-          if (t >= T + 1.5 && !st.cons.length) { res = true; return true; }
+          arenaText(`<b>Tung còn · ${hkRound(round)}</b><div class="sc">${hkName('a1')} <i>${st.sa} – ${st.sb}</i> ${hkName(opp)}</div><small>⏱ ${over() ? 'HẾT GIỜ' : mmss(limit + 1.5 - t)}${st.ot ? ' (hiệp phụ)' : ''} · Gió: <b>${wtxt}</b>${luckK() > 0.2 ? ' · ngày may mắn ✨' : ''}</small><small>${over() ? 'Hết giờ — chờ các quả còn đang bay rơi xuống' : st.ready ? 'Nhấn giữ chuột, kéo theo hướng muốn ném rồi thả ra' : 'Đang lấy quả còn mới…'}</small>`);
+          if (over() && !st.cons.length) {
+            // hoà thì đá hiệp phụ 15 giây (thua là bị loại nên phải phân thắng thua)
+            if (st.sa === st.sb && !st.ot) { st.ot = true; limit += 15; sc.bubble = { x: 112, y: 273, text: 'Hoà! Hiệp phụ 15 giây!' }; st.bubT = 1.6; return false; }
+            res = true; return true;
+          }
           return false;
         });
       } finally { cv.removeEventListener('pointerdown', pd, true); window.removeEventListener('pointermove', pm, true); window.removeEventListener('pointerup', pu, true); arenaClose(); }
       sc.bubble = null;
-      const win = st.sa > st.sb;
-      if (st.sa === st.sb) await runStep({ say: [iRef, `Hoà ${st.sa} – ${st.sb}! Hai lớp ngang tài ngang sức!`] }, {});
-      else await hkAfter(sc, win, ours, theirs, 'Thắng rồi! Còn bay vào vòng như có phép!', 'Tiếc quá, gió thổi lệch hết…', iRef);
+      // hết hiệp phụ vẫn hoà: bốc thăm (ngày may mắn dễ trúng hơn)
+      if (st.sa === st.sb) { st.lot = Math.random() < 0.5 + 0.15 * luckK(); await runStep({ say: [iRef, `Vẫn hoà ${st.sa} – ${st.sb}! Bốc thăm chọn đội đi tiếp… ${st.lot ? hkName('a1') : hkName(opp)}!`] }, {}); }
+      const win = st.sa > st.sb || (st.sa === st.sb && !!st.lot);
+      await hkAfter(sc, win, ours, theirs, 'Thắng rồi! Còn bay vào vòng như có phép!', 'Tiếc quá, gió thổi lệch hết…', iRef);
     } }] });
-  return { win: st.sa > st.sb, sa: st.sa, sb: st.sb };
+  return { win: st.sa > st.sb || (st.sa === st.sb && !!st.lot), sa: st.sa, sb: st.sb };
 }
 
 /* ============================================================

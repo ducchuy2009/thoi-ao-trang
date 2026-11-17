@@ -697,9 +697,10 @@ function arriveSchool() {
 }
 function gateCross() {
   if (!G.atSchool) {
-    const hkIn = !schoolToday() && hkGateOpen();                     // ngày Hội khoẻ Phù Đổng (thứ 7): cổng mở 06:00–11:00
-    if (!schoolToday() && !hkIn) { G.y = GATE.yOut; return UI.say('Bác bảo vệ', isHkDay(G.day) && hkY().forfeit ? '“Phần thi đấu Hội khoẻ Phù Đổng xong từ lâu rồi cháu ạ. Cháu đến muộn quá!”' : '“Hôm nay nghỉ học, trường đóng cửa cháu ạ.”'); }
-    if (G.time >= 1200) { G.y = GATE.yOut; return UI.say('Cổng trường', 'Trường khoá cổng rồi.'); }
+    // Ngoài giờ học / ngày nghỉ cổng vẫn mở 06:00–20:00 (vào sân chơi, vào nhà xe lấy xe). Có xe gửi ở nhà xe thì giờ nào bác bảo vệ cũng mở cho vào lấy.
+    const hkIn = !schoolToday() && hkGateOpen(), off = !schoolToday() || G.time >= schoolEndT(), shedCar = !!(G.park && G.park.shed);
+    if (G.time >= 1200 && !shedCar) { G.y = GATE.yOut; return UI.say('Cổng trường', 'Trường khoá cổng rồi.<p class="dim">Cổng mở 06:00–20:00. Có xe gửi ở nhà xe thì bác bảo vệ vẫn mở cho vào lấy.</p>'); }
+    if (G.time >= 1200) UI.toast('Bác bảo vệ mở cổng cho bạn vào nhà xe lấy xe.', 'info');
     if (G.ride) {               // gửi xe ở nhà xe
       const id = G.ride, fee = Math.min(PARK_FEE, Math.max(0, G.money));
       G.ride = null; G.park = { id, shed: true }; if (fee) addMoney(-fee, true);
@@ -709,6 +710,7 @@ function gateCross() {
     if (RT.skip) return resolveSkip(true);          // trốn học xong lẻn về: qua cổng mới tính là về trường
     if (G.comp) endComp(`${FRIENDS[G.comp.fid].name} chào bạn ở cổng trường.`);
     if (hkIn) return;
+    if (off) return;                                // ngoài giờ học: không tính đi học, đến muộn
     if (G.time < schoolEndT() && !G.daily.arrived) arriveSchool();
     const p = PERIODS.find(p => inWin(G.time, p.start, p.start + CFG.TICK_MIN) && !G.daily.done[p.n]); if (p) RT.pendingClass = p;   // vừa kịp chuông
   } else {
@@ -841,7 +843,7 @@ ACT.teacher = () => {
   const up = upcomingTests(5);
   UI.say('Cô chủ nhiệm', '“Em nhớ xem lịch kiểm tra trên Lịch (phím L) nhé.”' + (up.length ? '<p class="dim">Sắp tới: ' + up.map(t => `${SUBJ[t.subj].short} — ${TEST_NAME[t.type]} (${dateLabel(t.day)})`).join(' · ') + '</p>' : ''));
 };
-ACT.guard = () => (meetSoc('baove'), UI.say('Bác bảo vệ', !schoolToday() ? '“Hôm nay nghỉ học, trường đóng cửa cháu ạ.”' : G.time < CFG.SCHOOL_END ? (G.atSchool ? '“Vào lớp đi cháu. Tan học bác mới mở cổng.”' : '“Vào đi cháu, đi qua cổng là vào trường.”') : '“Tan học rồi, về cẩn thận nhé cháu.”'));
+ACT.guard = () => (meetSoc('baove'), UI.say('Bác bảo vệ', !schoolToday() ? '“Hôm nay nghỉ học. Cháu vào sân chơi hay lấy xe ở nhà xe thì cứ vào, 8 giờ tối bác khoá cổng nhé.”' : G.time < CFG.SCHOOL_END ? (G.atSchool ? '“Vào lớp đi cháu. Tan học bác mới mở cổng.”' : '“Vào đi cháu, đi qua cổng là vào trường.”') : '“Tan học rồi, về cẩn thận nhé cháu.”'));
 
 /* ---------- bạn bè & buôn bán ---------- */
 function sellPrice() { return SELL.price + SELL.pricePerLv * lv('buonban'); }
