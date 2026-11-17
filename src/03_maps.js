@@ -172,7 +172,7 @@ function buildPho() {
   for (const fid in FRIEND_HOUSE) {
     const [spr, hx] = FRIEND_HOUSE[fid], F = FRIENDS[fid];
     addObj(m, { s: spr, x: hx, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà bạn — bấm chuông', act: () => ACT.house(fid) });
-    NPCS.push({ id: 'h_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'pho', x: hx + 49, y: 144, dir: 0, wander: 8, vis: () => friendHome(fid), label: () => F.name + ' — đang ở trước nhà', act: () => ACT.friend(fid, 'house') });
+    NPCS.push({ id: 'h_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'pho', x: hx + 49, y: 144, dir: 0, wander: 8, portal: () => [hx + 49, 130], vis: () => friendHome(fid), label: () => F.name + ' — đang ở trước nhà', act: () => ACT.friend(fid, 'house') });
   }
   // dãy vui chơi
   addObj(m, { s: 'teashop', x: 484, y: 51, sol: [1, 24, 80, 53], label: () => PLACES.tea.name + ' — uống trà sữa', act: () => ACT.tea() });
@@ -383,7 +383,7 @@ function buildSchool() {
   paint(m, 'grass', 0, 7, 6, 19, 0); paint(m, 'flowers', 1, 9, 1, 1, 0); paint(m, 'flowers', 4, 13, 1, 1, 0); paint(m, 'flowers', 2, 19, 1, 1, 0); paint(m, 'flowers', 4, 21, 1, 1, 0);
   paint(m, 'court', 30, 8, 13, 13, 0);
   const W = '#eef7ee'; R(m.x, W, 484, 132, 200, 1); R(m.x, W, 484, 331, 200, 1); R(m.x, W, 484, 132, 1, 200); R(m.x, W, 683, 132, 1, 200); R(m.x, W, 484, 232, 200, 1); ring(m.x, W, 584, 232, 18);
-  paint(m, 'walk', 0, 27, 47, 3, 0); paint(m, 'road', 0, 30, 47, 3, 1); paint(m, 'dirt', 45, 26, 2, 2, 0);
+  paint(m, 'walk', 0, 27, 47, 3, 0); paint(m, 'road', 0, 30, 47, 3, 0);   // lòng đường đi được (đạp xe, chạy xe dưới đường) paint(m, 'dirt', 45, 26, 2, 2, 0);
   for (let i = 0; i < 47; i += 2) R(m.x, '#f3e6a8', i * 16 + 4, 31 * 16 + 7, 12, 2);
   R(m.x, '#aaa392', 0, 478, 752, 2);
   addObj(m, { s: 'school', x: 191, y: 3, sol: [1, 22, 320, 79], label: () => 'Bảng tin — thời khoá biểu', act: () => UI.timetable() });
@@ -504,4 +504,22 @@ function buildMaps() {
   buildRooms();
   addMeetNpcs(); buildFamily(); buildFamilyPlaces();
   seasonTrees();                                   // cây đổi màu theo mùa
+  buildTrips();                                    // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch (04l)
+  widenEdgeZones();                                // đi qua mép trái / phải chỗ nào không bị chặn cũng sang được bản đồ kế tiếp
+}
+// Lối sang bản đồ bên cạnh ở mép trái / phải: nới rộng theo cả đoạn mép đi lại được (tới khi gặp tường, hàng rào, nhà)
+function widenEdgeZones() {
+  for (const id in MAPS) {
+    const m = MAPS[id]; if (m.indoor) continue;
+    for (const z of m.zones) {
+      const left = z.x <= 0, right = z.x + z.w >= m.pw - 1;
+      if (!(left || right) || z.w > 12 || z.h <= z.w) continue;
+      const px = left ? 5 : m.pw - 5, cy = z.y + z.h / 2;
+      let top = cy, bot = cy;
+      while (top - 4 > 6 && !blocked(m, px, top - 4)) top -= 4;
+      while (bot + 4 < m.ph - 1 && !blocked(m, px, bot + 4)) bot += 4;
+      const y0 = top - 4 <= 6 ? 0 : Math.min(z.y, top - 6), y1 = bot + 4 >= m.ph - 1 ? m.ph : Math.max(z.y + z.h, bot + 1);   // chạm mép trên / dưới thì phủ hết
+      z.y = Math.max(0, y0); z.h = Math.min(m.ph, y1) - z.y;
+    }
+  }
 }

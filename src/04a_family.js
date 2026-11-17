@@ -23,7 +23,7 @@ const POI = {
 const ROOM_DOOR = { x: 258, y: 42 };                       // cửa phòng bố mẹ (trong phòng khách)
 const HOME_DOOR = { x: 224, y: 222 }, TOWN_DOOR = { x: 96, y: 142 };
 const BIKE = { mom: { mx: 133, my: 138, spr: 'motoMom' }, dad: { mx: 167, my: 138, spr: 'moto' } };
-const RIDE_OUT = [[100, 142], [96, 162], [96, 206], [-28, 206]];   // từ sân ra cổng, xuống đường, chạy khỏi bản đồ
+const RIDE_OUT = [[100, 142], [96, 162], [96, 206], [828, 206]];   // từ sân ra cổng, xuống đường, chạy về phía phố Hoa Phượng (hướng công ty, nhà máy)
 // Lịch trong ngày: [giờ bắt đầu (phút), điểm đến]. work = ngày đi làm (T2–T6), off = ngày nghỉ
 const SCHED = {
   mom: {
@@ -151,8 +151,8 @@ function stepParent(who, dt) {
     const b = BIKE[who];
     if (!f.riding) {
       f.riding = true; f.bikeAway = true; f.hidden = false; n.map = 'town'; n.walk = -1;
-      if (leg.t === 'ridein') { const p = RIDE_OUT[RIDE_OUT.length - 1]; n.cx = p[0]; n.cy = p[1]; n.cdir = 2; f.ridePts = RIDE_OUT.slice(0, -1).reverse().concat([[b.mx, b.my]]); }
-      else { n.cdir = 1; f.ridePts = RIDE_OUT.map(p => p.slice()); }
+      if (leg.t === 'ridein') { const p = RIDE_OUT[RIDE_OUT.length - 1]; n.cx = p[0]; n.cy = p[1]; n.cdir = 1; f.ridePts = RIDE_OUT.slice(0, -1).reverse().concat([[b.mx, b.my]]); }
+      else { n.cdir = 2; f.ridePts = RIDE_OUT.map(p => p.slice()); }
     }
     moveAlong(n, f.ridePts, 96, dt, true);
     if (!f.ridePts.length) { f.riding = false; if (leg.t === 'ridein') f.bikeAway = false; f.legs.shift(); }

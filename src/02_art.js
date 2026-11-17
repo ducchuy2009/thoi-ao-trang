@@ -41,44 +41,46 @@ function line(x, col, x0, y0, x1, y1) {
 
 /* ======================= NHÂN VẬT ======================= */
 const UNI = { shirt: '#f6f6f2', pants: '#34425e', badge: '#3b6fb6' };
+// Ngoại hình: style tóc (short, spiky, buzz, side, curly, bowl, long, pony, bun, bob, twin) · eye (round, smile, narrow, big)
+// glasses (true = vuông, 'round') · earring, clip (màu khuyên tai, kẹp tóc) · freckles (tàn nhang) · skin (màu da)
 const LOOKS = {
   boy: { ...UNI, hair: '#2c2733', style: 'short' },
   girl: { ...UNI, hair: '#2c2733', style: 'pony', skirt: true, band: '#e2574c' },
-  mom: { hair: '#4a3328', style: 'bun', shirt: '#e98fa5', pants: '#5b4a6b', apron: '#fff1d2' },
+  mom: { hair: '#4a3328', style: 'bun', shirt: '#e98fa5', pants: '#5b4a6b', apron: '#fff1d2', earring: '#ffd23a', eye: 'smile' },
   dad: { hair: '#3a3340', style: 'short', shirt: '#dfe7ef', pants: '#3a3f55', tie: '#3b6fb6', mustache: true },
-  teacherA: { hair: '#2c2733', style: 'long', shirt: '#9a72d6', aodai: true, shoe: '#f4f0ff' },
-  teacherB: { hair: '#3b2a22', style: 'bun', shirt: '#4fa3b8', aodai: true, shoe: '#f0fbff' },
-  teacherC: { hair: '#3a3340', style: 'short', shirt: '#c9d8ea', pants: '#3a3f55', tie: '#b23b3b' },
-  teacherM: { hair: '#2c2733', style: 'short', shirt: '#d9534f', pants: '#2f3550', stripe: '#ffffff' },
+  teacherA: { hair: '#2c2733', style: 'long', shirt: '#9a72d6', aodai: true, shoe: '#f4f0ff', clip: '#e98fa5', eye: 'smile' },
+  teacherB: { hair: '#3b2a22', style: 'bun', shirt: '#4fa3b8', aodai: true, shoe: '#f0fbff', earring: '#d6dbe3', eye: 'round' },
+  teacherC: { hair: '#3a3340', style: 'side', shirt: '#c9d8ea', pants: '#3a3f55', tie: '#b23b3b', glasses: true },
+  teacherM: { hair: '#2c2733', style: 'buzz', shirt: '#d9534f', pants: '#2f3550', stripe: '#ffffff', skin: '#d39a6a' },
   teacherQ: { hair: '#2c2733', style: 'short', shirt: '#6f8440', pants: '#55662f', cap: '#6f8440' },
-  khoa: { ...UNI, hair: '#6b4429', style: 'spiky' },
-  vy: { ...UNI, hair: '#3a2a2a', style: 'long', skirt: true, band: '#f2a93b' },
-  dat: { ...UNI, hair: '#1f1f29', style: 'buzz', skin: '#e3ae80' },
-  ngan: { ...UNI, hair: '#5a3020', style: 'pony', skirt: true, band: '#e98fa5' },
+  khoa: { ...UNI, hair: '#6b4429', style: 'spiky', freckles: true, eye: 'round' },
+  vy: { ...UNI, hair: '#3a2a2a', style: 'long', skirt: true, band: '#f2a93b', glasses: 'round' },
+  dat: { ...UNI, hair: '#1f1f29', style: 'side', skin: '#e3ae80', earring: '#d6dbe3', eye: 'smile' },
+  ngan: { ...UNI, hair: '#5a3020', style: 'pony', skirt: true, band: '#e98fa5', earring: '#ffd23a', clip: '#ff8fb8', eye: 'big' },
   guard: { hair: '#5a5a66', style: 'short', cap: '#2f4a7a', shirt: '#9cc3e6', pants: '#2f3e63', mustache: true },
   giamthi: { hair: '#3a3340', style: 'short', shirt: '#fbf7ee', pants: '#2f3550', tie: '#2a2136', mustache: true, skin: '#eab98c' },
   driver: { hair: '#3a3340', style: 'short', cap: '#3f9a6b', shirt: '#dfe7ef', pants: '#3a3f55' },
   clerk: { hair: '#3b2a22', style: 'bun', cap: '#b23b3b', shirt: '#3b6fb6', pants: '#2f3550' },
   doctor: { hair: '#3b2a22', style: 'bun', shirt: '#fbfdff', pants: '#9fd6c4', aodai: true, shoe: '#fbfdff' },
-  x1: { ...UNI, hair: '#3b2a22', style: 'spiky', skin: '#eab98c' }, x2: { ...UNI, hair: '#2c2733', style: 'pony', skirt: true, band: '#f2a93b' },
-  x3: { ...UNI, hair: '#1f1f29', style: 'short' }, x4: { ...UNI, hair: '#5a3020', style: 'long', skirt: true, band: '#5fb0e8' },
-  sA: { ...UNI, hair: '#1f1f29', style: 'spiky', badge: '#d9534f', pants: '#2b3550' }, sB: { ...UNI, hair: '#3a2a2a', style: 'long', skirt: true, band: '#7a5fc9', badge: '#d9534f' },
-  sC: { ...UNI, hair: '#5a3a26', style: 'short', badge: '#2e9e86', skin: '#e3ae80' }, sD: { ...UNI, hair: '#2c2733', style: 'bun', skirt: true, badge: '#2e9e86' },
+  x1: { ...UNI, hair: '#3b2a22', style: 'curly', skin: '#eab98c', eye: 'narrow' }, x2: { ...UNI, hair: '#2c2733', style: 'twin', skirt: true, band: '#f2a93b', eye: 'round' },
+  x3: { ...UNI, hair: '#1f1f29', style: 'bowl', glasses: true, skin: '#fbe0c4' }, x4: { ...UNI, hair: '#5a3020', style: 'bob', skirt: true, clip: '#5fb0e8', freckles: true },
+  sA: { ...UNI, hair: '#1f1f29', style: 'spiky', badge: '#d9534f', pants: '#2b3550', eye: 'narrow' }, sB: { ...UNI, hair: '#3a2a2a', style: 'long', skirt: true, band: '#7a5fc9', badge: '#d9534f', earring: '#ffd23a', eye: 'big' },
+  sC: { ...UNI, hair: '#5a3a26', style: 'side', badge: '#2e9e86', skin: '#d39a6a', eye: 'round' }, sD: { ...UNI, hair: '#2c2733', style: 'bun', skirt: true, badge: '#2e9e86', glasses: 'round' },
   // thêm anh chị khoá trên (phù hiệu đỏ: khối 12 · xanh: khối 11) ngồi ở các lớp tầng 2
-  sE: { ...UNI, hair: '#2a2136', style: 'buzz', badge: '#d9534f', skin: '#eab98c' }, sF: { ...UNI, hair: '#4a3324', style: 'long', skirt: true, badge: '#d9534f', band: '#e98fa5' },
+  sE: { ...UNI, hair: '#2a2136', style: 'buzz', badge: '#d9534f', skin: '#c98a5a' }, sF: { ...UNI, hair: '#4a3324', style: 'bob', skirt: true, badge: '#d9534f', clip: '#e98fa5', eye: 'smile' },
   sG: { ...UNI, hair: '#1f1f29', style: 'short', badge: '#2e9e86', glasses: true }, sH: { ...UNI, hair: '#5b3d27', style: 'bun', skirt: true, badge: '#2e9e86', skin: '#e3ae80' },
-  principal: { hair: '#c9ccd4', style: 'short', shirt: '#3a3f55', pants: '#2a2136', tie: '#d9534f', mustache: true, skin: '#eab98c' },
+  principal: { hair: '#c9ccd4', style: 'short', shirt: '#3a3f55', pants: '#2a2136', tie: '#d9534f', mustache: true, skin: '#eab98c', glasses: 'round' },
   mayor: { hair: '#5f656f', style: 'short', shirt: '#24406b', pants: '#1f2a44', tie: '#e8b83a', mustache: true, skin: '#e8b48a' },
   monk: { hair: '#f2c9a0', style: 'buzz', shirt: '#d98a2b', pants: '#b8701f', aodai: true, shoe: '#6f472c' },
   vendor: { hair: '#4a3328', style: 'bun', shirt: '#f2a93b', pants: '#5b4a6b', apron: '#ffffff' },
-  c1: { ...UNI, hair: '#3b2a22', style: 'short' },
-  c2: { ...UNI, hair: '#2c2733', style: 'long', skirt: true },
-  c3: { ...UNI, hair: '#5a3a26', style: 'buzz', skin: '#eab98c' },
-  c4: { ...UNI, hair: '#2c2733', style: 'pony', skirt: true, band: '#5fb0e8' },
-  c5: { ...UNI, hair: '#1f1f29', style: 'spiky' },
-  c6: { ...UNI, hair: '#4a3328', style: 'long', skirt: true, band: '#e98fa5' },
-  c7: { ...UNI, hair: '#2c2733', style: 'short', skin: '#e3ae80' },
-  c8: { ...UNI, hair: '#3a2a2a', style: 'pony', skirt: true, band: '#8fd067' },
+  c1: { ...UNI, hair: '#3b2a22', style: 'side', glasses: true },
+  c2: { ...UNI, hair: '#2c2733', style: 'bob', skirt: true, eye: 'round' },
+  c3: { ...UNI, hair: '#5a3a26', style: 'buzz', skin: '#d39a6a', eye: 'narrow' },
+  c4: { ...UNI, hair: '#2c2733', style: 'twin', skirt: true, band: '#5fb0e8', eye: 'big' },
+  c5: { ...UNI, hair: '#1f1f29', style: 'spiky', freckles: true },
+  c6: { ...UNI, hair: '#4a3328', style: 'long', skirt: true, band: '#e98fa5', earring: '#d6dbe3' },
+  c7: { ...UNI, hair: '#2c2733', style: 'curly', skin: '#e3ae80', eye: 'smile' },
+  c8: { ...UNI, hair: '#3a2a2a', style: 'pony', skirt: true, band: '#8fd067', glasses: 'round', glassCol: '#b23b3b' },
 };
 // Trang phục thay theo tiết học
 const OUTFITS = {
@@ -131,23 +133,45 @@ function drawCharFrame(L, dir, fr) {
       if (st === 'short') { R(x, hr, 1, Y + 5, 3, 1); R(x, hr, 12, Y + 5, 3, 1); R(x, hr, 6, Y + 5, 3, 1); R(x, hr, 1, Y + 6, 1, 1); R(x, hr, 14, Y + 6, 1, 1); }
       else if (st === 'spiky') { [1, 2, 4, 5, 8, 9, 12, 13, 14].forEach(i => R(x, hr, i, Y + 5, 1, 1)); R(x, hr, 1, Y + 6, 1, 1); R(x, hr, 14, Y + 6, 1, 1); }
       else if (st === 'buzz') { R(x, hr, 1, Y + 4, 2, 1); R(x, hr, 13, Y + 4, 2, 1); }
+      else if (st === 'side') { R(x, hr, 1, Y + 5, 8, 1); R(x, hr, 1, Y + 6, 4, 1); R(x, hr, 12, Y + 5, 3, 1); R(x, hr, 14, Y + 6, 1, 1); R(x, hrL, 2, Y + 4, 5, 1); }   // rẽ ngôi lệch
+      else if (st === 'curly') { [1, 3, 5, 7, 9, 11, 13].forEach(i => R(x, hr, i, Y + 5, 2, 1)); [3, 6, 9, 12].forEach(i => R(x, hr, i, Y - 1, 2, 1)); R(x, hr, 1, Y + 6, 1, 1); R(x, hr, 14, Y + 6, 1, 1); R(x, hrL, 5, Y + 2, 1, 1); R(x, hrL, 9, Y + 3, 1, 1); R(x, hrL, 12, Y + 1, 1, 1); }
+      else if (st === 'bowl') { R(x, hr, 1, Y + 5, 14, 2); R(x, hrS, 1, Y + 6, 14, 1); }     // tóc bát úp
       else {
         R(x, hr, 1, Y + 5, 6, 1); R(x, hr, 9, Y + 5, 6, 1); R(x, hr, 1, Y + 6, 2, 1); R(x, hr, 13, Y + 6, 2, 1);
         if (st === 'long') { R(x, hr, 1, Y + 7, 1, 3); R(x, hr, 14, Y + 7, 1, 3); R(x, hrS, 2, 13, 2, 3); R(x, hrS, 12, 13, 2, 3); }
         if (st === 'pony') { R(x, hr, 14, Y + 8, 2, 4); R(x, hrS, 15, Y + 8, 1, 4); R(x, L.band || hrL, 14, Y + 7, 1, 1); }
+        if (st === 'bob') { R(x, hr, 1, Y + 7, 1, 4); R(x, hr, 14, Y + 7, 1, 4); R(x, hrS, 1, Y + 10, 2, 1); R(x, hrS, 13, Y + 10, 2, 1); }
+        if (st === 'twin') { R(x, hr, 0, Y + 8, 2, 4); R(x, hrS, 0, Y + 11, 2, 1); R(x, hr, 14, Y + 8, 2, 4); R(x, hrS, 14, Y + 11, 2, 1); R(x, L.band || hrL, 1, Y + 7, 1, 1); R(x, L.band || hrL, 14, Y + 7, 1, 1); }
       }
       R(x, hrL, 4, Y + 1, 4, 1); R(x, hrL, 3, Y + 2, 2, 1);
       if (L.band && st === 'long') R(x, L.band, 2, Y + 3, 12, 1);
-      R(x, OUT, 4, Y + 7, 2, 2); R(x, OUT, 10, Y + 7, 2, 2);
+      // mắt: chấm (mặc định), tròn có ánh sáng, cười híp, một mí, to
+      const ey = L.eye;
+      if (ey === 'smile') { for (const e of [3, 10]) { R(x, OUT, e, Y + 8, 1, 1); R(x, OUT, e + 1, Y + 7, 1, 1); R(x, OUT, e + 2, Y + 8, 1, 1); } }
+      else if (ey === 'narrow') { R(x, OUT, 4, Y + 8, 2, 1); R(x, OUT, 10, Y + 8, 2, 1); }
+      else if (ey === 'big') { R(x, OUT, 4, Y + 6, 2, 3); R(x, OUT, 10, Y + 6, 2, 3); R(x, '#fffaf0', 4, Y + 6, 1, 1); R(x, '#fffaf0', 10, Y + 6, 1, 1); }
+      else { R(x, OUT, 4, Y + 7, 2, 2); R(x, OUT, 10, Y + 7, 2, 2); if (ey === 'round') { R(x, '#fffaf0', 4, Y + 7, 1, 1); R(x, '#fffaf0', 10, Y + 7, 1, 1); } }
       R(x, '#f5a79b', 3, Y + 9, 2, 1); R(x, '#f5a79b', 11, Y + 9, 2, 1);
+      if (L.freckles) for (const fx of [3, 5, 10, 12]) R(x, '#c98a62', fx, Y + 10, 1, 1);     // tàn nhang
       R(x, skS, 7, Y + 10, 2, 1);
       if (L.mustache) R(x, '#5a5a66', 6, Y + 9, 4, 1);
+      if (L.glasses) {                                                                       // kính: vuông (mặc định) hoặc tròn
+        const gc = L.glassCol || '#2a2136', rd = L.glasses === 'round';
+        for (const gx of [3, 9]) { R(x, gc, gx + (rd ? 1 : 0), Y + 6, rd ? 2 : 4, 1); R(x, gc, gx + (rd ? 1 : 0), Y + 9, rd ? 2 : 4, 1); R(x, gc, gx, Y + (rd ? 7 : 6), 1, rd ? 2 : 4); R(x, gc, gx + 3, Y + (rd ? 7 : 6), 1, rd ? 2 : 4); }
+        R(x, gc, 7, Y + 7, 2, 1);
+      }
+      if (L.earring) { R(x, L.earring, 0, Y + 9, 1, 1); R(x, L.earring, 15, Y + 9, 1, 1); }  // khuyên tai
+      if (L.clip) { R(x, L.clip, 11, Y + 4, 2, 1); R(x, shade(L.clip, -25), 12, Y + 4, 1, 1); }   // kẹp tóc
     } else {
       const rows = st === 'buzz' ? 9 : 11;
       headFill(hr, 0, rows - 3); headFill(hrS, rows - 3, rows);
       R(x, hrL, 4, Y + 1, 4, 1);
       if (st === 'long') { R(x, hr, 3, 13, 10, 3); R(x, hrS, 3, 16, 10, 1); if (L.band) R(x, L.band, 2, Y + 3, 12, 1); }
       if (st === 'pony') { R(x, L.band || hrL, 7, Y + 9, 2, 1); R(x, hr, 7, Y + 10, 2, 7); R(x, hrS, 8, Y + 10, 1, 7); }
+      if (st === 'bob') { R(x, hr, 2, 13, 12, 1); R(x, hrS, 3, 14, 10, 1); }
+      if (st === 'twin') { R(x, hr, 0, Y + 8, 2, 4); R(x, hr, 14, Y + 8, 2, 4); R(x, L.band || hrL, 1, Y + 7, 1, 1); R(x, L.band || hrL, 14, Y + 7, 1, 1); }
+      if (st === 'curly') [3, 6, 9, 12].forEach(i => R(x, hr, i, Y - 1, 2, 1));
+      if (L.clip) R(x, L.clip, 11, Y + 4, 2, 1);
     }
     if (st === 'bun') { R(x, hr, 6, 0, 4, 1); R(x, hr, 5, 1, 6, 2); R(x, hrL, 6, 1, 2, 1); }
     if (L.cap) {
@@ -179,9 +203,22 @@ function drawCharFrame(L, dir, fr) {
     if (st === 'long') { R(x, hr, 9, Y + 5, 6, 6); R(x, hr, 10, Y + 11, 4, 1); R(x, hrS, 10, 14, 3, 3); R(x, hr, 1, Y + 6, 2, 1); if (L.band) R(x, L.band, 2, Y + 3, 12, 1); }
     if (st === 'pony') { R(x, L.band || hrL, 14, Y + 6, 1, 2); R(x, hr, 14, Y + 7, 2, 5); R(x, hrS, 15, Y + 8, 1, 4); R(x, hr, 1, Y + 6, 2, 1); }
     if (st === 'bun') { R(x, hr, 8, 0, 4, 1); R(x, hr, 7, 1, 6, 2); R(x, hr, 1, Y + 6, 1, 1); }
+    if (st === 'bob') { R(x, hr, 9, Y + 5, 6, 6); R(x, hrS, 10, Y + 11, 5, 1); }
+    if (st === 'twin') { R(x, L.band || hrL, 14, Y + 7, 1, 1); R(x, hr, 14, Y + 8, 2, 4); R(x, hrS, 15, Y + 9, 1, 3); R(x, hr, 1, Y + 6, 2, 1); }
+    if (st === 'curly') [3, 7, 11].forEach(i => R(x, hr, i, Y - 1, 2, 1));
+    if (st === 'bowl' || st === 'side') R(x, hr, 1, Y + 5, 6, st === 'bowl' ? 2 : 1);
     R(x, hrL, 4, Y + 1, 4, 1);
-    R(x, OUT, 3, Y + 7, 2, 2); R(x, '#f5a79b', 2, Y + 9, 2, 1); R(x, skS, 8, Y + 7, 1, 2);
+    const ey = L.eye;
+    if (ey === 'smile') { R(x, OUT, 2, Y + 8, 1, 1); R(x, OUT, 3, Y + 7, 1, 1); R(x, OUT, 4, Y + 8, 1, 1); }
+    else if (ey === 'narrow') R(x, OUT, 3, Y + 8, 2, 1);
+    else if (ey === 'big') { R(x, OUT, 3, Y + 6, 2, 3); R(x, '#fffaf0', 3, Y + 6, 1, 1); }
+    else { R(x, OUT, 3, Y + 7, 2, 2); if (ey === 'round') R(x, '#fffaf0', 3, Y + 7, 1, 1); }
+    R(x, '#f5a79b', 2, Y + 9, 2, 1); R(x, skS, 8, Y + 7, 1, 2);
+    if (L.freckles) { R(x, '#c98a62', 2, Y + 10, 1, 1); R(x, '#c98a62', 4, Y + 10, 1, 1); }
     if (L.mustache) R(x, '#5a5a66', 2, Y + 9, 3, 1);
+    if (L.glasses) { const gc = L.glassCol || '#2a2136'; R(x, gc, 2, Y + 6, 4, 1); R(x, gc, 2, Y + 9, 4, 1); R(x, gc, 1, Y + 7, 1, 2); R(x, gc, 5, Y + 7, 4, 1); }
+    if (L.earring) R(x, L.earring, 8, Y + 9, 1, 1);
+    if (L.clip) R(x, L.clip, 10, Y + 4, 2, 1);
     if (L.cap) { const cp = L.cap; R(x, cp, 4, Y - 1, 8, 1); headFill(cp, 0, 4); R(x, shade(cp, -28), 0, Y + 4, 9, 1); R(x, shade(cp, 25), 5, Y, 3, 1); }
   }
   return outline(c);

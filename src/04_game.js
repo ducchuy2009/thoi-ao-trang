@@ -749,7 +749,7 @@ function mealNow() {
 function mealLabel() { const m = mealNow(); return m ? `${m.name} mẹ nấu` : 'Bàn ăn'; }
 ACT.table = async () => {
   const m = mealNow();
-  if (!m) return UI.say('Bàn ăn', 'Chưa đến bữa.<p class="dim">Sáng 05:00–08:00 · Trưa (ngày nghỉ) 11:00–13:30 · Tối 18:00–21:30</p>');
+  if (!m) return UI.say('Bàn ăn', 'Chưa đến bữa.<p class="dim">Sáng 06:00–08:00 · Trưa (ngày nghỉ) 11:00–13:30 · Tối 18:00–21:30</p>');
   await activity(`Đang ăn ${m.name.toLowerCase()}…`, m.mins, () => { G.daily.meals[m.id] = true; gainStam(m.stam); });
 };
 function lunchboxAvail() { return !!G && schoolToday() && G.time < 470 && !G.daily.lunchbox; }
@@ -823,7 +823,7 @@ ACT.desk = async () => {
 };
 ACT.bed = async () => {
   if (G.time < CFG.SLEEP_FROM && G.time >= CFG.DAY_START) return bedNap('Giường', 17, 24);       // ban ngày: chợp mắt một lát
-  const c = await UI.ask('Đi ngủ?', `<p>Ngủ đến 05:00 sáng mai. Ngủ đủ 7 tiếng sẽ hồi đầy thể lực.</p><p class="dim">Game tự lưu mỗi khi bạn đi ngủ.</p>`, ['Đi ngủ', 'Chưa']);
+  const c = await UI.ask('Đi ngủ?', `<p>Ngủ đến 06:00 sáng mai. Ngủ đủ 7 tiếng sẽ hồi đầy thể lực.</p><p class="dim">Game tự lưu mỗi khi bạn đi ngủ.</p>`, ['Đi ngủ', 'Chưa']);
   if (c === 0) goSleep(false);
 };
 ACT.mydesk = async () => {

@@ -413,6 +413,7 @@ MV.cal = {
     now: () => MV.cal.init(),
     jump: d => { const day = +d.id; UI._travel = false; UI.close(-1); timeTravelAsk(day); },
     notravel: () => { UI._travel = false; },
+    day: d => { UI._calDay = UI._calDay === +d.id ? null : +d.id; },     // bấm vào một ngày: xem danh sách sự kiện
   },
   render() {
     if (UI._calS === undefined) MV.cal.init();
@@ -424,7 +425,7 @@ MV.cal = {
     for (let i = 0; i < cal(base).dow; i++) h += '<div class="cd x"></div>';
     for (let d = 0; d < CFG.DAYS_PER_SEASON; d++) {
       const day = base + d, c = cal(day), ev = [], hol = holidayOf(day), sem = semOf(day);
-      // sự kiện hiện thành icon (di chuột / giữ ngón tay lên icon để xem tên)
+      // sự kiện hiện thành icon (di chuột / chạm vào icon để xem tên, bấm vào ngày để xem danh sách)
       if (sem && c.doy === sem.from) ev.push(calIco('ci_sem', `Bắt đầu ${sem.name}`, 'sem'));
       if (sem && c.doy === sem.to) ev.push(calIco('ci_semend', `Tổng kết ${sem.name}`, 'sem'));
       if (hol) ev.push(calIco(/Tết/.test(hol.name) ? 'ci_tet' : 'ci_hol', hol.name, 'hol'));
@@ -432,14 +433,20 @@ MV.cal = {
       for (const f of FESTIVALS) if (f.season === se && f.day === d + 1) ev.push(calIco(f.icon || 'ci_fes', f.name, 'fes'));
       for (const e of schoolEventsOn(day)) ev.push(calIco(e.id === 'banhchung' ? 'sc_banhchung' : 'ci_fes', e.name, 'fes'));
       if (isHkDay(day)) ev.push(calIco('sc_hkpd', 'Hội khoẻ Phù Đổng', 'fes'));
-      for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, day)) ev.push(calIco('ci_bd', `Sinh nhật ${FRIENDS[f].name}`, 'bd'));
-      for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], day)) ev.push(calIco('ci_bd', `Sinh nhật ${PNAME[w].toLowerCase()}`, 'bd'));
+      for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, day)) ev.push(calIco('ci_bd', `Sinh nhật ${FRIENDS[f].name}`, 'bd av', '', faceOf(f, null)));          // avatar người có sinh nhật
+      for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], day)) ev.push(calIco('ci_bd', `Sinh nhật ${PNAME[w].toLowerCase()}`, 'bd av', '', faceOf(w, w === 'mom' ? 'noapron' : null)));
       for (const t of tests[day] || []) ev.push(calIco('ci_test', `${TEST_NAME[t.type]} · ${SUBJ[t.subj].name}${t.done ? ' (đã làm)' : ''}`, `ts ${t.done ? 'done' : ''}`, `--c:${SUBJ[t.subj].color}`));
       if (G.meet && G.meet.day === day) ev.push(calIco('ci_meet', `Hẹn ${FRIENDS[G.meet.fid].name}`, 'mt'));
       const off = c.dow >= 5 || !SEASONS[se].school || hol;
-      h += `<div class="cd ${day === G.day ? 'today' : ''} ${day < G.day ? 'past' : ''} ${off ? 'we' : ''} ${tv ? 'pick' : ''}" ${tv ? `data-act="jump" data-id="${day}"` : ''}><b>${d + 1}</b><div class="evs">${ev.join('')}</div></div>`;
+      if (UI._calDay === day) UI._calEv = ev.slice();
+      h += `<div class="cd ${day === G.day ? 'today' : ''} ${day < G.day ? 'past' : ''} ${off ? 'we' : ''} pick ${UI._calDay === day ? 'sel' : ''}" data-act="${tv ? 'jump' : 'day'}" data-id="${day}"><b>${d + 1}</b><div class="evs">${ev.join('')}</div></div>`;
     }
-    h += '</div><div class="callegend">' + [['ci_test', 'Kiểm tra 1 tiết / thi (màu theo môn)', 'ts', '--c:#7a7085'], ['ci_bd', 'Sinh nhật', 'bd'], ['ci_tet', 'Ngày lễ, Tết', 'hol'], ['ci_fes', 'Lễ hội, sự kiện', 'fes'], ['ci_meet', 'Cuộc hẹn', 'mt'], ['ci_sem', 'Học kỳ', 'sem']].map(([i, t, c, st]) => `<span>${calIco(i, t, c, st)}${t}</span>`).join('') + '</div><p class="dim">Di chuột (hoặc chạm) vào icon để xem tên sự kiện.</p>';
+    h += '</div>';
+    if (UI._calDay !== null && UI._calDay !== undefined && UI._calDay >= base && UI._calDay < base + CFG.DAYS_PER_SEASON) {
+      const L = (UI._calEv || []).map(x => { const t = (x.match(/data-t="([^"]*)"/) || [])[1] || ''; return `<li>${x.replace(/tabindex="0"/, '')}<span>${t}</span></li>`; });
+      h += `<div class="calday"><b>${dateLabel(UI._calDay)}</b>${L.length ? `<ul>${L.join('')}</ul>` : '<p class="dim">Không có sự kiện nào.</p>'}</div>`;
+    }
+    h += '<div class="callegend"><div class="callegend">' + [['ci_test', 'Kiểm tra 1 tiết / thi (màu theo môn)', 'ts', '--c:#7a7085'], ['ci_bd', 'Sinh nhật', 'bd'], ['ci_tet', 'Ngày lễ, Tết', 'hol'], ['ci_fes', 'Lễ hội, sự kiện', 'fes'], ['ci_meet', 'Cuộc hẹn', 'mt'], ['ci_sem', 'Học kỳ', 'sem']].map(([i, t, c, st]) => `<span>${calIco(i, t, c, st)}${t}</span>`).join('') + '</div><p class="dim">Di chuột (hoặc chạm) vào icon để xem tên sự kiện · bấm vào một ngày để xem danh sách sự kiện của ngày đó.</p>';
     return h + `<p class="dim">${SEASONS[se].school ? 'Ô màu nhạt là ngày nghỉ (thứ 7, chủ nhật, ngày lễ).' : 'Nghỉ hè — không có tiết học.'} Lịch kiểm tra của một học kỳ được xếp vào ngày đầu học kỳ đó.${FESTIVALS.length ? '' : ' Lễ hội sẽ được bổ sung sau.'}</p>`;
   },
 };
@@ -500,7 +507,8 @@ const CITY_POI = [
   ['pho', MOM_CO.x + 76, 70, 'Công ty của mẹ'], ['dong', DONG.factory + 100, 70, 'Nhà máy của bố'], ['dong', DONG.rest + 55, 86, 'Nhà hàng'], ['dong', DONG.kara + 50, 86, 'Karaoke'], ['dong', 150, 86, 'Nhà hàng xóm'], ['school', LIB_DOOR[0], 250, 'Thư viện'],
 ];
 // Icon sự kiện trên lịch (tên sự kiện ở tooltip)
-const calIco = (id, t, cls, st) => `<i class="evi ${cls || ''}" title="${t}"${st ? ` style="${st}"` : ''}><img src="${itemIcon(id)}" alt="${t}"></i>`;
+// (tên hiện ngay khi di chuột / chạm vào icon — tooltip bằng CSS) · src: ảnh riêng thay icon (avatar người có sinh nhật)
+const calIco = (id, t, cls, st, src) => `<i class="evi ${cls || ''}" data-t="${t}" tabindex="0" aria-label="${t}"${st ? ` style="${st}"` : ''}><img src="${src || itemIcon(id)}" alt=""></i>`;
 // Chỗ mình đang ở trên bản đồ chung (ở trong nhà / phòng thì lấy cửa ra vào)
 function whereAmI() {
   const R0 = { home: ['town', 96, 128, 'trong nhà'], class: ['school', 244, 104, 'lớp 10A1'], lab: ['school', 461, 104, 'phòng thí nghiệm'], yte: ['school', 213, 104, 'trạm y tế'], nhac: ['school', 275, 104, 'phòng nhạc'], thuvien: ['school', LIB_DOOR[0], LIB_DOOR[1] - 10, 'thư viện'], ngutrua: ['school', 430, 104, 'phòng ngủ trưa'], wcnam: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh nam'], wcnu: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh nữ'], wc: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh'], wcm: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh'], tttm: ['pho', 660, 128, 'trong TTTM'], arc: ['pho', 806, 128, 'trong khu game'], phongbm: ['town', 96, 128, 'phòng bố mẹ'], congty: ['pho', MOM_CO.x + 76, 128, 'công ty của mẹ'], nhamay: ['dong', DONG.factory + 100, 128, 'nhà máy của bố'], nhahang: ['dong', DONG.rest + 55, 128, 'nhà hàng Sen Hồng'], karaoke: ['dong', DONG.kara + 50, 128, 'karaoke Âm Vang'], tang2: ['school', 352, 104, 'tầng 2'], l11a1: ['school', 352, 104, 'lớp 11A1'], l11a3: ['school', 352, 104, 'lớp 11A3'], l12a1: ['school', 352, 104, 'lớp 12A1'], l12a2: ['school', 352, 104, 'lớp 12A2'], l10a2: ['school', 319, 104, 'lớp 10A2'], l10a3: ['school', 385, 104, 'lớp 10A3'], l10a4: ['school', 494, 104, 'lớp 10A4'], fhome: ['pho', (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1] + 49, 128, 'nhà ' + ((FRIENDS[G.visit] || FRIENDS.khoa).name)] };
@@ -587,7 +595,7 @@ MV.set = {
     const st = UI._sset || 'game';
     let h = subTabs('sset', st, [['game', 'Hiệu chỉnh game'], ['keys', 'Điều khiển'], ['other', 'Cài đặt khác']]);
     if (st === 'game') h += `<h4>Âm thanh</h4><p>Âm lượng <b id="volv">${G.vol === undefined ? 70 : G.vol}</b>% <small class="dim">(âm thanh sẽ được lồng vào sau)</small></p><input type="range" id="vol" min="0" max="100" step="5" value="${G.vol === undefined ? 70 : G.vol}">
-      <h4>Tốc độ thời gian</h4><p>Mỗi <b id="spv">${G.speed}</b> giây thực = 10 phút trong game <small class="dim">(một ngày 05:00 → 03:00 dài khoảng ${Math.round(132 * G.speed / 60)} phút nếu không bỏ qua)</small></p><input type="range" id="spd" min="2" max="12" step="1" value="${G.speed}">`;
+      <h4>Tốc độ thời gian</h4><p>Mỗi <b id="spv">${G.speed}</b> giây thực = 10 phút trong game <small class="dim">(một ngày 06:00 → 03:00 dài khoảng ${Math.round(126 * G.speed / 60)} phút nếu không bỏ qua)</small></p><input type="range" id="spd" min="2" max="12" step="1" value="${G.speed}">`;
     else if (st === 'keys') h += '<table class="tb keys">' + KEYMAP.map(([k, v]) => `<tr><td>${k.split(' / ').map(x => x.split(' ').map(y => (y === '–' ? '–' : `<kbd>${y.replace('_', ' ')}</kbd>`)).join('')).join(' hoặc ')}</td><td>${v}</td></tr>`).join('') + '</table>';
     else h += `<h4>Lưu game</h4><p class="dim">Game tự lưu vào trình duyệt này mỗi khi bạn đi ngủ. Muốn chuyển máy hoặc giữ chắc, hãy sao chép mã lưu.</p>
       <div class="btns"><button class="btn" data-act="save">Lưu ngay</button><button class="btn" data-act="copy">Sao chép mã lưu</button></div>
@@ -625,8 +633,8 @@ function cheatLove() {
 // Mã thử nghiệm: du hành tới một ngày bất kỳ trên lịch
 async function timeTravelAsk(day) {
   const sd = isSchoolDay(day);
-  const opts = sd ? [['05:00 — vừa ngủ dậy ở nhà', 300], ['07:30 — trước cổng trường', 450], [`${fmtTime(AM_END)} — nghỉ trưa ở trường`, AM_END], [`${fmtTime(CFG.SCHOOL_END)} — tan học, ở sân trường`, CFG.SCHOOL_END], ['19:00 — buổi tối ở nhà', 1140]]
-    : [['05:00 — vừa ngủ dậy', 300], ['09:00 — buổi sáng', 540], ['14:00 — buổi chiều', 840], ['19:00 — buổi tối', 1140]];
+  const opts = sd ? [['06:00 — vừa ngủ dậy ở nhà', 360], ['07:30 — trước cổng trường', 450], [`${fmtTime(AM_END)} — nghỉ trưa ở trường`, AM_END], [`${fmtTime(CFG.SCHOOL_END)} — tan học, ở sân trường`, CFG.SCHOOL_END], ['19:00 — buổi tối ở nhà', 1140]]
+    : [['06:00 — vừa ngủ dậy', 360], ['09:00 — buổi sáng', 540], ['14:00 — buổi chiều', 840], ['19:00 — buổi tối', 1140]];
   const c = await UI.ask('Du hành thời gian', `<p>Tới <b>${dateLabel(day)}</b>, năm ${cal(day).year + 1}. Vào lúc nào?</p>`, opts.map(o => o[0]).concat('Thôi'));
   if (c < 0 || c >= opts.length) return;
   timeTravel(day, opts[c][1]);

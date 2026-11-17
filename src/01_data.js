@@ -6,7 +6,7 @@
 const CFG = {
   TICK_MIN: 10,              // mỗi lần cập nhật giờ = 10 phút trong game
   TICK_SEC: 7,               // mặc định: 7 giây thực cho 10 phút game, giống Stardew Valley (chỉnh trong Cài đặt)
-  DAY_START: 5 * 60,         // 05:00 thức dậy
+  DAY_START: 6 * 60,         // 06:00 thức dậy
   DAY_END: 27 * 60,          // 03:00 sáng hôm sau: buộc phải ngủ
   DAYS_PER_SEASON: 30,
   GATE_TIME: 8 * 60,         // đến trường đúng giờ = TRƯỚC 08:00

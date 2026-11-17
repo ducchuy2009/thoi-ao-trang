@@ -38,12 +38,62 @@ function blocked(m, x, y) {
 }
 
 /* ---------- NPC ---------- */
-function npcsHere() { return NPCS.filter(n => n.map === G.map && (!n.vis || n.vis())); }
-function updateNpcs(dt, busy) {
+// NPC đang hiện trên bản đồ (kể cả người đang đi ra cửa / mép bản đồ trước khi khuất)
+function npcsHere() { return NPCS.filter(n => n.map === G.map && ((n._tr && n._tr.out) || !n.vis || n.vis())); }
+/* ---------- xuất hiện / biến mất có hoạt ảnh ----------
+ * NPC không thoắt ẩn thoắt hiện: tới lúc có mặt thì đi bộ từ cửa / mép bản đồ vào chỗ của mình, hết lúc có mặt thì đi ra cửa rồi mới khuất.
+ * Chỗ ra vào: n.portal(vào?) nếu có (vd. học sinh ngoài sân: cửa lớp / cổng trường), không thì cửa hoặc mép bản đồ gần nhất.
+ * Bỏ qua khi thời gian vừa nhảy xa, vừa đổi bản đồ, đang có cắt cảnh; và với người ngồi một chỗ, người trong lễ hội, người đang đi theo lịch. */
+const TR_SPEED = 44, TR_SKIP = /^(hk|tt|bc_|fv_|fc|mv_|w_|nh_|trip_|cor_)/;
+function mapPortals(m) {
+  if (m._portals) return m._portals;
+  const P = [];
+  for (const w of m.warps) P.push([clamp(w.x + w.w / 2, 6, m.pw - 6), clamp(w.y + w.h / 2, 8, m.ph - 2)]);
+  for (const z of m.zones) P.push([clamp(z.x + z.w / 2, 4, m.pw - 4), clamp(z.y + z.h / 2, 8, m.ph - 2)]);
+  return (m._portals = P);
+}
+function trPortal(n, inn, x, y) {
+  if (n.portal) { const p = n.portal(inn); if (p) return p; }
+  let best = null, bd = 1e9;
+  for (const p of mapPortals(MAPS[n.map])) { const d = Math.hypot(p[0] - x, p[1] - y); if (d < bd) { bd = d; best = p; } }
+  return best;
+}
+function trStart(n, out) {
+  n._tr = null;
+  if (out) {
+    if (n.cx === undefined || (n.fid && isComp(n.fid))) return;          // bạn vừa nhập hội đi cùng mình: không đi ra cửa
+    const P = trPortal(n, false, n.cx, n.cy); if (!P) return;
+    const len = Math.hypot(P[0] - n.cx, P[1] - n.cy); if (len < 4 || len > 900) return;
+    n._tr = { out: true, ax: n.cx, ay: n.cy, bx: P[0], by: P[1], d: 0 };
+  } else {
+    const T = n.pos ? n.pos() : { x: n.x, y: n.y }; if (!T) return;
+    const P = trPortal(n, true, T.x, T.y); if (!P) return;
+    const len = Math.hypot(T.x - P[0], T.y - P[1]); if (len < 4 || len > 900) return;
+    n._tr = { out: false, ax: P[0], ay: P[1], d: 0 }; n.cx = P[0]; n.cy = P[1];
+  }
+}
+function trStep(n, dt) {
+  const tr = n._tr;
+  let bx = tr.bx, by = tr.by;
+  if (!tr.out) { const T = n.pos ? n.pos() : { x: n.x, y: n.y }; if (!T) { n._tr = null; return; } bx = T.x; by = T.y; }
+  const len = Math.hypot(bx - tr.ax, by - tr.ay) || 1;
+  tr.d += TR_SPEED * dt; const k = Math.min(1, tr.d / len), dx = bx - tr.ax, dy = by - tr.ay;
+  n.cx = tr.ax + dx * k; n.cy = tr.ay + dy * k; n.cdir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 1 : 2) : (dy < 0 ? 3 : 0);
+  n.walk = (n.walk >= 0 ? n.walk : 0) + dt; n.coy = 0; n.cride = null;
+  if (k >= 1) { n._tr = null; n.walk = -1; if (!tr.out) { n.tx = undefined; } }
+}
+function updateNpcs(dt, busy, snapNow) {
   const m = MAPS[G.map];
+  const snap = snapNow || RT.trMap !== G.map || (RT.scene && RT.scene.type === 'cut');
+  RT.trMap = G.map;
   for (const n of NPCS) {
     if (n.fam || n.map !== G.map) continue;      // bố mẹ do updateFamily điều khiển
-    if (n.pos) { const p = n.pos(); if (!p) continue; n.cx = p.x; n.cy = p.y; n.cdir = p.dir; n.walk = p.walk === undefined ? -1 : p.walk; n.coy = p.oy || 0; continue; }
+    const v = !n.vis || n.vis();
+    if (snap || n.solid || n.tr === false || TR_SKIP.test(n.id)) { n._sv = v; n._tr = null; }
+    else if (n._sv === undefined) n._sv = v;
+    else if (v !== n._sv) { n._sv = v; trStart(n, !v); }
+    if (n._tr) { trStep(n, dt); continue; }
+    if (n.pos) { const p = n.pos(); if (!p) continue; n.cx = p.x; n.cy = p.y; n.cdir = p.dir; n.walk = p.walk === undefined ? -1 : p.walk; n.coy = p.oy || 0; n.cride = p.ride || null; continue; }
     if (n.cx === undefined) { n.cx = n.x; n.cy = n.y; n.cdir = n.dir; n.walk = -1; n.wt = Math.random() * 3; }
     if (n.solid && !busy) n.cdir = n.dir;         // bạn đang ngồi: nói chuyện xong thì quay lại nhìn bảng
     if (!n.wander || busy) { n.walk = -1; continue; }
@@ -90,7 +140,7 @@ function interactables() {
   // xe của mình đang dựng ở đâu đó: bấm vào để lên xe
   if (G.park && !G.park.shed && G.park.map === G.map) { const P = G.park; a.push({ x: P.x - 14, y: P.y - 18, w: 28, h: 20, rx: P.x - 12, ry: P.y - 8, rw: 24, rh: 8, base: P.y, label: () => `${VEHICLES[P.id].name} — lên xe`, act: () => ACT.mount(P.id), range: 20 }); }
   if (G.comp && RT.fol && !G.ride) { const f = RT.fol, fid = G.comp.fid; a.push({ x: f.x - 9, y: f.y - 24, w: 18, h: 25, rx: f.x - 4, ry: f.y - 5, rw: 8, rh: 5, base: f.y, fol: true, label: () => `${FRIENDS[fid].name} — đang đi cùng bạn`, act: () => ACT.friend(fid, 'comp'), range: 24 }); }
-  for (const n of npcsHere()) if (n.act && n.cx !== undefined && !(n.fam && FAM[n.fam].riding)) a.push({ x: n.cx - 9, y: n.cy - 24, w: 18, h: 25, rx: n.cx - 4, ry: n.cy - 5, rw: 8, rh: 5, base: n.cy, label: n.label, act: n.act, range: 24, npc: n });
+  for (const n of npcsHere()) if (n.act && n.cx !== undefined && !(n._tr && n._tr.out) && !n.cride && !(n.fam && FAM[n.fam].riding)) a.push({ x: n.cx - 9, y: n.cy - 24, w: 18, h: 25, rx: n.cx - 4, ry: n.cy - 5, rw: 8, rh: 5, base: n.cy, label: n.label, act: n.act, range: 24, npc: n });
   return a;
 }
 function distTo(t) { const px = G.x, py = G.y - 2; return Math.hypot(Math.max(t.rx - px, 0, px - (t.rx + t.rw)), Math.max(t.ry - py, 0, py - (t.ry + t.rh))); }
@@ -189,9 +239,11 @@ function update(dt) {
     else if (RT.hold) UI.hint(`Đang cầm ${holdName(RT.hold).toLowerCase()}${FOODS[RT.hold] ? ' — bấm vào mình để ăn' : ''}`, true);
     else UI.hint(null);
   } else { if (!(RT.scene && RT.scene.meMove)) RT.walkT = -1; UI.hint(null); }
+  const snapNow = RT.snapNpcs;                     // thời gian vừa nhảy xa: mọi người có mặt luôn ở chỗ mới
   updateFamily(dt, busy);
   leaveTick();                                     // tan học: các bạn đi bộ ra cổng
-  updateNpcs(dt, busy);
+  updateTrips(dt, snapNow);                        // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch
+  updateNpcs(dt, busy, snapNow);
   updateFollower(dt, busy);
   for (const f of RT.floats) f.t += dt;
   RT.floats = RT.floats.filter(f => f.t < 1.6);
@@ -268,6 +320,7 @@ function render(now) {
       drawSpr(SHADOW, n.cx - 7, n.cy - 3); drawSpr(b, n.cx - 16, n.cy - 21);
       drawSpr(charSheet(n.look, n.outfit ? n.outfit() : null)[left ? 1 : 2][0], n.cx - 9 + (left ? 2 : -2), n.cy - 32);
     }
+    else if (e.n && e.n.cride) drawRider(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cride, e.n.cx, e.n.cy, e.n.cdir === 1);   // đang đạp xe / chạy xe máy
     else if (e.n) drawChar(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cx, e.n.cy, e.n.cdir, e.n.walk, e.n.coy);
     else if (e.a) { if (!e.a.hidden) drawChar(e.a.look, e.a.outfit, e.a.x, e.a.y, e.a.dir, e.a.walk === undefined ? -1 : e.a.walk, e.a.oy); }
     else if (e.v) drawSpr(SPR[VEHICLES[e.v.id].spr], e.v.x - 15, e.v.y - 19);
