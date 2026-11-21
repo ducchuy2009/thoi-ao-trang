@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thời Áo Trắng — xuất toàn bộ bản đồ</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}
+body{margin:0;background:#1e1c29;color:#fff7e4;font:15px/1.5 system-ui,-apple-system,'Segoe UI',sans-serif}
+main{max-width:1260px;margin:auto;padding:26px 16px 70px}
+h1{font-size:clamp(25px,4vw,40px);margin:4px 0 8px;color:#ffdfa3}
+p{color:#d9d4d9;margin:7px 0 14px}small,.hint{color:#b6abb9}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:15px 0}
+button,select{border:1px solid #706877;background:#40384b;color:#fff5e3;border-radius:9px;padding:9px 13px;font-weight:750;font-size:14px}
+button{cursor:pointer}button.primary{background:#eec27c;color:#252131;border:0}button:disabled{opacity:.4;cursor:not-allowed}
+#gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:15px}
+.card{background:#302b3a;border:1px solid #514858;border-radius:11px;overflow:hidden}
+.card .cover{display:grid;place-items:center;min-height:150px;background:#15151a;cursor:pointer;border:0;width:100%;padding:4px}
+.cover img{width:100%;height:auto;max-height:255px;object-fit:contain;image-rendering:pixelated}
+.card .info{padding:11px}.info h3{font-size:16px;margin:0 0 4px;color:#ffe4b7}.info .meta{font-size:12px;color:#c0b7c4}
+.info button{margin-top:9px}
+#viewer{position:fixed;inset:0;background:#05040ada;display:none;z-index:5;padding:12px}
+#viewer.open{display:flex;flex-direction:column}#viewer .vbar{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-bottom:10px}
+#viewer .scroll{overflow:auto;flex:1;background:#22222b;border-radius:8px}
+#full{display:block;margin:auto;max-width:none;image-rendering:pixelated}
+#status{font-size:13px;color:#e7c48e;margin-left:auto}
+footer{border-top:1px solid #4b4250;color:#bcb4c5;font-size:13px;margin-top:25px;padding-top:18px}
+iframe{position:absolute;left:-99999px;top:0;width:1100px;height:760px;border:0}
+</style></head>
+<body><main><div style="font-weight:800;font-size:12px;letter-spacing:.13em;color:#bde1b7">TRÍCH XUẤT TỪ GAME GỐC · KHÔNG PHẢI ẢNH CONCEPT</div>
+<h1>THỜI ÁO TRẮNG — ALL MAPS</h1>
+<p>Xuất <b>toàn cảnh bản đồ ở tất cả khu vực chơi</b> trực tiếp từ <code>MAPS</code>, <code>SPR</code> và nền Canvas của bản game chính. File PNG chứa đầy đủ khu vực ở tỷ lệ pixel gốc, không có HUD hoặc màn hình tiêu đề.</p>
+<div class="row"><label for="scale">Độ phóng</label><select id="scale"><option value="1" selected>1× — pixel gốc</option><option value="2">2× — phóng pixel</option><option value="3">3× — phóng pixel</option></select>
+<label><input type="checkbox" id="labels" checked> Biển tên/chữ trên map</label>
+<label><input type="checkbox" id="npcs"> Thêm NPC cố định</label>
+<button class="primary" id="zip" disabled>Xuất ZIP tất cả bản đồ</button>
+<button id="manifest" disabled>Xuất danh mục JSON</button><span id="status">Đang nạp game...</span></div>
+<div id="gallery"></div>
+<footer>Tính năng xuất ảnh riêng biệt, không sửa logic, bản đồ, tài nguyên hay bản lưu của game chính. Các hiệu ứng tình huống như lễ hội, đèn đêm hoặc NPC đang di chuyển phụ thuộc vào tiến trình chơi nên không nằm trong bản đồ tĩnh mặc định.</footer>
+<iframe id="game" src="./index.html" title="Tải tài nguyên của game"></iframe>
+</main>
+<div id="viewer"><div class="vbar"><strong id="v-title"></strong><div class="row" style="margin:0"><button id="v-download">Lưu PNG</button><button id="v-close">Đóng</button></div></div><div class="scroll"><canvas id="full"></canvas></div></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let world=null,entries=[],selected=null;
+const frame=$('game');
+const ready=()=>{
+ try{
+  const win=frame.contentWindow;
+  if(!win || win.location.origin!==location.origin)throw Error('Không thể truy cập game cùng miền');
+  const data=win.eval('({MAPS,SPR,NPCS,charSheet,charFrame})');
+  if(!data.MAPS || !Object.keys(data.MAPS).length)throw Error('Danh sách MAPS chưa được khởi tạo');
+  world=data;
+  entries=Object.entries(data.MAPS).map(([id,m],i)=>({id,name:m.name,width:m.pw,height:m.ph,indoor:!!m.indoor,
+    objects:m.objs.length,labels:m.labels.length,index:i,m}));
+  $('status').textContent='Đã nhận diện '+entries.length+' khu vực';
+  $('zip').disabled=false;$('manifest').disabled=false;
+  makeCards();
+ }catch(e){$('status').textContent='Lỗi: '+e.message;console.error(e)}
+};
+frame.addEventListener('load',ready);
+frame.addEventListener('error',()=>{$('status').textContent='Không nạp được index.html'});
+const checkVis=(fn,defaultValue=true)=>{
+ if(typeof fn!=='function')return defaultValue;
+ try{return !!fn()}catch(_){return false}
+};
+function imageFor(e,scale=1){
+ const m=e.m,c=document.createElement('canvas');
+ c.width=e.width*scale;c.height=e.height*scale;
+ const x=c.getContext('2d',{alpha:false});x.imageSmoothingEnabled=false;
+ x.fillStyle='#1f1b2e';x.fillRect(0,0,c.width,c.height);
+ x.setTransform(scale,0,0,scale,0,0);
+ x.drawImage(m.g,0,0);
+ const objs=m.objs.filter(o=>checkVis(o.vis)).slice().sort((a,b)=>(a.base||0)-(b.base||0));
+ for(const o of objs){
+   let sn=o.s;
+   if(o.dyn){try{sn=o.dyn()||o.s}catch(_){}}
+   const pic=world.SPR[sn]||world.SPR[o.s];
+   if(pic && pic.width && pic.height)try{x.drawImage(pic,Math.round(o.x),Math.round(o.y))}catch(_){}
+ }
+ if($('npcs').checked){
+  for(const n of world.NPCS){
+   if(n.map!==e.id || n.vis || typeof n.x!=='number' || typeof n.y!=='number')continue;
+   try{
+    const outfit=typeof n.outfit==='function'?n.outfit():n.outfit||null;
+    const sh=world.charSheet(n.look,outfit);
+    const spr=world.charFrame(sh,n.dir===undefined?0:n.dir,-1);
+    if(spr.hi){
+      const w=spr.width/spr.hi,h=spr.height/spr.hi;
+      const yy=n.y-23+22-h;
+      x.drawImage(spr,n.x-w/2,yy,w,h);
+    }else x.drawImage(spr,n.x-9,n.y-23);
+   }catch(_){}
+  }
+ }
+ if($('labels').checked){
+  x.textAlign='center';x.textBaseline='middle';
+  for(const l of m.labels){
+   if(!checkVis(l.vis))continue;
+   x.font='800 '+l.size+'px "Baloo 2",system-ui,sans-serif';
+   x.fillStyle=l.col||'#fff';
+   x.fillText(l.text,l.x,l.y,l.maxw);
+  }
+ }
+ return c;
+}
+function makeCards(){
+ const grid=$('gallery');grid.textContent='';
+ for(const e of entries){
+  const box=document.createElement('article');box.className='card';
+  const cover=document.createElement('button');cover.className='cover';cover.title='Xem bản đồ kích thước đầy đủ';
+  const img=document.createElement('img');img.alt=e.name;img.loading='lazy';
+  try{
+   const c=imageFor(e,1),thumb=document.createElement('canvas'),factor=Math.min(1,360/c.width,220/c.height);
+   thumb.width=Math.max(1,Math.round(c.width*factor));thumb.height=Math.max(1,Math.round(c.height*factor));
+   const t=thumb.getContext('2d');t.imageSmoothingEnabled=false;t.drawImage(c,0,0,thumb.width,thumb.height);
+   img.src=thumb.toDataURL('image/png');
+  }catch(ex){console.warn(e.id,ex)}
+  cover.append(img);cover.onclick=()=>view(e);
+  const info=document.createElement('div');info.className='info';
+  const title=document.createElement('h3');title.textContent=String(e.index+1).padStart(2,'0')+' · '+e.name;
+  const meta=document.createElement('div');meta.className='meta';
+  meta.textContent=e.id+' · '+e.width+'×'+e.height+' px · '+(e.indoor?'Trong nhà':'Ngoài trời')+' · '+e.objects+' vật thể';
+  const b=document.createElement('button');b.textContent='Xuất PNG';b.onclick=()=>downloadOne(e);
+  info.append(title,meta,b);box.append(cover,info);grid.append(box);
+ }
+ grid.style.display='grid';
+}
+const nameFor=e=>String(e.index+1).padStart(2,'0')+'_'+e.id+'.png';
+function downloadBlob(blob,name){
+ const u=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=u;a.download=name;document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(u),15000);
+}
+const canvasBlob=c=>new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(Error('Không thể xuất Canvas')), 'image/png'));
+async function downloadOne(e){
+ try{const b=await canvasBlob(imageFor(e,+$('scale').value));downloadBlob(b,nameFor(e));}
+ catch(ex){alert('Lỗi xuất PNG '+e.id+': '+ex.message)}
+}
+function view(e){
+ selected=e;
+ const c=imageFor(e,+$('scale').value),full=$('full');
+ full.width=c.width;full.height=c.height;full.getContext('2d').drawImage(c,0,0);
+ $('v-title').textContent=e.name+' · '+c.width+'×'+c.height+' px';
+ $('viewer').classList.add('open');
+}
+$('v-close').onclick=()=>$('viewer').classList.remove('open');
+$('v-download').onclick=()=>{if(selected)downloadOne(selected)};
+$('labels').onchange=()=>{if(world){makeCards();if(selected&&$('viewer').classList.contains('open'))view(selected)}};
+$('npcs').onchange=$('labels').onchange;
+$('scale').onchange=()=>{if(selected&&$('viewer').classList.contains('open'))view(selected)};
+$('manifest').onclick=()=>{
+ const payload=entries.map(({id,name,width,height,indoor,objects,labels,index})=>({index:index+1,id,name,width,height,indoor,objects,labels,filename:nameFor({index,id})}));
+ downloadBlob(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),'maps_manifest.json');
+};
+// ZIP: PKZIP stored entries, valid UTF-8 filenames, no external libraries.
+function zipFile(files){
+ const enc=new TextEncoder(),local=[],central=[];
+ let pos=0;
+ const crcTable=new Uint32Array(256);
+ for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);crcTable[n]=c>>>0;}
+ const crc32=b=>{let c=0xffffffff;for(const x of b)c=crcTable[(c^x)&255]^(c>>>8);return(c^0xffffffff)>>>0;};
+ const u16=(v,o,n)=>v.setUint16(o,n,true),u32=(v,o,n)=>v.setUint32(o,n>>>0,true);
+ for(const file of files){
+  const data=file.data,n=enc.encode(file.name),crc=crc32(data),offset=pos;
+  const lh=new Uint8Array(30+n.length),l=new DataView(lh.buffer);
+  u32(l,0,0x04034b50);u16(l,4,20);u16(l,6,0x0800);u16(l,8,0);u16(l,10,0);u16(l,12,0);
+  u32(l,14,crc);u32(l,18,data.length);u32(l,22,data.length);u16(l,26,n.length);u16(l,28,0);
+  lh.set(n,30);local.push(lh,data);pos+=lh.length+data.length;
+  const ch=new Uint8Array(46+n.length),v=new DataView(ch.buffer);
+  u32(v,0,0x02014b50);u16(v,4,20);u16(v,6,20);u16(v,8,0x0800);u16(v,10,0);
+  u16(v,12,0);u16(v,14,0);u32(v,16,crc);u32(v,20,data.length);u32(v,24,data.length);
+  u16(v,28,n.length);u16(v,30,0);u16(v,32,0);u16(v,34,0);u16(v,36,0);u32(v,38,0);u32(v,42,offset);
+  ch.set(n,46);central.push(ch);
+ }
+ const centralSize=central.reduce((a,b)=>a+b.length,0);
+ const end=new Uint8Array(22),v=new DataView(end.buffer);
+ u32(v,0,0x06054b50);u16(v,4,0);u16(v,6,0);u16(v,8,files.length);u16(v,10,files.length);
+ u32(v,12,centralSize);u32(v,16,pos);u16(v,20,0);
+ return new Blob([...local,...central,end],{type:'application/zip'});
+}
+$('zip').onclick=async()=>{
+ const btn=$('zip');btn.disabled=true;
+ try{
+  const files=[],sc=+$('scale').value;
+  for(let i=0;i<entries.length;i++){
+   const e=entries[i];$('status').textContent='Đang xuất '+(i+1)+'/'+entries.length+': '+e.name;
+   await new Promise(r=>setTimeout(r,0));
+   const blob=await canvasBlob(imageFor(e,sc));
+   files.push({name:'maps/'+nameFor(e),data:new Uint8Array(await blob.arrayBuffer())});
+  }
+  const manifest=entries.map(e=>({id:e.id,name:e.name,width:e.width,height:e.height,indoor:e.indoor,objects:e.objects,labels:e.labels,file:nameFor(e)}));
+  files.push({name:'maps_manifest.json',data:new TextEncoder().encode(JSON.stringify({exportScale:sc,maps:manifest},null,2))});
+  downloadBlob(zipFile(files),'thoi_ao_trang_all_maps_'+sc+'x.zip');
+  $('status').textContent='Đã tạo ZIP: '+entries.length+' map';
+ }catch(ex){$('status').textContent='Lỗi xuất ZIP: '+ex.message;console.error(ex);alert(ex.message)}
+ finally{btn.disabled=false}
+};
+</script></body></html>
