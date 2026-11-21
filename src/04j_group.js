@@ -51,7 +51,7 @@ function groupTick(t) {
   if (!G || !G.group || RT.skip) return;
   grExpire();
   const sch = schoolToday();
-  if (sch && GROUP.slots.includes(t) && t < schoolEndT() && (G.daily.grp || 0) < GROUP.max && Math.random() < GROUP.chance) grNewReq();
+  if (sch && GROUP.slots.includes(t) && t < schoolEndT() && (G.daily.grp || 0) < GROUP.max && (G.daily.taskPlan || []).includes('group') && Math.random() < GROUP.chance * 1.6) { if (grNewReq()) takeTaskSlot('group'); }
   else if (GROUP.chat.includes(t) && Math.random() < GROUP.chatChance * (sch ? 1 : 0.6)) { const [by, line] = pick(GROUP_CHAT); grPost(by, line, null, `Nhóm ${GROUP.name}: ${grName(by)} — “${line.length > 48 ? line.slice(0, 46) + '…' : line}”`); }
 }
 // đăng một lời nhờ mới

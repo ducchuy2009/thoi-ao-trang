@@ -45,7 +45,7 @@ function taskNewDay() {
   if (!schoolToday()) return;
   const busy = new Set(S.board.concat(S.active).map(t => t.id)), pool = Object.keys(TASKS).filter(k => !busy.has(k));
   let added = 0;
-  while (S.board.length < TASK_BOARD.open && pool.length) {
+  while (S.board.length < TASK_BOARD.open && pool.length && takeTaskSlot('board')) {
     const id = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
     S.board.push({ uid: ++S.seq, id, posted: G.day, exp: G.day + TASKS[id].days }); added++;
   }
@@ -57,7 +57,7 @@ function taskCard(t, mode) {
   const T = taskDef(t), late = taskLate(t), dl = daysLeft(t);
   const where = T.steps.map((s, i) => (mode === 'active' ? `<span class="${i < t.step ? 'ok' : i === t.step ? 'cur' : ''}">${i < t.step ? '✓ ' : ''}${s.where}</span>` : s.where)).join(' → ');
   const due = `${taskDeadline(t)}${late ? ' — đã quá hạn' : dl === 0 ? ' — hôm nay!' : dl === 1 ? ' — còn 1 ngày' : ` — còn ${dl} ngày`}`;
-  const reward = t.gr ? grRewardText(T) : t.pt ? `bố mẹ vui (+${T.aff}) · ${fmtMoney(T.pay)} tiền công${T.cost ? ` + trả lại ${fmtMoney(T.cost)} tiền mua đồ` : ''}` : `+${T.aff} thân thiết với ${tLow(T.tid)} · ${fmtMoney(T.pay)}${T.stat ? ` · +${T.stat[1]} ${STAT_NAMES[T.stat[0]]}` : ''}`;
+  const reward = t.gr ? grRewardText(T) : t.pt ? `bố mẹ vui (+${T.aff}) · có thể được ${fmtMoney(T.pay)} tiền công${T.cost ? ` + trả lại ${fmtMoney(T.cost)} tiền mua đồ` : ''}` : `+${T.aff} thân thiết với ${tLow(T.tid)} · có thể được ${fmtMoney(T.pay)}${T.stat ? ` · +${T.stat[1]} ${STAT_NAMES[T.stat[0]]}` : ''}`;
   const btn = mode === 'board' ? `<button class="btn sm primary" data-act="take" data-id="${t.uid}">Nhận việc</button>` : `<button class="btn sm ghost" data-act="drop" data-id="${t.uid}">Bỏ việc</button>`;
   return `<div class="task ${mode} ${late ? 'late' : ''}"><img src="${faceOf(ownerLook(T), null)}" alt=""><div class="tbody"><b>${T.name}</b><small>${ownerName(T)}${t.gr ? ' (nhóm học sinh)' : t.pt ? ' (tin nhắn)' : ''}: “${T.desc}”</small>
     <dl><dt>Ở đâu</dt><dd>${where}</dd><dt>Cần</dt><dd>${t.pt || t.gr ? 'lấy đồ cho vào túi → cầm lên → bấm vào ' + ownerLow(T) + ' để đưa' : `khoảng ${T.mins} phút · ${winText(T, mode === 'active' ? t.step : 0)}`}</dd><dt>Hạn chót</dt><dd class="${late || dl === 0 ? 'bad' : ''}">${due}</dd><dt>Thưởng</dt><dd>${reward}</dd></dl></div>${btn}</div>`;
@@ -121,11 +121,12 @@ async function doTaskStep(id, k) {
   if (taskAt(id, k) === t) return;                 // bị chặn giữa chừng (đang bận việc khác)
   if (!last) { const nx = T.steps[k + 1]; UI.toast(`Xong: ${s.do.toLowerCase()}. Tiếp theo: ${nx.do.toLowerCase()} — ${nx.where}.`, 'good'); UI.hud(); return; }
   // hoàn thành
-  addTeacher(T.aff, T.tid); addWage(`Giúp ${tLow(T.tid)}`, T.pay);
+  const paid = taskPays();
+  addTeacher(T.aff, T.tid); if (paid) addWage(`Giúp ${tLow(T.tid)}`, T.pay);
   if (T.stat) addStat(T.stat[0], T.stat[1]);
   UI.hud();
   const co = tName(T.tid).split(' ')[0].toLowerCase();
-  await UI.ask(tName(T.tid), `<p>“Cảm ơn em nhiều nhé! Việc này em làm chu đáo lắm. Tiền công ${fmtMoney(T.pay)} cuối ngày ${co} gửi em.”</p>`, ['Dạ, không có gì ạ!'], { who: { look: TEACHERS[T.tid].look } });
+  await UI.ask(tName(T.tid), `<p>“Cảm ơn em nhiều nhé! Việc này em làm chu đáo lắm.${paid ? ` Tiền công ${fmtMoney(T.pay)} cuối ngày ${co} gửi em.` : ` ${co.replace(/^./, c => c.toUpperCase())} quý em lắm đấy.`}”</p><p class="dim">+${T.aff} thân thiết với ${tLow(T.tid)}${paid ? ` · ${fmtMoney(T.pay)} tiền công` : ''}</p>`, ['Dạ, không có gì ạ!'], { who: { look: TEACHERS[T.tid].look } });
 }
 // chỗ làm việc trên bản đồ: chỉ hiện (và bấm được) khi đang có việc ở bước đó
 function buildTaskSpots() {

@@ -79,7 +79,7 @@ function pmNewDay() {
 function pmAwards(rows, me, quiet) {
   const out = [];
   if (me.rank === 1 && addMemo('badge', 'hocba')) out.push('hocba');
-  if (semOf(G.day).id === SEMESTERS.length && me.rank <= 3) { G.hsg = G.hsg || {}; if (!G.hsg[cal(G.day).year]) { G.hsg[cal(G.day).year] = { grade: G.grade, rank: me.rank }; addMemo('badge', 'hsg'); out.push('hsg'); } }
+  if (semOf(G.day).id === SEMESTERS.length && me.rank <= 3) { G.hsg = G.hsg || {}; if (!G.hsg[cal(G.day).year]) { G.hsg[cal(G.day).year] = { grade: G.grade, rank: me.rank, year: cal(G.day).year, parent: pmParent(G.day) }; addMemo('badge', 'hsg'); out.push('hsg'); } }
   return out;
 }
 

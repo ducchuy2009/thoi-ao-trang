@@ -200,7 +200,7 @@ async function labThrow(d) {
   return stageGame({ map: 'lab', me: LABME(), cam: { x: 158, y: 118 }, title: 'Thí nghiệm ném xiên', btn: 'BẮN',
     intro: () => { const t = labTeacher(); return t >= 0 ? [{ say: [t, `Chỉnh góc, canh lực ném quả cầu qua bức tường vào rổ. Cần lọt ${need} lần trong ${shots} lượt.`] }] : []; },
     key: k => { if (k === ' ') charge(); }, tap: charge,
-    bot: () => clamp(0.55 + 0.04 * lv('th_ly') - 0.05 * d + 0.15 * Math.random(), 0.3, 1),
+    bot: () => clamp(0.55 + 0.04 * lv('ly') - 0.05 * d + 0.15 * Math.random(), 0.3, 1),
     play: (sc, base, esc) => cuPlay(sc, { draw, tick,
       down: p => { if (cuIn(p)) charge(); },
       move: p => { if (cuIn(p) && !st.ball && p[0] > L[0] + 4) st.ang = clamp(Math.atan2(L[1] - p[1], p[0] - L[0]) * 180 / Math.PI, 10, 80); },
@@ -214,7 +214,7 @@ async function labThrow(d) {
  * ============================================================ */
 const CHEMS = [['Dung dịch A', '#3b82c4'], ['Dung dịch B', '#e2574c'], ['Dung dịch C', '#5fae4a'], ['Dung dịch D', '#f2c94c']];
 async function labMix(d) {
-  const nStep = 2 + Math.floor(d / 2), tol = Math.max(2, 5 - d * 0.5 + lv('th_hoa') * 0.3), steps = [];
+  const nStep = 2 + Math.floor(d / 2), tol = Math.max(2, 5 - d * 0.5 + lv('hoa') * 0.3), steps = [];
   let total = 0;
   for (let i = 0; i < nStep; i++) { const ml = 5 * (2 + Math.floor(Math.random() * Math.min(7, (95 - total) / 5 - 2))); steps.push({ k: (i + Math.floor(Math.random() * 4)) % 4, ml }); total += ml; }
   const F = 112, FX = [26, 58, 182, 214], BX = 120, BB = 106, PX = 0.68;           // vị trí 4 bình · cốc: tâm x, đáy y, số px mỗi ml
@@ -269,7 +269,7 @@ async function labMix(d) {
     intro: () => { const t = labTeacher(); return t >= 0 ? [{ say: [t, `Rót lần lượt ${steps.map(s => `${s.ml} ml ${CHEMS[s.k][0].replace('Dung dịch ', '')}`).join(', ')}. Cẩn thận đừng rót quá tay!`] }] : []; },
     key: k => { if (/^[1-4]$/.test(k) && !st.pouring) st.sel = +k - 1; else if (k === ' ') startPour(); },
     tap: startPour,
-    bot: () => clamp(0.55 + 0.04 * lv('th_hoa') - 0.05 * d + 0.15 * Math.random(), 0.3, 1),
+    bot: () => clamp(0.55 + 0.04 * lv('hoa') - 0.05 * d + 0.15 * Math.random(), 0.3, 1),
     play: (sc, base, esc) => cuPlay(sc, { draw, tick,
       down: p => { if (!cuIn(p) || st.pouring) return; for (let k = 0; k < 4; k++) if (Math.abs(p[0] - FX[k]) < 12 && p[1] > F - 32 && p[1] < F + 14) { st.sel = k; break; } startPour(); },
       up: stop, keyup: e => { if (e.code === 'Space') stop(); }, btnUp: stop }, esc),
@@ -318,7 +318,7 @@ async function labMicro(d) {
     intro: () => { const t = labTeacher(); return (t >= 0 ? [{ say: [t, `Hôm nay quan sát ${MICROBES[tk][0]}. Tìm và đánh dấu ${need} con trước khi hết giờ nhé.`] }] : []).concat([{ fn: s => { s.glow = [glow]; } }]); },
     key: k => { if (k === ' ') snap(); },
     tap: snap,
-    bot: () => clamp(0.55 + 0.04 * lv('th_sinh') - 0.05 * d + 0.15 * Math.random(), 0.3, 1),
+    bot: () => clamp(0.55 + 0.04 * lv('sinh') - 0.05 * d + 0.15 * Math.random(), 0.3, 1),
     play: (sc, base, esc) => new Promise(res => {
       sc.glow = [glow];
       const off = sgPointer(p => { st.drag = p; }, p => { if (st.drag) { st.vx -= (p[0] - st.drag[0]) * 1.6; st.vy -= (p[1] - st.drag[1]) * 1.6; st.drag = p; } }, () => { st.drag = null; });
@@ -641,8 +641,12 @@ async function sceneBanhChung(actors, intro) {
     if (s >= 4) { gR(c, '#e98fa5', X + 20, Y + 20, Z - 40, Z - 40); gR(c, '#fbf7ee', X + 20, Y + 25, Z - 40, 2); }
     if (s >= 5) { gR(c, '#f2c94c', X + 14, Y + 14, Z - 28, Z - 28); gR(c, '#e98fa5', X + 24, Y + 25, 8, 5); }
     if (s >= 6) gR(c, '#fbf7ee', X + 7, Y + 7, Z - 14, Z - 14);
-    if (s >= 7) { gR(c, '#5fae4a', X, Y, Z, Z); for (let i = 0; i < Z; i += 2) { gR(c, '#3f8f3a', X + i, Y + i, 2, 2); gR(c, '#3f8f3a', X + Z - 2 - i, Y + i, 2, 2); } }
-    if (st.pop > 0) { gR(c, '#3f8f3a', X, Y, Z, Z); gR(c, '#d9c690', X + Z / 2 - 2, Y, 4, Z); gR(c, '#d9c690', X, Y + Z / 2 - 2, Z, 4); gR(c, '#d9c690', X + 12, Y, 2, Z); gR(c, '#d9c690', X, Y + 40, Z, 2); Tx.text('+1 bánh!', MX + Z / 2, MY + Z / 2 - (0.9 - st.pop) * 30, 9, '#ffd23a'); }
+    if (s >= 7) {                                                                                     // gấp lá: bốn vạt lá dong gập vào giữa thành mặt bánh vuông
+      gR(c, '#3f8f3a', X, Y, Z, Z); gR(c, '#57a64c', X + 2, Y + 2, Z - 4, Z - 4);
+      for (let i = 0; i < Z / 2; i += 2) { gR(c, '#2f6b2b', X + i, Y + i, 2, 2); gR(c, '#2f6b2b', X + Z - 2 - i, Y + i, 2, 2); gR(c, '#2f6b2b', X + i, Y + Z - 2 - i, 2, 2); gR(c, '#2f6b2b', X + Z - 2 - i, Y + Z - 2 - i, 2, 2); }
+      for (let i = 1; i < 5; i++) gR(c, '#4a9a40', X + Math.round(Z * i / 5), Y + 4, 1, Z - 8);
+    }
+    if (st.pop > 0) { gR(c, '#8a5a3a', X - 4, Y - 4, Z + 8, Z + 8); gR(c, '#e8d6b0', X - 3, Y - 3, Z + 6, Z + 6); bcCake(c, X + 2, Y + 6, Z - 4); Tx.text('+1 bánh!', MX + Z / 2, MY + Z / 2 - (0.9 - st.pop) * 30, 9, '#ffd23a'); }
     // khay nguyên liệu hai bên
     BC_SIDE.forEach((k, i) => {
       const [x, y] = tray(i), sh2 = st.shake > 0 && st.bad === i ? Math.round(Math.sin(st.shake * 50) * 2) : 0, want = BC_STEPS[st.step][0] === k;
@@ -654,7 +658,7 @@ async function sceneBanhChung(actors, intro) {
     if (st.drag) bcIng(c, BC_SIDE[st.drag.i], st.drag.x, st.drag.y, 0.8);
     if (st.fly) { const q = Math.min(1, st.fly.t / 0.25); bcIng(c, st.fly.k, st.fly.from[0] + (MX + Z / 2 - st.fly.from[0]) * q, st.fly.from[1] + (MY + Z / 2 - st.fly.from[1]) * q - Math.sin(q * 3.14) * 12, 0.8); }
     // bánh đã gói xếp dưới khuôn
-    for (let i = 0; i < Math.min(st.cakes, 12); i++) { const x = 84 + (i % 6) * 12, y = 98 + Math.floor(i / 6) * 11; gR(c, '#2f6b2b', x, y, 10, 10); gR(c, '#3f8f3a', x + 1, y + 1, 8, 8); gR(c, '#d9c690', x + 4, y + 1, 2, 8); gR(c, '#d9c690', x + 1, y + 4, 8, 2); }
+    for (let i = 0; i < Math.min(st.cakes, 12); i++) { const x = 84 + (i % 6) * 12, y = 98 + Math.floor(i / 6) * 11; bcCake(c, x, y, 10); }
     Tx.text(`Bước ${st.step + 1}/8: ${BC_STEPS[st.step][1]}`, 120, 14 + 0, 6.5, '#2a2136', '#fff6e3');
     Tx.text(`Bạn ${st.cakes} · ` + st.npc.map(n => `${n.name.split(' ')[0]} ${n.made}`).join(' · '), 120, 128, 6);
     if (st.msg) Tx.text(st.msg, 120, 92, 5.5, /Nhầm/.test(st.msg) ? '#ffb4a8' : '#fff6e3');

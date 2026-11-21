@@ -207,7 +207,7 @@ function buildSprites2() {
   for (const s of BOOK_SUBJ) bshelf('bs_' + s, SUBJ[s].color);
   def('shelfsign', 26, 9, x => { R(x, '#2a2136', 0, 0, 26, 9); R(x, '#fffaf0', 1, 1, 24, 7); R(x, '#e3ddd0', 1, 7, 24, 1); }, true);   // biển tên môn trên đầu tủ sách
   def('napmat', 30, 18, x => { R(x, '#e6d096', 0, 0, 30, 18); R(x, '#c9b170', 0, 16, 30, 2); for (let i = 0; i < 30; i += 4) R(x, '#d9c27f', i, 0, 1, 16); R(x, '#fffaf0', 2, 3, 8, 11); R(x, '#e3ddd0', 2, 12, 8, 2); });
-  def('sleeper', 30, 18, x => { x.drawImage(SPR.napmat, -1, -1); R(x, '#f8d0a8', 3, 5, 7, 7); R(x, '#2c2733', 2, 4, 5, 8); R(x, '#8fb0d8', 10, 3, 18, 12); R(x, '#6f8fb8', 10, 13, 18, 2); R(x, '#2a2136', 8, 8, 1, 1); });
+  ['x1', 'x2', 'x4', 'sC'].forEach((l, k) => { SPR['sleeper' + k] = sleeperOf(l, 'mat'); });     // các bạn đang ngủ trưa trên chiếu
   def('medbed', 34, 22, x => { R(x, '#c9ccd4', 0, 4, 34, 18); R(x, '#fbfdff', 1, 5, 32, 14); R(x, '#ffffff', 2, 6, 9, 11); R(x, '#9fd6c4', 12, 6, 20, 12); R(x, '#7fbfa9', 12, 16, 20, 2); R(x, '#8b8f9c', 0, 0, 2, 22); R(x, '#8b8f9c', 32, 2, 2, 20); });
   def('redcross', 14, 14, x => { R(x, '#fffaf0', 0, 0, 14, 14); R(x, '#d9534f', 5, 2, 4, 10); R(x, '#d9534f', 2, 5, 10, 4); });
   def('mic', 8, 22, x => { R(x, '#5f656f', 3, 6, 2, 14); R(x, '#3a3f55', 0, 20, 8, 2); ell(x, '#2a2136', 3.5, 3, 3, 3); R(x, '#8b8f9c', 2, 2, 2, 1); });
@@ -539,7 +539,7 @@ function buildSprites2() {
     R(x, '#c9a467', 0, 4, 36, 12); R(x, '#dcb878', 0, 4, 36, 2); R(x, '#a9853f', 0, 14, 36, 2); for (let i = 3; i < 36; i += 5) R(x, '#b8944f', i, 5, 1, 9);
     for (let i = 0; i < 3; i++) R(x, ['#3f8f3a', '#4ea248', '#5fae4a'][i], 2 + i, 1 + i, 9, 5);
     ell(x, '#fbfdff', 16, 7, 4, 2.5); ell(x, '#efe6d2', 16, 6, 3, 1.5); ell(x, '#f2c94c', 25, 7, 3.5, 2.2); R(x, '#e98fa5', 28, 10, 5, 3); R(x, '#d9c690', 12, 11, 8, 1); R(x, '#d9c690', 12, 13, 8, 1);
-    R(x, '#3f8f3a', 2, 9, 7, 6); R(x, '#d9c690', 5, 9, 1, 6); R(x, '#d9c690', 2, 11, 7, 1);
+    bcCake(x, 2, 8, 8);
   });
   for (let f = 0; f < 2; f++) def('noibanh' + f, 34, 30, x => {
     for (let i = 0; i < 3; i++) R(x, '#a8513a', 2 + i * 11, 22, 9, 8);
@@ -555,6 +555,65 @@ function buildSprites2() {
 
 }
 
+/* ---------- Bánh chưng: khối vuông bọc lá dong nhìn chéo từ trên (mặt trên sáng, mặt trước tối),
+ * vân lá chạy dọc, 4 sợi lạt buộc hình chữ # và nút buộc. W = bề ngang (px) — dùng chung cho icon, cảnh thi gói, mâm bánh. */
+function bcCake(c, X, Y, W) {
+  const f = (col, a, b, w, h) => { c.fillStyle = col; c.fillRect(Math.round(X + a), Math.round(Y + b), Math.max(1, Math.round(w)), Math.max(1, Math.round(h))); };
+  const H = Math.round(W * 0.74), D = Math.max(2, Math.round(W * 0.2)), t = Math.max(1, Math.round(W / 14));
+  f('#24521f', 0, H, W, D); f('#2f6b2b', 0, H, W, Math.max(1, D - t));                               // mặt trước (bóng tối)
+  f('#3f8f3a', 0, 0, W, H); f('#57a64c', t, t, W - 2 * t, H - 2 * t);                                 // mặt trên
+  for (let i = 1; i < 5; i++) f('#4a9a40', Math.round(W * i / 5), t, t, H - 2 * t);                   // vân lá dong
+  f('#7cc46a', t, t, W - 2 * t, t); f('#7cc46a', t, t, t, H - 2 * t);                                 // ánh sáng mép trên-trái
+  const l1 = Math.round(W * 0.3), l2 = Math.round(W * 0.66), h1 = Math.round(H * 0.3), h2 = Math.round(H * 0.66), lt = Math.max(1, Math.round(W / 17));
+  for (const lx of [l1, l2]) { f('#b9a46a', lx, 0, lt, H + D); f('#efe2b4', lx, 0, Math.max(1, lt - (lt > 1 ? 1 : 0)), H + D); }   // lạt dọc (chạy xuống mặt trước)
+  for (const ly of [h1, h2]) { f('#b9a46a', 0, ly, W, lt); f('#efe2b4', 0, ly, W, Math.max(1, lt - (lt > 1 ? 1 : 0))); }           // lạt ngang
+  if (W >= 12) { const k = lt + 1; f('#b9a46a', l2 - 1, h1 - 1, lt + 2, lt + 2); f('#efe2b4', l2 - 1, h1 - 1, k, k); f('#efe2b4', l2 + lt, h1 - k - 1, lt, k); f('#efe2b4', l2 + lt + 1, h1 + lt, lt, k); }   // nút buộc + hai đầu lạt thừa
+}
+/* ---------- Hình đồ dùng học tập cỡ lớn cho cảnh soạn cặp ở tủ sách (vẽ như đồ thật) ---------- */
+const _gear = {};
+const GEAR_SIZE = { hopbut: [38, 18], thehs: [30, 24], vethang: [28, 18], dp_td: [46, 28], dp_qp: [46, 30] };
+function gearPic(id) {
+  if (_gear[id]) return _gear[id];
+  const [w, h] = GEAR_SIZE[id], c = mk(w, h), x = cx(c);
+  if (id === 'hopbut') {                                                         // hộp bút vải có khoá kéo, bút chì + bút bi thò lên
+    R(x, '#f4d35e', 8, 1, 3, 6); R(x, '#e98fa5', 8, 0, 3, 2); R(x, '#c9ccd4', 8, 2, 3, 1); R(x, '#d9b23a', 10, 3, 1, 4);   // bút chì
+    R(x, '#e2574c', 13, 2, 2, 5); R(x, '#fffaf0', 13, 2, 1, 1); R(x, '#b23b3b', 15, 2, 1, 4);                              // bút bi đỏ (nắp có kẹp)
+    R(x, '#5fae4a', 17, 3, 2, 4);                                                                                         // bút dạ xanh
+    R(x, '#3b5fa0', 2, 5, 34, 12); R(x, '#3b5fa0', 1, 6, 36, 10); R(x, '#4f75b8', 2, 5, 34, 3); R(x, '#2f4f86', 1, 14, 36, 2); R(x, '#2f4f86', 2, 16, 34, 1);
+    for (let i = 3; i < 34; i++) R(x, i % 2 ? '#dfe2e8' : '#8b8f9c', i, 7, 1, 1);                                      // răng khoá kéo
+    R(x, '#dfe2e8', 31, 6, 3, 5); R(x, '#8b8f9c', 32, 8, 1, 2); R(x, '#fffaf0', 31, 6, 1, 1);                              // đầu kéo
+    for (let i = 4; i < 34; i += 3) R(x, '#6f93cf', i, 13, 2, 1);                                                         // đường may
+    R(x, '#ffd23a', 18, 9, 4, 3); R(x, '#ffd23a', 19, 8, 2, 5); R(x, '#fff6c8', 19, 9, 1, 1);                              // miếng vá ngôi sao
+  } else if (id === 'thehs') {                                                   // thẻ học sinh đeo dây: ảnh thẻ, tên, mã vạch
+    R(x, '#3b6fb6', 13, 0, 4, 3); R(x, '#c9ccd4', 12, 3, 6, 2); R(x, '#8b8f9c', 14, 4, 2, 1);
+    R(x, '#fbfdff', 1, 5, 28, 18); R(x, '#3b6fb6', 1, 5, 28, 5); R(x, '#5a8fd6', 1, 5, 28, 1);
+    R(x, '#d9534f', 3, 6, 3, 3); R(x, '#ffd23a', 4, 7, 1, 1); R(x, '#fffaf0', 8, 7, 13, 1); R(x, '#cfe0f5', 8, 8, 9, 1);   // logo trường + chữ THẺ HỌC SINH
+    R(x, '#cfe6f2', 3, 11, 8, 10); R(x, '#f8d0a8', 5, 13, 4, 4); R(x, '#2c2733', 5, 12, 4, 2); R(x, '#2c2733', 6, 15, 1, 1); R(x, '#2c2733', 8, 15, 1, 1); R(x, '#f6f6f2', 4, 18, 6, 3); R(x, '#d24a36', 6, 18, 2, 2);   // ảnh thẻ
+    R(x, '#3a3f55', 13, 12, 12, 1); R(x, '#8fa0ab', 13, 14, 10, 1); R(x, '#8fa0ab', 13, 16, 8, 1);
+    for (let i = 0; i < 12; i++) R(x, '#2a2136', 14 + i, 18, i % 3 === 1 ? 1 : (i % 2 ? 1 : 1), i % 4 === 0 ? 3 : 2);   // mã vạch
+    for (let i = 0; i < 12; i += 2) R(x, '#fbfdff', 15 + i, 18, 1, 3);
+  } else if (id === 'vethang') {                                                 // vé tháng xe bus
+    R(x, '#3f9a6b', 1, 1, 26, 16); R(x, '#5fbf8b', 1, 1, 26, 2); R(x, '#fffaf0', 3, 4, 13, 9);
+    R(x, '#f2a93b', 5, 6, 9, 4); R(x, '#cfe8f7', 6, 7, 2, 1); R(x, '#cfe8f7', 9, 7, 2, 1); R(x, '#2a2136', 6, 10, 2, 1); R(x, '#2a2136', 11, 10, 2, 1);   // hình xe bus
+    R(x, '#fffaf0', 18, 4, 7, 2); R(x, '#fffaf0', 18, 8, 5, 1); R(x, '#e2574c', 19, 11, 5, 4); R(x, '#fffaf0', 20, 12, 3, 2);
+  } else if (id === 'dp_td') {                                                   // bộ thể dục: áo phông xanh viền trắng + quần dài có sọc
+    const b = '#4d86de', bs = '#3b6fb6';
+    R(x, b, 7, 3, 18, 22); R(x, b, 1, 4, 7, 8); R(x, b, 25, 4, 7, 8); R(x, bs, 7, 22, 18, 3); R(x, bs, 1, 10, 7, 2); R(x, bs, 25, 10, 7, 2);
+    R(x, '#ffffff', 1, 9, 7, 1); R(x, '#ffffff', 25, 9, 7, 1); R(x, '#ffffff', 12, 3, 8, 1); R(x, '#ffffff', 13, 4, 6, 1); R(x, '#cfe0f5', 14, 5, 4, 1);   // viền tay, cổ áo
+    R(x, '#ffffff', 8, 4, 1, 21); R(x, '#ffffff', 23, 4, 1, 21);                                                           // sọc trắng hai bên thân áo
+    R(x, '#ffd23a', 18, 8, 4, 4); R(x, '#d9534f', 19, 9, 2, 2);                                                            // logo trường
+    R(x, '#2b3a66', 33, 2, 12, 25); R(x, '#202c52', 38, 12, 2, 15); R(x, '#ffffff', 34, 2, 1, 25); R(x, '#ffffff', 43, 2, 1, 25); R(x, '#3a4c80', 33, 2, 12, 2); R(x, '#fffaf0', 37, 3, 4, 1);   // quần dài gấp đôi, cạp chun
+  } else if (id === 'dp_qp') {                                                   // quân phục học sinh: áo xanh lá có túi, cúc vàng + quần + mũ mềm
+    const g = '#6f8440', gs = '#55662f', gl = '#89a05a';
+    R(x, g, 7, 5, 18, 23); R(x, g, 1, 6, 7, 12); R(x, g, 25, 6, 7, 12); R(x, gs, 7, 25, 18, 3); R(x, gs, 1, 16, 7, 2); R(x, gs, 25, 16, 7, 2);
+    R(x, gl, 11, 5, 4, 3); R(x, gl, 17, 5, 4, 3); R(x, gs, 15, 5, 2, 20);                                                   // cổ bẻ, nẹp áo
+    for (let y = 9; y < 24; y += 4) R(x, '#e8b83a', 16, y, 1, 1);                                                          // hàng cúc
+    for (const px of [9, 19]) { R(x, gs, px, 10, 5, 5); R(x, gl, px, 10, 5, 1); R(x, '#e8b83a', px + 2, 11, 1, 1); }       // hai túi ngực
+    R(x, '#4a5a2a', 33, 9, 12, 21); R(x, '#3d4b22', 38, 18, 2, 12); R(x, gl, 33, 9, 12, 2);                                 // quần
+    R(x, g, 33, 2, 12, 5); R(x, gl, 34, 2, 10, 1); R(x, gs, 32, 6, 14, 2); R(x, '#d9534f', 38, 3, 2, 2); R(x, '#ffd23a', 38, 3, 1, 1);   // mũ mềm có sao
+  }
+  return (_gear[id] = outline(c).toDataURL());
+}
 /* ---------- biểu tượng vật phẩm cho thanh đồ (16×16 → dataURL) ---------- */
 const _icons = {}, _iconCv = {};
 const iconCv = id => { itemIcon(id); return _iconCv[id]; };     // canvas của icon (để vẽ hàng hoá lên quầy, kệ)
@@ -614,7 +673,7 @@ function itemIcon(id) {
   else if (id === 'm_cal') { R(x, '#fffaf0', 1, 3, 14, 11); R(x, '#e2574c', 1, 3, 14, 4); R(x, '#2a2136', 4, 1, 1, 4); R(x, '#2a2136', 11, 1, 1, 4); for (let j = 0; j < 2; j++) for (let i = 0; i < 4; i++) R(x, i === 2 && j === 1 ? '#e2574c' : '#8fa0ab', 3 + i * 3, 9 + j * 3, 2, 2); }
   else if (id === 'm_cards') { R(x, '#fffaf0', 2, 3, 8, 11); R(x, '#d9534f', 3, 4, 6, 9); R(x, '#fffaf0', 6, 2, 8, 11); R(x, '#3b82c4', 7, 3, 6, 9); R(x, '#ffe066', 9, 6, 2, 3); }
   else if (id === 'm_set') { ell(x, '#8b8f9c', 7.5, 7.5, 5, 5); for (const [a, b2] of [[7, 0], [7, 13], [0, 7], [13, 7], [2, 2], [12, 2], [2, 12], [12, 12]]) R(x, '#8b8f9c', a, b2, 2, 2); ell(x, '#fff6e3', 7.5, 7.5, 2, 2); R(x, '#c9ccd4', 5, 4, 4, 1); }
-  else if (id === 'banhchung' || id === 'sc_banhchung') { R(x, '#3f8f3a', 2, 3, 12, 11); R(x, '#5fae4a', 2, 3, 12, 2); R(x, '#d9c690', 7, 3, 2, 11); R(x, '#d9c690', 2, 8, 12, 2); R(x, '#2f6b2b', 2, 13, 12, 1); }
+  else if (id === 'banhchung' || id === 'sc_banhchung') bcCake(x, 1, 2, 14);
   else if (id === 'xoi') { ell(x, '#5fae4a', 8, 11, 7, 3.5); ell(x, '#e2574c', 8, 8, 5.5, 4); ell(x, '#f07a6f', 7, 7, 3, 2); R(x, '#fffaf0', 5, 6, 1, 1); R(x, '#fffaf0', 10, 8, 1, 1); }
   else if (id === 'keobong') { R(x, '#d9c690', 7, 9, 2, 7); ell(x, '#ff9fc0', 8, 6, 6, 5); ell(x, '#ffc6dc', 6, 5, 3, 2.4); ell(x, '#ff7fa8', 10, 8, 2.4, 2); }
   else if (id === 'longden') { R(x, '#3a2a22', 7, 0, 2, 2); R(x, '#ffd23a', 4, 2, 8, 2); ell(x, '#e2574c', 8, 8, 6, 5); R(x, '#ff8f7a', 5, 6, 2, 4); R(x, '#ffd23a', 4, 12, 8, 2); R(x, '#ffd23a', 7, 14, 2, 2); }
@@ -680,6 +739,10 @@ function itemIcon(id) {
   else if (id === 'banhdeo') { ell(x, '#e9e4d6', 8, 9, 6.5, 5.5); ell(x, '#fbf8ef', 8, 8, 5.5, 4.5); R(x, '#d9cfb8', 5, 8, 6, 1); R(x, '#d9cfb8', 7, 6, 2, 5); ell(x, '#9fd6a4', 11, 5, 1.5, 1); }
   else if (id === 'buoi') { ell(x, '#7fbf5a', 8, 9, 6.5, 6); ell(x, '#f6c4c0', 8, 9, 5, 4.6); for (const a of [5, 8, 11]) R(x, '#f9dcd8', a, 6, 1, 6); R(x, '#5a8f3a', 7, 2, 2, 2); }
   else if (id === 'anhhkpd') { R(x, '#fffdf6', 1, 2, 14, 12); R(x, '#8fd0f0', 2, 3, 12, 5); R(x, '#e8c47a', 2, 8, 12, 3); for (const a of [3, 6, 9, 12]) { R(x, '#f8d0a8', a, 7, 2, 2); R(x, '#2c2733', a, 6, 2, 1); R(x, '#fbfdff', a, 9, 2, 2); } R(x, '#ffd23a', 7, 9, 2, 2); R(x, '#8b8f9c', 2, 12, 12, 1); }
+  else if (id === 'b_hstb') { R(x, '#3b82c4', 4, 0, 3, 6); R(x, '#d9534f', 9, 0, 3, 6); ell(x, '#2f5a94', 8, 10, 5.5, 5.5); ell(x, '#5a8fd6', 8, 10, 4.5, 4.5); R(x, '#ffe066', 7, 7, 2, 6); R(x, '#ffe066', 5, 9, 6, 2); R(x, '#fffaf0', 6, 7, 1, 1); }
+  else if (id === 'b_quocgia') { R(x, '#d9534f', 3, 0, 4, 7); R(x, '#ffd23a', 9, 0, 4, 7); R(x, '#b23b3b', 5, 0, 1, 7); ell(x, '#c9962a', 8, 10.5, 5.5, 5.5); ell(x, '#ffd23a', 8, 10.5, 4.5, 4.5); R(x, '#d9534f', 7, 8, 2, 5); R(x, '#d9534f', 5, 10, 6, 1); R(x, '#fff6c8', 5, 8, 1, 2); }
+  else if (id === 'sc_hsg') { R(x, '#f4e9c8', 0, 0, 16, 16); R(x, '#3b6fb6', 2, 4, 6, 10); R(x, '#d9534f', 8, 4, 6, 10); R(x, '#fffaf0', 3, 5, 4, 8); R(x, '#fffaf0', 9, 5, 4, 8); R(x, '#2a2136', 7, 4, 2, 10); R(x, '#ffd23a', 6, 0, 4, 3); R(x, '#ffd23a', 7, 3, 2, 1); }
+  else if (id === 'sc_anmung') { R(x, '#f6e6c8', 0, 0, 16, 16); R(x, '#c98f5a', 1, 9, 14, 3); R(x, '#fffaf0', 2, 6, 5, 3); R(x, '#e98f4a', 3, 6, 3, 2); R(x, '#fffaf0', 9, 6, 5, 3); R(x, '#5fae4a', 10, 6, 3, 2); R(x, '#d9534f', 7, 2, 2, 7); R(x, '#ffd23a', 7, 1, 2, 1); }
   else if (id === 'sc_hopph') { R(x, '#f4e9c8', 0, 0, 16, 16); R(x, '#2f6b4f', 2, 1, 12, 5); R(x, '#dfeee6', 4, 3, 8, 1); for (const a of [2, 7, 12]) { R(x, '#8a5a3a', a, 10, 4, 2); R(x, '#f8d0a8', a + 1, 7, 2, 2); R(x, '#4a3328', a + 1, 6, 2, 1); } R(x, '#9a72d6', 7, 12, 2, 3); }
   else if (id === 'sc_hkpd') { R(x, '#8fd0f0', 0, 0, 16, 9); R(x, '#5fae4a', 0, 9, 16, 7); R(x, '#c9a467', 1, 8, 14, 1); R(x, '#e2574c', 7, 6, 2, 3); for (const a of [2, 4]) { R(x, '#3b82c4', a, 10, 2, 4); R(x, '#f8d0a8', a, 8, 2, 2); } for (const a of [11, 13]) { R(x, '#e2574c', a, 10, 2, 4); R(x, '#f8d0a8', a, 8, 2, 2); } R(x, '#ffd23a', 6, 1, 4, 3); R(x, '#c9962a', 7, 4, 2, 1); }
   else if (id === 'anhgiaothua' || id === 'anhtrungthu') { R(x, '#fffdf6', 1, 2, 14, 12); R(x, id === 'anhgiaothua' ? '#24406b' : '#2f3f6b', 2, 3, 12, 8); R(x, id === 'anhgiaothua' ? '#ff5fa8' : '#ffe9a0', 10, 4, 2, 2); for (const a of [4, 7, 10]) { R(x, '#f8d0a8', a, 8, 2, 2); R(x, '#2c2733', a, 7, 2, 1); } R(x, '#8b8f9c', 2, 12, 12, 1); }
@@ -701,10 +764,81 @@ function itemIcon(id) {
   const oc = outline(c); _iconCv[id] = oc;
   return (_icons[id] = oc.toDataURL());
 }
+/* ---------- Dáng ngủ: đầu nằm ngửa trên gối (đúng tóc của nhân vật), mắt nhắm, chăn đắp có dáng người ----------
+ * sleeperOf(look, 'bed') → lớp phủ 32×46 vẽ đè lên giường · sleeperOf(look, 'mat') → 30×18 nằm nghiêng trên chiếu ngủ trưa
+ * open = true: mắt mở (lúc chuông báo thức reng) */
+const _sleepers = {};
+function lyingHead(L, open) {
+  const c = mk(22, 16), x = cx(c), sk = L.skin || '#f8d0a8', hr = L.hair || '#2c2733', hrS = shade(hr, -28), hrL = shade(hr, 24), st = L.style || 'short';
+  const longH = ['long', 'pony', 'twin', 'bob', 'bun'].includes(st);
+  if (longH) {                                                                  // tóc dài xoã trên gối hai bên
+    if (st === 'twin') { R(x, hr, 1, 6, 2, 8); R(x, hr, 19, 6, 2, 8); R(x, hrS, 1, 12, 2, 1); R(x, hrS, 19, 12, 2, 1); if (L.band) { R(x, L.band, 1, 6, 2, 1); R(x, L.band, 19, 6, 2, 1); } }
+    else if (st === 'bob') { R(x, hr, 2, 3, 3, 8); R(x, hr, 17, 3, 3, 8); R(x, hrS, 2, 10, 3, 1); R(x, hrS, 17, 10, 3, 1); }
+    else { R(x, hr, 1, 3, 4, 11); R(x, hr, 17, 3, 4, 11); R(x, hr, 0, 8, 2, 6); R(x, hr, 20, 8, 2, 6); R(x, hrS, 1, 12, 3, 2); R(x, hrS, 18, 12, 3, 2); R(x, hrL, 2, 5, 1, 4); }
+  }
+  const rows = [[7, 14], [5, 16], [4, 17], [4, 17], [4, 17], [4, 17], [4, 17], [4, 17], [4, 17], [5, 16], [7, 14]];
+  rows.forEach(([a, b], i) => R(x, sk, a, 1 + i, b - a + 1, 1));
+  const top = st === 'buzz' ? 2 : 3;
+  rows.slice(0, top).forEach(([a, b], i) => R(x, hr, a, 1 + i, b - a + 1, 1));
+  if (st === 'buzz') { R(x, hr, 4, 3, 2, 1); R(x, hr, 16, 3, 2, 1); }
+  else if (st === 'spiky') { [4, 6, 9, 12, 15, 17].forEach(i => R(x, hr, i, 4, 1, 1)); R(x, hr, 4, 5, 1, 1); R(x, hr, 17, 5, 1, 1); [6, 10, 14].forEach(i => R(x, hr, i, 0, 2, 1)); }
+  else if (st === 'bowl') { R(x, hr, 4, 4, 14, 1); }
+  else if (st === 'side') { R(x, hr, 4, 4, 8, 1); R(x, hr, 4, 5, 3, 1); R(x, hr, 15, 4, 3, 1); }
+  else if (st === 'curly') { [4, 6, 8, 10, 12, 14, 16].forEach(i => R(x, hr, i, 4, 2, 1)); [6, 10, 14].forEach(i => R(x, hr, i, 0, 2, 1)); }
+  else { R(x, hr, 4, 4, 6, 1); R(x, hr, 12, 4, 6, 1); R(x, hr, 4, 5, 2, 1); R(x, hr, 16, 5, 2, 1); }
+  if (st === 'bun') { R(x, hr, 8, 0, 6, 1); }
+  R(x, hrL, 8, 2, 4, 1);
+  if (L.hb) R(x, L.hb, 5, 3, 12, 1);
+  if (L.bow) { R(x, L.bow, 3, 1, 2, 3); R(x, L.bow, 6, 1, 2, 3); R(x, shade(L.bow, -30), 5, 2, 1, 1); }
+  if (open) { R(x, OUT, 7, 7, 1, 2); R(x, OUT, 14, 7, 1, 2); R(x, '#fffaf0', 7, 7, 1, 1); R(x, '#fffaf0', 14, 7, 1, 1); }
+  else { for (const e of [6, 13]) { R(x, OUT, e, 7, 1, 1); R(x, OUT, e + 1, 8, 1, 1); R(x, OUT, e + 2, 7, 1, 1); } }   // mắt nhắm hình cung
+  R(x, '#f5a79b', 5, 9, 2, 1); R(x, '#f5a79b', 15, 9, 2, 1);
+  R(x, shade(sk, -30), 10, 10, 2, 1);                                           // miệng hé
+  return outline(c);
+}
+function sleeperOf(look, kind, open) {
+  const art = artOf(look), k = art + ':' + kind + (open ? ':o' : '');
+  if (_sleepers[k]) return _sleepers[k];
+  const L = LOOKS[art] || LOOKS.boy, pj = L.skirt ? '#f2b3c9' : '#8fb4e0', pjS = shade(pj, -22), sk = L.skin || '#f8d0a8';
+  const head = lyingHead(L, open);
+  let c;
+  if (kind === 'med') {                                                         // giường trạm y tế (34×22): đầu trên gối trắng bên trái, chăn xanh ngọc đắp tới vai
+    c = mk(34, 22); const x = cx(c);
+    x.drawImage(SPR.medbed, 0, 0);
+    R(x, '#f6f6f2', 10, 7, 3, 10);
+    x.save(); x.translate(7, 11); x.rotate(-Math.PI / 2); x.drawImage(head, -11, -7); x.restore();
+    R(x, '#9fd6c4', 12, 5, 20, 13); R(x, '#e8f6f1', 12, 5, 2, 13); R(x, '#b8e4d6', 16, 8, 13, 6); R(x, '#7fbfa9', 12, 16, 20, 2); R(x, '#7fbfa9', 31, 5, 1, 13);
+    R(x, '#f6f6f2', 14, 14, 5, 2); R(x, sk, 19, 14, 2, 2);
+  } else if (kind === 'mat') {                                                  // nằm trên chiếu: đầu bên trái, chăn mỏng đắp bên phải
+    c = mk(30, 18); const x = cx(c);
+    x.drawImage(SPR.napmat, -1, -1);
+    R(x, pj, 9, 4, 3, 10);
+    x.save(); x.translate(6, 9); x.rotate(-Math.PI / 2); x.drawImage(head, -11, -7); x.restore();
+    R(x, '#8fb0d8', 11, 2, 18, 13); R(x, '#eaf3fb', 11, 2, 2, 13); R(x, '#a9c6e8', 15, 5, 12, 6); R(x, '#6f8fb8', 11, 14, 18, 1); R(x, '#6f8fb8', 28, 2, 1, 13);
+    R(x, pj, 13, 12, 5, 2); R(x, sk, 18, 12, 2, 2);                             // tay để ngoài chăn
+  } else {                                                                      // nằm trên giường: đầu trên gối, chăn tới vai
+    c = mk(32, 46); const x = cx(c);
+    R(x, pj, 9, 15, 14, 4); R(x, pjS, 9, 18, 14, 1);
+    x.drawImage(head, 5, 3);
+    R(x, '#6fa8dc', 2, 19, 28, 24); R(x, '#eaf3fb', 2, 18, 28, 3); R(x, '#d3e4f2', 2, 20, 28, 1);
+    // dáng người dưới chăn: vai rộng → eo → hai chân, nếp chăn bóng sáng ở giữa, nếp tối hai bên
+    for (const [y0, h, a, b] of [[21, 5, 8, 23], [26, 6, 10, 21], [32, 7, 11, 20]]) { R(x, '#82b4e4', a, y0, b - a + 1, h); R(x, '#5a8fc4', a - 1, y0, 1, h); R(x, '#5a8fc4', b + 1, y0, 1, h); }
+    R(x, '#a9cff2', 12, 22, 6, 3); R(x, '#a9cff2', 13, 27, 4, 5); R(x, '#a9cff2', 12, 33, 3, 5); R(x, '#a9cff2', 17, 33, 2, 5); R(x, '#6c9fd2', 15, 33, 1, 6);
+    R(x, '#a9cff2', 11, 39, 4, 2); R(x, '#a9cff2', 17, 39, 4, 2); R(x, '#5a8fc4', 15, 40, 2, 1);                                         // hai bàn chân nhô lên
+    R(x, '#5a8fc4', 2, 41, 28, 2); R(x, '#5a8fc4', 28, 19, 2, 24);
+    R(x, pj, 5, 21, 3, 8); R(x, pjS, 7, 21, 1, 8); R(x, sk, 5, 29, 3, 2); R(x, shade(sk, -18), 5, 30, 3, 1);                            // tay gác ngoài chăn
+  }
+  return (_sleepers[k] = c);
+}
 // Chân dung nhân vật cho hộp thoại (đầu + vai, phóng to)
 const _faces = {};
+// Avatar cắt từ sprite đã tách (AVATARS, 02e_avatars.js): dùng khi nhân vật mặc đồ của chính mình
+// (đồng phục, đồ thể dục / quốc phòng, đồ thường của riêng họ); người qua đường mượn ngoại hình + đồ khác thì vẽ chân dung như cũ
+const AV_OUTFIT_OK = o => !o || o === 'td' || o === 'qp' || o === 'noapron' || o === 'dadhome';
 function faceOf(look, outfit) {
-  const k = look + ':' + (outfit || '');
+  const art = artOf(look), av = typeof AVATARS !== 'undefined' && AVATARS[art];
+  if (av && (AV_OUTFIT_OK(outfit) || outfit === 'cas_' + look || outfit === 'cas_' + art || outfit === 'casual')) return av;
+  const k = art + ':' + (outfit || '');
   if (_faces[k]) return _faces[k];
   const f = charSheet(look, outfit)[0][0], [sx, sy, sw, sh] = faceRect(f), c = f.hi ? mk(sw, sh) : mk(18, 19), x = cx(c);
   x.drawImage(f, sx, sy, sw, sh, 0, 0, c.width, c.height);

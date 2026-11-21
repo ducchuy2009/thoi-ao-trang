@@ -79,7 +79,7 @@ function dismount(quiet) {
 }
 const shedLabel = () => (G && G.park && G.park.shed ? `Nhà xe — lấy ${VEHICLES[G.park.id].name.toLowerCase()}` : 'Nhà xe học sinh');
 // Xe gửi ở nhà xe trường: chỉ lấy được khi đã hết mọi tiết học (hoặc được cho về vì ngất); lấy xe thì dắt ra cổng rồi mới lên xe
-const classesOver = () => !schoolToday() || G.time >= schoolEndT() || !!G.daily.fainted;
+const classesOver = () => !schoolToday() || G.time >= schoolEndT() || !!G.daily.fainted || !!G.daily.hsgExempt;
 ACT.shed = async () => {
   if (RT.lock) return;
   if (!G.park || !G.park.shed) return UI.toast('Nhà xe học sinh. Đi xe đến trường thì xe gửi ở đây.');
@@ -846,7 +846,9 @@ function showPack(res, title) {
 
 /* ---------- điện thoại: nhắn tin với bạn bè, mẹ ---------- */
 const PHONE_CONTACTS = ['khoa', 'vy', 'dat', 'ngan', 'mom'];
-const contactOf = id => (id === 'mom' ? { name: 'Mẹ', note: 'Xin phép về muộn' } : id === 'dad' ? { name: 'Bố', note: 'Hỏi thăm bố' } : FRIENDS[id]);
+// Bố và mẹ nhắn chung trong nhóm “Gia đình” (mã 'fam'): tin của 'mom' / 'dad' đều vào nhóm, ghi rõ ai gửi
+const famId = id => (id === 'mom' || id === 'dad' ? 'fam' : id);
+const contactOf = id => (id === 'fam' ? { name: 'Gia đình', note: 'Nhóm chat của bố, mẹ và bạn' } : id === 'mom' ? { name: 'Mẹ', note: 'Xin phép về muộn' } : id === 'dad' ? { name: 'Bố', note: 'Hỏi thăm bố' } : FRIENDS[id]);
 const MSG_ME = ['Đang làm gì đó?', 'Hôm nay học mệt ghê…', 'Ăn cơm chưa?', 'Chán quá, tám tí đi.', 'Bài hôm nay cậu hiểu không?'];
 const MSG_TAM = {
   khoa: ['Đang cày game nè, tí nữa mới học.', 'Mai đá bóng không? Tớ mới mua đôi giày mới.', 'Bài Toán hôm nay khó ghê, tớ chép của Vy rồi.', 'Tớ vừa bóc được thẻ hiếm, mai mang lên lớp khoe.'],
@@ -855,8 +857,26 @@ const MSG_TAM = {
   ngan: ['Tớ đang đắp mặt nạ, hihi.', 'Cuối tuần đi trung tâm thương mại không? Đang giảm giá.', 'Cậu thấy màu son cam đất hợp với tớ không?', 'Tiệm trà sữa Mây có vị mới, phải thử mới được.'],
 };
 const MSG_NO = ['Hôm đó tớ kẹt rồi, để bữa khác nha.', 'Mẹ tớ không cho đi rồi…', 'Tớ còn một đống bài chưa làm. Lần sau nhé!'];
-function pushMsg(id, me, t) { const a = (G.phone.msgs[id] = G.phone.msgs[id] || []); a.push({ m: me ? 1 : 0, t }); if (a.length > 30) a.splice(0, a.length - 30); }
-function inbox(id, t) { if (!hasNum(id)) return; pushMsg(id, false, t); G.phone.unread[id] = (G.phone.unread[id] || 0) + 1; UI.toast(`Tin nhắn mới từ ${contactOf(id).name} — mở Điện thoại (P) để xem`, 'info'); }
+function pushMsg(id, me, t) { const k = famId(id), a = (G.phone.msgs[k] = G.phone.msgs[k] || []); a.push(k === 'fam' ? { m: me ? 1 : 0, t, by: me ? 'me' : id } : { m: me ? 1 : 0, t }); if (a.length > 40) a.splice(0, a.length - 40); }
+function inbox(id, t) { if (!hasNum(id)) return; pushMsg(id, false, t); const k = famId(id); G.phone.unread[k] = (G.phone.unread[k] || 0) + 1; UI.toast(k === 'fam' ? `Nhóm Gia đình: tin nhắn mới từ ${contactOf(id).name} — mở Điện thoại (P) để xem` : `Tin nhắn mới từ ${contactOf(id).name} — mở Điện thoại (P) để xem`, 'info'); }
+// Ngày có bài kiểm tra 1 tiết / thi học kỳ / thi HSG: sáng sớm bố mẹ nhắn chúc trong nhóm Gia đình, bạn thân (từ 3♥, có số) cũng nhắn
+const WISH_MOM = ['Hôm nay con thi {s} đúng không? Bình tĩnh làm bài nhé, mẹ tin con!', 'Ăn sáng đầy đủ rồi hẵng đi thi nhé con. Làm bài cẩn thận, đọc kỹ đề!', 'Chúc con thi {s} thật tốt! Tối về mẹ nấu món con thích.'];
+const WISH_DAD = ['Cố lên con trai của bố! Thi {s} tốt nhé.', 'Bình tĩnh, tự tin, làm câu dễ trước. Bố chờ tin vui!', 'Thi tốt nhé con. Có gì khó cứ hít thở sâu rồi làm tiếp.'];
+const WISH_FR = { khoa: ['Thi {s} tốt nha! Có gì tớ cầu nguyện hộ 🙏', 'Hôm nay thi rồi, cố lên nhé đồng chí!'], vy: ['Chúc cậu thi {s} thật tốt nha! Nhớ đọc kỹ đề 💪', 'Ôn kỹ rồi thì tự tin lên, cậu làm được mà!'], dat: ['Thi tốt nha bạn hiền! Xong đi ăn mừng 🎉', 'Hôm nay thi {s} hả? Quẩy lên! Chúc may mắn!'], ngan: ['Chị chúc em thi {s} thật tốt nhé! Bình tĩnh là thắng 😉', 'Thi tốt nha em, xong chị khao trà sữa!'] };
+function examWishes() {
+  const tests = (G.tests || []).filter(t => t.day === G.day && !t.done), H = typeof hsgCur === 'function' && hsgCur(), hk = H && hsgToday(H);
+  const subj = [...new Set(tests.map(t => SUBJ[t.subj].name))];
+  if (hk && (hk.kind === 'exam' || hk.kind === 'natexam')) subj.unshift(`HSG ${hk.kind === 'natexam' ? 'quốc gia ' : ''}${SUBJ[H.subj].name}`);
+  const Hp = G.hsg && G.hsg[cal(G.day).year - 1];
+  if (Hp && Hp.picked && !Hp.out && !Hp.natDone && G.day === hsgPlan(Hp.year).natDay) subj.unshift(`HSG quốc gia ${SUBJ[Hp.subj].name}`);
+  if (!subj.length) return;
+  const s = subj.slice(0, 2).join(', '), fill = t => t.replace('{s}', s), boy = G.gender !== 'girl';
+  pushMsg('mom', false, fill(pick(WISH_MOM))); pushMsg('dad', false, fill(pick(WISH_DAD)).replace('con trai', boy ? 'con trai' : 'con gái'));
+  G.phone.unread.fam = (G.phone.unread.fam || 0) + 2;
+  let n = 0;
+  for (const f in FRIENDS) if (hasNum(f) && hearts(f) >= 3 && !grudge(f)) { pushMsg(f, false, fill(pick(WISH_FR[f] || WISH_FR.vy))); G.phone.unread[f] = (G.phone.unread[f] || 0) + 1; n++; }
+  if (RT.morning) RT.morning.push(`Hôm nay thi ${s}: bố mẹ${n ? ' và ' + n + ' người bạn thân' : ''} nhắn tin chúc bạn thi tốt — mở Điện thoại (P) để xem.`);
+}
 const unreadCount = () => Object.values(G.phone.unread).reduce((s, n) => s + n, 0);
 const meetBusy = () => !!(G.meet && G.meet.day >= G.day);
 function setMeet(fid, place, day, from) { G.meet = { fid, place, day, from: from || 0, n: 0 }; }
@@ -864,6 +884,12 @@ const meetWhen = m => (m.day === G.day ? 'Hôm nay' : 'Ngày mai') + ' ' + meetT
 // Các câu trả lời nhanh trong khung chat
 function phoneActions(id) {
   const a = [];
+  if (id === 'fam') {                                                   // nhóm Gia đình: các câu nhắn cho mẹ và cho bố gộp chung
+    const p = ptInvite();
+    if (p) { a.push(['pyes', `Dạ, con mang tới cho ${PNAME[p.who].toLowerCase()} ngay ạ!`]); a.push(['pno', 'Con đang bận ạ']); }
+    if (!G.daily.momAsk && !G.daily.outPerm && G.time < 1320) a.push(['late', 'Xin phép mẹ về muộn']);
+    return a.concat([['hoi', 'Hỏi mẹ tối nay ăn gì'], ['dad', 'Hỏi thăm bố']]);
+  }
   const pti = (id === 'mom' || id === 'dad') && ptInvite();
   if (pti && pti.who === id) { a.push(['pyes', 'Dạ, con mang tới ngay ạ!']); a.push(['pno', 'Con đang bận ạ']); }
   if (id === 'mom') {
@@ -881,6 +907,7 @@ function phoneActions(id) {
   return a;
 }
 function phoneSend(id, act, arg) {
+  if (id === 'fam') { const p = ptInvite(); id = act === 'dad' ? 'dad' : (act === 'pyes' || act === 'pno') && p ? p.who : 'mom'; }
   if (act === 'pyes' || act === 'pno') return parentReply(id, act === 'pyes');
   if (id === 'mom') {
     if (act === 'late') {

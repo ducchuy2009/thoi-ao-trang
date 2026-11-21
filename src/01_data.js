@@ -65,9 +65,10 @@ Object.assign(SUBJ, {
 });
 const GRADED = ['toan', 'van', 'anh', 'ly', 'hoa', 'sinh', 'su', 'dia', 'td', 'qp'];
 const BOOK_SUBJ = ['toan', 'van', 'anh', 'ly', 'hoa', 'sinh', 'su', 'dia']; // môn cần sách + vở
-const THEORY = ['toan', 'van', 'anh', 'ly', 'hoa', 'su', 'dia'];              // Lý thuyết = TB cấp các môn này
-const PRACTICE = ['qp', 'th_ly', 'th_hoa', 'th_sinh'];                        // Thực hành = TB cấp: Quốc phòng + thực hành Lý, Hoá, Sinh
-const statOfSubj = s => (s === 'td' ? 'thethao' : s === 'th_qp' ? 'qp' : s);
+// Học tập = TB cấp các môn. Mỗi môn MỘT chỉ số: môn chỉ có lý thuyết cộng khi ngồi học trên lớp; môn có thực hành (Lý, Hoá, Sinh, Quốc phòng)
+// thì tiết lý thuyết lẫn tiết thực hành đều cộng chung vào chỉ số của môn đó. Thể dục dùng chỉ số Thể thao.
+const STUDY_SUBJ = ['toan', 'van', 'anh', 'ly', 'hoa', 'sinh', 'su', 'dia', 'qp'];
+const statOfSubj = s => (s === 'td' ? 'thethao' : SUBJ[s] && SUBJ[s].base ? SUBJ[s].base : s);
 
 /* ---------- Thời khoá biểu (T2→T6, 4 tiết sáng + 5 tiết chiều) ----------
  * null = không có tiết: thứ 4 và thứ 6 chỉ học buổi sáng (chiều nghỉ, tan học lúc nghỉ trưa) */
@@ -261,7 +262,9 @@ const YARD_GAMES = {
 const YARD_JOIN = { friend: 3, bonus: 4, mins: 10 };
 /* ---------- Thể lực trong giờ học ---------- */
 const LESSON_STAM = 6;        // mỗi tiết lý thuyết tốn chừng này thể lực; hết thể lực thì ngất trong lớp, được đưa xuống trạm y tế
-const FAINT = { at: 2, rest: 60, stam: 0.4 };   // at: thể lực từ mức này trở xuống khi vào tiết là ngất · rest: phút nằm trạm y tế · stam: tỉ lệ thể lực hồi lại
+const FAINT = { at: 2, rest: 60, stam: 0.4 };
+// Đi ngủ sau 02:00 (late) → hôm sau 3 tiết cuối mỗi tiết có thể ngủ gục (chance + step × thứ tự tiết trong 3 tiết cuối), dù đã ăn sáng
+const LATE_NIGHT = { late: 26 * 60, chance: 0.35, step: 0.15 };   // at: thể lực từ mức này trở xuống khi vào tiết là ngất · rest: phút nằm trạm y tế · stam: tỉ lệ thể lực hồi lại
 const INFIRM = { mins: 30, stam: 15 };          // tự xuống trạm y tế nằm nghỉ
 const SMOKE = { mins: 10, stam: 12, risk: 0.3, perDay: 2, conduct: 1.5 };   // trốn trong buồng vệ sinh hút thuốc: hồi thể lực nhưng dễ bị giám thị bắt
 const TUTOR = { price: 50000, mins: 90, pts: 12, stam: 10 };
@@ -278,6 +281,9 @@ const SELL_CARD = [3000, 9000, 25000, 80000];
  * mins: tổng thời gian làm · win: khung giờ làm được · days: số ngày từ lúc dán tới hạn chót · until: giờ hạn chót của ngày cuối
  * pay: tiền công (trả cuối ngày) · aff: điểm thân thiết với thầy cô · stat: [chỉ số, điểm] */
 const TASK_BOARD = { open: 3, maxActive: 3, failAff: -3, dropAff: -1, stam: 4 };
+// Mỗi ngày chỉ 0–2 lời nhờ mới (thầy cô dán bảng / bố mẹ nhắn / bạn bè, anh chị đăng nhóm): quota = số lời nhờ trong ngày, xác suất theo QUOTA_P
+// Làm xong luôn được thêm thân thiết với người nhờ; tiền công thì có lúc có lúc không (payChance)
+const TASK_QUOTA = { p: [0.25, 0.45, 0.30], payChance: 0.5 };
 const TASKS = {
   xepsach: { tid: 'lan', name: 'Xếp lại sách thư viện', desc: 'Sau giờ đọc, các kệ sách bị xáo trộn hết. Cô cần một bạn xếp lại sách theo từng môn.', steps: [{ map: 'thuvien', x: 92, y: 48, do: 'Xếp sách lên kệ theo môn', where: 'Thư viện (kệ sách)' }], mins: 40, win: [390, 1080], days: 3, until: 1080, pay: 6000, aff: 6, stat: ['kheotay', 2] },
   laubang: { tid: 'hanh', name: 'Trực nhật lớp sau giờ học', desc: 'Tan học rồi em lau bảng, kê lại bàn ghế và quét lớp 10A1 giúp cô nhé.', steps: [{ map: 'class', x: 160, y: 54, do: 'Lau bảng, kê bàn ghế, quét lớp', where: 'Lớp 10A1 (trước bảng)' }], mins: 30, win: [CFG.SCHOOL_END, 1110], days: 2, until: 1110, pay: 5000, aff: 6, stat: ['kheotay', 1] },
@@ -379,9 +385,9 @@ const INVITE_ACCEPT = { like: 0.6, other: 0.3, perHeart: 0.08, freeBonus: 0.25 }
 
 /* ---------- Buổi thực hành (minigame kiểu câu cá) ---------- */
 const PRACTICALS = {
-  th_ly: { stat: 'th_ly', title: 'Thí nghiệm Vật lý', task: 'Chuyển động ném xiên: chỉnh góc, canh lực để ném quả cầu vào rổ phía sau bức tường', game: 'physics' },
-  th_hoa: { stat: 'th_hoa', title: 'Pha chế trong phòng Hoá', task: 'Rót các chất vào cốc cho đúng liều lượng cô yêu cầu', game: 'mix' },
-  th_sinh: { stat: 'th_sinh', title: 'Soi mẫu vật dưới kính hiển vi', task: 'Rê kính hiển vi, tìm đúng vi sinh vật cô yêu cầu trước khi hết giờ', game: 'micro' },
+  th_ly: { stat: 'ly', title: 'Thí nghiệm Vật lý', task: 'Chuyển động ném xiên: chỉnh góc, canh lực để ném quả cầu vào rổ phía sau bức tường', game: 'physics' },
+  th_hoa: { stat: 'hoa', title: 'Pha chế trong phòng Hoá', task: 'Rót các chất vào cốc cho đúng liều lượng cô yêu cầu', game: 'mix' },
+  th_sinh: { stat: 'sinh', title: 'Soi mẫu vật dưới kính hiển vi', task: 'Rê kính hiển vi, tìm đúng vi sinh vật cô yêu cầu trước khi hết giờ', game: 'micro' },
   th_qp: { stat: 'qp', title: 'Tháo lắp súng AK mô hình, lựu đạn tập', task: 'Ghép các mảnh lại thành hình khẩu súng hoặc quả lựu đạn hoàn chỉnh', game: 'jigsaw' },
 };
 const DIFF_WEIGHTS = [0.15, 0.30, 0.30, 0.18, 0.07];   // xác suất độ khó 1–5 sao
@@ -389,15 +395,17 @@ const DIFF_WEIGHTS = [0.15, 0.30, 0.30, 0.18, 0.07];   // xác suất độ khó
 const practicalReward = (d, win, perfect) => (win ? 3 + 3 * d + (perfect ? 2 : 0) : 2);
 
 /* ---------- Hệ số điểm ---------- */
-const COEF = { mieng: 1, p15: 1, tiet: 1, thi: 1 };   // đã bỏ hệ số nhân: điểm trung bình môn = trung bình cộng các con điểm
+// Điểm môn học kỳ = (điểm miệng × 1 + điểm 15' × 1 + điểm kiểm tra 1 tiết × 2 + điểm thi học kỳ × 3) / tổng hệ số
+// Điểm TB học kỳ = trung bình cộng các môn · Điểm TB cả năm = (TB học kỳ 1 × 1 + TB học kỳ 2 × 2) / 3
+const COEF = { mieng: 1, p15: 1, tiet: 2, thi: 3 };
 const TEST_NAME = { mieng: 'Kiểm tra miệng', p15: "Kiểm tra 15'", tiet: 'Kiểm tra 1 tiết', thi: 'Thi học kỳ' };
 const TEST_DIFF = { mieng: 0.3, p15: 0, tiet: -0.3, thi: -0.5 };
 /* ---------- Cân bằng điểm học tập (đã kiểm chứng bằng mô phỏng) ----------
- * điểm ≈ base + kLv·√(cấp môn) + kLt·√(cấp Lý thuyết TB) − gradeOff[khối] ± may rủi (+1 nếu tối trước đã ôn môn đó)
+ * điểm ≈ base + kLv·√(cấp môn) + kLt·√(cấp Học tập TB) − gradeOff[khối] ± may rủi (+1 nếu tối trước đã ôn môn đó)
  * Lớp 10: học đủ tiết (mang đủ sách) + tối nào cũng ôn 2 buổi → vừa đủ học sinh Giỏi.
  * Lớp 11 khó hơn: chăm chỉ thôi chỉ Khá, cần thêm ~2 buổi học thêm + 1 buổi luyện thực hành mỗi tuần.
  * Lớp 12 khó hơn nữa: cần ~4 buổi học thêm + 2 buổi luyện thực hành mỗi tuần mới chắc Giỏi.
- * prac*: bài kiểm tra thực hành (Thể dục, Quốc phòng) — dựa vào kết quả mini-game + cấp môn + cấp Thực hành TB */
+ * prac*: bài kiểm tra thực hành (Thể dục, Quốc phòng) — dựa vào kết quả mini-game + cấp môn + cấp Học tập TB */
 const STUDY = { base: 5.3, kLv: 1.15, kLt: 0.45, comp: 0.04, gradeOff: [0, 1.65, 2.75], roll: [0.5, 0.8, 1.4], tutor: 0.25, tutorMax: 1.0, pracBase: 3.8, pracProg: 4.0, pracLv: 0.25, pracTh: 0.08, pracGrade: [0, 0.7, 1.3] };
 // học thêm: mỗi buổi học thêm một môn được cộng STUDY.tutor vào bài kiểm tra môn đó trong cùng học kỳ (tối đa STUDY.tutorMax)
 
@@ -470,7 +478,7 @@ const SOCIETY = {
   thitruong: { name: 'Ông thị trưởng', note: 'Thị trưởng thành phố Hoa Phượng', look: 'mayor' },
   bac_tu: { name: 'Bác Tư', note: 'Hàng xóm phố Bờ Đông · về hưu', look: 'principal' },
   co_lanh: { name: 'Cô Lành', note: 'Hàng xóm phố Bờ Đông · bán bánh cuốn', look: 'vendor' },
-  anh_long: { name: 'Anh Long', note: 'Đầu bếp nhà hàng Sen Hồng', look: 'c7', outfit: 'cas_dat' },
+  anh_long: { name: 'Anh Long', note: 'Đầu bếp nhà hàng Sen Hồng', look: 'chef' },
 };
 const SOC_GAIN = 2;
 // Mã thử nghiệm (dán vào ô "Dán mã" trong Cài đặt, không phân biệt hoa thường)
@@ -550,6 +558,7 @@ const MEMO_ITEMS = {
   anhgiaothua: { name: 'Ảnh đón giao thừa', desc: 'Gia đình và bạn bè chụp chung dưới bầu trời pháo hoa.', hint: 'Ngắm pháo hoa giao thừa trên núi', photo: true },
   denongsao: { name: 'Đèn ông sao tự làm', desc: 'Khung nan tre, giấy bóng kính đỏ, ánh nến lung linh.', hint: 'Tự ghép đèn lồng ở hội Trung thu' },
   anhhkpd: { name: 'Ảnh lớp ngày Hội khoẻ Phù Đổng', desc: 'Cả lớp đứng chụp chung sau lễ trao giải, ai thi đấu thì đứng hàng trước.', hint: 'Dự lễ trao giải Hội khoẻ Phù Đổng', photo: true },
+  anhhsg: { name: 'Ảnh nhận giải học sinh giỏi quốc gia', desc: 'Đứng cạnh thầy hiệu trưởng, đeo huy chương, tay cầm bằng khen.', hint: 'Đoạt giải học sinh giỏi quốc gia', photo: true },
   anhtrungthu: { name: 'Ảnh rước đèn Trung thu', desc: 'Cả đoàn rước đèn ông sao dưới trăng rằm.', hint: 'Rước đèn cùng mọi người đêm Trung thu', photo: true },
 };
 // Danh hiệu & huy hiệu trong lưu bút
@@ -583,10 +592,15 @@ const MEMO_BADGES = {
   capybara: { name: 'Capybara', icon: 'b_capybara', desc: 'Hiền lành, dễ mến như chú capybara — chơi thân hết mức với tất cả bạn bè.', hint: 'Thân thiết tối đa với mọi người bạn' },
   connoan: { name: 'Con Ngoan Trò Giỏi', icon: 'b_connoan', desc: 'Được bố mẹ và tất cả thầy cô thương quý hết mức.', hint: 'Thiện cảm tối đa với bố mẹ và mọi thầy cô' },
   hocba: { name: 'Học bá', icon: 'b_hocba', desc: 'Đứng hạng nhất lớp trong buổi họp phụ huynh cuối học kỳ.', hint: 'Đứng đầu lớp khi họp phụ huynh cuối kỳ' },
+  hstb: { name: 'Học sinh tiêu biểu', icon: 'b_hstb', desc: 'Lọt tốp 3 cả khối trong bài thi chọn đội tuyển, vào đội tuyển ôn thi học sinh giỏi quốc gia.', hint: 'Lọt tốp 3 bài thi chọn đội tuyển HSG' },
+  quocgia: { name: 'Đẳng cấp quốc gia', icon: 'b_quocgia', desc: 'Đoạt giải trong kỳ thi chọn học sinh giỏi quốc gia, được thầy hiệu trưởng trao bằng khen và huy chương.', hint: 'Đoạt giải học sinh giỏi quốc gia' },
   hsg: { name: 'Đội tuyển học sinh giỏi', icon: 'b_hsg', desc: 'Lọt tốp 3 của lớp cuối năm học, được chọn vào đội tuyển chuẩn bị thi học sinh giỏi quốc gia.', hint: 'Tốp 3 của lớp cuối học kỳ 2' },
   phudong: { name: 'Phù Đổng', icon: 'b_phudong', desc: 'Cùng cả lớp giành cúp tập thể ở Hội khoẻ Phù Đổng.', hint: 'Giành cúp tập thể ở Hội khoẻ Phù Đổng' },
 };
 const MEMO_SCENES = {
+  hsgchon: { name: 'Chọn môn thi học sinh giỏi', icon: 'sc_hsg', desc: 'Bố mẹ đi họp về báo tin được vào đội tuyển, cả nhà cùng chọn môn thi.' },
+  hsgthi: { name: 'Thi học sinh giỏi quốc gia', icon: 'sc_hsg', desc: 'Ngồi trong phòng thi số 07 trường THPT chuyên Hoa Đào, đề khó mà tay vẫn viết đều.' },
+  anmung: { name: 'Bữa tối ăn mừng', icon: 'sc_anmung', desc: 'Cả nhà đi nhà hàng Sen Hồng ăn mừng giải học sinh giỏi quốc gia.' },
   giaothua: { name: 'Đón giao thừa trên núi', icon: 'sc_giaothua', desc: 'Pháo hoa nở rực trời lúc nửa đêm, cả thành phố chào năm mới.' },
   chuatet: { name: 'Đi chùa đầu năm', icon: 'sc_chua', desc: 'Sáng mùng 1 cùng bố mẹ thắp nhang cầu may.' },
   tetvisit: { name: 'Đi chúc Tết', icon: 'sc_tetvisit', desc: 'Đi chúc Tết bạn bè, thầy cô và nhận lì xì.' },

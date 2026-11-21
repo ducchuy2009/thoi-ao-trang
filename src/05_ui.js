@@ -220,7 +220,7 @@ const UI = {
     this.panel('Túi đồ', () => {
       const inBag = Object.keys(ITEMS).filter(i => G.bag[i]);
       let h = '<h4>Đang mang trong cặp</h4><div class="chips">' + (inBag.length ? inBag.map(i => `<span class="it on">${ITEMS[i].name}</span>`).join('') : '<span class="dim">Cặp trống.</span>') + '</div>';
-      if (schoolToday() && G.time < schoolEndT()) { const ms = missingToday(); h += ms.length ? `<p class="warnbox">So với thời khoá biểu hôm nay còn thiếu ${ms.length} món. Chỉ soạn cặp được ở bàn học tại nhà.</p>` : '<p class="okbox">Đủ đồ cho thời khoá biểu hôm nay.</p>'; }
+      if (schoolToday() && G.time < schoolEndT()) { const ms = missingToday(); h += ms.length ? `<p class="warnbox">So với thời khoá biểu hôm nay còn thiếu ${ms.length} món. Soạn cặp ở tủ sách trong phòng ngủ.</p>` : '<p class="okbox">Đủ đồ cho thời khoá biểu hôm nay.</p>'; }
       h += '<h4>Đồ ăn mang theo</h4><div class="rows">';
       let any = false;
       for (const id in FOODS) if (G.inv[id]) { any = true; h += `<div class="rowi"><span><b>${FOODS[id].name}</b> ×${G.inv[id]} <small>+${FOODS[id].stam} thể lực</small></span><button class="btn sm" data-act="hold" data-id="${id}">${RT.hold === id ? 'Cất đi' : 'Cầm lên'}</button></div>`; }
@@ -253,17 +253,19 @@ const UI = {
         h += `<button class="crow grp" data-act="open" data-id="group"><span class="gfaces">${['khoa', 'vy', 'sA'].map(l => `<img src="${faceOf(l, null)}" alt="">`).join('')}</span><b>Nhóm ${GROUP.name}</b>${gopen ? `<em class="gtag">${gopen} lời nhờ</em>` : ''}${gu ? `<i class="dot on">${gu}</i>` : ''}<small>${gl ? (gl.by === 'me' ? 'Bạn: ' : grName(gl.by) + ': ') + gl.t : 'Nhóm chung của học sinh toàn trường'}</small></button>`;
         for (const c of phoneList()) {
           const C = contactOf(c), a = G.phone.msgs[c] || [], last = a[a.length - 1], un = G.phone.unread[c] || 0;
+          if (c === 'fam') { h += `<button class="crow grp" data-act="open" data-id="fam"><span class="gfaces">${['mom', 'dad', G.gender].map(l => `<img src="${faceOf(l, l === 'mom' ? 'noapron' : null)}" alt="">`).join('')}</span><b>Gia đình</b>${un ? `<i class="dot on">${un}</i>` : ''}<small>${last ? (last.m ? 'Bạn: ' : PNAME[last.by] + ': ') + last.t : C.note}</small></button>`; continue; }
           h += `<button class="crow" data-act="open" data-id="${c}"><b>${C.name}</b>${FRIENDS[c] ? hs(c) : ''}${un ? `<i class="dot on">${un}</i>` : ''}<small>${last ? (last.m ? 'Bạn: ' : '') + last.t : C.note}</small></button>`;
         }
         h += '</div>';
-        if (phoneList().length < 2 + Object.keys(FRIENDS).length) h += `<p class="dim">Danh bạ mới chỉ có ${phoneList().length === 2 ? 'bố mẹ' : 'bố mẹ và vài người bạn'}. Chơi thân với bạn nào (từ ${PHONE_HEARTS}♥) thì gặp bạn ấy, chọn “Xin số điện thoại”.</p>`;
+        if (phoneList().length < 1 + Object.keys(FRIENDS).length) h += `<p class="dim">Danh bạ mới chỉ có ${phoneList().length === 1 ? 'nhóm gia đình' : 'nhóm gia đình và vài người bạn'}. Chơi thân với bạn nào (từ ${PHONE_HEARTS}♥) thì gặp bạn ấy, chọn “Xin số điện thoại”.</p>`;
         if (G.meet && G.meet.day >= G.day) h += `<p class="okbox">Đã hẹn ${FRIENDS[G.meet.fid].name}: ${meetWhen(G.meet)} ở ${PLACES[G.meet.place].name}.</p>`;
         return h + '<p class="dim">Nhắn tin không tốn thời gian. Rủ bạn đi chơi: bạn ấy sẽ đợi ở chỗ hẹn (trà sữa, TTTM, khu game ở phố Hoa Phượng; công viên; núi sau trường; bãi biển). Lỡ hẹn là bạn giận đó.</p>';
       }
       if (id === 'group') return `<div class="chead"><button class="btn sm" data-act="back">‹ Danh bạ</button><b>Nhóm ${GROUP.name}</b></div><div class="chat gchat">${groupChatHtml()}</div><p class="dim">Bạn tự động được vào nhóm chung của trường. Ngày đi học, các bạn và anh chị khoá trên hay đăng nhờ vả (không đăng trong giờ học). Bấm <b>Nhận giúp</b> → việc vào danh sách Nhiệm vụ → lấy đồ cho vào túi → cầm lên → bấm vào người nhờ để đưa tận tay. Giúp xong được thân thiết hơn. Để lâu không ai nhận thì bạn khác giúp mất.</p>`;
       const C = contactOf(id), a = (G.phone.msgs[id] || []).slice(-9);
       let h = `<div class="chead"><button class="btn sm" data-act="back">‹ Danh bạ</button><b>${C.name}</b>${FRIENDS[id] ? hs(id) : ''}</div><div class="chat">`;
-      h += a.length ? a.map(m => `<div class="msg ${m.m ? 'me' : ''}"><span>${m.t}</span></div>`).join('') : '<p class="dim">Chưa có tin nhắn nào. Gõ gì đó đi!</p>';
+      if (id === 'fam') h += a.length ? a.map(m => m.m ? `<div class="msg me"><span>${m.t}</span></div>` : `<div class="gmsg"><img src="${faceOf(m.by || 'mom', m.by === 'dad' ? null : 'noapron')}" alt=""><div><b>${PNAME[m.by || 'mom']}</b><span>${m.t}</span></div></div>`).join('') : '<p class="dim">Nhóm chat của bố, mẹ và bạn. Chưa có tin nhắn nào.</p>';
+      else h += a.length ? a.map(m => `<div class="msg ${m.m ? 'me' : ''}"><span>${m.t}</span></div>`).join('') : '<p class="dim">Chưa có tin nhắn nào. Gõ gì đó đi!</p>';
       h += '</div><div class="btns">';
       if (UI._chatSub === 'place') h += Object.keys(PLACES).map(p => `<button class="btn" data-act="go" data-id="${p}">${PLACES[p].name}${PLACE_LIKES[id].includes(p) ? ' ♥' : ''}</button>`).join('') + '<button class="btn ghost" data-act="sub" data-id="">Thôi</button>';
       else h += phoneActions(id).map(([k, t]) => `<button class="btn" data-act="${k === 'ru' ? 'sub' : 'send'}" data-id="${k === 'ru' ? 'place' : k}">${t}</button>`).join('');
@@ -278,27 +280,57 @@ const UI = {
     });
   },
 
-  /* ---------- Soạn cặp (ở bàn học) ---------- */
+  /* ---------- Soạn cặp: đứng trước tủ sách, KÉO sách / đồ dùng từ tủ thả vào cặp (bấm vào món đồ cũng được) ----------
+   * Kéo từ cặp thả lại tủ để bỏ ra. Không nhắc món thiếu: tự xem thời khoá biểu bên cạnh mà soạn. */
   pack() {
-    const it = id => `<button class="it ${G.bag[id] ? 'on' : ''}" data-act="tg" data-id="${id}">${ITEMS[id].name}</button>`;
-    this.panel('Soạn cặp sách', () => {
-      const day = packTargetDay();
-      let left = '<div class="pcol"><h4>Chưa có ngày học nào sắp tới</h4></div>', miss = 0;
-      if (day !== null) {
-        const tt = TIMETABLE[cal(day).dow];
-        miss = neededItems(day).filter(i => !G.bag[i] && i !== 'thehs' && i !== 'vethang').length;
-        left = `<div class="pcol"><h4>${day === G.day ? 'Hôm nay' : 'Ngày học tới'} · ${dateLabel(day)}</h4><ol class="ttl">` + tt.map((s, i) => s ? `<li class="${i === 4 ? 'pm' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span>${SUBJ[s].name}</li>` : (i === 4 ? '<li class="pm"><i>Chiều nghỉ học</i></li>' : '')).join('') + '</ol></div>';
-      }
-      let right = '<div class="pcol"><h4>Dụng cụ</h4><div class="chips">' + it('hopbut') + it('thehs') + (G.busPassUntil >= G.day ? it('vethang') : '') + '</div><h4>Đồng phục</h4><div class="chips">' + it('dp_td') + it('dp_qp') + '</div><h4>Sách</h4><div class="bgrid">';
-      for (const s of BOOK_SUBJ) right += it('sach_' + s);
-      right += '</div></div>';
-      const status = day === null ? '' : (miss ? `<p class="warnbox">Còn thiếu <b>${miss}</b> món so với thời khoá biểu.</p>` : '<p class="okbox">Đã đủ đồ theo thời khoá biểu.</p>');
-      return `<div class="pack">${left}${right}</div>${status}<div class="btns"><button class="btn" data-act="quick">Soạn nhanh theo TKB (mất 10 phút)</button><button class="btn ghost" data-act="clear">Bỏ hết ra</button><button class="btn primary" data-close="1">Xong</button></div><p class="dim">Mỗi tiết chỉ cần mang <b>sách</b> của môn đó. Quên sách thì phải quay sang mượn bạn. Tự học ở trường cũng chỉ học được môn có mang sách.</p>`;
+    const book = (id, inBag) => {
+      const s = id.slice(5), sj = id.startsWith('sach_') ? SUBJ[s] : null;
+      if (!sj) { const [gw, gh] = GEAR_SIZE[id], k = inBag ? 1.6 : 2.2; return `<div class="gearpic" data-drag="${id}" title="${ITEMS[id].name}"><img src="${gearPic(id)}" alt="${ITEMS[id].name}" style="width:${Math.round(gw * k)}px;height:${Math.round(gh * k)}px" draggable="false"></div>`; }   // hộp bút, thẻ, quần áo: hình đồ vật
+      return `<div class="book" data-drag="${id}" style="--bc:${sj.color}" title="${ITEMS[id].name}"><span>${sj.short}</span></div>`;
+    };
+    this.panel('Tủ sách · soạn cặp', () => {
+      const day = packTargetDay(), books = BOOK_SUBJ.map(s => 'sach_' + s);
+      const gear = ['hopbut', 'thehs'].concat(G.busPassUntil >= G.day ? ['vethang'] : []), cloth = ['dp_td', 'dp_qp'], all = books.concat(gear, cloth);
+      const onShelf = a => a.filter(i => !G.bag[i]).map(i => book(i, false)).join('') || '<i class="cab-empty">trống</i>';
+      let tt = '';
+      if (day !== null) tt = `<h4>${day === G.day ? 'Hôm nay' : 'Ngày học tới'} · ${dateLabel(day)}</h4><ol class="ttl">` + TIMETABLE[cal(day).dow].map((s, i) => {
+        if (!s) return i === 4 ? '<li class="pm"><i>Chiều nghỉ học</i></li>' : '';
+        const it = BOOK_SUBJ.includes(s) ? 'sach_' + s : s === 'td' ? 'dp_td' : s === 'qp' || s === 'th_qp' ? 'dp_qp' : null, ok = !it || G.bag[it];
+        return `<li class="${i === 4 ? 'pm' : ''}"><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span>${SUBJ[s].name}${it && ok ? ' <b class="okc">✓</b>' : ''}</li>`;
+      }).join('') + '</ol>';
+      const inBag = all.filter(i => G.bag[i]).map(i => book(i, true)).join('');
+      return `<div class="shelfpack"><div class="sp-left"><h4>Tủ sách <small class="dim">— kéo vào cặp</small></h4><div class="cab" data-zone="shelf">
+          <div class="cab-row">${onShelf(books.slice(0, 4))}</div><div class="cab-row">${onShelf(books.slice(4))}</div><div class="cab-row low">${onShelf(gear.concat(cloth))}</div></div></div>
+        <div class="sp-right"><h4>Cặp sách <small class="dim">— kéo ra để bỏ lại tủ</small></h4><div class="schoolbag" data-zone="bag"><div class="sb-flap"></div><div class="sb-in">${inBag || '<i class="cab-empty">Cặp đang trống</i>'}</div></div>${tt}</div></div>
+        <div class="btns"><button class="btn" data-act="quick">Soạn nhanh theo TKB (mất 10 phút)</button><button class="btn ghost" data-act="clear">Bỏ hết ra</button><button class="btn primary" data-close="1">Xong</button></div>
+        <p class="dim">Mỗi tiết chỉ cần mang <b>sách</b> của môn đó. Quên sách thì phải quay sang mượn bạn. Tự học ở trường cũng chỉ học được môn có mang sách.</p>`;
     }, {
-      tg: d => { if (G.bag[d.id]) delete G.bag[d.id]; else G.bag[d.id] = true; },
       clear: () => { G.bag = {}; },
       quick: () => { const day = packTargetDay(); if (day === null) return; quickPack(day); advanceTime(10); UI.toast('Đã soạn cặp theo thời khoá biểu (10 phút).', 'good'); },
     }, true);
+    this._panel.drop = (id, zone) => { if (zone === 'bag') G.bag[id] = true; else if (zone === 'shelf') delete G.bag[id]; else if (zone === 'tap') { if (G.bag[id]) delete G.bag[id]; else G.bag[id] = true; } };
+  },
+  // kéo thả bằng con trỏ (chuột hoặc chạm): món đồ bay theo tay, thả vào vùng data-zone; không kéo mà chỉ bấm = 'tap'
+  _dragDown(e) {
+    const b = e.target.closest('[data-drag]'); if (!b || !UI._panel || !UI._panel.drop || e.button > 0) return;
+    e.preventDefault();
+    const r = b.getBoundingClientRect(), ghost = b.cloneNode(true), st = { x0: e.clientX, y0: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, moved: false, hot: null };
+    ghost.classList.add('drag-ghost'); ghost.style.width = r.width + 'px'; ghost.style.height = r.height + 'px'; ghost.style.display = 'none'; document.body.appendChild(ghost);
+    const zoneAt = ev => { const el = document.elementFromPoint(ev.clientX, ev.clientY); return el && el.closest('[data-zone]'); };
+    const move = ev => {
+      if (!st.moved && Math.hypot(ev.clientX - st.x0, ev.clientY - st.y0) > 5) { st.moved = true; ghost.style.display = ''; b.classList.add('dragging'); }
+      if (!st.moved) return;
+      ghost.style.left = (ev.clientX - st.dx) + 'px'; ghost.style.top = (ev.clientY - st.dy) + 'px';
+      const z = zoneAt(ev); if (z !== st.hot) { if (st.hot) st.hot.classList.remove('zone-hot'); st.hot = z; if (z) z.classList.add('zone-hot'); }
+    };
+    const up = ev => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+      ghost.remove(); b.classList.remove('dragging'); if (st.hot) st.hot.classList.remove('zone-hot');
+      if (!UI._panel || !UI._panel.drop) return;
+      const z = st.moved ? zoneAt(ev) : null;
+      UI._panel.drop(b.dataset.drag, st.moved ? (z ? z.dataset.zone : null) : 'tap'); UI.refresh(); UI.hud();
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
   },
 
   /* ---------- các bảng trong menu chung: xem MV bên dưới ---------- */
@@ -336,17 +368,16 @@ UI.menu = function (tab) {
   $('m-title').textContent = name();
 };
 
-/* ---------- Chỉ số: Lý thuyết · Thực hành · Khác ---------- */
+/* ---------- Chỉ số: Học tập (mỗi môn một chỉ số, lý thuyết + thực hành cộng chung) · Khác ---------- */
 MV.stats = {
   h: { stab: d => { UI._stab = d.id; } },
   render() {
-    const st = UI._stab || 'ly';
+    const st = UI._stab === 'khac' ? 'khac' : 'ht';
     const bar = (cur, need, col) => `<div class="pb"><div style="width:${need ? Math.round(100 * cur / need) : 100}%;background:${col || ''}"></div></div>`;
     const cell = k => { const i = lvlInfo(G.stats[k]), col = SUBJ[k] ? SUBJ[k].color : ({ thethao: '#d9742b', buonban: '#c9862b', kheotay: '#3f8f9b', vannghe: '#9a72d6' })[k]; return `<div class="st"><div class="sth"><b>${STAT_NAMES[k]}</b><span class="lv">Lv ${i.lv}</span></div>${bar(i.cur, i.need, col)}<small>${i.lv >= 10 ? 'Tối đa' : `${i.cur}/${i.need}`}</small></div>`; };
     const big = (name, v, note) => `<div class="st big"><div class="sth"><b>${name}</b><span class="lv">${fmtAvg(v)}</span></div><small>${note}</small></div>`;
-    let h = subTabs('stab', st, [['ly', 'Lý thuyết'], ['th', 'Thực hành'], ['khac', 'Khác']]);
-    if (st === 'ly') h += big('Lý thuyết', lyThuyet(), 'Trung bình cấp các môn Toán, Văn, Anh, Lý, Hoá, Sử, Địa') + '<div class="sgrid">' + ['toan', 'van', 'anh', 'ly', 'hoa', 'sinh', 'su', 'dia'].map(cell).join('') + '</div>';
-    else if (st === 'th') h += big('Thực hành', thucHanh(), 'Trung bình cấp Quốc phòng và thực hành Lý, Hoá, Sinh') + '<div class="sgrid">' + PRACTICE.map(cell).join('') + '</div>';
+    let h = subTabs('stab', st, [['ht', 'Học tập'], ['khac', 'Khác']]);
+    if (st === 'ht') h += big('Học tập', hocTap(), 'Trung bình cấp các môn. Môn có thực hành (Lý, Hoá, Sinh, Quốc phòng): tiết lý thuyết và tiết thực hành cộng chung vào chỉ số của môn') + '<div class="sgrid">' + STUDY_SUBJ.map(cell).join('') + '</div>';
     else h += '<div class="sgrid">' + ['thethao', 'buonban', 'kheotay', 'vannghe'].map(cell).join('') + '</div>';
     return h;
   },
@@ -381,6 +412,8 @@ MV.tt = {
     }
     const up = []; for (let d = G.day; d < G.day + 14; d++) for (const e of schoolEventsOn(d)) up.push(`<b>${dateLabel(d)}</b>: ${e.name} ${fmtTime(e.from)}–${fmtTime(e.to)} — nghỉ tiết ${e.periods.join(', ')}`);
     if (up.length) h += '</table><p class="okbox">Sự kiện của trường: ' + up.join(' · ') + '</p><table class="tt" style="display:none">';
+    const Hn = hsgCur();
+    if (Hn && Hn.picked && !Hn.natDone && today().season === 0) h += `</table><p class="okbox">Đội tuyển HSG quốc gia môn ${SUBJ[Hn.subj].name}: <b>chiều thứ 4, thứ 6 ${fmtTime(HSG.natFrom)}–${fmtTime(HSG.natFrom + HSG.len)}</b> học đội tuyển thay buổi chiều nghỉ, đến hết 18 Thu. Ngày 19 Thu thi quốc gia (miễn học).</p><table class="tt" style="display:none">`;
     return h + `</table><p class="dim">Ô “TH” là buổi thực hành riêng. Mỗi tiết 30', hai tiết học liền nhau rồi ra chơi 30'; tan học ${fmtTime(CFG.SCHOOL_END)}, riêng thứ 4 và thứ 6 chỉ học buổi sáng (tan học ${fmtTime(AM_END)}). Lịch kiểm tra xem ở tab Lịch.</p>`;
   },
 };
@@ -393,7 +426,7 @@ MV.grades = {
     if (!UI._gsem) MV.grades.init();
     const year = today().year, key = year + '-' + UI._gsem, g = G.grades[key] || {}, rep = semReport(key);
     let h = subTabs('sem', UI._gsem, SEMESTERS.map(s => [s.id, s.name]));
-    h += "<table class=\"tb\"><tr><th>Môn</th><th>Miệng</th><th>15'</th><th>1 tiết</th><th>Thi</th><th>TB</th></tr>";
+    h += "<table class=\"tb\"><tr><th>Môn</th><th>Miệng <small>×1</small></th><th>15' <small>×1</small></th><th>1 tiết <small>×2</small></th><th>Thi <small>×3</small></th><th>TB</th></tr>";
     for (const s of GRADED) {
       const a = g[s] || [], col = t => a.filter(x => x.t === t).map(x => fmtScore(x.s)).join(' · ') || '–';
       h += `<tr><td><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td><td>${col('mieng')}</td><td>${col('p15')}</td><td>${col('tiet')}</td><td>${col('thi')}</td><td><b>${fmtAvg(rep.rows[s])}</b></td></tr>`;
@@ -405,7 +438,7 @@ MV.grades = {
     const log = G.conductLog.filter(e => cal(e.day).year === year);
     h += `<h4>Hạnh kiểm</h4><div class="sum"><span>Hiện tại <b>${fmtScore(G.conduct)}</b>/10</span><span><b class="tag">${hanhKiem(G.conduct)}</b></span></div>`;
     if (log.length) h += '<p>Các kỳ 2 tuần đã chốt: ' + log.map(e => `<b>${fmtScore(e.score)}</b> (${hanhKiem(e.score)})`).join(' · ') + '</p>';
-    h += '<p class="dim">Giỏi: ĐTB ≥ 8,0 và Toán hoặc Văn ≥ 8,0 · Khá: ≥ 6,0 · Trung bình: ≥ 4,0. Hạnh kiểm: 8–10 Tốt · 6–8 Khá · 4–6 Trung bình · dưới 4 Yếu. <b>Hạnh kiểm TB của kỳ dưới 8 thì không được Giỏi, dưới 6 không được Khá, dưới 5 không được Trung bình.</b></p>';
+    h += '<p class="dim">Điểm môn = (miệng × 1 + 15\' × 1 + 1 tiết × 2 + thi học kỳ × 3) / tổng hệ số · ĐTB học kỳ = trung bình cộng các môn · ĐTB cả năm = (HK1 + HK2 × 2) / 3. Mỗi môn có 1 bài kiểm tra 1 tiết mỗi học kỳ.</p>' + '<p class="dim">Giỏi: ĐTB ≥ 8,0 và Toán hoặc Văn ≥ 8,0 · Khá: ≥ 6,0 · Trung bình: ≥ 4,0. Hạnh kiểm: 8–10 Tốt · 6–8 Khá · 4–6 Trung bình · dưới 4 Yếu. <b>Hạnh kiểm TB của kỳ dưới 8 thì không được Giỏi, dưới 6 không được Khá, dưới 5 không được Trung bình.</b></p>';
     if (G.reports.length) h += '<h4>Các năm trước</h4>' + G.reports.map(r => `<p>Lớp ${r.grade}: ĐTB <b>${fmtAvg(r.avg)}</b> · ${r.hl} · Hạnh kiểm ${r.hk}${r.title ? ' · ' + r.title : ''}</p>`).join('');
     return h;
   },
@@ -440,6 +473,7 @@ MV.cal = {
       if (isEveDay(day)) ev.push(calIco('sc_giaothua', 'Đón giao thừa trên núi', 'fes'));
       for (const f of FESTIVALS) if (f.season === se && f.day === d + 1) ev.push(calIco(f.icon || 'ci_fes', f.name, 'fes'));
       for (const e of schoolEventsOn(day)) ev.push(calIco(e.id === 'banhchung' ? 'sc_banhchung' : 'ci_fes', e.name, 'fes'));
+      for (const hv of hsgCalEvents(day)) ev.push(calIco('sc_hsg', hv, 'fes'));
       if (isHkDay(day)) ev.push(calIco('sc_hkpd', 'Hội khoẻ Phù Đổng', 'fes'));
       for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, day)) ev.push(calIco('ci_bd', `Sinh nhật ${FRIENDS[f].name}`, 'bd av', '', faceOf(f, null)));          // avatar người có sinh nhật
       for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], day)) ev.push(calIco('ci_bd', `Sinh nhật ${PNAME[w].toLowerCase()}`, 'bd av', '', faceOf(w, w === 'mom' ? 'noapron' : null)));
@@ -519,7 +553,7 @@ const CITY_POI = [
 const calIco = (id, t, cls, st, src) => `<i class="evi ${cls || ''}" data-t="${t}" tabindex="0" aria-label="${t}"${st ? ` style="${st}"` : ''}><img src="${src || itemIcon(id)}" alt=""></i>`;
 // Chỗ mình đang ở trên bản đồ chung (ở trong nhà / phòng thì lấy cửa ra vào)
 function whereAmI() {
-  const R0 = { home: ['town', 96, 128, 'trong nhà'], class: ['school', 244, 104, 'lớp 10A1'], lab: ['school', 461, 104, 'phòng thí nghiệm'], yte: ['school', 213, 104, 'trạm y tế'], nhac: ['school', 275, 104, 'phòng nhạc'], thuvien: ['school', LIB_DOOR[0], LIB_DOOR[1] - 10, 'thư viện'], ngutrua: ['school', 430, 104, 'phòng ngủ trưa'], wcnam: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh nam'], wcnu: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh nữ'], wc: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh'], wcm: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh'], tttm: ['pho', 660, 128, 'trong TTTM'], arc: ['pho', 806, 128, 'trong khu game'], phongbm: ['town', 96, 128, 'phòng bố mẹ'], congty: ['pho', MOM_CO.x + 76, 128, 'công ty của mẹ'], nhamay: ['dong', DONG.factory + 100, 128, 'nhà máy của bố'], nhahang: ['dong', DONG.rest + 55, 128, 'nhà hàng Sen Hồng'], karaoke: ['dong', DONG.kara + 50, 128, 'karaoke Âm Vang'], tang2: ['school', 352, 104, 'tầng 2'], l11a1: ['school', 352, 104, 'lớp 11A1'], l11a3: ['school', 352, 104, 'lớp 11A3'], l12a1: ['school', 352, 104, 'lớp 12A1'], l12a2: ['school', 352, 104, 'lớp 12A2'], l10a2: ['school', 319, 104, 'lớp 10A2'], l10a3: ['school', 385, 104, 'lớp 10A3'], l10a4: ['school', 494, 104, 'lớp 10A4'], fhome: ['pho', (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1] + 49, 128, 'nhà ' + ((FRIENDS[G.visit] || FRIENDS.khoa).name)] };
+  const R0 = { home: ['town', 96, 128, 'trong nhà'], class: ['school', 244, 104, 'lớp 10A1'], lab: ['school', 461, 104, 'phòng thí nghiệm'], yte: ['school', 213, 104, 'trạm y tế'], nhac: ['school', 275, 104, 'phòng nhạc'], thuvien: ['school', LIB_DOOR[0], LIB_DOOR[1] - 10, 'thư viện'], ngutrua: ['school', 430, 104, 'phòng ngủ trưa'], wcnam: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh nam'], wcnu: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh nữ'], wc: ['school', WC_BLOCK.nu, 100, 'nhà vệ sinh'], wcm: ['school', WC_BLOCK.nam, 100, 'nhà vệ sinh'], tttm: ['pho', 660, 128, 'trong TTTM'], arc: ['pho', 806, 128, 'trong khu game'], phongbm: ['town', 96, 128, 'phòng bố mẹ'], saomai: ['town', 479, 128, 'trung tâm Sao Mai'], phongthi: ['school', 244, 104, 'phòng thi'], congty: ['pho', MOM_CO.x + 76, 128, 'công ty của mẹ'], nhamay: ['dong', DONG.factory + 100, 128, 'nhà máy của bố'], nhahang: ['dong', DONG.rest + 55, 128, 'nhà hàng Sen Hồng'], karaoke: ['dong', DONG.kara + 50, 128, 'karaoke Âm Vang'], tang2: ['school', 352, 104, 'tầng 2'], l11a1: ['school', 352, 104, 'lớp 11A1'], l11a3: ['school', 352, 104, 'lớp 11A3'], l12a1: ['school', 352, 104, 'lớp 12A1'], l12a2: ['school', 352, 104, 'lớp 12A2'], l10a2: ['school', 319, 104, 'lớp 10A2'], l10a3: ['school', 385, 104, 'lớp 10A3'], l10a4: ['school', 494, 104, 'lớp 10A4'], fhome: ['pho', (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1] + 49, 128, 'nhà ' + ((FRIENDS[G.visit] || FRIENDS.khoa).name)] };
   if (R0[G.map]) { const [a, x, y, room] = R0[G.map]; return { a, x, y, room }; }
   if (MAPS[G.map] && !MAPS[G.map].indoor && G.map !== 'ride' && G.map !== 'rail') return { a: G.map, x: G.x, y: G.y, room: '' };
   return null;
@@ -613,8 +647,8 @@ MV.set = {
     return h;
   },
 };
-// Mã thử nghiệm: mọi môn học (lý thuyết, thực hành, quốc phòng, thể dục) lên thêm 1 cấp, giữ nguyên phần trăm đang có của cấp hiện tại
-const SUBJ_STATS = ['toan', 'van', 'anh', 'ly', 'hoa', 'sinh', 'su', 'dia', 'qp', 'th_ly', 'th_hoa', 'th_sinh', 'thethao'];
+// Mã thử nghiệm: mọi môn học (kể cả quốc phòng, thể dục) lên thêm 1 cấp, giữ nguyên phần trăm đang có của cấp hiện tại
+const SUBJ_STATS = STUDY_SUBJ.concat('thethao');
 function cheatLevel() {
   let n = 0;
   for (const k of SUBJ_STATS) {
@@ -673,6 +707,7 @@ function bindUI() {
   $('banner').addEventListener('click', () => turnToFriend());
   $('hint').addEventListener('click', () => { if (G && G.ride && !RT.lock && !UI.isOpen() && $('hint')._key === 'X') dismount(); });   // bấm vào nút “X Xuống xe”
   $('modal').addEventListener('click', UI._click);
+  $('modal').addEventListener('pointerdown', UI._dragDown);
   $('m-x').addEventListener('click', () => UI.close(UI._res ? UI._esc : -1));
   $('modal-wrap').addEventListener('input', e => {
     if (e.target.id === 'spd') { G.speed = +e.target.value; $('spv').textContent = G.speed; }

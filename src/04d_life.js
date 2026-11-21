@@ -268,20 +268,40 @@ const scoreTalk = (who, title, label, r) => UI.ask(title, `<p>${label} <span cla
  *  KIỆT SỨC: ngủ gật trong lớp → trạm y tế, nghỉ học luôn hôm đó
  * ============================================================ */
 const BED_SPOT = { x: 66, y: 112 };
-async function faintFlow(p, subj) {
-  const sc = RT.scene, co = coOf(subj);
-  if (sc && sc.type === 'class') { sc.mode = 'sleep'; await UI.progress('Mắt díp lại… gục xuống bàn…', 2200, '#8b8f9c'); }
-  else await UI.progress('Mắt hoa lên… chân đứng không vững…', 1800, '#8b8f9c');
-  await UI.ask(`${co} giáo`, `<p>“${G.name}! ${G.name} ơi! Em sao thế này? Các em đỡ bạn xuống trạm y tế giúp ${co.toLowerCase()}!”</p>`, ['…'], { who: { look: (sc && sc.actors && sc.actors.length && sc.actors[sc.actors.length - 1].look) || 'teacherA' } });
-  await UI.fade(true);
+const MEDBED = { x: 24, y: 90 };                                              // giường giữa trong trạm y tế
+/* why: 'doze' — đêm qua thức quá 2 giờ sáng nên ngủ gục ở mấy tiết cuối (dù đã ăn sáng) · không có: kiệt sức vì hết thể lực
+ * Tiết học kết thúc luôn (không tính vắng, không được cộng điểm) → cảnh kiệt sức → tỉnh dậy ở trạm y tế, cô y tá khuyên → nghỉ hết buổi */
+async function faintFlow(p, subj, why) {
+  const sc = RT.scene, co = coOf(subj), inClass = sc && sc.type === 'class';
+  const tIdx = sc && sc.actors && sc.actors.length ? sc.actors.length - 1 : -1, tLook = tIdx >= 0 ? sc.actors[tIdx].look : 'teacherA';
+  if (inClass) sc.mode = 'sleep';
+  UI.progress(why === 'doze' ? 'Đêm qua thức khuya quá… mắt díp lại…' : 'Mắt hoa lên… người lả đi…', UI._fast ? 10 : 2600, '#8b8f9c');
+  for (const ms of [360, 520, 700]) { await UI.fade(true, ms * 0.6); await UI.wait(ms === 700 ? 380 : 140); await UI.fade(false, ms); await UI.wait(220); }   // mắt nhắm lại rồi mở ra, mỗi lúc một lâu hơn
+  if (tIdx >= 0 && !UI._fast) {                                               // thầy cô vội chạy xuống bàn
+    const T = sc.actors[tIdx];
+    await tween(tIdx, G.x + (inClass ? 18 : 20), G.y - (inClass ? 2 : 0), 650);
+    T.dir = 1; sc.bubble = { x: T.x, y: T.y - 27, text: `${G.name}! ${G.name} ơi!` }; await UI.wait(1200); sc.bubble = null;
+  }
+  await UI.ask(`${co} giáo`, `<p>“${G.name}! Em sao thế này? Mặt tái hết cả rồi… Các em đỡ bạn xuống trạm y tế giúp ${co.toLowerCase()}!”</p>`, ['…'], { who: { look: tLook } });
+  await UI.fade(true, 600);
   RT.scene = null; RT.outfit = null; RT.tid = null;
   setMap('yte', BED_SPOT.x, BED_SPOT.y, 0);
-  for (const q of PERIODS) G.daily.done[q.n] = true;          // nghỉ hết các tiết còn lại, không tính vắng
+  for (const q of PERIODS) G.daily.done[q.n] = true;          // tiết này kết thúc luôn, nghỉ hết các tiết còn lại (không tính vắng)
   G.daily.fainted = true; addMemo('scene', 'faint');
   advanceTime(Math.max(FAINT.rest, PERIOD_LEN));
   G.stamina = Math.max(G.stamina, Math.round(maxStam() * FAINT.stam));
-  await UI.fade(false);
-  await UI.ask('Cô y tá', `<p>“Em tỉnh rồi à? Em bị <b>ngất trong giờ học</b> vì kiệt sức đấy. Cô cho em nghỉ hết buổi hôm nay rồi.”</p><p>“Lần sau nhớ ăn uống đầy đủ, buổi trưa xuống phòng ngủ trưa chợp mắt một lát, đừng thức khuya nữa. Phải để ý sức khoẻ của mình hơn nhé.”</p>`, ['Dạ, em cảm ơn cô'], { who: { look: 'doctor' } });
+  // tỉnh dậy trên giường bệnh, cô y tá đứng cạnh
+  const st = { open: false }, cs = RT.scene = { type: 'cut', map: 'yte', actors: [{ look: 'doctor', x: 72, y: 106, dir: 1 }], hide: ['doctor'], hideMe: true, bars: false, tw: [], bubble: null,
+    props: [now => { drawSpr(sleeperOf(G.gender, 'med', st.open), MEDBED.x, MEDBED.y); if (!st.open) drawSpr(SPR.zzz, MEDBED.x + 10, MEDBED.y - 8 - Math.floor(now / 300) % 4); }] };
+  await UI.fade(false, 700);
+  await UI.wait(900); st.open = true;
+  cs.bubble = { x: MEDBED.x + 8, y: MEDBED.y - 2, text: 'Ơ… mình đang ở đâu thế này?' }; await UI.wait(1500);
+  cs.bubble = { x: 72, y: 106 - 27, text: 'Em tỉnh rồi à?' }; await UI.wait(1100); cs.bubble = null;
+  const adv = why === 'doze'
+    ? `<p>“Em <b>ngủ gục trong lớp</b> rồi được các bạn đưa xuống đây. Đêm qua em thức tới quá 2 giờ sáng phải không? Thiếu ngủ thì dù có ăn sáng đầy đủ, tới mấy tiết cuối người vẫn lả đi thôi.”</p><p>“Tối nay đi ngủ sớm, trước 12 giờ đêm nhé. Học khuya mấy cũng không bằng ngủ đủ giấc đâu em.”</p>`
+    : `<p>“Em bị <b>ngất trong giờ học</b> vì kiệt sức đấy. Cô cho em nghỉ hết buổi hôm nay rồi.”</p><p>“Lần sau nhớ ăn uống đầy đủ, buổi trưa xuống phòng ngủ trưa chợp mắt một lát, đừng thức khuya nữa. Phải để ý sức khoẻ của mình hơn nhé.”</p>`;
+  await UI.ask('Cô y tá', adv, ['Dạ, em cảm ơn cô'], { who: { look: 'doctor' } });
+  RT.scene = null; G.x = BED_SPOT.x; G.y = BED_SPOT.y; G.dir = 0;
   addParent(-1, '', true);
   UI.toast('Hôm nay được nghỉ học. Cổng trường mở cho bạn về.', 'info');
 }
@@ -303,7 +323,7 @@ ACT.nap = async (mx, my) => {
   if (RT.lock) return;
   RT.lock = true;
   UI.progress('Đang ngủ trưa…', 2400, '#8f7fd0');
-  await playCut({ inPlace: true, bars: false, hideMe: true, steps: [{ wait: 2400 }], props: [now => { drawSpr(SPR.sleeper, mx, my); drawSpr(SPR.zzz, mx + 20, my - 10 - Math.floor(now / 300) % 5); }] });
+  await playCut({ inPlace: true, bars: false, hideMe: true, steps: [{ wait: 2400 }], props: [now => { drawSpr(sleeperOf(G.gender, 'mat'), mx, my); drawSpr(SPR.zzz, mx + 20, my - 10 - Math.floor(now / 300) % 5); }] });
   advanceTime(NAP.mins); G.daily.nap = true; gainStam(NAP.stam);
   RT.lock = false; UI.hud();
 };
@@ -584,8 +604,8 @@ ACT.fh = async kind => {
 /* ============================================================
  *  ĐIỆN THOẠI: ban đầu chỉ có số bố mẹ; thân với bạn rồi mới xin được số
  * ============================================================ */
-const hasNum = id => id === 'mom' || id === 'dad' || G.phone.contacts.includes(id);
-const phoneList = () => ['mom', 'dad'].concat(Object.keys(FRIENDS).filter(f => G.phone.contacts.includes(f)));
+const hasNum = id => id === 'mom' || id === 'dad' || id === 'fam' || G.phone.contacts.includes(id);
+const phoneList = () => ['fam'].concat(Object.keys(FRIENDS).filter(f => G.phone.contacts.includes(f)));
 async function askNumber(fid) {
   const F = FRIENDS[fid];
   if (hearts(fid) < PHONE_HEARTS || grudge(fid)) return UI.say(F.name, `“Số điện thoại hả? Ờm… để hôm nào thân hơn tớ cho nha.”<p class="dim">Cần thân thiết ít nhất ${PHONE_HEARTS}♥ mới xin được số.</p>`);
@@ -654,7 +674,7 @@ function testsToday() {
 /* ============================================================
  *  GIƯỜNG: ban ngày chợp mắt (giường nào cũng được) · tối ở nhà bạn thì ngủ lại
  * ============================================================ */
-const sleepProp = (now, bx, by) => { wRect('#2c2733', bx + 11, by + 6, 10, 4); wRect('#f8d0a8', bx + 12, by + 9, 8, 6); wRect('#2a2136', bx + 14, by + 12, 1, 1); wRect('#2a2136', bx + 17, by + 12, 1, 1); drawSpr(SPR.zzz, bx + 22, by - 4 - Math.floor(now / 300) % 5); };
+const sleepProp = (now, bx, by, open) => { drawSpr(sleeperOf(G.gender, 'bed', open), bx, by); if (!open) drawSpr(SPR.zzz, bx + 24, by - 2 - Math.floor(now / 300) % 5); };
 async function bedNap(title, bx, by, after) {
   if (RT.lock) return;
   if (G.daily.bedNap >= BED_NAP.perDay) return meSay('<p>Nằm mãi mà không ngủ được nữa… dậy làm việc khác thôi.</p>');
@@ -741,22 +761,6 @@ function newsOf(day) {
   L.push(tag('THỂ THAO') + `CLB Hoa Phượng ${a > b ? 'thắng' : a < b ? 'để thua' : 'hoà'} ${pk(RIVALS)} với tỉ số ${a}–${b} ở vòng ${1 + (day % 26)} giải hạng Nhất.`);
   return L;
 }
-function luckHtml() {
-  const r = mulberry(G.day * 977 + 3), v = G.daily.luck, k = luckLv(), lvl = LUCK_LV[k];
-  const col = ['đỏ', 'vàng', 'xanh lá', 'xanh dương', 'tím', 'trắng', 'hồng', 'cam'][Math.floor(r() * 8)], num = Math.floor(r() * 10);
-  return `<div class="tv"><div class="tv-scr luck"><div class="tv-top"><b>VẬN MAY HÔM NAY</b><span>${dateLabel(G.day)}</span></div>
-    <div class="tv-body"><img src="${faceOf('c6')}" alt=""><div>
-      <p class="lk-stars">${'★'.repeat(k + 1)}<i>${'★'.repeat(4 - k)}</i></p>
-      <p class="lk-name">Vận may của ${G.name}: <b>${lvl[1]}</b> · ${v}/100 điểm</p>
-      <p>${lvl[2]}</p>
-      <p class="tv-dim">Màu may mắn: ${col} · Con số may mắn: ${num}</p></div></div>
-    <div class="tv-tick">Điểm may mắn đổi mỗi ngày. May mắn cao thì bài kiểm tra dễ được điểm cao hơn.</div></div></div>`;
-}
-function newsHtml() {
-  return `<div class="tv"><div class="tv-scr news"><div class="tv-top"><b>THỜI SỰ HOA PHƯỢNG</b><span>${dateLabel(G.day)}</span></div>
-    <div class="tv-body"><img src="${faceOf('clerk')}" alt=""><div>${newsOf(G.day).map(t => `<p>${t}</p>`).join('')}</div></div>
-    <div class="tv-tick">Bản tin thay đổi mỗi ngày · gần tới lễ hội sẽ có thông báo</div></div></div>`;
-}
 const TV_SIT = [{ move: ['me', 252, 92, 300] }, { move: ['me', 252, 116, 260] }, { fn: () => { G.dir = 3; } }];   // đi tới ghế bành cạnh sofa rồi ngồi xuống, quay mặt về tivi
 const tvGlow = now => { const f = Math.floor(now / 220) % 4; wRect(['rgba(255,255,255,.28)', 'rgba(120,200,255,.32)', 'rgba(255,230,140,.28)', 'rgba(255,255,255,.12)'][f], 200, 21, 28, 12); };
 // Xem tivi: lần đầu mỗi kênh trong ngày thì ngồi xem (mất chút thời gian), xem lại thì chỉ bật lên coi
@@ -772,7 +776,23 @@ async function tvWatch(kind) {
     RT.lock = false; UI.hud();
   }
   if (kind === 'luck') G.daily.luckSeen = true;
-  await UI.ask('Tivi', kind === 'news' ? newsHtml() : luckHtml(), ['Tắt tivi']);
+  await tvTalk(kind);
+}
+// Bản tin / vận may hiện thành hội thoại nhỏ ở dưới màn hình: người dẫn chương trình đọc từng tin, mỗi tin một lần bấm
+function tvLines(kind) {
+  if (kind === 'news') return newsOf(G.day);
+  const r = mulberry(G.day * 977 + 3), v = G.daily.luck, k = luckLv(), lvl = LUCK_LV[k];
+  const col = ['đỏ', 'vàng', 'xanh lá', 'xanh dương', 'tím', 'trắng', 'hồng', 'cam'][Math.floor(r() * 8)], num = Math.floor(r() * 10);
+  return [`Chào mừng các bạn đến với <b>Vận may hôm nay</b>! Vận may của <b>${G.name}</b>: <span class="lk-mini">${'★'.repeat(k + 1)}<i>${'★'.repeat(4 - k)}</i></span> <b>${lvl[1]}</b> (${v}/100 điểm).`,
+    lvl[2], `Màu may mắn hôm nay là <b>${col}</b>, con số may mắn là <b>${num}</b>. May mắn cao thì bài kiểm tra dễ được điểm cao hơn. Hẹn gặp lại ngày mai!`];
+}
+async function tvTalk(kind) {
+  const L = tvLines(kind), who = { look: kind === 'news' ? 'anchor' : 'luckhost', outfit: null }, title = kind === 'news' ? 'Thời sự Hoa Phượng · Phát thanh viên' : 'Vận may hôm nay · MC';
+  for (let i = 0; i < L.length; i++) {
+    const last = i === L.length - 1;
+    const c = await UI.ask(title, `<p class="tvline">${L[i]}</p><p class="dim">${kind === 'news' ? 'Tin' : 'Phần'} ${i + 1}/${L.length}</p>`, last ? ['Tắt tivi'] : ['Tiếp ▸', 'Tắt tivi'], { who });
+    if (last || c !== 0) return;
+  }
 }
 
 /* ============================================================

@@ -183,7 +183,7 @@ function buildRooms() {
   m.x.drawImage(SPR.redcross, 148, 8); drawWin(m.x, 220, 9, 22, 13);
   for (let i = 0; i < 3; i++) addObj(m, { s: 'medbed', x: 24, y: 44 + i * 46, sol: [1, 4, 34, 18], label: () => 'Giường bệnh — nằm nghỉ', act: () => ACT.infirmary() });
   addObj(m, { s: 'cabinet', x: 252, y: 2, sol: [1, 12, 32, 25] }); addObj(m, { s: 'tdesk', x: 150, y: 34, sol: [1, 2, 32, 19] }); addObj(m, { s: 'plant', x: 100, y: 12, sol: [2, 14, 12, 9] });
-  NPCS.push({ id: 'doctor', name: 'Cô y tá', look: 'doctor', map: 'yte', x: 166, y: 70, dir: 0, label: () => 'Cô y tá', act: () => ACT.infirmary() });
+  NPCS.push({ id: 'doctor', name: 'Cô y tá', look: 'doctor', map: 'yte', x: 166, y: 70, dir: 0, vis: () => !sceneHides('doctor'), label: () => 'Cô y tá', act: () => ACT.infirmary() });
   roomExit(m, { map: 'school', x: 213, y: 116, dir: 0 });
 
   /* ---------- PHÒNG NHẠC: sân khấu tập nhảy + phòng thu tập hát ---------- */
@@ -221,7 +221,7 @@ function buildRooms() {
     const a = 26 + i * 52, b = 52 + r * 62, mine = r === 1 && i === 2;
     const busy = () => !mine && napTime() && (i * 7 + r * 3 + G.day) % 5 < 3;           // chiếu đã có bạn nằm
     addObj(m, { s: 'napmat', x: a, y: b, flat: true, ir: [-4, -6, 40, 32], label: () => (busy() ? 'Có bạn đang ngủ ở chiếu này' : 'Chiếu trống — ngủ trưa'), act: () => (busy() ? UI.toast('Có bạn đang ngủ rồi, tìm chiếu khác nhé.') : ACT.nap(a, b)) });
-    if (!mine) addObj(m, { s: 'sleeper', x: a, y: b, sol: [1, 2, 30, 16], vis: busy });
+    if (!mine) addObj(m, { s: 'sleeper' + ((i + r * 2) % 4), x: a, y: b, sol: [1, 2, 30, 16], vis: busy });
   }
   roomExit(m, { map: 'school', x: 430, y: 116, dir: 0 });
 

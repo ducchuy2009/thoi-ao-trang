@@ -354,7 +354,8 @@ function drawFestProps(now) {
 
 /* ---------- điều phối sự kiện mỗi khung hình (khi không bận) ---------- */
 function eventTick() {
-  if (pmTick()) return true;                                        // ngày họp phụ huynh: tới trường 08:00–11:00 là vào cảnh họp
+  if (pmTick()) return true;
+  if (hsgTick()) return true;                                       // đội tuyển học sinh giỏi: báo tin, buổi học, thi chọn, thi quốc gia, ăn mừng                                        // ngày họp phụ huynh: tới trường 08:00–11:00 là vào cảnh họp
   if (hkEventTick()) return true;                                   // Hội khoẻ Phù Đổng: qua cổng trường là vào hội
   if (isTetDay1() && G.map === 'home' && G.time < 720 && !tetYear().ask) { tetMorning(); return true; }
   if (isEveDay(G.day) && !G.daily.eveAsked && !RT.fest && G.time < EVE.from) { eveInvite(); return true; }   // sáng ngày cuối năm: được rủ đón giao thừa

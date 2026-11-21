@@ -285,7 +285,7 @@ async function doMischief(id, fid) {
   if (M.cost) addMoney(-M.cost, true);
   if (M.stam) G.stamina = Math.min(maxStam(), G.stamina + M.stam);
   if (M.stamCost) useStam(M.stamCost, !M.smoke);
-  for (const k of ['thethao', 'th_hoa']) if (M[k]) addStat(k, M[k]);
+  for (const k of ['thethao', 'th_hoa']) if (M[k]) addStat(statOfSubj(k), M[k]);
   if (M.smoke) L.push(li('Ho sặc sụa, người mệt hẳn đi.', 'bad'));
   if (skipped.length && tt) L.push(li('Bỏ lỡ ' + skipped.map(n => `tiết ${n} (${SUBJ[tt[n - 1]].short})`).join(', ') + '.', 'warn'));
   if (caught) L.push(...mischiefCaught(M, skipped, tt, fid));

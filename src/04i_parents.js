@@ -15,11 +15,11 @@ function parentPing(t) {
   else if (wd && sch && t === S.after[0]) slot = 'after';
   else if (wd && !sch && t === S.summer[0]) slot = 'summer';
   else if (!wd && t === S.off[0]) slot = 'off';
-  if (!slot || Math.random() >= PARENT_TASK.chance) return;
+  if (!slot || Math.random() >= PARENT_TASK.chance * 2.2 || !(G.daily.taskPlan || []).includes('parent')) return;
   const ids = Object.keys(PARENT_TASKS).filter(id => { const P = PARENT_TASKS[id]; return slot === 'off' ? P.off : !P.off && (slot === 'lunch' || !P.lunch); });
   const id = pick(ids), P = PARENT_TASKS[id];
   if (slot !== 'off' && !atWork(P.who)) return;
-  G.daily.ptask = true;
+  takeTaskSlot('parent'); G.daily.ptask = true;
   G.phone.ptask = { id, who: P.who, day: G.day, until: S[slot][1] };
   inbox(P.who, P.msg + ` (Trước ${fmtTime(S[slot][1])} nhé con.)`);
 }
@@ -55,12 +55,13 @@ async function parentDeliver(who) {
   const late = taskLate(t);
   G.tasks.active = G.tasks.active.filter(x => x !== t); G.tasks.done++;
   delete G.inv[T.item]; RT.hold = null;
+  const paid = !late && taskPays();
   addParent(late ? 1 : T.aff, '', true);
-  if (!late) addWage(`Giúp ${PNAME[who].toLowerCase()}`, T.pay + T.cost);
+  if (paid) addWage(`Giúp ${PNAME[who].toLowerCase()}`, T.pay + T.cost);
   else if (T.cost) addMoney(T.cost, true);
   UI.hud();
   const line = late ? 'Hơi muộn rồi con ạ, nhưng bố mẹ vẫn cảm ơn con đã mang tới.' : who === 'dad' ? 'Đúng cái bố cần! Con giỏi quá, tối về bố thưởng cho.' : 'Mẹ cảm ơn con nhé! Không có con chắc mẹ rối tung lên mất.';
-  await UI.ask(PNAME[who], `<p>“${line}”</p>${late ? '' : `<p class="dim">Tiền công ${fmtMoney(T.pay)}${T.cost ? ` + ${fmtMoney(T.cost)} tiền mua đồ` : ''} — nhận vào cuối ngày.</p>`}`, ['Dạ!'], { who: { look: who, outfit: who === 'mom' ? 'noapron' : null } });
+  await UI.ask(PNAME[who], `<p>“${line}”</p><p class="dim">+${late ? 1 : T.aff} thiện cảm của bố mẹ${paid ? ` · tiền công ${fmtMoney(T.pay)}${T.cost ? ` + ${fmtMoney(T.cost)} tiền mua đồ` : ''} — nhận vào cuối ngày` : T.cost ? ` · được trả lại ${fmtMoney(T.cost)} tiền mua đồ` : ''}</p>`, ['Dạ!'], { who: { look: who, outfit: who === 'mom' ? 'noapron' : null } });
   return true;
 }
 // gặp bố mẹ ở chỗ làm

@@ -87,7 +87,7 @@ function buildFamilyPlaces() {
   drawWin(m.x, 40, 9, 22, 13); drawWin(m.x, 240, 9, 22, 13);
   for (const [a, b] of [[30, 50], [110, 50], [190, 50], [30, 110], [110, 110]]) addObj(m, { s: 'rtable', x: a, y: b, sol: [1, 6, 34, 14], label: () => 'Bàn ăn — gọi món', act: () => ACT.restaurant() });
   addObj(m, { s: 'counter', x: 226, y: 104, sol: [1, 4, 16, 23] }); addObj(m, { s: 'counter', x: 242, y: 104, sol: [1, 4, 16, 23] }); addObj(m, { s: 'stove', x: 258, y: 104, sol: [1, 4, 16, 23] });
-  NPCS.push({ id: 'nh_bep', soc: 'anh_long', name: 'Anh Long (đầu bếp)', look: 'c7', map: 'nhahang', x: 248, y: 96, dir: 0, label: () => 'Anh Long — đầu bếp', act: () => ACT.restaurant() });
+  NPCS.push({ id: 'nh_bep', soc: 'anh_long', name: 'Anh Long (đầu bếp)', look: 'chef', map: 'nhahang', x: 248, y: 96, dir: 0, label: () => 'Anh Long — đầu bếp', act: () => ACT.restaurant() });
   NPCS.push({ id: 'nh_pv', name: 'Chị phục vụ', look: 'c2', outfit: () => 'cas_vy', map: 'nhahang', x: 160, y: 96, dir: 0, wander: 30, label: () => 'Chị phục vụ — gọi món', act: () => ACT.restaurant() });
   [['c4', 'cas_ngan', 44, 78], ['c1', 'cas_dat', 210, 78], ['c8', 'cas_vy', 124, 138]].forEach(([look, of, a, b], i) => NPCS.push({ id: 'nh_k' + i, name: 'Thực khách', look, outfit: () => of, map: 'nhahang', x: a, y: b, dir: 3 }));
 

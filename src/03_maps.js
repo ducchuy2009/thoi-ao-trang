@@ -53,10 +53,10 @@ function buildHome() {
   // phòng ngủ
   addObj(m, { s: 'rugBlue', x: 62, y: 104, flat: true });
   addObj(m, { s: 'bed', x: 17, y: 24, sol: [1, 4, 32, 42], label: () => 'Giường — đi ngủ', act: () => ACT.bed() });
-  addObj(m, { s: 'desk', x: 58, y: 24, sol: [1, 2, 34, 25], label: () => 'Bàn học — soạn cặp, tự học', act: () => ACT.desk() });
+  addObj(m, { s: 'desk', x: 58, y: 24, sol: [1, 2, 34, 25], label: () => 'Bàn học — tự học, xem thời khoá biểu', act: () => ACT.desk() });
   addObj(m, { s: 'chair', x: 70, y: 49, sol: [1, 1, 12, 11] });
   addObj(m, { s: 'wardrobe', x: 95, y: 6, sol: [1, 10, 30, 29] });
-  addObj(m, { s: 'shelf', x: 126, y: 12, sol: [1, 8, 16, 25] });
+  addObj(m, { s: 'shelf', x: 126, y: 12, sol: [1, 8, 16, 25], label: () => 'Tủ sách — soạn cặp (kéo sách vào cặp)', act: () => ACT.shelf() });
   addObj(m, { s: 'mat', x: 24, y: 150, flat: true, label: () => 'Thảm tập — chạy tại chỗ, hít đất', act: () => ACT.exercise('tay') });
   addObj(m, { s: 'plant', x: 20, y: 194, sol: [2, 14, 12, 9] });
   // phòng khách
@@ -120,7 +120,7 @@ function buildTown() {
   }
   // dãy phố
   addObj(m, { door: true, s: 'shop', x: 303, y: 51, sol: [1, 24, 96, 53], label: () => 'Tạp hoá Cô Ba — mua đồ, phụ bán hàng', act: () => ACT.shop() });
-  addObj(m, { door: true, s: 'center', x: 431, y: 51, sol: [1, 24, 96, 53], label: () => 'Trung tâm Sao Mai — đăng ký học thêm', act: () => ACT.center() });
+  addObj(m, { door: true, s: 'center', x: 431, y: 51, sol: [1, 24, 96, 53], label: () => 'Trung tâm Sao Mai — vào trong, đăng ký học thêm ở quầy lễ tân', act: () => ACT.center() });
   // nhà cô chủ nhiệm và thầy Tùng (ngày Tết tới chúc Tết)
   addObj(m, { door: true, s: 'houseB', x: 575, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà cô Hạnh (cô chủ nhiệm)', act: () => ACT.teacherHouse('hanh') });
   addObj(m, { door: true, s: 'houseC', x: 687, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà thầy Tùng', act: () => ACT.teacherHouse('tung') });
@@ -505,7 +505,7 @@ function buildMaps() {
   buildWC('wc', 'Nhà vệ sinh nữ', '#fbe4ea', '#eab2c2', '#e98fa5', 'wtile'); buildWC('wcm', 'Nhà vệ sinh nam', '#e4eef7', '#a9c6dc', '#5a8fd6', 'ltile');
   buildRide('ride', false); buildRide('rail', true);
   buildRooms();
-  addMeetNpcs(); buildFamily(); buildFamilyPlaces();
+  addMeetNpcs(); buildFamily(); buildFamilyPlaces(); buildHsgPlaces(); buildCenter();
   seasonTrees();                                   // cây đổi màu theo mùa
   buildTrips();                                    // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch (04l)
   widenEdgeZones();                                // đi qua mép trái / phải chỗ nào không bị chặn cũng sang được bản đồ kế tiếp
