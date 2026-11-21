@@ -62,11 +62,11 @@ function buildFamilyPlaces() {
     addObj(m, { s: hs, x: hx, y: 47, sol: [1, 30, 96, 51], label: () => `Nhà ${S.name.toLowerCase()} — hàng xóm phố Bờ Đông`, act: () => neighborTalk(soc) });
     NPCS.push({ id: 'nb_' + soc, soc, name: S.name, look: S.look, outfit: S.outfit ? () => S.outfit : undefined, map: 'dong', x: hx + 49, y: 146, dir: 0, wander: 10, vis: () => inWin(G.time, 360, 1260), label: () => S.name + ' — trò chuyện', act: () => neighborTalk(soc) });
   }
-  addObj(m, { s: 'nhahangB', x: DONG.rest, y: 46, sol: [1, 32, 108, 50], label: () => 'Nhà hàng Sen Hồng — vào ăn', act: () => ACT.enterDong('nhahang') });
+  addObj(m, { door: true, s: 'nhahangB', x: DONG.rest, y: 46, sol: [1, 32, 108, 50], label: () => 'Nhà hàng Sen Hồng — vào ăn', act: () => ACT.enterDong('nhahang') });
   m.labels.push({ x: DONG.rest + 55, y: 74.5, text: 'NHÀ HÀNG SEN HỒNG', size: 6, col: '#ffd23a', maxw: 78 });
-  addObj(m, { s: 'karaokeB', x: DONG.kara, y: 46, sol: [1, 32, 98, 50], label: () => 'Karaoke Âm Vang — vào hát', act: () => ACT.enterDong('karaoke') });
+  addObj(m, { door: true, s: 'karaokeB', x: DONG.kara, y: 46, sol: [1, 32, 98, 50], label: () => 'Karaoke Âm Vang — vào hát', act: () => ACT.enterDong('karaoke') });
   m.labels.push({ x: DONG.kara + 50, y: 62.5, text: 'KARAOKE ÂM VANG', size: 6.5, col: '#ffe066', maxw: 76 });
-  addObj(m, { s: 'nhamayB', x: DONG.factory, y: 36, sol: [1, 40, 198, 52], label: () => 'Nhà máy bánh kẹo Hoa Phượng — chỗ bố làm việc', act: () => ACT.enterWork('dad') });
+  addObj(m, { door: true, s: 'nhamayB', x: DONG.factory, y: 36, sol: [1, 40, 198, 52], label: () => 'Nhà máy bánh kẹo Hoa Phượng — chỗ bố làm việc', act: () => ACT.enterWork('dad') });
   m.labels.push({ x: DONG.factory + 100, y: 74.5, text: 'NHÀ MÁY BÁNH KẸO HOA PHƯỢNG', size: 6, col: '#ffffff', maxw: 170 });
   for (const lx of [110, 330, 560, 830]) addObj(m, { s: 'lamp', x: lx, y: 112, sol: [3, 38, 6, 6] });
   for (const [s2, a, b] of [['tree', 20, 280], ['tree2', 160, 290], ['tree', 420, 284], ['tree2', 640, 292], ['tree', 860, 282]]) addObj(m, { s: s2, x: a, y: b, sol: [13, 38, 10, 9] });

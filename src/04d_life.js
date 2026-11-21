@@ -23,10 +23,10 @@ const EAT_SEATS = { eat: [[124, 187], [176, 187], [150, 199]], eat2: [[62, 112],
 let YS = null;
 function yardState() {
   if (!G || !schoolToday() || (RT.scene && !RT.scene.yard)) return null;
-  const wi = YARD_WINDOWS.findIndex(([a, b]) => inWin(G.time, a, b)); if (wi < 0 || (halfDay(G.day) && wi > 2)) return null;   // chiều nghỉ học: ăn trưa xong ai về nhà nấy
+  const wi = YARD_WINDOWS.findIndex((_, i) => inWin(G.time, ...yardWin(i))); if (wi < 0 || (halfDay(G.day) && wi > 2)) return null;   // chiều nghỉ học: hết tiết 4 là ai về nhà nấy
   const key = G.day * 10 + wi; if (YS && YS.key === key) return YS;
   const rnd01 = mulberry(key * 7919 + 13), sh = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd01() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const kids = sh(YARD_KIDS.slice()), groups = [], where = {}, lunch = wi === 2;
+  const kids = sh(YARD_KIDS.slice()), groups = [], where = {}, lunch = wi === 2 && !halfDay(G.day);
   const take = (kind, spot, n) => { const mem = kids.splice(0, n); if (!mem.length) return; const g = { id: spot, kind, mem, c: YARD_SPOT[spot] }; groups.push(g); mem.forEach((k, i) => { where[k] = [g, i]; }); };
   if (lunch) {        // nghỉ trưa: vài bạn vào phòng ngủ trưa, vài bạn ăn ở căn tin / ghế đá
     const nap = kids.filter(k => !FRIENDS[k]).slice(0, 2); for (const k of nap) kids.splice(kids.indexOf(k), 1);
@@ -44,7 +44,7 @@ function yardState() {
 const LEAVE = { gate: [352, 414], out: [352, 460], speed: 44, gap: 0.35, late: 30 };
 function leaveTick() {
   if (!G || G.map !== 'school' || !schoolToday()) return;
-  const W = halfDay(G.day) ? YARD_WINDOWS[2] : YARD_WINDOWS[YARD_WINDOWS.length - 1];
+  const W = halfDay(G.day) ? yardWin(2) : YARD_WINDOWS[YARD_WINDOWS.length - 1];
   if (inWin(G.time, W[0], W[1]) && !(RT.scene && RT.scene.type === 'cut')) {
     // còn giờ ra sân sau tan học: nhớ chỗ từng bạn đang đứng
     const at = {}; for (const n of NPCS) if (n.map === 'school' && n.id.startsWith('y_') && n.cx !== undefined && n.vis && n.vis()) at[n.id] = [n.cx, n.cy];
@@ -757,6 +757,7 @@ function newsHtml() {
     <div class="tv-body"><img src="${faceOf('clerk')}" alt=""><div>${newsOf(G.day).map(t => `<p>${t}</p>`).join('')}</div></div>
     <div class="tv-tick">Bản tin thay đổi mỗi ngày · gần tới lễ hội sẽ có thông báo</div></div></div>`;
 }
+const TV_SIT = [{ move: ['me', 252, 92, 300] }, { move: ['me', 252, 116, 260] }, { fn: () => { G.dir = 3; } }];   // đi tới ghế bành cạnh sofa rồi ngồi xuống, quay mặt về tivi
 const tvGlow = now => { const f = Math.floor(now / 220) % 4; wRect(['rgba(255,255,255,.28)', 'rgba(120,200,255,.32)', 'rgba(255,230,140,.28)', 'rgba(255,255,255,.12)'][f], 200, 21, 28, 12); };
 // Xem tivi: lần đầu mỗi kênh trong ngày thì ngồi xem (mất chút thời gian), xem lại thì chỉ bật lên coi
 async function tvWatch(kind) {
@@ -764,7 +765,7 @@ async function tvWatch(kind) {
   if (!G.daily.tvSeen[kind]) {
     RT.lock = true;
     UI.progress(kind === 'news' ? 'Đang xem bản tin thời sự…' : 'Đang xem chương trình vận may…', 1800, '#3b82c4');
-    await playCut({ inPlace: true, bars: false, steps: [{ move: ['me', 214, 72, 500] }, { fn: () => { G.dir = 3; } }, { wait: 1300 }], props: [tvGlow] });
+    await playCut({ inPlace: true, bars: false, steps: TV_SIT.concat([{ wait: 1300 }]), props: [tvGlow] });   // ngồi xuống ghế bành xem tivi
     advanceTime(kind === 'news' ? 15 : 10);
     G.daily.tvSeen[kind] = true;
     if (!G.daily.tv) { G.daily.tv = true; gainStam(6); }

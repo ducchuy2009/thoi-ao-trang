@@ -156,7 +156,7 @@ function drawCharFrame(L, dir, fr) {
       R(x, skS, 7, Y + 10, 2, 1);
       if (L.mustache) R(x, '#5a5a66', 6, Y + 9, 4, 1);
       if (L.glasses) {                                                                       // kính: vuông (mặc định) hoặc tròn
-        const gc = L.glassCol || '#2a2136', rd = L.glasses === 'round';
+        const gc = L.glassCol || '#8d93a6', rd = L.glasses === 'round';                         // gọng kính mảnh màu bạc (kính cận trong suốt, không phải kính râm)
         for (const gx of [3, 9]) { R(x, gc, gx + (rd ? 1 : 0), Y + 6, rd ? 2 : 4, 1); R(x, gc, gx + (rd ? 1 : 0), Y + 9, rd ? 2 : 4, 1); R(x, gc, gx, Y + (rd ? 7 : 6), 1, rd ? 2 : 4); R(x, gc, gx + 3, Y + (rd ? 7 : 6), 1, rd ? 2 : 4); }
         R(x, gc, 7, Y + 7, 2, 1);
       }
@@ -216,7 +216,7 @@ function drawCharFrame(L, dir, fr) {
     R(x, '#f5a79b', 2, Y + 9, 2, 1); R(x, skS, 8, Y + 7, 1, 2);
     if (L.freckles) { R(x, '#c98a62', 2, Y + 10, 1, 1); R(x, '#c98a62', 4, Y + 10, 1, 1); }
     if (L.mustache) R(x, '#5a5a66', 2, Y + 9, 3, 1);
-    if (L.glasses) { const gc = L.glassCol || '#2a2136'; R(x, gc, 2, Y + 6, 4, 1); R(x, gc, 2, Y + 9, 4, 1); R(x, gc, 1, Y + 7, 1, 2); R(x, gc, 5, Y + 7, 4, 1); }
+    if (L.glasses) { const gc = L.glassCol || '#8d93a6'; R(x, gc, 2, Y + 6, 4, 1); R(x, gc, 2, Y + 9, 4, 1); R(x, gc, 1, Y + 7, 1, 2); R(x, gc, 5, Y + 7, 4, 1); }
     if (L.earring) R(x, L.earring, 8, Y + 9, 1, 1);
     if (L.clip) R(x, L.clip, 10, Y + 4, 2, 1);
     if (L.cap) { const cp = L.cap; R(x, cp, 4, Y - 1, 8, 1); headFill(cp, 0, 4); R(x, shade(cp, -28), 0, Y + 4, 9, 1); R(x, shade(cp, 25), 5, Y, 3, 1); }
@@ -565,6 +565,7 @@ function buildSprites() {
     R(x, '#2f2a3a', 3, 0, 32, 17); R(x, '#4f7fb5', 5, 2, 28, 12); R(x, '#7fa9d6', 5, 2, 28, 2); line(x, '#9cc3e6', 8, 12, 16, 4); line(x, '#9cc3e6', 11, 12, 17, 6);
     R(x, '#2f2a3a', 16, 17, 6, 2); R(x, '#8a5a3a', 0, 18, 38, 10); R(x, '#a9703f', 0, 18, 38, 2); R(x, '#6f472c', 12, 21, 1, 6); R(x, '#6f472c', 25, 21, 1, 6); R(x, '#f4d35e', 6, 23, 2, 1); R(x, '#f4d35e', 18, 23, 2, 1); R(x, '#f4d35e', 30, 23, 2, 1);
   });
+  def('armchair', 22, 20, x => { R(x, '#5f7fa8', 0, 2, 22, 18); R(x, '#7b9bc4', 2, 0, 18, 6); R(x, '#8fb0d8', 3, 1, 16, 1); R(x, '#4f6c92', 0, 14, 22, 6); R(x, '#4f6c92', 0, 4, 4, 14); R(x, '#4f6c92', 18, 4, 4, 14); R(x, '#6f8fb8', 5, 7, 12, 7); });   // ghế bành cạnh sofa: chỗ ngồi xem tivi thứ ba
   def('sofa', 46, 20, x => { R(x, '#5f7fa8', 0, 2, 46, 18); R(x, '#7b9bc4', 2, 0, 42, 6); R(x, '#8fb0d8', 3, 1, 40, 1); R(x, '#4f6c92', 0, 14, 46, 6); R(x, '#4f6c92', 0, 4, 4, 14); R(x, '#4f6c92', 42, 4, 4, 14); R(x, '#6f8fb8', 5, 7, 17, 7); R(x, '#6f8fb8', 24, 7, 17, 7); R(x, '#f2a93b', 8, 5, 6, 5); });
   def('rug', 54, 30, x => { ell(x, '#d9695f', 26.5, 14.5, 26.5, 14.5); ell(x, '#f0c9a0', 26.5, 14.5, 22, 11); ell(x, '#d9695f', 26.5, 14.5, 19, 9); ell(x, '#e88b7f', 26.5, 14.5, 10, 4.5); }, true);
   def('rugBlue', 46, 24, x => { ell(x, '#5f8fc4', 22.5, 11.5, 22.5, 11.5); ell(x, '#cfe0f2', 22.5, 11.5, 19, 9); ell(x, '#5f8fc4', 22.5, 11.5, 16, 7); }, true);

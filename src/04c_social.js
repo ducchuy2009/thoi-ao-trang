@@ -206,7 +206,16 @@ function meetToday(fid) { const m = meetOn(); if (!m || m.fid !== fid) return fa
 function meetHere(place) { const m = meetOn(); if (!m || m.place !== place) return null; const w = meetWindow(m); return inWin(G.time, w[0], w[1]) ? m.fid : null; }
 // Bạn đi cùng: đi theo sau mình qua các khu (trốn học hoặc đi chơi); tới chỗ vui chơi thì hai đứa cùng chơi, có hoạt cảnh
 function setComp(fid, skip) { G.comp = { fid, skip: !!skip, n: 0 }; RT.fol = null; }
-function endComp(msg) { if (!G.comp) return; G.comp = null; RT.fol = null; if (msg) UI.toast(msg, 'info'); }
+function endComp(msg, walkAway) {
+  if (!G.comp) return;
+  const fid = G.comp.fid, f = RT.fol;
+  if (walkAway && f && f.map === G.map && !(RT.scene && RT.scene.type === 'cut')) {        // tạm biệt: bạn tự đi bộ ra cửa / mép bản đồ gần nhất rồi mới khuất
+    const x = G.ride ? G.x + 10 : f.x, y = G.ride ? G.y + 2 : f.y;
+    let to = null, bd = 1e9; for (const p of mapPortals(MAPS[G.map])) { const d = Math.hypot(p[0] - x, p[1] - y); if (d < bd && d > 12) { bd = d; to = p; } }
+    if (to) (RT.walkers = RT.walkers || []).push({ fid, look: fid, outfit: friendOutfit(fid), map: G.map, x, y, to, dir: 0, walk: 0, t: 0 });
+  }
+  G.comp = null; RT.fol = null; if (msg) UI.toast(msg, 'info');
+}
 // Ai đang chơi cùng mình ở đây: bạn đang đi theo, hoặc bạn đang đợi ở chỗ hẹn này
 const palAt = place => (G.comp ? G.comp.fid : meetHere(place));
 // Cùng chơi: lần đầu trong buổi cộng đủ điểm thân thiết, các lần sau cộng một nửa
@@ -330,7 +339,7 @@ ACT.friend = async (fid, where) => {
   else if (c === 'out') askOut(fid);
   else if (c === 'num') askNumber(fid);
   else if (c === 'join') { if (G.meet) G.meet.n = Math.max(1, G.meet.n); setComp(fid, false); UI.say(F.name, '“Tới rồi hả! Đi thôi, cậu dẫn đường đi.”'); }
-  else if (c === 'bye') endComp(`${F.name} vẫy tay chào rồi về.`);
+  else if (c === 'bye') endComp(`${F.name} vẫy tay chào rồi đi về nhà.`, true);
 };
 // ACT.house (bấm chuông, vào nhà bạn chơi): xem 04d_life.js
 

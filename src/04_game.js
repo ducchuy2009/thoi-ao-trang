@@ -106,12 +106,26 @@ const grudge = fid => (G.grudge[fid] === undefined ? -1 : G.grudge[fid]) >= G.da
 const sceneHides = sid => !!(RT.scene && RT.scene.hide && RT.scene.hide.includes(sid));
 // "Đã về nhà" (ngày đi học): có mặt ở nhà trong khoảng tan học → 20:00. Sau đó có ra ngoài chơi tiếp thì bố mẹ không mắng.
 function checkIn() { if (schoolToday() && G.time >= schoolEndT() && G.time < CFG.LATE_HOME && atHome()) G.daily.checkedIn = true; }
-function yardTime() { return schoolToday() && (!RT.scene || !!RT.scene.yard) && YARD_WINDOWS.some(([a, b], i) => inWin(G.time, a, b) && !(i > 2 && halfDay(G.day))); }
+// khung giờ ra sân thứ i: hôm chiều nghỉ thì hết tiết 4 là mọi người ra về luôn (ở lại sân chừng 40 phút rồi đi bộ ra cổng)
+const yardWin = i => (i === 2 && G && halfDay(G.day) ? [AM_END, AM_END + 40] : YARD_WINDOWS[i]);
+function yardTime() { return schoolToday() && (!RT.scene || !!RT.scene.yard) && YARD_WINDOWS.some((_, i) => inWin(G.time, ...yardWin(i)) && !(i > 2 && halfDay(G.day))); }
 function classSeated() { const t = G.time; return (RT.scene && RT.scene.type === 'class') || (schoolToday() && (inWin(t, 420, AM_END) || inWin(t, PM_START - 20, CFG.SCHOOL_END))); }
 function teacherIn() { const t = G.time; if (RT.scene) return false; return (schoolToday() && (inWin(t, 460, AM_END) || inWin(t, PM_START - 20, CFG.SCHOOL_END))); }
 function parkTime() { const t = G.time; return schoolToday() ? inWin(t, AFTER_SCHOOL, 1210) : inWin(t, 480, 1090); }
 function nextPeriod() { return schoolToday() ? PERIODS.find(p => p.start > G.time && !G.daily.done[p.n]) || null : null; }
 function currentPeriod() { return schoolToday() ? PERIODS.find(p => inWin(G.time, p.start, p.start + PERIOD_LEN) && !cutPeriods(G.day).has(p.n)) || null : null; }
+// Đang ở tiết nào của buổi học (hiện trên HUD): "Tiết 3 · Toán", "Ra chơi", "Nghỉ trưa"…; ngoài giờ học thì null
+function periodLabel() {
+  if (!G || !schoolToday() || G.time >= schoolEndT()) return null;
+  const t = G.time, tt = ttToday(), p = PERIODS.find(q => t >= q.start && t < q.start + PERIOD_LEN);
+  if (p) {
+    if (cutPeriods(G.day).has(p.n)) { const e = schoolEventsOn(G.day).find(x => x.periods.includes(p.n)); return e ? e.name : `Tiết ${p.n} · nghỉ`; }
+    const s = tt && tt[p.n - 1]; return s ? `Tiết ${p.n} · ${SUBJ[s].name}` : null;
+  }
+  if (t < PERIODS[0].start) return 'Trước giờ vào lớp';
+  if (t >= AM_END && t < PM_START) return 'Nghỉ trưa';
+  return 'Ra chơi';
+}
 function phaseLabel() {
   if (!schoolToday()) { const h = holidayOf(G.day); return h ? 'Nghỉ lễ · ' + h.name : (SEASONS[today().season].school ? 'Cuối tuần · Tự do' : 'Nghỉ hè · Tự do'); }
   if (G.time >= schoolEndT()) return halfDay(G.day) ? 'Giai đoạn 3 · Chiều nghỉ học' : 'Giai đoạn 3 · Sau giờ học';
@@ -777,7 +791,11 @@ function mealLabel() { const m = mealNow(); return m ? `${m.name} mẹ nấu` : 
 ACT.table = async () => {
   const m = mealNow();
   if (!m) return UI.say('Bàn ăn', 'Chưa đến bữa.<p class="dim">Sáng 06:00–08:00 · Trưa (ngày nghỉ) 11:00–13:30 · Tối 18:00–21:30</p>');
-  await activity(`Đang ăn ${m.name.toLowerCase()}…`, m.mins, () => { G.daily.meals[m.id] = true; gainStam(m.stam); });
+  if (RT.lock) return;
+  RT.lock = true; UI.progress(`Đang ăn ${m.name.toLowerCase()}…`, 1900);
+  await playCut({ inPlace: true, bars: false, steps: [{ move: ['me', 417, 160, 260] }, { move: ['me', 417, 149, 200] }, { fn: () => { G.dir = 3; } }, { wait: 1300 }] });   // ngồi vào ghế thứ ba của bàn ăn
+  advanceTime(m.mins); G.daily.meals[m.id] = true; gainStam(m.stam);
+  RT.lock = false; UI.hud();
 };
 function lunchboxAvail() { return !!G && schoolToday() && G.time < 470 && !G.daily.lunchbox; }
 ACT.lunchbox = () => { G.daily.lunchbox = true; G.inv.comhop++; UI.toast('Đã lấy cơm hộp mẹ nấu. Mở Cặp sách để ăn vào giờ nghỉ trưa.', 'good'); };

@@ -254,7 +254,11 @@ function askOuting(name) {
 function dadWatching() { const f = FAM.dad; return !!G && f.goal === 'sofaL' && !f.legs.length && !f.hidden && G.time >= 1200; }
 function tvLabel() { return dadWatching() && !G.daily.football ? 'Tivi — xem bóng đá cùng bố' : 'Tivi — bản tin, vận may hôm nay'; }
 async function watchFootball() {
-  await activity('Đang xem bóng đá cùng bố…', 30, () => { G.daily.football = true; G.daily.tv = true; gainStam(6); addParent(PARENT.football, 'xem bóng đá cùng bố'); });
+  if (RT.lock) return;
+  RT.lock = true; UI.progress('Đang xem bóng đá cùng bố…', 2200, '#3b82c4');
+  await playCut({ inPlace: true, bars: false, steps: TV_SIT.concat([{ wait: 1700 }]), props: [tvGlow] });   // bố ngồi sofa, mình ngồi ghế bành bên cạnh
+  advanceTime(30); G.daily.football = true; G.daily.tv = true; gainStam(6); addParent(PARENT.football, 'xem bóng đá cùng bố');
+  RT.lock = false; UI.hud();
 }
 // Tivi: bản tin thời sự hằng ngày, chương trình vận may (xem điểm may mắn hôm nay); tối có bố thì xem bóng đá cùng bố
 ACT.tv = async () => {

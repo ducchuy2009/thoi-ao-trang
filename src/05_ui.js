@@ -167,17 +167,23 @@ const UI = {
     $('h-date').textContent = `${DOW[c.dow]}, ${c.dos} ${c.sName}`;
     $('h-year').textContent = `Năm ${c.year + 1} · Lớp ${G.grade}`;
     $('h-time').textContent = fmtTime(G.time);
-    $('h-phase').textContent = phaseLabel();
-    $('h-stam').style.width = Math.round(100 * G.stamina / mx) + '%';
-    $('h-stam').className = G.stamina < 15 ? 'low' : '';
-    $('h-stamtx').textContent = `${Math.round(G.stamina)}/${mx}`;
+    const pl = periodLabel(); $('h-phase').textContent = pl || phaseLabel().replace(/^Giai đoạn \d · /, ''); $('h-phase').classList.toggle('per', !!pl);
+    $('h-phase').title = phaseLabel();
+    const sp = Math.max(0, Math.min(1, G.stamina / mx));
+    $('h-stam').style.height = Math.round(100 * sp) + '%';
+    $('h-stam').className = sp < 0.2 || G.stamina < 15 ? 'low' : sp < 0.5 ? 'mid' : '';
+    $('stambar').title = `Thể lực ${Math.round(G.stamina)}/${mx}`;
+    $('h-stamtx').textContent = Math.round(G.stamina);
     $('h-money').innerHTML = fmtMoney(G.money) + (wageTotal() ? ` <small class="wage" title="Tiền công hôm nay — nhận vào cuối ngày">+${fmtMoney(wageTotal())}</small>` : '');
     $('h-conduct').textContent = fmtScore(G.conduct);
     const un = unreadCount(), dot = $('ph-dot'); dot.textContent = un || ''; dot.classList.toggle('on', un > 0);
     const nq = G.tasks ? G.tasks.active.length : 0, qd = $('q-dot'); qd.textContent = nq || ''; qd.classList.toggle('on', nq > 0);
     this.hotbar();
-    const td = todoList();
-    $('todo').innerHTML = td.map(([ok, s]) => `<div class="${ok ? 'ok' : ''}"><i></i>${s}</div>`).join('');
+    // việc cần làm: dạng dropdown, mặc định thu gọn (bấm tiêu đề để mở / đóng) cho khỏi che nhân vật
+    const td = todoList(), left = td.filter(x => !x[0]).length, el = $('todo');
+    if (!el._bound) { el._bound = true; el.addEventListener('click', () => { UI._todoOpen = !UI._todoOpen; try { localStorage.setItem('tat_todo', UI._todoOpen ? '1' : ''); } catch (e) {} UI.hud(); }); try { UI._todoOpen = !!localStorage.getItem('tat_todo'); } catch (e) {} }
+    el.classList.toggle('open', !!UI._todoOpen);
+    el.innerHTML = td.length ? `<b class="th">Việc cần làm${left ? ` <span class="n">${left}</span>` : ''}<span class="ar">${UI._todoOpen ? '▾' : '▸'}</span></b>` + (UI._todoOpen ? td.map(([ok, s]) => `<div class="${ok ? 'ok' : ''}"><i></i>${s}</div>`).join('') : '') : '';
   },
   /* ---------- Thanh đồ (góc dưới): đang mang gì trong cặp ---------- */
   hotbarItems() {

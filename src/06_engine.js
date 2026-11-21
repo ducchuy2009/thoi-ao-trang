@@ -84,7 +84,7 @@ function trStep(n, dt) {
 }
 function updateNpcs(dt, busy, snapNow) {
   const m = MAPS[G.map];
-  const snap = snapNow || RT.trMap !== G.map || (RT.scene && RT.scene.type === 'cut');
+  const snap = snapNow || RT.trMap !== G.map || !!RT.scene;            // đang diễn cảnh (tiết học, cắt cảnh…): ẩn / hiện ngay, không đi ra cửa (thầy cô không tự đi ra giữa giờ học)
   RT.trMap = G.map;
   for (const n of NPCS) {
     if (n.fam || n.map !== G.map) continue;      // bố mẹ do updateFamily điều khiển
@@ -110,6 +110,19 @@ function updateNpcs(dt, busy, snapNow) {
   }
 }
 
+// Người đang tự đi về (bạn vừa chào tạm biệt): đi bộ tới cửa / mép bản đồ rồi khuất
+function updateWalkers(dt) {
+  if (!RT.walkers || !RT.walkers.length) return;
+  RT.walkers = RT.walkers.filter(w => {
+    if (w.map !== G.map || (w.t += dt) > 40) return false;
+    const dx = w.to[0] - w.x, dy = w.to[1] - w.y, d = Math.hypot(dx, dy), sp = 40 * dt;
+    if (d <= sp) return false;
+    const m = MAPS[w.map], vx = dx / d * sp, vy = dy / d * sp;
+    if (!blocked(m, w.x + vx, w.y + vy)) { w.x += vx; w.y += vy; } else if (!blocked(m, w.x + vx, w.y)) w.x += vx; else if (!blocked(m, w.x, w.y + vy)) w.y += vy; else { w.x += vx; w.y += vy; }
+    w.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 1 : 2) : (dy < 0 ? 3 : 0); w.walk += dt;
+    return true;
+  });
+}
 // Bạn đang đi cùng: lẽo đẽo theo sau mình (đi xe thì ngồi sau xe)
 function updateFollower(dt, busy) {
   const c = G.comp; if (!c) { RT.fol = null; return; }
@@ -193,6 +206,14 @@ function movePlayer(dt) {
     doWarp(w); return;
   }
   for (const z of m.zones) if (G.x >= z.x && G.x < z.x + z.w && G.y >= z.y && G.y < z.y + z.h) { G.x += z.bx || 0; G.y += z.by || 0; for (const k in KEYS) KEYS[k] = false; z.fn(); return; }
+  // cửa toà nhà (đồ vật có door): đi thẳng lên vào cửa là vào / bấm chuông, không cần bấm chuột. Ra khỏi vùng cửa rồi mới kích hoạt lại.
+  let inDoor = null;
+  for (const o of m.objs) if (o.door && o.sol && o.act && (!o.vis || o.vis())) {
+    const cx0 = o.x + o.sol[0] + o.sol[2] / 2, by0 = o.y + o.sol[1] + o.sol[3];
+    if (Math.abs(G.x - cx0) <= 16 && G.y >= by0 - 3 && G.y <= by0 + 7) { inDoor = o; break; }
+  }
+  if (inDoor && G.dir === 3 && vy < 0 && RT.doorHit !== inDoor && !G.ride) { RT.doorHit = inDoor; for (const k in KEYS) KEYS[k] = false; inDoor.act(); return; }
+  if (!inDoor) RT.doorHit = null;
 }
 async function doWarp(w) {
   if (G.ride) { if (w.to.map === 'home') { G.ride = null; G.park = null; UI.toast('Dựng xe ngoài sân rồi vào nhà.'); } else dismount(true); }   // không đi xe vào trong nhà / lớp
@@ -245,6 +266,7 @@ function update(dt) {
   updateTrips(dt, snapNow);                        // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch
   updateNpcs(dt, busy, snapNow);
   updateFollower(dt, busy);
+  updateWalkers(dt);                               // bạn vừa chào tạm biệt: tự đi về
   for (const f of RT.floats) f.t += dt;
   RT.floats = RT.floats.filter(f => f.t < 1.6);
   hudAcc += dt; if (hudAcc > 0.3) { hudAcc = 0; UI.hud(); }
@@ -318,6 +340,7 @@ function render(now) {
     if (!(RT.scene && RT.scene.hideMe)) list.push({ b: G.y, p: 1 });
     if (G.park && !G.park.shed && G.park.map === G.map) list.push({ b: G.park.y, v: G.park });
     if (G.comp && RT.fol && !RT.scene && !G.ride) list.push({ b: RT.fol.y - 0.5, f: RT.fol });
+    if (RT.walkers) for (const w of RT.walkers) if (w.map === G.map) list.push({ b: w.y, w });
   }
   list.sort((p, q) => p.b - q.b);
   for (const e of list) {
@@ -332,6 +355,7 @@ function render(now) {
     else if (e.a) { if (!e.a.hidden) drawChar(e.a.look, e.a.outfit, e.a.x, e.a.y, e.a.dir, e.a.walk === undefined ? -1 : e.a.walk, e.a.oy); }
     else if (e.v) drawSpr(SPR[VEHICLES[e.v.id].spr], e.v.x - 15, e.v.y - 19);
     else if (e.f) drawChar(G.comp.fid, friendOutfit(G.comp.fid), e.f.x, e.f.y, e.f.dir, e.f.walk);
+    else if (e.w) drawChar(e.w.look, e.w.outfit, e.w.x, e.w.y, e.w.dir, e.w.walk);
     else if (G.ride && !RT.scene) drawRider(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), VEHICLES[G.ride].spr, G.x, G.y, !!RT.faceL, G.comp ? G.comp.fid : null);
     else drawChar(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), G.x, G.y, G.dir, RT.walkT, RT.scene && RT.scene.meOy);
   }

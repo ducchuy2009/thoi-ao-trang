@@ -68,6 +68,7 @@ function buildHome() {
   addObj(m, { s: 'plant', x: 334, y: 196, sol: [2, 14, 12, 9] });
   addObj(m, { s: 'plant', x: 164, y: 196, sol: [2, 14, 12, 9] });
   addObj(m, { s: 'sofa', x: 191, y: 104, sol: [1, 6, 46, 15] });
+  addObj(m, { s: 'armchair', x: 241, y: 104, sol: [1, 6, 22, 15] });          // nhà 3 người: sofa 2 chỗ (bố, mẹ) + ghế bành cho mình
   // bếp
   addObj(m, { s: 'stove', x: 368, y: 20, sol: [1, 4, 16, 23] });
   addObj(m, { s: 'counter', x: 384, y: 20, sol: [1, 4, 16, 23] });
@@ -77,7 +78,7 @@ function buildHome() {
   addObj(m, { s: 'lunchbox', x: 421, y: 21, base: 60, ir: [0, 0, 12, 28], vis: () => lunchboxAvail(), label: () => 'Cơm hộp mẹ nấu — mang đi ăn trưa', act: () => ACT.lunchbox() });
   addObj(m, { s: 'fridge', x: 447, y: 12, sol: [1, 12, 16, 23] });
   addObj(m, { s: 'table', x: 394, y: 112, sol: [1, 2, 44, 26], dyn: () => (mealNow() ? 'tableFood' : 'table'), label: () => mealLabel(), act: () => ACT.table() });
-  addObj(m, { s: 'stool', x: 380, y: 122 }); addObj(m, { s: 'stool', x: 442, y: 122 });
+  addObj(m, { s: 'stool', x: 380, y: 122 }); addObj(m, { s: 'stool', x: 442, y: 122 }); addObj(m, { s: 'stool', x: 412, y: 141 });   // 3 ghế: bố, mẹ, mình
   m.warps.push({ x: 208, y: 230, w: 32, h: 10, dir: 0, to: { map: 'town', x: 96, y: 140, dir: 0 } });
 }
 
@@ -118,11 +119,11 @@ function buildTown() {
     addObj(m, { s: V.spr, x: a, y: b, sol: V.sol, vis: () => vehAtHome(id), label: () => `${V.name} — lên xe`, act: () => ACT.mount(id) });
   }
   // dãy phố
-  addObj(m, { s: 'shop', x: 303, y: 51, sol: [1, 24, 96, 53], label: () => 'Tạp hoá Cô Ba — mua đồ, phụ bán hàng', act: () => ACT.shop() });
-  addObj(m, { s: 'center', x: 431, y: 51, sol: [1, 24, 96, 53], label: () => 'Trung tâm Sao Mai — đăng ký học thêm', act: () => ACT.center() });
+  addObj(m, { door: true, s: 'shop', x: 303, y: 51, sol: [1, 24, 96, 53], label: () => 'Tạp hoá Cô Ba — mua đồ, phụ bán hàng', act: () => ACT.shop() });
+  addObj(m, { door: true, s: 'center', x: 431, y: 51, sol: [1, 24, 96, 53], label: () => 'Trung tâm Sao Mai — đăng ký học thêm', act: () => ACT.center() });
   // nhà cô chủ nhiệm và thầy Tùng (ngày Tết tới chúc Tết)
-  addObj(m, { s: 'houseB', x: 575, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà cô Hạnh (cô chủ nhiệm)', act: () => ACT.teacherHouse('hanh') });
-  addObj(m, { s: 'houseC', x: 687, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà thầy Tùng', act: () => ACT.teacherHouse('tung') });
+  addObj(m, { door: true, s: 'houseB', x: 575, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà cô Hạnh (cô chủ nhiệm)', act: () => ACT.teacherHouse('hanh') });
+  addObj(m, { door: true, s: 'houseC', x: 687, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà thầy Tùng', act: () => ACT.teacherHouse('tung') });
   addObj(m, { s: 'bush', x: 405, y: 113, sol: [2, 4, 18, 9] }); addObj(m, { s: 'tree2', x: 533, y: 80, sol: [13, 38, 10, 9] });
   addObj(m, { s: 'treePink', x: 292, y: 4, sol: [13, 38, 10, 9] }); addObj(m, { s: 'tree', x: 404, y: 2, sol: [13, 38, 10, 9] }); addObj(m, { s: 'treeOrange', x: 534, y: 6, sol: [13, 38, 10, 9] });
   m.labels.push({ x: 352, y: 66.5, text: 'TẠP HOÁ CÔ BA', size: 8.5, col: '#2a2136', maxw: 78 });
@@ -171,15 +172,15 @@ function buildPho() {
   // dãy nhà bạn bè
   for (const fid in FRIEND_HOUSE) {
     const [spr, hx] = FRIEND_HOUSE[fid], F = FRIENDS[fid];
-    addObj(m, { s: spr, x: hx, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà bạn — bấm chuông', act: () => ACT.house(fid) });
+    addObj(m, { door: true, s: spr, x: hx, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà bạn — bấm chuông', act: () => ACT.house(fid) });
     NPCS.push({ id: 'h_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'pho', x: hx + 49, y: 144, dir: 0, wander: 8, portal: () => [hx + 49, 130], vis: () => friendHome(fid), label: () => F.name + ' — đang ở trước nhà', act: () => ACT.friend(fid, 'house') });
   }
   // dãy vui chơi
   addObj(m, { s: 'teashop', x: 484, y: 51, sol: [1, 24, 80, 53], label: () => PLACES.tea.name + ' — uống trà sữa', act: () => ACT.tea() });
   m.labels.push({ x: 525, y: 67.5, text: 'TRÀ SỮA MÂY', size: 8, col: '#b5677c', maxw: 62 });
-  addObj(m, { s: 'mall', x: 572, y: 23, sol: [1, 30, 176, 75], label: () => PLACES.mall.name + ' — vào trong', act: () => ACT.enter('mall') });
+  addObj(m, { door: true, s: 'mall', x: 572, y: 23, sol: [1, 30, 176, 75], label: () => PLACES.mall.name + ' — vào trong', act: () => ACT.enter('mall') });
   m.labels.push({ x: 661, y: 44.5, text: 'HOA PHƯỢNG PLAZA', size: 9, col: '#ffffff', maxw: 128 });
-  addObj(m, { s: 'arcade', x: 758, y: 51, sol: [1, 24, 96, 53], label: () => PLACES.arcade.name + ' — vào trong', act: () => ACT.enter('arcade') });
+  addObj(m, { door: true, s: 'arcade', x: 758, y: 51, sol: [1, 24, 96, 53], label: () => PLACES.arcade.name + ' — vào trong', act: () => ACT.enter('arcade') });
   m.labels.push({ x: 807, y: 68, text: 'GAME ARCADE', size: 8, col: '#ffe066', maxw: 76 });
   for (const lx of [112, 262, 416, 862]) addObj(m, { s: 'lamp', x: lx, y: 112, sol: [3, 38, 6, 6] });
   addObj(m, { s: 'treePink', x: 862, y: 10, sol: [13, 38, 10, 9] });
@@ -190,7 +191,7 @@ function buildPho() {
   addObj(m, { s: 'signpost', x: PHO_W * 16 - 30, y: 150, sol: [10, 22, 8, 8], label: () => 'Trường THPT Hoa Phượng →', act: () => ACT.go('pho', 'school') });
   m.zones.push({ x: PHO_W * 16 - 8, y: 160, w: 8, h: 112, fn: () => ACT.go('pho', 'school'), bx: -6 });
   // công ty của mẹ (cuối phố, gần trường): vào trong gặp mẹ
-  addObj(m, { s: 'congty', x: MOM_CO.x, y: 18, sol: [1, 34, 150, 47], label: () => 'Công ty Sen Vàng — chỗ mẹ làm việc', act: () => ACT.enterWork('mom') });
+  addObj(m, { door: true, s: 'congty', x: MOM_CO.x, y: 18, sol: [1, 34, 150, 47], label: () => 'Công ty Sen Vàng — chỗ mẹ làm việc', act: () => ACT.enterWork('mom') });
   m.labels.push({ x: MOM_CO.x + 76, y: 33.5, text: 'CÔNG TY SEN VÀNG', size: 8, col: '#ffffff', maxw: 120 });
   for (const lx of [1040]) addObj(m, { s: 'lamp', x: lx, y: 112, sol: [3, 38, 6, 6] });
   addObj(m, { s: 'trailsign', x: 406, y: 16, sol: [9, 16, 6, 8], label: () => '↑ Ga tàu (tàu ra biển)', act: () => ACT.go('pho', 'ga') });
@@ -310,7 +311,7 @@ function buildStation() {
   paint(m, 'walk', 0, 10, 36, 3, 0); paint(m, 'road', 0, 13, 36, 3, 0); paint(m, 'walk', 16, 5, 4, 5, 0); paint(m, 'walk', 16, 16, 4, 4, 0);
   for (let i = 0; i < 36; i += 2) R(x, '#f3e6a8', i * 16 + 4, 14 * 16 + 7, 12, 2);
   addObj(m, { s: 'train', x: 190, y: 8, ir: [0, 20, 170, 20], label: () => 'Tàu ra biển — mua vé lên tàu', act: () => ACT.train('ga') });
-  addObj(m, { s: 'station', x: 60, y: 76, sol: [1, 28, 128, 56], label: () => 'Phòng vé — mua vé tàu ra biển', act: () => ACT.train('ga') });
+  addObj(m, { door: true, s: 'station', x: 60, y: 76, sol: [1, 28, 128, 56], label: () => 'Phòng vé — mua vé tàu ra biển', act: () => ACT.train('ga') });
   m.labels.push({ x: 125, y: 112, text: 'GA HOA PHƯỢNG', size: 7.5, col: '#ffffff', maxw: 78 });
   addBusStop(m, 'ga', 380, 166, 366, 210);
   for (const [s2, a, b] of [['tree', 4, 70], ['treePink', 470, 70], ['tree2', 530, 80], ['tree', 10, 262], ['treeOrange', 100, 266], ['tree2', 400, 264], ['treePink', 500, 268]]) addObj(m, { s: s2, x: a, y: b, sol: [13, 38, 10, 9] });
@@ -471,7 +472,7 @@ function buildClass() {
     }
   }
   m.warps.push({ x: 272, y: 214, w: 32, h: 10, dir: 0, to: { map: 'school', x: 244, y: 116, dir: 0 } });
-  NPCS.push({ id: 'teacher', name: 'Cô giáo', look: 'teacherA', map: 'class', x: 160, y: 52, dir: 0, vis: () => teacherIn(), dynLook: () => (RT.scene && RT.scene.teacher) || 'teacherA', label: () => 'Cô chủ nhiệm', act: () => ACT.teacher() });
+  NPCS.push({ id: 'teacher', name: 'Cô giáo', look: 'teacherA', map: 'class', x: 160, y: 52, dir: 0, tr: false, vis: () => teacherIn(), dynLook: () => (RT.scene && RT.scene.teacher) || 'teacherA', label: () => 'Cô chủ nhiệm', act: () => ACT.teacher() });
 }
 
 /* ---------------- PHÒNG THÍ NGHIỆM ---------------- */

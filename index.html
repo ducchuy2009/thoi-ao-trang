@@ -17,22 +17,35 @@ kbd{display:inline-block;min-width:1.5em;padding:0 .4em;margin:0 .15em;border:2p
 
 /* ---------- HUD ---------- */
 #left,#menu,#hint{display:none}
-#left{position:fixed;left:12px;top:12px;width:236px;flex-direction:column;gap:9px;pointer-events:none}
+#left{position:fixed;left:10px;top:10px;width:196px;flex-direction:column;gap:6px;pointer-events:none}
 body.playing #left{display:flex}
-#hud{padding:8px 12px 10px}
+#hud{padding:5px 9px 7px;border-radius:12px}
 #hud .r1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-#h-date{font-weight:800;font-size:16px}
-#h-time{font-weight:800;font-size:24px;line-height:1;font-variant-numeric:tabular-nums}
-#h-year{font-size:12px;font-weight:600;color:var(--dim)}
-#h-phase{display:inline-block;margin:5px 0 7px;padding:1px 10px;border-radius:999px;background:var(--green);color:#fff;font-weight:700;font-size:13px;border:2px solid var(--ink)}
+#h-date{font-weight:800;font-size:14px}
+#h-time{font-weight:800;font-size:20px;line-height:1;font-variant-numeric:tabular-nums}
+#h-year{font-size:11px;font-weight:600;color:var(--dim);line-height:1.1}
+#h-phase{display:block;margin:4px 0 5px;padding:0 8px;border-radius:999px;background:var(--green);color:#fff;font-weight:700;font-size:12px;border:2px solid var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#h-phase.per{background:var(--blue)}
 .bar{position:relative;height:16px;border:2px solid var(--ink);border-radius:999px;background:#e9dcc0;overflow:hidden}
 .bar>div{height:100%;background:#5fb0e0;transition:width .3s}
 .bar>div.low{background:var(--red)}
 .bar>span{position:absolute;inset:0;text-align:center;font-size:11px;font-weight:800;line-height:12px}
 .bar>label{position:absolute;left:8px;top:0;font-size:11px;font-weight:800;line-height:12px}
-#hud .r2{display:flex;justify-content:space-between;margin-top:6px;font-weight:800}
-#hud .r2 small{display:block;font-size:11px;line-height:1}
-#todo{padding:7px 12px;font-size:13px;font-weight:600;border-radius:12px}
+#hud .r2{display:flex;justify-content:space-between;margin-top:4px;font-weight:800;font-size:13px}
+#hud .r2 small{display:block;font-size:10px;line-height:1}
+#stambar{position:fixed;right:12px;bottom:12px;width:36px;height:178px;display:none;flex-direction:column;align-items:center;gap:3px;padding:4px 0 5px;pointer-events:auto;border-radius:10px;z-index:5}
+body.playing #stambar{display:flex}
+#stambar i{font-style:normal;font-weight:800;font-size:12px;color:#fff;background:var(--green);border:2px solid var(--ink);border-radius:6px;width:22px;text-align:center;line-height:15px}
+#stambar .tube{flex:1;width:16px;border:2px solid var(--ink);border-radius:6px;background:#3a3046;display:flex;flex-direction:column-reverse;overflow:hidden}
+#h-stam{width:100%;background:linear-gradient(90deg,#a6ec7d,#4fbf4a 60%,#3a9c3e);transition:height .3s}
+#h-stam.mid{background:linear-gradient(90deg,#ffe68a,#f2c94c 60%,#d9a62e)}
+#h-stam.low{background:linear-gradient(90deg,#ff9a8a,#e2574c 60%,#b8392f)}
+#h-stamtx{font-size:10px;font-weight:800;line-height:1}
+#todo{padding:4px 9px;font-size:12px;font-weight:600;border-radius:12px;pointer-events:auto;cursor:pointer;max-height:42vh;overflow-y:auto}
+#todo .th{display:flex;align-items:center;gap:6px;font-size:12.5px}
+#todo .th .n{background:var(--red);color:#fff;border-radius:999px;padding:0 6px;font-size:11px;line-height:16px}
+#todo .th .ar{margin-left:auto}
+#todo.open .th{margin-bottom:3px}
 #todo:empty{display:none!important}
 #todo div{display:flex;gap:7px;align-items:center;padding:1px 0}
 #todo i{flex:none;width:12px;height:12px;border:2px solid var(--ink);border-radius:4px;background:#fff}
@@ -444,7 +457,7 @@ b.bad{color:#d9534f}
 #arena .ah small{display:block;font-size:12px;color:#5f656f}
 #arena .bar{height:8px;border:2px solid var(--ink);border-radius:6px;background:#e9dcc0;margin:4px 0;overflow:hidden}
 #arena .bar span{display:block;height:100%;background:linear-gradient(90deg,#ffd23a,#e2574c)}
-#arena .ab{pointer-events:auto;position:fixed;right:18px;bottom:96px;width:92px;height:92px;border-radius:50%;border:4px solid var(--ink);background:#e2574c;color:#fff6e3;font:800 18px/1 inherit;font-family:inherit;box-shadow:0 5px 0 var(--ink);cursor:pointer;touch-action:manipulation}
+#arena .ab{pointer-events:auto;position:fixed;right:60px;bottom:96px;width:92px;height:92px;border-radius:50%;border:4px solid var(--ink);background:#e2574c;color:#fff6e3;font:800 18px/1 inherit;font-family:inherit;box-shadow:0 5px 0 var(--ink);cursor:pointer;touch-action:manipulation}
 #arena .ab:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
 .hktab{width:100%;border-collapse:collapse;font-size:14px;margin:4px 0 8px}
 .hktab th,.hktab td{padding:4px 8px;text-align:center;border-bottom:2px solid #e9dcc0}
@@ -462,11 +475,12 @@ b.bad{color:#d9534f}
 <div id="hud" class="card">
   <div class="r1"><div><div id="h-date"></div><div id="h-year"></div></div><div id="h-time">05:00</div></div>
   <div id="h-phase"></div>
-  <div class="bar"><div id="h-stam"></div><label>Thể lực</label><span id="h-stamtx"></span></div>
   <div class="r2"><span><small>Tiền tiêu vặt</small><span id="h-money"></span></span><span style="text-align:right"><small>Hạnh kiểm</small><span id="h-conduct"></span></span></div>
 </div>
 <div id="todo" class="card"></div>
 </div>
+<!-- thanh thể lực dọc ở góc phải dưới (kiểu Stardew Valley) -->
+<div id="stambar" class="card" title="Thể lực"><i>E</i><div class="tube"><div id="h-stam"></div></div><span id="h-stamtx"></span></div>
 <div id="menu">
   <button data-m="quest" title="Nhiệm vụ (J)"><img id="ic-quest" alt="Nhiệm vụ"><i id="q-dot" class="dot"></i></button>
   <button data-m="map" title="Bản đồ (N)"><img id="ic-map" alt="Bản đồ"></button>
@@ -1376,7 +1390,7 @@ function drawCharFrame(L, dir, fr) {
       R(x, skS, 7, Y + 10, 2, 1);
       if (L.mustache) R(x, '#5a5a66', 6, Y + 9, 4, 1);
       if (L.glasses) {                                                                       // kính: vuông (mặc định) hoặc tròn
-        const gc = L.glassCol || '#2a2136', rd = L.glasses === 'round';
+        const gc = L.glassCol || '#8d93a6', rd = L.glasses === 'round';                         // gọng kính mảnh màu bạc (kính cận trong suốt, không phải kính râm)
         for (const gx of [3, 9]) { R(x, gc, gx + (rd ? 1 : 0), Y + 6, rd ? 2 : 4, 1); R(x, gc, gx + (rd ? 1 : 0), Y + 9, rd ? 2 : 4, 1); R(x, gc, gx, Y + (rd ? 7 : 6), 1, rd ? 2 : 4); R(x, gc, gx + 3, Y + (rd ? 7 : 6), 1, rd ? 2 : 4); }
         R(x, gc, 7, Y + 7, 2, 1);
       }
@@ -1436,7 +1450,7 @@ function drawCharFrame(L, dir, fr) {
     R(x, '#f5a79b', 2, Y + 9, 2, 1); R(x, skS, 8, Y + 7, 1, 2);
     if (L.freckles) { R(x, '#c98a62', 2, Y + 10, 1, 1); R(x, '#c98a62', 4, Y + 10, 1, 1); }
     if (L.mustache) R(x, '#5a5a66', 2, Y + 9, 3, 1);
-    if (L.glasses) { const gc = L.glassCol || '#2a2136'; R(x, gc, 2, Y + 6, 4, 1); R(x, gc, 2, Y + 9, 4, 1); R(x, gc, 1, Y + 7, 1, 2); R(x, gc, 5, Y + 7, 4, 1); }
+    if (L.glasses) { const gc = L.glassCol || '#8d93a6'; R(x, gc, 2, Y + 6, 4, 1); R(x, gc, 2, Y + 9, 4, 1); R(x, gc, 1, Y + 7, 1, 2); R(x, gc, 5, Y + 7, 4, 1); }
     if (L.earring) R(x, L.earring, 8, Y + 9, 1, 1);
     if (L.clip) R(x, L.clip, 10, Y + 4, 2, 1);
     if (L.cap) { const cp = L.cap; R(x, cp, 4, Y - 1, 8, 1); headFill(cp, 0, 4); R(x, shade(cp, -28), 0, Y + 4, 9, 1); R(x, shade(cp, 25), 5, Y, 3, 1); }
@@ -1785,6 +1799,7 @@ function buildSprites() {
     R(x, '#2f2a3a', 3, 0, 32, 17); R(x, '#4f7fb5', 5, 2, 28, 12); R(x, '#7fa9d6', 5, 2, 28, 2); line(x, '#9cc3e6', 8, 12, 16, 4); line(x, '#9cc3e6', 11, 12, 17, 6);
     R(x, '#2f2a3a', 16, 17, 6, 2); R(x, '#8a5a3a', 0, 18, 38, 10); R(x, '#a9703f', 0, 18, 38, 2); R(x, '#6f472c', 12, 21, 1, 6); R(x, '#6f472c', 25, 21, 1, 6); R(x, '#f4d35e', 6, 23, 2, 1); R(x, '#f4d35e', 18, 23, 2, 1); R(x, '#f4d35e', 30, 23, 2, 1);
   });
+  def('armchair', 22, 20, x => { R(x, '#5f7fa8', 0, 2, 22, 18); R(x, '#7b9bc4', 2, 0, 18, 6); R(x, '#8fb0d8', 3, 1, 16, 1); R(x, '#4f6c92', 0, 14, 22, 6); R(x, '#4f6c92', 0, 4, 4, 14); R(x, '#4f6c92', 18, 4, 4, 14); R(x, '#6f8fb8', 5, 7, 12, 7); });   // ghế bành cạnh sofa: chỗ ngồi xem tivi thứ ba
   def('sofa', 46, 20, x => { R(x, '#5f7fa8', 0, 2, 46, 18); R(x, '#7b9bc4', 2, 0, 42, 6); R(x, '#8fb0d8', 3, 1, 40, 1); R(x, '#4f6c92', 0, 14, 46, 6); R(x, '#4f6c92', 0, 4, 4, 14); R(x, '#4f6c92', 42, 4, 4, 14); R(x, '#6f8fb8', 5, 7, 17, 7); R(x, '#6f8fb8', 24, 7, 17, 7); R(x, '#f2a93b', 8, 5, 6, 5); });
   def('rug', 54, 30, x => { ell(x, '#d9695f', 26.5, 14.5, 26.5, 14.5); ell(x, '#f0c9a0', 26.5, 14.5, 22, 11); ell(x, '#d9695f', 26.5, 14.5, 19, 9); ell(x, '#e88b7f', 26.5, 14.5, 10, 4.5); }, true);
   def('rugBlue', 46, 24, x => { ell(x, '#5f8fc4', 22.5, 11.5, 22.5, 11.5); ell(x, '#cfe0f2', 22.5, 11.5, 19, 9); ell(x, '#5f8fc4', 22.5, 11.5, 16, 7); }, true);
@@ -2755,6 +2770,7 @@ function buildHome() {
   addObj(m, { s: 'plant', x: 334, y: 196, sol: [2, 14, 12, 9] });
   addObj(m, { s: 'plant', x: 164, y: 196, sol: [2, 14, 12, 9] });
   addObj(m, { s: 'sofa', x: 191, y: 104, sol: [1, 6, 46, 15] });
+  addObj(m, { s: 'armchair', x: 241, y: 104, sol: [1, 6, 22, 15] });          // nhà 3 người: sofa 2 chỗ (bố, mẹ) + ghế bành cho mình
   // bếp
   addObj(m, { s: 'stove', x: 368, y: 20, sol: [1, 4, 16, 23] });
   addObj(m, { s: 'counter', x: 384, y: 20, sol: [1, 4, 16, 23] });
@@ -2764,7 +2780,7 @@ function buildHome() {
   addObj(m, { s: 'lunchbox', x: 421, y: 21, base: 60, ir: [0, 0, 12, 28], vis: () => lunchboxAvail(), label: () => 'Cơm hộp mẹ nấu — mang đi ăn trưa', act: () => ACT.lunchbox() });
   addObj(m, { s: 'fridge', x: 447, y: 12, sol: [1, 12, 16, 23] });
   addObj(m, { s: 'table', x: 394, y: 112, sol: [1, 2, 44, 26], dyn: () => (mealNow() ? 'tableFood' : 'table'), label: () => mealLabel(), act: () => ACT.table() });
-  addObj(m, { s: 'stool', x: 380, y: 122 }); addObj(m, { s: 'stool', x: 442, y: 122 });
+  addObj(m, { s: 'stool', x: 380, y: 122 }); addObj(m, { s: 'stool', x: 442, y: 122 }); addObj(m, { s: 'stool', x: 412, y: 141 });   // 3 ghế: bố, mẹ, mình
   m.warps.push({ x: 208, y: 230, w: 32, h: 10, dir: 0, to: { map: 'town', x: 96, y: 140, dir: 0 } });
 }
 
@@ -2805,11 +2821,11 @@ function buildTown() {
     addObj(m, { s: V.spr, x: a, y: b, sol: V.sol, vis: () => vehAtHome(id), label: () => `${V.name} — lên xe`, act: () => ACT.mount(id) });
   }
   // dãy phố
-  addObj(m, { s: 'shop', x: 303, y: 51, sol: [1, 24, 96, 53], label: () => 'Tạp hoá Cô Ba — mua đồ, phụ bán hàng', act: () => ACT.shop() });
-  addObj(m, { s: 'center', x: 431, y: 51, sol: [1, 24, 96, 53], label: () => 'Trung tâm Sao Mai — đăng ký học thêm', act: () => ACT.center() });
+  addObj(m, { door: true, s: 'shop', x: 303, y: 51, sol: [1, 24, 96, 53], label: () => 'Tạp hoá Cô Ba — mua đồ, phụ bán hàng', act: () => ACT.shop() });
+  addObj(m, { door: true, s: 'center', x: 431, y: 51, sol: [1, 24, 96, 53], label: () => 'Trung tâm Sao Mai — đăng ký học thêm', act: () => ACT.center() });
   // nhà cô chủ nhiệm và thầy Tùng (ngày Tết tới chúc Tết)
-  addObj(m, { s: 'houseB', x: 575, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà cô Hạnh (cô chủ nhiệm)', act: () => ACT.teacherHouse('hanh') });
-  addObj(m, { s: 'houseC', x: 687, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà thầy Tùng', act: () => ACT.teacherHouse('tung') });
+  addObj(m, { door: true, s: 'houseB', x: 575, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà cô Hạnh (cô chủ nhiệm)', act: () => ACT.teacherHouse('hanh') });
+  addObj(m, { door: true, s: 'houseC', x: 687, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà thầy Tùng', act: () => ACT.teacherHouse('tung') });
   addObj(m, { s: 'bush', x: 405, y: 113, sol: [2, 4, 18, 9] }); addObj(m, { s: 'tree2', x: 533, y: 80, sol: [13, 38, 10, 9] });
   addObj(m, { s: 'treePink', x: 292, y: 4, sol: [13, 38, 10, 9] }); addObj(m, { s: 'tree', x: 404, y: 2, sol: [13, 38, 10, 9] }); addObj(m, { s: 'treeOrange', x: 534, y: 6, sol: [13, 38, 10, 9] });
   m.labels.push({ x: 352, y: 66.5, text: 'TẠP HOÁ CÔ BA', size: 8.5, col: '#2a2136', maxw: 78 });
@@ -2858,15 +2874,15 @@ function buildPho() {
   // dãy nhà bạn bè
   for (const fid in FRIEND_HOUSE) {
     const [spr, hx] = FRIEND_HOUSE[fid], F = FRIENDS[fid];
-    addObj(m, { s: spr, x: hx, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà bạn — bấm chuông', act: () => ACT.house(fid) });
+    addObj(m, { door: true, s: spr, x: hx, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà bạn — bấm chuông', act: () => ACT.house(fid) });
     NPCS.push({ id: 'h_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'pho', x: hx + 49, y: 144, dir: 0, wander: 8, portal: () => [hx + 49, 130], vis: () => friendHome(fid), label: () => F.name + ' — đang ở trước nhà', act: () => ACT.friend(fid, 'house') });
   }
   // dãy vui chơi
   addObj(m, { s: 'teashop', x: 484, y: 51, sol: [1, 24, 80, 53], label: () => PLACES.tea.name + ' — uống trà sữa', act: () => ACT.tea() });
   m.labels.push({ x: 525, y: 67.5, text: 'TRÀ SỮA MÂY', size: 8, col: '#b5677c', maxw: 62 });
-  addObj(m, { s: 'mall', x: 572, y: 23, sol: [1, 30, 176, 75], label: () => PLACES.mall.name + ' — vào trong', act: () => ACT.enter('mall') });
+  addObj(m, { door: true, s: 'mall', x: 572, y: 23, sol: [1, 30, 176, 75], label: () => PLACES.mall.name + ' — vào trong', act: () => ACT.enter('mall') });
   m.labels.push({ x: 661, y: 44.5, text: 'HOA PHƯỢNG PLAZA', size: 9, col: '#ffffff', maxw: 128 });
-  addObj(m, { s: 'arcade', x: 758, y: 51, sol: [1, 24, 96, 53], label: () => PLACES.arcade.name + ' — vào trong', act: () => ACT.enter('arcade') });
+  addObj(m, { door: true, s: 'arcade', x: 758, y: 51, sol: [1, 24, 96, 53], label: () => PLACES.arcade.name + ' — vào trong', act: () => ACT.enter('arcade') });
   m.labels.push({ x: 807, y: 68, text: 'GAME ARCADE', size: 8, col: '#ffe066', maxw: 76 });
   for (const lx of [112, 262, 416, 862]) addObj(m, { s: 'lamp', x: lx, y: 112, sol: [3, 38, 6, 6] });
   addObj(m, { s: 'treePink', x: 862, y: 10, sol: [13, 38, 10, 9] });
@@ -2877,7 +2893,7 @@ function buildPho() {
   addObj(m, { s: 'signpost', x: PHO_W * 16 - 30, y: 150, sol: [10, 22, 8, 8], label: () => 'Trường THPT Hoa Phượng →', act: () => ACT.go('pho', 'school') });
   m.zones.push({ x: PHO_W * 16 - 8, y: 160, w: 8, h: 112, fn: () => ACT.go('pho', 'school'), bx: -6 });
   // công ty của mẹ (cuối phố, gần trường): vào trong gặp mẹ
-  addObj(m, { s: 'congty', x: MOM_CO.x, y: 18, sol: [1, 34, 150, 47], label: () => 'Công ty Sen Vàng — chỗ mẹ làm việc', act: () => ACT.enterWork('mom') });
+  addObj(m, { door: true, s: 'congty', x: MOM_CO.x, y: 18, sol: [1, 34, 150, 47], label: () => 'Công ty Sen Vàng — chỗ mẹ làm việc', act: () => ACT.enterWork('mom') });
   m.labels.push({ x: MOM_CO.x + 76, y: 33.5, text: 'CÔNG TY SEN VÀNG', size: 8, col: '#ffffff', maxw: 120 });
   for (const lx of [1040]) addObj(m, { s: 'lamp', x: lx, y: 112, sol: [3, 38, 6, 6] });
   addObj(m, { s: 'trailsign', x: 406, y: 16, sol: [9, 16, 6, 8], label: () => '↑ Ga tàu (tàu ra biển)', act: () => ACT.go('pho', 'ga') });
@@ -2997,7 +3013,7 @@ function buildStation() {
   paint(m, 'walk', 0, 10, 36, 3, 0); paint(m, 'road', 0, 13, 36, 3, 0); paint(m, 'walk', 16, 5, 4, 5, 0); paint(m, 'walk', 16, 16, 4, 4, 0);
   for (let i = 0; i < 36; i += 2) R(x, '#f3e6a8', i * 16 + 4, 14 * 16 + 7, 12, 2);
   addObj(m, { s: 'train', x: 190, y: 8, ir: [0, 20, 170, 20], label: () => 'Tàu ra biển — mua vé lên tàu', act: () => ACT.train('ga') });
-  addObj(m, { s: 'station', x: 60, y: 76, sol: [1, 28, 128, 56], label: () => 'Phòng vé — mua vé tàu ra biển', act: () => ACT.train('ga') });
+  addObj(m, { door: true, s: 'station', x: 60, y: 76, sol: [1, 28, 128, 56], label: () => 'Phòng vé — mua vé tàu ra biển', act: () => ACT.train('ga') });
   m.labels.push({ x: 125, y: 112, text: 'GA HOA PHƯỢNG', size: 7.5, col: '#ffffff', maxw: 78 });
   addBusStop(m, 'ga', 380, 166, 366, 210);
   for (const [s2, a, b] of [['tree', 4, 70], ['treePink', 470, 70], ['tree2', 530, 80], ['tree', 10, 262], ['treeOrange', 100, 266], ['tree2', 400, 264], ['treePink', 500, 268]]) addObj(m, { s: s2, x: a, y: b, sol: [13, 38, 10, 9] });
@@ -3158,7 +3174,7 @@ function buildClass() {
     }
   }
   m.warps.push({ x: 272, y: 214, w: 32, h: 10, dir: 0, to: { map: 'school', x: 244, y: 116, dir: 0 } });
-  NPCS.push({ id: 'teacher', name: 'Cô giáo', look: 'teacherA', map: 'class', x: 160, y: 52, dir: 0, vis: () => teacherIn(), dynLook: () => (RT.scene && RT.scene.teacher) || 'teacherA', label: () => 'Cô chủ nhiệm', act: () => ACT.teacher() });
+  NPCS.push({ id: 'teacher', name: 'Cô giáo', look: 'teacherA', map: 'class', x: 160, y: 52, dir: 0, tr: false, vis: () => teacherIn(), dynLook: () => (RT.scene && RT.scene.teacher) || 'teacherA', label: () => 'Cô chủ nhiệm', act: () => ACT.teacher() });
 }
 
 /* ---------------- PHÒNG THÍ NGHIỆM ---------------- */
@@ -3747,11 +3763,11 @@ function buildFamilyPlaces() {
     addObj(m, { s: hs, x: hx, y: 47, sol: [1, 30, 96, 51], label: () => `Nhà ${S.name.toLowerCase()} — hàng xóm phố Bờ Đông`, act: () => neighborTalk(soc) });
     NPCS.push({ id: 'nb_' + soc, soc, name: S.name, look: S.look, outfit: S.outfit ? () => S.outfit : undefined, map: 'dong', x: hx + 49, y: 146, dir: 0, wander: 10, vis: () => inWin(G.time, 360, 1260), label: () => S.name + ' — trò chuyện', act: () => neighborTalk(soc) });
   }
-  addObj(m, { s: 'nhahangB', x: DONG.rest, y: 46, sol: [1, 32, 108, 50], label: () => 'Nhà hàng Sen Hồng — vào ăn', act: () => ACT.enterDong('nhahang') });
+  addObj(m, { door: true, s: 'nhahangB', x: DONG.rest, y: 46, sol: [1, 32, 108, 50], label: () => 'Nhà hàng Sen Hồng — vào ăn', act: () => ACT.enterDong('nhahang') });
   m.labels.push({ x: DONG.rest + 55, y: 74.5, text: 'NHÀ HÀNG SEN HỒNG', size: 6, col: '#ffd23a', maxw: 78 });
-  addObj(m, { s: 'karaokeB', x: DONG.kara, y: 46, sol: [1, 32, 98, 50], label: () => 'Karaoke Âm Vang — vào hát', act: () => ACT.enterDong('karaoke') });
+  addObj(m, { door: true, s: 'karaokeB', x: DONG.kara, y: 46, sol: [1, 32, 98, 50], label: () => 'Karaoke Âm Vang — vào hát', act: () => ACT.enterDong('karaoke') });
   m.labels.push({ x: DONG.kara + 50, y: 62.5, text: 'KARAOKE ÂM VANG', size: 6.5, col: '#ffe066', maxw: 76 });
-  addObj(m, { s: 'nhamayB', x: DONG.factory, y: 36, sol: [1, 40, 198, 52], label: () => 'Nhà máy bánh kẹo Hoa Phượng — chỗ bố làm việc', act: () => ACT.enterWork('dad') });
+  addObj(m, { door: true, s: 'nhamayB', x: DONG.factory, y: 36, sol: [1, 40, 198, 52], label: () => 'Nhà máy bánh kẹo Hoa Phượng — chỗ bố làm việc', act: () => ACT.enterWork('dad') });
   m.labels.push({ x: DONG.factory + 100, y: 74.5, text: 'NHÀ MÁY BÁNH KẸO HOA PHƯỢNG', size: 6, col: '#ffffff', maxw: 170 });
   for (const lx of [110, 330, 560, 830]) addObj(m, { s: 'lamp', x: lx, y: 112, sol: [3, 38, 6, 6] });
   for (const [s2, a, b] of [['tree', 20, 280], ['tree2', 160, 290], ['tree', 420, 284], ['tree2', 640, 292], ['tree', 860, 282]]) addObj(m, { s: s2, x: a, y: b, sol: [13, 38, 10, 9] });
@@ -3903,12 +3919,26 @@ const grudge = fid => (G.grudge[fid] === undefined ? -1 : G.grudge[fid]) >= G.da
 const sceneHides = sid => !!(RT.scene && RT.scene.hide && RT.scene.hide.includes(sid));
 // "Đã về nhà" (ngày đi học): có mặt ở nhà trong khoảng tan học → 20:00. Sau đó có ra ngoài chơi tiếp thì bố mẹ không mắng.
 function checkIn() { if (schoolToday() && G.time >= schoolEndT() && G.time < CFG.LATE_HOME && atHome()) G.daily.checkedIn = true; }
-function yardTime() { return schoolToday() && (!RT.scene || !!RT.scene.yard) && YARD_WINDOWS.some(([a, b], i) => inWin(G.time, a, b) && !(i > 2 && halfDay(G.day))); }
+// khung giờ ra sân thứ i: hôm chiều nghỉ thì hết tiết 4 là mọi người ra về luôn (ở lại sân chừng 40 phút rồi đi bộ ra cổng)
+const yardWin = i => (i === 2 && G && halfDay(G.day) ? [AM_END, AM_END + 40] : YARD_WINDOWS[i]);
+function yardTime() { return schoolToday() && (!RT.scene || !!RT.scene.yard) && YARD_WINDOWS.some((_, i) => inWin(G.time, ...yardWin(i)) && !(i > 2 && halfDay(G.day))); }
 function classSeated() { const t = G.time; return (RT.scene && RT.scene.type === 'class') || (schoolToday() && (inWin(t, 420, AM_END) || inWin(t, PM_START - 20, CFG.SCHOOL_END))); }
 function teacherIn() { const t = G.time; if (RT.scene) return false; return (schoolToday() && (inWin(t, 460, AM_END) || inWin(t, PM_START - 20, CFG.SCHOOL_END))); }
 function parkTime() { const t = G.time; return schoolToday() ? inWin(t, AFTER_SCHOOL, 1210) : inWin(t, 480, 1090); }
 function nextPeriod() { return schoolToday() ? PERIODS.find(p => p.start > G.time && !G.daily.done[p.n]) || null : null; }
 function currentPeriod() { return schoolToday() ? PERIODS.find(p => inWin(G.time, p.start, p.start + PERIOD_LEN) && !cutPeriods(G.day).has(p.n)) || null : null; }
+// Đang ở tiết nào của buổi học (hiện trên HUD): "Tiết 3 · Toán", "Ra chơi", "Nghỉ trưa"…; ngoài giờ học thì null
+function periodLabel() {
+  if (!G || !schoolToday() || G.time >= schoolEndT()) return null;
+  const t = G.time, tt = ttToday(), p = PERIODS.find(q => t >= q.start && t < q.start + PERIOD_LEN);
+  if (p) {
+    if (cutPeriods(G.day).has(p.n)) { const e = schoolEventsOn(G.day).find(x => x.periods.includes(p.n)); return e ? e.name : `Tiết ${p.n} · nghỉ`; }
+    const s = tt && tt[p.n - 1]; return s ? `Tiết ${p.n} · ${SUBJ[s].name}` : null;
+  }
+  if (t < PERIODS[0].start) return 'Trước giờ vào lớp';
+  if (t >= AM_END && t < PM_START) return 'Nghỉ trưa';
+  return 'Ra chơi';
+}
 function phaseLabel() {
   if (!schoolToday()) { const h = holidayOf(G.day); return h ? 'Nghỉ lễ · ' + h.name : (SEASONS[today().season].school ? 'Cuối tuần · Tự do' : 'Nghỉ hè · Tự do'); }
   if (G.time >= schoolEndT()) return halfDay(G.day) ? 'Giai đoạn 3 · Chiều nghỉ học' : 'Giai đoạn 3 · Sau giờ học';
@@ -4574,7 +4604,11 @@ function mealLabel() { const m = mealNow(); return m ? `${m.name} mẹ nấu` : 
 ACT.table = async () => {
   const m = mealNow();
   if (!m) return UI.say('Bàn ăn', 'Chưa đến bữa.<p class="dim">Sáng 06:00–08:00 · Trưa (ngày nghỉ) 11:00–13:30 · Tối 18:00–21:30</p>');
-  await activity(`Đang ăn ${m.name.toLowerCase()}…`, m.mins, () => { G.daily.meals[m.id] = true; gainStam(m.stam); });
+  if (RT.lock) return;
+  RT.lock = true; UI.progress(`Đang ăn ${m.name.toLowerCase()}…`, 1900);
+  await playCut({ inPlace: true, bars: false, steps: [{ move: ['me', 417, 160, 260] }, { move: ['me', 417, 149, 200] }, { fn: () => { G.dir = 3; } }, { wait: 1300 }] });   // ngồi vào ghế thứ ba của bàn ăn
+  advanceTime(m.mins); G.daily.meals[m.id] = true; gainStam(m.stam);
+  RT.lock = false; UI.hud();
 };
 function lunchboxAvail() { return !!G && schoolToday() && G.time < 470 && !G.daily.lunchbox; }
 ACT.lunchbox = () => { G.daily.lunchbox = true; G.inv.comhop++; UI.toast('Đã lấy cơm hộp mẹ nấu. Mở Cặp sách để ăn vào giờ nghỉ trưa.', 'good'); };
@@ -5008,7 +5042,11 @@ function askOuting(name) {
 function dadWatching() { const f = FAM.dad; return !!G && f.goal === 'sofaL' && !f.legs.length && !f.hidden && G.time >= 1200; }
 function tvLabel() { return dadWatching() && !G.daily.football ? 'Tivi — xem bóng đá cùng bố' : 'Tivi — bản tin, vận may hôm nay'; }
 async function watchFootball() {
-  await activity('Đang xem bóng đá cùng bố…', 30, () => { G.daily.football = true; G.daily.tv = true; gainStam(6); addParent(PARENT.football, 'xem bóng đá cùng bố'); });
+  if (RT.lock) return;
+  RT.lock = true; UI.progress('Đang xem bóng đá cùng bố…', 2200, '#3b82c4');
+  await playCut({ inPlace: true, bars: false, steps: TV_SIT.concat([{ wait: 1700 }]), props: [tvGlow] });   // bố ngồi sofa, mình ngồi ghế bành bên cạnh
+  advanceTime(30); G.daily.football = true; G.daily.tv = true; gainStam(6); addParent(PARENT.football, 'xem bóng đá cùng bố');
+  RT.lock = false; UI.hud();
 }
 // Tivi: bản tin thời sự hằng ngày, chương trình vận may (xem điểm may mắn hôm nay); tối có bố thì xem bóng đá cùng bố
 ACT.tv = async () => {
@@ -5620,7 +5658,16 @@ function meetToday(fid) { const m = meetOn(); if (!m || m.fid !== fid) return fa
 function meetHere(place) { const m = meetOn(); if (!m || m.place !== place) return null; const w = meetWindow(m); return inWin(G.time, w[0], w[1]) ? m.fid : null; }
 // Bạn đi cùng: đi theo sau mình qua các khu (trốn học hoặc đi chơi); tới chỗ vui chơi thì hai đứa cùng chơi, có hoạt cảnh
 function setComp(fid, skip) { G.comp = { fid, skip: !!skip, n: 0 }; RT.fol = null; }
-function endComp(msg) { if (!G.comp) return; G.comp = null; RT.fol = null; if (msg) UI.toast(msg, 'info'); }
+function endComp(msg, walkAway) {
+  if (!G.comp) return;
+  const fid = G.comp.fid, f = RT.fol;
+  if (walkAway && f && f.map === G.map && !(RT.scene && RT.scene.type === 'cut')) {        // tạm biệt: bạn tự đi bộ ra cửa / mép bản đồ gần nhất rồi mới khuất
+    const x = G.ride ? G.x + 10 : f.x, y = G.ride ? G.y + 2 : f.y;
+    let to = null, bd = 1e9; for (const p of mapPortals(MAPS[G.map])) { const d = Math.hypot(p[0] - x, p[1] - y); if (d < bd && d > 12) { bd = d; to = p; } }
+    if (to) (RT.walkers = RT.walkers || []).push({ fid, look: fid, outfit: friendOutfit(fid), map: G.map, x, y, to, dir: 0, walk: 0, t: 0 });
+  }
+  G.comp = null; RT.fol = null; if (msg) UI.toast(msg, 'info');
+}
 // Ai đang chơi cùng mình ở đây: bạn đang đi theo, hoặc bạn đang đợi ở chỗ hẹn này
 const palAt = place => (G.comp ? G.comp.fid : meetHere(place));
 // Cùng chơi: lần đầu trong buổi cộng đủ điểm thân thiết, các lần sau cộng một nửa
@@ -5744,7 +5791,7 @@ ACT.friend = async (fid, where) => {
   else if (c === 'out') askOut(fid);
   else if (c === 'num') askNumber(fid);
   else if (c === 'join') { if (G.meet) G.meet.n = Math.max(1, G.meet.n); setComp(fid, false); UI.say(F.name, '“Tới rồi hả! Đi thôi, cậu dẫn đường đi.”'); }
-  else if (c === 'bye') endComp(`${F.name} vẫy tay chào rồi về.`);
+  else if (c === 'bye') endComp(`${F.name} vẫy tay chào rồi đi về nhà.`, true);
 };
 // ACT.house (bấm chuông, vào nhà bạn chơi): xem 04d_life.js
 
@@ -6420,10 +6467,10 @@ const EAT_SEATS = { eat: [[124, 187], [176, 187], [150, 199]], eat2: [[62, 112],
 let YS = null;
 function yardState() {
   if (!G || !schoolToday() || (RT.scene && !RT.scene.yard)) return null;
-  const wi = YARD_WINDOWS.findIndex(([a, b]) => inWin(G.time, a, b)); if (wi < 0 || (halfDay(G.day) && wi > 2)) return null;   // chiều nghỉ học: ăn trưa xong ai về nhà nấy
+  const wi = YARD_WINDOWS.findIndex((_, i) => inWin(G.time, ...yardWin(i))); if (wi < 0 || (halfDay(G.day) && wi > 2)) return null;   // chiều nghỉ học: hết tiết 4 là ai về nhà nấy
   const key = G.day * 10 + wi; if (YS && YS.key === key) return YS;
   const rnd01 = mulberry(key * 7919 + 13), sh = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd01() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const kids = sh(YARD_KIDS.slice()), groups = [], where = {}, lunch = wi === 2;
+  const kids = sh(YARD_KIDS.slice()), groups = [], where = {}, lunch = wi === 2 && !halfDay(G.day);
   const take = (kind, spot, n) => { const mem = kids.splice(0, n); if (!mem.length) return; const g = { id: spot, kind, mem, c: YARD_SPOT[spot] }; groups.push(g); mem.forEach((k, i) => { where[k] = [g, i]; }); };
   if (lunch) {        // nghỉ trưa: vài bạn vào phòng ngủ trưa, vài bạn ăn ở căn tin / ghế đá
     const nap = kids.filter(k => !FRIENDS[k]).slice(0, 2); for (const k of nap) kids.splice(kids.indexOf(k), 1);
@@ -6441,7 +6488,7 @@ function yardState() {
 const LEAVE = { gate: [352, 414], out: [352, 460], speed: 44, gap: 0.35, late: 30 };
 function leaveTick() {
   if (!G || G.map !== 'school' || !schoolToday()) return;
-  const W = halfDay(G.day) ? YARD_WINDOWS[2] : YARD_WINDOWS[YARD_WINDOWS.length - 1];
+  const W = halfDay(G.day) ? yardWin(2) : YARD_WINDOWS[YARD_WINDOWS.length - 1];
   if (inWin(G.time, W[0], W[1]) && !(RT.scene && RT.scene.type === 'cut')) {
     // còn giờ ra sân sau tan học: nhớ chỗ từng bạn đang đứng
     const at = {}; for (const n of NPCS) if (n.map === 'school' && n.id.startsWith('y_') && n.cx !== undefined && n.vis && n.vis()) at[n.id] = [n.cx, n.cy];
@@ -7154,6 +7201,7 @@ function newsHtml() {
     <div class="tv-body"><img src="${faceOf('clerk')}" alt=""><div>${newsOf(G.day).map(t => `<p>${t}</p>`).join('')}</div></div>
     <div class="tv-tick">Bản tin thay đổi mỗi ngày · gần tới lễ hội sẽ có thông báo</div></div></div>`;
 }
+const TV_SIT = [{ move: ['me', 252, 92, 300] }, { move: ['me', 252, 116, 260] }, { fn: () => { G.dir = 3; } }];   // đi tới ghế bành cạnh sofa rồi ngồi xuống, quay mặt về tivi
 const tvGlow = now => { const f = Math.floor(now / 220) % 4; wRect(['rgba(255,255,255,.28)', 'rgba(120,200,255,.32)', 'rgba(255,230,140,.28)', 'rgba(255,255,255,.12)'][f], 200, 21, 28, 12); };
 // Xem tivi: lần đầu mỗi kênh trong ngày thì ngồi xem (mất chút thời gian), xem lại thì chỉ bật lên coi
 async function tvWatch(kind) {
@@ -7161,7 +7209,7 @@ async function tvWatch(kind) {
   if (!G.daily.tvSeen[kind]) {
     RT.lock = true;
     UI.progress(kind === 'news' ? 'Đang xem bản tin thời sự…' : 'Đang xem chương trình vận may…', 1800, '#3b82c4');
-    await playCut({ inPlace: true, bars: false, steps: [{ move: ['me', 214, 72, 500] }, { fn: () => { G.dir = 3; } }, { wait: 1300 }], props: [tvGlow] });
+    await playCut({ inPlace: true, bars: false, steps: TV_SIT.concat([{ wait: 1300 }]), props: [tvGlow] });   // ngồi xuống ghế bành xem tivi
     advanceTime(kind === 'news' ? 15 : 10);
     G.daily.tvSeen[kind] = true;
     if (!G.daily.tv) { G.daily.tv = true; gainStam(6); }
@@ -10433,17 +10481,23 @@ const UI = {
     $('h-date').textContent = `${DOW[c.dow]}, ${c.dos} ${c.sName}`;
     $('h-year').textContent = `Năm ${c.year + 1} · Lớp ${G.grade}`;
     $('h-time').textContent = fmtTime(G.time);
-    $('h-phase').textContent = phaseLabel();
-    $('h-stam').style.width = Math.round(100 * G.stamina / mx) + '%';
-    $('h-stam').className = G.stamina < 15 ? 'low' : '';
-    $('h-stamtx').textContent = `${Math.round(G.stamina)}/${mx}`;
+    const pl = periodLabel(); $('h-phase').textContent = pl || phaseLabel().replace(/^Giai đoạn \d · /, ''); $('h-phase').classList.toggle('per', !!pl);
+    $('h-phase').title = phaseLabel();
+    const sp = Math.max(0, Math.min(1, G.stamina / mx));
+    $('h-stam').style.height = Math.round(100 * sp) + '%';
+    $('h-stam').className = sp < 0.2 || G.stamina < 15 ? 'low' : sp < 0.5 ? 'mid' : '';
+    $('stambar').title = `Thể lực ${Math.round(G.stamina)}/${mx}`;
+    $('h-stamtx').textContent = Math.round(G.stamina);
     $('h-money').innerHTML = fmtMoney(G.money) + (wageTotal() ? ` <small class="wage" title="Tiền công hôm nay — nhận vào cuối ngày">+${fmtMoney(wageTotal())}</small>` : '');
     $('h-conduct').textContent = fmtScore(G.conduct);
     const un = unreadCount(), dot = $('ph-dot'); dot.textContent = un || ''; dot.classList.toggle('on', un > 0);
     const nq = G.tasks ? G.tasks.active.length : 0, qd = $('q-dot'); qd.textContent = nq || ''; qd.classList.toggle('on', nq > 0);
     this.hotbar();
-    const td = todoList();
-    $('todo').innerHTML = td.map(([ok, s]) => `<div class="${ok ? 'ok' : ''}"><i></i>${s}</div>`).join('');
+    // việc cần làm: dạng dropdown, mặc định thu gọn (bấm tiêu đề để mở / đóng) cho khỏi che nhân vật
+    const td = todoList(), left = td.filter(x => !x[0]).length, el = $('todo');
+    if (!el._bound) { el._bound = true; el.addEventListener('click', () => { UI._todoOpen = !UI._todoOpen; try { localStorage.setItem('tat_todo', UI._todoOpen ? '1' : ''); } catch (e) {} UI.hud(); }); try { UI._todoOpen = !!localStorage.getItem('tat_todo'); } catch (e) {} }
+    el.classList.toggle('open', !!UI._todoOpen);
+    el.innerHTML = td.length ? `<b class="th">Việc cần làm${left ? ` <span class="n">${left}</span>` : ''}<span class="ar">${UI._todoOpen ? '▾' : '▸'}</span></b>` + (UI._todoOpen ? td.map(([ok, s]) => `<div class="${ok ? 'ok' : ''}"><i></i>${s}</div>`).join('') : '') : '';
   },
   /* ---------- Thanh đồ (góc dưới): đang mang gì trong cặp ---------- */
   hotbarItems() {
@@ -11669,7 +11723,7 @@ function trStep(n, dt) {
 }
 function updateNpcs(dt, busy, snapNow) {
   const m = MAPS[G.map];
-  const snap = snapNow || RT.trMap !== G.map || (RT.scene && RT.scene.type === 'cut');
+  const snap = snapNow || RT.trMap !== G.map || !!RT.scene;            // đang diễn cảnh (tiết học, cắt cảnh…): ẩn / hiện ngay, không đi ra cửa (thầy cô không tự đi ra giữa giờ học)
   RT.trMap = G.map;
   for (const n of NPCS) {
     if (n.fam || n.map !== G.map) continue;      // bố mẹ do updateFamily điều khiển
@@ -11695,6 +11749,19 @@ function updateNpcs(dt, busy, snapNow) {
   }
 }
 
+// Người đang tự đi về (bạn vừa chào tạm biệt): đi bộ tới cửa / mép bản đồ rồi khuất
+function updateWalkers(dt) {
+  if (!RT.walkers || !RT.walkers.length) return;
+  RT.walkers = RT.walkers.filter(w => {
+    if (w.map !== G.map || (w.t += dt) > 40) return false;
+    const dx = w.to[0] - w.x, dy = w.to[1] - w.y, d = Math.hypot(dx, dy), sp = 40 * dt;
+    if (d <= sp) return false;
+    const m = MAPS[w.map], vx = dx / d * sp, vy = dy / d * sp;
+    if (!blocked(m, w.x + vx, w.y + vy)) { w.x += vx; w.y += vy; } else if (!blocked(m, w.x + vx, w.y)) w.x += vx; else if (!blocked(m, w.x, w.y + vy)) w.y += vy; else { w.x += vx; w.y += vy; }
+    w.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 1 : 2) : (dy < 0 ? 3 : 0); w.walk += dt;
+    return true;
+  });
+}
 // Bạn đang đi cùng: lẽo đẽo theo sau mình (đi xe thì ngồi sau xe)
 function updateFollower(dt, busy) {
   const c = G.comp; if (!c) { RT.fol = null; return; }
@@ -11778,6 +11845,14 @@ function movePlayer(dt) {
     doWarp(w); return;
   }
   for (const z of m.zones) if (G.x >= z.x && G.x < z.x + z.w && G.y >= z.y && G.y < z.y + z.h) { G.x += z.bx || 0; G.y += z.by || 0; for (const k in KEYS) KEYS[k] = false; z.fn(); return; }
+  // cửa toà nhà (đồ vật có door): đi thẳng lên vào cửa là vào / bấm chuông, không cần bấm chuột. Ra khỏi vùng cửa rồi mới kích hoạt lại.
+  let inDoor = null;
+  for (const o of m.objs) if (o.door && o.sol && o.act && (!o.vis || o.vis())) {
+    const cx0 = o.x + o.sol[0] + o.sol[2] / 2, by0 = o.y + o.sol[1] + o.sol[3];
+    if (Math.abs(G.x - cx0) <= 16 && G.y >= by0 - 3 && G.y <= by0 + 7) { inDoor = o; break; }
+  }
+  if (inDoor && G.dir === 3 && vy < 0 && RT.doorHit !== inDoor && !G.ride) { RT.doorHit = inDoor; for (const k in KEYS) KEYS[k] = false; inDoor.act(); return; }
+  if (!inDoor) RT.doorHit = null;
 }
 async function doWarp(w) {
   if (G.ride) { if (w.to.map === 'home') { G.ride = null; G.park = null; UI.toast('Dựng xe ngoài sân rồi vào nhà.'); } else dismount(true); }   // không đi xe vào trong nhà / lớp
@@ -11830,6 +11905,7 @@ function update(dt) {
   updateTrips(dt, snapNow);                        // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch
   updateNpcs(dt, busy, snapNow);
   updateFollower(dt, busy);
+  updateWalkers(dt);                               // bạn vừa chào tạm biệt: tự đi về
   for (const f of RT.floats) f.t += dt;
   RT.floats = RT.floats.filter(f => f.t < 1.6);
   hudAcc += dt; if (hudAcc > 0.3) { hudAcc = 0; UI.hud(); }
@@ -11903,6 +11979,7 @@ function render(now) {
     if (!(RT.scene && RT.scene.hideMe)) list.push({ b: G.y, p: 1 });
     if (G.park && !G.park.shed && G.park.map === G.map) list.push({ b: G.park.y, v: G.park });
     if (G.comp && RT.fol && !RT.scene && !G.ride) list.push({ b: RT.fol.y - 0.5, f: RT.fol });
+    if (RT.walkers) for (const w of RT.walkers) if (w.map === G.map) list.push({ b: w.y, w });
   }
   list.sort((p, q) => p.b - q.b);
   for (const e of list) {
@@ -11917,6 +11994,7 @@ function render(now) {
     else if (e.a) { if (!e.a.hidden) drawChar(e.a.look, e.a.outfit, e.a.x, e.a.y, e.a.dir, e.a.walk === undefined ? -1 : e.a.walk, e.a.oy); }
     else if (e.v) drawSpr(SPR[VEHICLES[e.v.id].spr], e.v.x - 15, e.v.y - 19);
     else if (e.f) drawChar(G.comp.fid, friendOutfit(G.comp.fid), e.f.x, e.f.y, e.f.dir, e.f.walk);
+    else if (e.w) drawChar(e.w.look, e.w.outfit, e.w.x, e.w.y, e.w.dir, e.w.walk);
     else if (G.ride && !RT.scene) drawRider(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), VEHICLES[G.ride].spr, G.x, G.y, !!RT.faceL, G.comp ? G.comp.fid : null);
     else drawChar(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), G.x, G.y, G.dir, RT.walkT, RT.scene && RT.scene.meOy);
   }
