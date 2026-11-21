@@ -491,7 +491,7 @@ function bcGame() {
 }
 const BC_TABLES = [[220, 204], [260, 204], [300, 204], [340, 204]];          // hàng bàn thi trước bàn trao giải
 const BC_HIDE = ['bc_c1', 'bc_x1', 'bc_x3', 'bc_principal'];               // người đang diễn trong cảnh thi thì ẩn khỏi tụ
-const bcTableProp = () => { for (const [x, y] of BC_TABLES) { wRect('#8a5a3a', x - 13, y - 14, 26, 8); wRect('#a9703f', x - 13, y - 14, 26, 2); wRect('#3f8f3a', x - 10, y - 13, 7, 5); wRect('#fbf7ee', x - 1, y - 13, 5, 4); wRect('#f2c94c', x + 6, y - 12, 4, 3); } };
+const bcTableProp = () => { for (const [x, y] of BC_TABLES) { wRect('#8a5a3a', x - 13, y - 10, 26, 8); wRect('#a9703f', x - 13, y - 10, 26, 2); wRect('#3f8f3a', x - 10, y - 9, 7, 5); wRect('#fbf7ee', x - 1, y - 9, 5, 4); wRect('#f2c94c', x + 6, y - 8, 4, 3); } };   // bàn ngang hông: không che mặt người đứng sau
 async function bcContest(join) {
   const B = bcY(); if (B.done || RT.lock) return;
   RT.lock = true;
@@ -499,18 +499,14 @@ async function bcContest(join) {
   const judge = { look: 'principal', x: 280, y: 236, dir: 3 };
   let board;
   if (join) {
-    await playCut({
-      map: 'school', me: [BC_TABLES[0][0], BC_TABLES[0][1], 0], cam: { x: 290, y: 200 }, title: 'Thi gói bánh chưng', hide: BC_HIDE,
-      actors: comp.concat([judge]), props: [bcTableProp],
-      steps: [{ say: [3, 'Phần thi gói bánh chưng bắt đầu! Trong một phút, ai gói được nhiều bánh nhất sẽ thắng!'] }, { say: ['me', 'Lá dong, gạo nếp, đậu xanh, thịt… nhớ rồi!'] }, { say: [2, 'Tớ không nhường đâu nhé!'] }],
-    });
-    const r = await bcGame();
+    // thi ngay tại bàn trên sân trường (04m): khay nguyên liệu trước mặt, bánh thành hình trên bàn, 3 đối thủ gói ở các bàn bên
+    const r = await sceneBanhChung(comp.concat([judge]), [{ say: [3, 'Phần thi gói bánh chưng bắt đầu! Trong một phút, ai gói được nhiều bánh nhất sẽ thắng!'] }, { say: ['me', 'Lá dong, gạo nếp, đậu xanh, thịt… nhớ rồi!'] }, { say: [2, 'Tớ không nhường đâu nhé!'] }]);
     board = [{ name: G.name, n: r.cakes, me: true }].concat(r.npc.map(n => ({ name: n.name, n: n.made })));
   } else {
     const t0 = { v: 0 };
     await playCut({
       map: 'school', me: [280, 262, 3], cam: { x: 290, y: 200 }, title: 'Xem thi gói bánh chưng', hide: BC_HIDE,
-      actors: comp.concat([judge]), props: [bcTableProp, now => { const k = Math.floor((now - t0.v) / 250); for (let i = 1; i < 4; i++) if ((k + i) % 3) wRect('#3f8f3a', BC_TABLES[i][0] - 3, BC_TABLES[i][1] - 10, 6, 5); }],
+      actors: comp.concat([judge]), props: [bcTableProp, now => { const k = Math.floor((now - t0.v) / 250); for (let i = 1; i < 4; i++) if ((k + i) % 3) wRect('#3f8f3a', BC_TABLES[i][0] - 3, BC_TABLES[i][1] - 7, 6, 5); }],
       steps: [{ fn: () => { t0.v = performance.now(); } }, { say: [3, 'Ba bạn vào thi nào! Chuẩn bị… bắt đầu!'] }, { wait: 1800 }, { say: ['me', 'Cố lên! Cố lên!'] }],
     });
     board = BANHCHUNG.npc.map(([, name, rate]) => ({ name, n: Math.max(1, Math.round(rate * (0.8 + Math.random() * 0.45))) }));

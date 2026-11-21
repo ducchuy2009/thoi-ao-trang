@@ -684,7 +684,7 @@ async function runLunchEvent(id) {
     if (c !== 0) return;
     if (G.stamina < 10) return UI.toast('Mệt quá, đá không nổi.', 'bad');
     RT.lock = true;
-    const r = gameRes(await playGame('keepup', 2 + Math.floor(Math.random() * 2), 'Giao hữu 10A1 – 10A2: tâng bóng qua hàng thủ'));
+    const r = gameRes(await sceneKeepup(2 + Math.floor(Math.random() * 2), 'Giao hữu 10A1 – 10A2: tâng bóng', { ball: true }));
     useStam(10, true); addStat('thethao', r.win ? 8 : 3);
     if (r.win) for (const f in FRIENDS) addFriend(f, 2, true);
     advanceTime(30); RT.lock = false; UI.hud();

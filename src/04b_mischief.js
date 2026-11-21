@@ -319,7 +319,7 @@ const MG_HELP = '<p class="dim">Giữ <kbd>Space</kbd> hoặc nhấn giữ chu�
 async function practicalSession(key, half) {
   const P = PRACTICALS[key], d = rollDiff(), L = [];
   await UI.ask(P.title, `<p>${P.task}.</p><p>Độ khó hôm nay: <span class="stars">${starStr(d)}</span></p><p class="dim">Có thể bấm “Bỏ qua” trong lúc làm — khi đó chỉ được điểm chuyên cần.</p>`, ['Bắt đầu']);
-  const r = gameRes(await playGame(P.game, d));
+  const r = gameRes(await playScene(P.game, d));                  // diễn ngay trên bàn thí nghiệm / sân tập (04m)
   let pts = practicalReward(d, r.win, r.perfect); if (half) pts = Math.ceil(pts / 2);
   L.push(li(`${P.title} · độ khó <span class="stars">${starStr(d)}</span>`, 'warn'));
   L.push(li(r.win ? (r.perfect ? 'Hoàn thành xuất sắc, không lệch nhịp nào!' : 'Hoàn thành bài thực hành.') : 'Chưa hoàn thành — vẫn được điểm chuyên cần.', r.win ? 'good' : 'bad'));

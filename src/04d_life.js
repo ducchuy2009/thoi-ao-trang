@@ -233,8 +233,8 @@ function classProps(now) {
       else { drawSpr(SPR.book, x, y); if ((k + (f >> 4)) % 3 === 0) wRect('#3b82c4', x + 1 + (f + k) % 5, y + 5, 2, 1); }       // bạn thì đọc, bạn thì chép bài
     }
     if (sc.mode === 'sleep') drawSpr(SPR.zzz, G.x + 4, G.y - 34 - (f >> 1) % 4);
-  } else if (sc.type === 'yard' && sc.kind) {
-    const all = sc.actors.slice(0, -1).map(a => [a.x, a.y]).concat([[G.x, G.y]]), t = now / 1000;
+  } else if ((sc.type === 'yard' || sc.stage === 'yard') && sc.kind) {         // stage: đang chơi cảnh tâng cầu / lắp súng thì các bạn vẫn tập, riêng mình do cảnh vẽ
+    const all = sc.actors.slice(0, -1).map(a => [a.x, a.y]).concat(sc.stage ? [] : [[G.x, G.y]]), t = now / 1000;
     all.forEach(([x, y], i) => {
       if (sc.kind === 'qp') { drawSpr(SPR.gunpart, x - 6, y - 10 + ((f + i) % 6 === 0 ? -1 : 0)); if ((f + i * 2) % 8 < 2) wRect('#fff6e3', x + 4, y - 12, 1, 1); }
       else if (i % 2) drawSpr(SPR.shuttle, x + 5, y - 6 - Math.abs(Math.sin(t * 4 + i)) * 14);          // tâng cầu

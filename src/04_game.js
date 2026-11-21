@@ -58,6 +58,7 @@ function migrate() {
   def('tet', {});                                      // Tết: năm → { lixi, chua, f: {bạn đã chúc}, t: {thầy cô đã chúc} }
   def('eve', null);                                    // lời rủ đón giao thừa: { day, who }
   def('bc', {});                                       // hội thi gói bánh chưng: năm → { reg, done, won }
+  if (G.time < CFG.DAY_START) G.time = CFG.DAY_START;   // bản lưu cũ (ngày bắt đầu lúc 05:00): 06:00 mới thức dậy
   def('fish', {});                                     // cá câu được: id → số con
   for (const k in G.bag) if (k.startsWith('vo_')) delete G.bag[k];   // đã bỏ cơ chế soạn vở
   for (const f in FRIENDS) if (G.friends[f] === undefined) G.friends[f] = 0;
@@ -322,11 +323,35 @@ async function goSleep(forced, note) {
   if (G.graduated && !G.memo.notes) await graduationDay();          // ngày tốt nghiệp: mọi người viết lưu bút
   beginDay(false); RT.bill = null;
   RT.scene = null; RT.outfit = null; RT.forceSleep = false; RT.pendingClass = null; RT.pendingInvite = null; RT.pendingBreak = null; RT.pendingEvent = null;
-  await UI.fade(false);
+  await wakeCut();                                                  // 06:00: chuông báo thức reng, ngồi dậy bước xuống giường
   await showBill(bill);                                             // bảng tính tiền của ngày hôm qua
   RT.lock = false; UI.hud();
   UI.toast(save() ? 'Đã tự động lưu game.' : 'Không lưu được vào trình duyệt này — hãy sao chép mã lưu trong Cài đặt.', 'info');   // tự lưu sau mỗi đêm ngủ
   morningBrief();
+}
+// 06:00 thức dậy: nằm ngủ trên giường → đồng hồ báo thức reng → mở mắt → bước xuống giường
+async function wakeCut() {
+  if (G.map !== 'home' || UI._fast) return UI.fade(false);
+  const BX = 17, BY = 24, CX = 52, CY = 26, st = { ring: 1e15, up: false, open: false };
+  const prop = now => {
+    if (!st.up) {
+      if (st.open) { wRect('#2c2733', BX + 11, BY + 6, 10, 4); wRect('#f8d0a8', BX + 12, BY + 9, 8, 6); wRect('#2a2136', BX + 14, BY + 11, 1, 2); wRect('#2a2136', BX + 17, BY + 11, 1, 2); }
+      else sleepProp(now, BX, BY);
+    }
+    const sh = now >= st.ring && now < st.ring + 1400 ? Math.round(Math.sin(now / 25)) : 0;          // đồng hồ báo thức đầu giường
+    wRect('#2a2136', CX - 3 + sh, CY - 3, 7, 7); wRect('#e2574c', CX - 2 + sh, CY - 2, 5, 5); wRect('#fffaf0', CX - 1 + sh, CY - 1, 3, 3); wRect('#2a2136', CX + sh, CY - 1, 1, 2);
+    wRect('#ffd23a', CX - 3 + sh, CY - 5, 2, 2); wRect('#ffd23a', CX + 2 + sh, CY - 5, 2, 2);
+  };
+  const sc = RT.scene = { type: 'cut', map: 'home', actors: [], props: [prop], hide: [], hideMe: true, bars: false, bubble: null, title: '', tw: [] };
+  await UI.fade(false);
+  await UI.wait(700);
+  st.ring = performance.now(); sc.bubble = { x: CX, y: CY - 6, text: 'Reng… reng… 06:00!' };
+  await UI.wait(1300); sc.bubble = null; st.open = true;
+  await UI.wait(350);
+  st.up = true; sc.hideMe = false; G.x = 52; G.y = 64; G.dir = 2;
+  await tween('me', 58, 76, 320); G.dir = 0;
+  sc.bubble = { x: G.x, y: G.y - 27, text: 'Sáng rồi! Dậy thôi!' }; await UI.wait(1000);
+  RT.scene = null;
 }
 function morningBrief() {
   const c = today();
@@ -607,7 +632,7 @@ async function resolveClass(p, subj) {
     if (subj === 'qp' || subj === 'td') {
       const d = type === 'thi' ? 3 : 2;
       await UI.ask(coG, `<p>“Hôm nay ${tn.toLowerCase()} thực hành. ${subj === 'qp' ? 'Từng em ghép hoàn chỉnh mô hình trong thời gian quy định.' : 'Từng em lên tâng cầu, đủ số lần là đạt.'}”</p>`, ['Bắt đầu'], { who });
-      r = practicalTestScore(subj, type, gameRes(await playGame(subj === 'qp' ? 'jigsaw' : 'keepup', d)));
+      r = practicalTestScore(subj, type, gameRes(await playScene(subj === 'qp' ? 'jigsaw' : 'keepup', d)));
     } else {
       await UI.ask(coG, `<p>“Cả lớp cất hết sách vở vào cặp. Hôm nay <b>${tn.toLowerCase()}</b> môn ${S.name}. Làm bài nghiêm túc, không nhìn bài bạn!”</p>`, ['Dạ'], { who });
       await handOut();
@@ -624,7 +649,7 @@ async function resolveClass(p, subj) {
   let gain = 0;
   if (subj === 'td') {
     if (G.bag.dp_td) {      // thực hành thể dục: tâng cầu (bấm vào quả cầu đang rơi)
-      const r = await playGame('keepup', 1 + Math.min(3, Math.floor(lv('thethao') / 3)), 'Thể dục: tâng cầu');
+      const r = await playScene('keepup', 1 + Math.min(3, Math.floor(lv('thethao') / 3)), 'Thể dục: tâng cầu');
       gain = 3 + Math.round(4 * r.score); L.push(li(r.score >= 0.6 ? 'Tâng cầu đạt yêu cầu của thầy.' : 'Tâng cầu chưa đủ số lần, thầy bảo về tập thêm.', r.score >= 0.6 ? 'good' : 'warn'));
     }
     else { gain = 0; L.push(li('Quên đồng phục thể dục — bị nhắc nhở, không được cộng điểm Thể thao.', 'bad')); }

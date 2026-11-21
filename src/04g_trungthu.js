@@ -75,7 +75,7 @@ ACT.ttLantern = async () => {
   if (c !== 0) return;
   for (const m of TT_MATS) G.inv[m.id]--;
   RT.lock = true;
-  const r = await playGame('denlong', lv('kheotay') >= 6 ? 1 : 2);
+  const r = await playScene('denlong', lv('kheotay') >= 6 ? 1 : 2);
   RT.lock = false;
   if (r.score >= 0.6) {
     G.inv.denongsao = (G.inv.denongsao || 0) + 1; ttY().lantern = true; addStat('kheotay', 3);
@@ -94,16 +94,7 @@ ACT.ttNieu = async () => {
   if (c !== 0) return;
   if (G.money < TT.nieuPrice) return UI.toast('Không đủ tiền.', 'bad');
   addMoney(-TT.nieuPrice, true); RT.lock = true;
-  const r = await playGame('dapnieu', 2, guide);
-  const win = r.score >= 0.6, [nx, ny] = TT_SPOTS.nieu, t0 = { v: 0 };
-  // cảnh ngắn: vung gậy, niêu vỡ thì kẹo rơi tung toé
-  const prop = now => {
-    const t = (now - t0.v) / 1000; if (t < 0) return;
-    if (!win) return;
-    for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283, k = Math.min(1, t * 1.4), x = nx + 22 + Math.cos(a) * 18 * k, y = ny + 18 + Math.sin(a) * 6 * k + k * k * 22; wRect(['#ffd23a', '#e2574c', '#5fe0f0', '#8fd067'][i % 4], x, y, 2, 2); }
-  };
-  await playCut({ inPlace: true, bars: false, title: 'Đập niêu', props: [prop], hide: [],
-    steps: [{ move: ['me', nx + 22, ny + 44, 400] }, { fn: () => { G.dir = 3; } }, { hop: 'me' }, { fn: () => { t0.v = performance.now(); } }, { wait: 700 }, { say: ['me', win ? 'Bốp! Vỡ rồi! Kẹo rơi đầy nè!' : 'Ơ… đập trượt rồi! Cả đám cười ầm…'] }] });
+  const r = await playScene('dapnieu', 2, guide), win = r.score >= 0.6;     // bịt mắt đi trên phố, nghe chỉ đường rồi vung gậy (04m)
   if (win) { addMemo('badge', 'dapnieu'); gainStam(5); if (!G.daily.ttNieu) { G.daily.ttNieu = true; addStat('kheotay', 2); } }
   if (fid) addFriend(fid, 3);
   RT.lock = false; UI.hud();
