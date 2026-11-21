@@ -16,6 +16,7 @@ const NEIGHBOR_TALK = {
 };
 function neighborTalk(soc) {
   const S = SOCIETY[soc]; meetSoc(soc);
+  if (tetTime()) return tetElder('nb_' + soc, S.name, { look: S.look }, 20000);
   const k = 'nb_' + soc; if (!G.daily[k]) { G.daily[k] = true; }
   UI.ask(S.name, `<p>“${pick(NEIGHBOR_TALK[soc])}”</p>`, ['Dạ, cháu chào ạ!'], { who: { look: S.look } });
 }

@@ -14,7 +14,7 @@ function newGame(name, gender) {
     day: 0, time: CFG.DAY_START, map: 'home', x: 58, y: 76, dir: 0,
     money: CFG.START_MONEY, earned: 0, stamina: 100, tlXp: 0,
     parent: PARENT.start,   // thiện cảm của bố mẹ → cấp tiền tiêu vặt
-    stats: { toan: 0, van: 0, anh: 0, ly: 0, hoa: 0, sinh: 0, su: 0, dia: 0, qp: 0, thethao: 0, buonban: 0, kheotay: 0, vannghe: 0 },
+    stats: { toan: 0, van: 0, anh: 0, ly: 0, hoa: 0, sinh: 0, su: 0, dia: 0, qp: 0, thethao: 0, buonban: 0, kheotay: 0, vannghe: 0, nongsan: 0 },
     bag: { hopbut: true, thehs: true }, inv: { comhop: 0, banhmi: 0, sua: 0, banhtrang: 0, bimbim: 0, gaubong: 0 },
     owned: {}, busPassUntil: -1,
     conduct: 10, conductLog: [], conductWeeks: 0, caughtCycle: 0,
@@ -36,6 +36,9 @@ function migrate() {
   for (const k in SOCIETY) if (G.soc[k] === undefined) G.soc[k] = 0;
   def('comp', null);                                   // bạn đang đi cùng: { fid, skip, n }
   if (G.stats.vannghe === undefined) G.stats.vannghe = 0;
+  if (G.stats.nongsan === undefined) G.stats.nongsan = 0;            // điểm Nông sản (câu cá, trồng cây)
+  def('yard', { items: [], seq: 0 }); def('noOwn', {}); def('fishLog', {}); def('talent', {}); def('pet', null);   // vườn (chậu, thùng) · đồ học tập đã bán · cá đã câu · gói năng khiếu · thú cưng
+  for (const id in G.fish) if (G.fish[id] > 0 && !G.fishLog[id] && FISH.some(f => f.id === id)) G.fishLog[id] = { n: G.fish[id], day: G.day };
   delete G.stats.giaotiep;                             // đã bỏ chỉ số Giao tiếp
   for (const k of ['th_ly', 'th_hoa', 'th_sinh']) if (G.stats[k] !== undefined) { const b = SUBJ[k].base; G.stats[b] = (G.stats[b] || 0) + G.stats[k]; delete G.stats[k]; }   // gộp chỉ số thực hành vào chỉ số học tập của môn
   def('cards', {}); def('cardDone', false);            // thẻ cầu thủ: id → số lá
@@ -69,6 +72,7 @@ function migrate() {
   for (const f in FRIENDS) if (G.friends[f] === undefined) G.friends[f] = 0;
   for (const k of ['bimbim', 'gaubong', 'voso']) if (G.inv[k] === undefined) G.inv[k] = 0;
   if (G.daily) { const d = G.daily; resetDaily(); G.daily = Object.assign(G.daily, d); }
+  if (typeof yardSync === 'function') yardSync();                      // dựng lại chậu cây, thùng chứa ngoài vườn
 }
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); return true; } catch (e) { return false; } }
 function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } }
@@ -279,7 +283,8 @@ function beginDay(first) {
   checkBondBadges();
   pmNewDay();
   hsgNewDay();                                                          // đội tuyển HSG: nhắc buổi học / ngày thi quốc gia được miễn học
-  examWishes();                                                         // ngày thi: bố mẹ (nhóm Gia đình) và bạn thân nhắn chúc may mắn                                                           // vắng họp phụ huynh kỳ trước: trừ hạnh kiểm ngày học đầu tiên của kỳ này
+  examWishes();
+  farmNewDay(); petNewDay();                                            // cây lớn / héo · thú cưng được giao tới nhà                                                         // ngày thi: bố mẹ (nhóm Gia đình) và bạn thân nhắn chúc may mắn                                                           // vắng họp phụ huynh kỳ trước: trừ hạnh kiểm ngày học đầu tiên của kỳ này
   for (const n of cutPeriods(G.day)) G.daily.done[n] = true;          // tiết bị thay bằng sự kiện: nghỉ, không tính vắng
   if (c.dow === 0 && !first) { const a = parentInfo(G.parent).allowance; addMoney(a, true); if (RT.bill) RT.bill.got.push(['Mẹ cho tiền tiêu vặt đầu tuần', a]); else RT.morning.push(`Mẹ cho tiền tiêu vặt đầu tuần: ${fmtMoney(a)}.`); }
   save();
@@ -796,7 +801,7 @@ function neededItems(day) {
   return need;
 }
 function missingToday() { return neededItems(G.day).filter(i => !G.bag[i] && i !== 'thehs' && i !== 'vethang'); }
-function quickPack(day) { G.bag = {}; for (const i of neededItems(day)) G.bag[i] = true; }
+function quickPack(day) { G.bag = {}; for (const i of neededItems(day)) if (!G.noOwn[i]) G.bag[i] = true; }   // đồ đã bán / tặng đi thì không có để soạn
 
 /* ---------- ăn uống ---------- */
 function mealNow() {
@@ -847,7 +852,7 @@ ACT.chore = async (id, ax) => {
   if (G.daily.chores[id]) return UI.toast('Việc này hôm nay bạn đã làm rồi.');
   const cost = choreStam(c);
   if (G.stamina < cost) return UI.toast('Không đủ thể lực. Ăn gì đó hoặc nghỉ ngơi đã!', 'bad');
-  const done = () => { G.daily.chores[id] = true; useStam(cost, true); addWage('Việc nhà', c.pay); addStat('kheotay', c.kt); addParent(PARENT.chore, '', true); };
+  const done = () => { G.daily.chores[id] = true; useStam(cost, true); addWage('Việc nhà', c.pay); addParent(PARENT.chore, '', true); };
   const label = `Đang ${c.name.toLowerCase()}…`;
   if (id === 'quetnha') await animActivity(label, c.mins, mopCut(), done);            // cầm cây lau đi quanh nhà
   else if (id === 'ruaxe') await animActivity(label, c.mins, washCut(ax || 133), done);   // xịt nước, cọ xe, bọt bay
@@ -926,7 +931,7 @@ function chat(sid, fid) {
 // ACT.mate / ACT.friend: xem 04c_social.js
 
 /* ---------- cửa hàng, học thêm, căn tin ---------- */
-ACT.shop = () => { if (!inWin(G.time, 360, 1260)) return UI.say('Tạp hoá Cô Ba', 'Tiệm đóng cửa rồi.<p class="dim">Mở cửa 06:00–21:00</p>'); meetSoc('coba'); UI.shop(); };
+ACT.shop = () => { if (tetShut('Tạp hoá Cô Ba')) return; if (!inWin(G.time, 360, 1260)) return UI.say('Tạp hoá Cô Ba', 'Tiệm đóng cửa rồi.<p class="dim">Mở cửa 06:00–21:00</p>'); meetSoc('coba'); UI.shop(); };
 function buy(it) {
   if (it.own && G.owned[it.own]) return UI.toast('Bạn đã có món này rồi.');
   if (it.special === 'vethang' && G.busPassUntil >= G.day) return UI.toast('Vé tháng vẫn còn hạn đến ' + dateLabel(G.busPassUntil) + '.');
@@ -942,8 +947,12 @@ async function partTime() {
   if (!inWin(G.time, 480, 1080)) return UI.toast('Phụ bán từ 08:00 đến 18:00.');
   if (G.daily.partTime) return UI.toast('Hôm nay bạn đã phụ bán rồi.');
   if (G.stamina < PART_TIME.stam) return UI.toast('Không đủ thể lực.', 'bad');
-  UI.close();
-  await activity('Đang phụ bán hàng…', PART_TIME.mins, () => { G.daily.partTime = true; useStam(PART_TIME.stam, true); addWage('Phụ cô Ba bán hàng', PART_TIME.pay + PART_TIME.payPerLv * lv('buonban')); addStat('buonban', PART_TIME.pts); });
+  UI.close(); if (RT.lock) return;
+  RT.lock = true;
+  await partTimeCut();                                                  // đứng quầy trước tạp hoá, khách tới thì đưa hàng
+  advanceTime(PART_TIME.mins); G.daily.partTime = true; useStam(PART_TIME.stam, true); addWage('Phụ cô Ba bán hàng', PART_TIME.pay + PART_TIME.payPerLv * lv('buonban')); addStat('buonban', PART_TIME.pts + 2);
+  RT.lock = false; UI.hud();
+  UI.toast(`Phụ bán xong 2 tiếng: +${PART_TIME.pts + 2} Buôn bán, tiền công trả cuối ngày.`, 'good');
 }
 // ACT.center (vào trung tâm Sao Mai, đăng ký ở quầy lễ tân, cảnh học thêm): xem 04p_center.js
 // ACT.canteen: xem 04d_life.js (cửa hàng dạng icon)

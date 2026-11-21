@@ -124,7 +124,7 @@ const PARENT = {
 const STAT_NAMES = {
   toan: 'Toán', van: 'Văn', anh: 'Tiếng Anh', ly: 'Lý', hoa: 'Hoá', su: 'Sử', dia: 'Địa', sinh: 'Sinh học', qp: 'Quốc phòng',
   th_ly: 'TH Lý', th_hoa: 'TH Hoá', th_sinh: 'TH Sinh',
-  thethao: 'Thể thao', buonban: 'Buôn bán', kheotay: 'Khéo tay', vannghe: 'Văn nghệ',
+  thethao: 'Thể thao', buonban: 'Buôn bán', kheotay: 'Hội hoạ', vannghe: 'Văn nghệ', nongsan: 'Nông sản',
 };
 
 /* ---------- Việc nhà ---------- */
@@ -170,13 +170,70 @@ const PARENT_RIDE_MIN = 10;
 const TRAIN = { price: 15000, mins: 40, hours: [360, 1140], lastBack: 1260 };
 const BEACH = { swim: { mins: 40, stam: 12, pts: 6 }, castle: { mins: 30, pts: 3, stam: 4 }, food: { price: 30000, mins: 20, stam: 30, friend: 8 }, rest: { mins: 30, stam: 15 }, shell: { mins: 10, perDay: 3 }, friend: 12 };
 const SHELL_FRIEND = 6;
-// Câu cá ở bờ sông (minigame giữ cá trong vùng xanh). diff: độ khó 1–5 · w: tỉ lệ gặp
-const FISHING = { mins: 20, stam: 3, nothing: 0.15, momGift: 2 };
+// Câu cá ở sông (bến dưới phố Hoa Phượng), hồ (ao trong công viên khu nhà) và biển. Mỗi lần thả câu FISHING.mins phút.
+// where: song | ho | bien · seasons: mùa có cá (0 Thu, 1 Đông, 2 Xuân, 3 Hè) · hours: [từ, đến] tính bằng phút (quá 1440 là sau nửa đêm; null = cả ngày)
+// diff 1–5: càng quý càng khó · price: giá trị bán cố định · fp: điểm nông sản khi câu được · col: màu vảy
+const FISHING = { mins: 20, stam: 3, nothing: 0.12, momGift: 2, baitRare: 1.8 };
 const FISH = [
-  { id: 'ro', name: 'Cá rô', diff: 1, price: 6000, w: 34 }, { id: 'tre', name: 'Cá trê', diff: 2, price: 10000, w: 28 },
-  { id: 'chep', name: 'Cá chép', diff: 3, price: 16000, w: 20 }, { id: 'loc', name: 'Cá lóc', diff: 4, price: 26000, w: 13 },
-  { id: 'chinh', name: 'Cá chình', diff: 5, price: 48000, w: 5 },
+  { id: 'ro', name: 'Cá rô', where: 'song', seasons: [0, 1, 2, 3], hours: null, diff: 1, price: 7000, fp: 2, col: '#6f8440' },
+  { id: 'bong', name: 'Cá bống', where: 'song', seasons: [0, 1, 2, 3], hours: null, diff: 1, price: 6000, fp: 2, col: '#a8906a' },
+  { id: 'tre', name: 'Cá trê', where: 'song', seasons: [0, 2, 3], hours: [1080, 1620], diff: 2, price: 12000, fp: 3, col: '#4a4a52' },
+  { id: 'chep', name: 'Cá chép', where: 'song', seasons: [0, 1, 2], hours: null, diff: 3, price: 18000, fp: 5, col: '#d9a441' },
+  { id: 'tram', name: 'Cá trắm cỏ', where: 'song', seasons: [2, 3], hours: [360, 1080], diff: 3, price: 22000, fp: 6, col: '#7a8a5a' },
+  { id: 'loc', name: 'Cá lóc', where: 'song', seasons: [0, 3], hours: [300, 660], diff: 4, price: 30000, fp: 8, col: '#3f4a3a' },
+  { id: 'chinh', name: 'Cá chình', where: 'song', seasons: [1, 2], hours: [1140, 1620], diff: 5, price: 55000, fp: 14, col: '#5a4a3a' },
+  { id: 'rophi', name: 'Cá rô phi', where: 'ho', seasons: [0, 1, 2, 3], hours: null, diff: 1, price: 8000, fp: 2, col: '#8a96a8' },
+  { id: 'diec', name: 'Cá diếc', where: 'ho', seasons: [0, 1, 2], hours: null, diff: 2, price: 10000, fp: 3, col: '#b8b0a0' },
+  { id: 'came', name: 'Cá mè', where: 'ho', seasons: [2, 3], hours: [360, 1020], diff: 2, price: 13000, fp: 4, col: '#c9ccd4' },
+  { id: 'vang', name: 'Cá vàng', where: 'ho', seasons: [1, 2], hours: [540, 900], diff: 3, price: 25000, fp: 6, col: '#f2a93b' },
+  { id: 'koi', name: 'Cá chép Koi', where: 'ho', seasons: [3, 0], hours: [480, 960], diff: 4, price: 45000, fp: 11, col: '#e2574c' },
+  { id: 'nuc', name: 'Cá nục', where: 'bien', seasons: [0, 1, 2, 3], hours: null, diff: 1, price: 9000, fp: 2, col: '#5a8fc4' },
+  { id: 'bacma', name: 'Cá bạc má', where: 'bien', seasons: [0, 3], hours: null, diff: 2, price: 14000, fp: 4, col: '#9fb6d6' },
+  { id: 'thu', name: 'Cá thu', where: 'bien', seasons: [1, 2], hours: [360, 900], diff: 3, price: 28000, fp: 7, col: '#3b6fb6' },
+  { id: 'muc', name: 'Mực ống', where: 'bien', seasons: [3, 0], hours: [1080, 1620], diff: 3, price: 32000, fp: 8, col: '#e8c8d0' },
+  { id: 'mu', name: 'Cá mú', where: 'bien', seasons: [2, 3], hours: [300, 720], diff: 4, price: 60000, fp: 15, col: '#c9862b' },
+  { id: 'ngu', name: 'Cá ngừ đại dương', where: 'bien', seasons: [3], hours: [300, 600], diff: 5, price: 120000, fp: 25, col: '#2f4a7a' },
 ];
+const FISH_WHERE = { song: 'Sông', ho: 'Hồ công viên', bien: 'Biển' };
+// Cây trồng trong chậu ngoài vườn. hoa: nảy mầm nhanh, rẻ hơn quả, thu 1 lần (hoa càng đắt càng lâu nở) · qua: thu nhiều lần, lứa sau sau regrow ngày
+// seed: giá hạt · grow: số ngày được tưới tới lứa đầu · yield: số quả mỗi lứa · price: giá trị 1 bông / quả · fp: điểm nông sản mỗi lần thu
+const CROPS = {
+  cuc: { name: 'Hoa cúc', kind: 'hoa', seed: 6000, grow: 2, yield: 1, price: 12000, fp: 3, col: '#ffd23a' },
+  hong: { name: 'Hoa hồng', kind: 'hoa', seed: 10000, grow: 3, yield: 1, price: 20000, fp: 5, col: '#e2574c' },
+  huongduong: { name: 'Hoa hướng dương', kind: 'hoa', seed: 14000, grow: 4, yield: 1, price: 28000, fp: 7, col: '#f2a93b' },
+  lan: { name: 'Hoa lan', kind: 'hoa', seed: 24000, grow: 5, yield: 1, price: 45000, fp: 11, col: '#b07ad6' },
+  ot: { name: 'Ớt', kind: 'qua', seed: 9000, grow: 5, regrow: 2, yield: 3, price: 9000, fp: 4, col: '#d9534f' },
+  cachua: { name: 'Cà chua', kind: 'qua', seed: 12000, grow: 6, regrow: 3, yield: 3, price: 12000, fp: 5, col: '#e2574c' },
+  dau: { name: 'Dâu tây', kind: 'qua', seed: 22000, grow: 7, regrow: 3, yield: 2, price: 30000, fp: 8, col: '#e83f5f' },
+  chanh: { name: 'Chanh', kind: 'qua', seed: 30000, grow: 9, regrow: 4, yield: 4, price: 22000, fp: 10, col: '#8fd067' },
+};
+const FARM = { pot: 20000, chest: 60000, chestCap: 30, waterStam: 2, wither: 3 };      // chậu · thùng chứa (tối đa 30 món) · tưới tốn thể lực · không tưới 3 ngày thì héo
+// Vẽ tranh (khung tranh đặt ở nhà, hoặc giấy vẽ cầm tay): 30 phút, tốn thể lực; tranh đẹp hay không tuỳ cấp Hội hoạ
+const PAINT = { mins: 30, stam: 6, pts: 4, paper: 10000, frame: 150000,
+  tiers: [['tranh1', 'Bức tranh nguệch ngoạc', 15000], ['tranh2', 'Tranh phác hoạ', 30000], ['tranh3', 'Tranh phong cảnh', 55000], ['tranh4', 'Tranh màu nước đẹp', 90000], ['tranh5', 'Kiệt tác hội hoạ', 160000]] };
+// Trung tâm năng khiếu (phố Hoa Phượng): mua gói theo tháng (days ngày); mỗi thứ 7 học 2 tiết liền 30', có mặt trước giờ mới được vào
+const TALENT = { price: 250000, days: 28, stam: 4, ve: { name: 'Lớp vẽ', from: 540, stat: 'kheotay', pts: 6 }, hat: { name: 'Lớp thanh nhạc', from: 900, stat: 'vannghe', pts: 6 } };
+// Thú cưng: mua xong hôm sau cửa hàng giao tới nhà
+const PETS = { dog: { name: 'Chó con', price: 800000, pet: 'Cún' }, cat: { name: 'Mèo con', price: 600000, pet: 'Mướp' } };
+// Sở thích quà: love (+nhiều) · dislike (−ít) · hate (−nhiều) · còn lại là bình thường (+ít). Ghi theo mã món hoặc nhóm (food, drink, fish, flower, fruit, veg, art, gift, school, seed, tool)
+const GIFT_PTS = { love: 8, norm: 2, dislike: -2, hate: -6 };
+const GIFT_TASTE = {
+  khoa: { love: ['garan', 'xien', 'bimbim', 'haisan'], dislike: ['flower', 'veg'], hate: ['school'] },
+  vy: { love: ['c_hong', 'c_lan', 'trasua', 'gaubong', 'tranh4', 'tranh5'], dislike: ['fish'], hate: ['c_ot', 'bimbim'] },
+  dat: { love: ['trasua', 'kem', 'tradao', 'art'], dislike: ['school', 'veg'], hate: ['fish'] },
+  ngan: { love: ['garan', 'sua', 'c_chanh', 'c_dau', 'haisan'], dislike: ['kem', 'flower'], hate: ['bimbim'] },
+  mom: { love: ['flower', 'fruit', 'fish', 'veg'], dislike: ['trasua'], hate: ['bimbim'] },
+  dad: { love: ['fish', 'art', 'c_chanh'], dislike: ['flower'], hate: ['kem'] },
+  hanh: { love: ['flower', 'art', 'school'], dislike: ['fish'], hate: ['bimbim'] },
+  lan: { love: ['c_lan', 'c_hong', 'tradao', 'art'], dislike: ['veg'], hate: ['fish'] },
+  tung: { love: ['school', 'art', 'c_chanh'], dislike: ['kem'], hate: ['bimbim'] },
+  manh: { love: ['garan', 'sua', 'fruit'], dislike: ['art'], hate: ['bimbim'] },
+  quan: { love: ['fish', 'haisan', 'c_ot'], dislike: ['flower'], hate: ['kem'] },
+  nghiem: { love: ['school', 'tradao'], dislike: ['bimbim'], hate: ['gaubong'] },
+  coba: { love: ['fruit', 'veg', 'fish'], dislike: ['art'], hate: [] },
+};
+// Bán đồ cho người khác: khả năng nhận mua = base theo người + perHeart × số tim (± sở thích)
+const SELL_TO = { friend: 0.45, parent: 0.6, teacher: 0.3, soc: 0.5, other: 0.4, perHeart: 0.07, love: 0.25, dislike: -0.25, hate: -0.6 };
 
 /* ---------- Vật phẩm ---------- */
 const ITEMS = {
@@ -218,7 +275,8 @@ const SHOP = [
   { id: 'bimbim5', name: 'Lốc 5 gói bim bim Sao Vàng', price: 23000, desc: '5 gói, mỗi gói 1 thẻ cầu thủ', inv: 'bimbim', n: 5 },
   { id: 'banhtrang', name: 'Bánh tráng trộn ×5', price: 25000, desc: 'Hàng để bán lại cho bạn trong giờ ra chơi', inv: 'banhtrang', n: 5 },
   { id: 'vethang', name: 'Vé tháng xe bus', price: BUS_PASS_PRICE, desc: 'Dùng 30 ngày kể từ ngày mua', special: 'vethang' },
-  { id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu cá ở bờ sông (dưới phố Hoa Phượng)', own: 'cancau' },
+  { id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu cá ở bờ sông, ao công viên, bãi biển', own: 'cancau' },
+  { id: 'thung', name: 'Thùng chứa nhỏ', price: FARM.chest, desc: 'Đặt ở chỗ bất kỳ ngoài vườn trước nhà, cất được 30 món đồ', inv: 'thung', n: 1 },
   { id: 'xedap', name: 'Xe đạp', price: 400000, desc: 'Để ở sân nhà, bấm vào xe để đi', own: 'xedap' },
   { id: 'xedapdien', name: 'Xe đạp điện', price: 2500000, desc: 'Chạy nhanh hơn xe đạp', own: 'xedapdien' },
   { id: 'xemay', name: 'Xe máy 50cc', price: 6000000, desc: 'Chạy nhanh nhất', own: 'xemay' },
@@ -231,7 +289,7 @@ const CANTEEN = [
 ];
 /* ---------- Gian hàng trong TTTM ---------- */
 // [id, tên, sprite]. Hàng của từng gian: own = mua một lần (để ở nhà); act = làm ngay tại chỗ
-const MALL_STALLS = [['phim', 'Rạp phim', 'stA'], ['sach', 'Nhà sách', 'stB'], ['sieuthi', 'Siêu thị', 'stC'], ['anuong', 'Ăn uống', 'stD'], ['noithat', 'Nội thất', 'stE'], ['nhaccu', 'Nhạc cụ', 'stF'], ['thethao', 'Thể thao', 'stG']];
+const MALL_STALLS = [['phim', 'Rạp phim', 'stA'], ['sach', 'Nhà sách', 'stB'], ['sieuthi', 'Siêu thị', 'stC'], ['anuong', 'Ăn uống', 'stD'], ['noithat', 'Nội thất', 'stE'], ['nhaccu', 'Nhạc cụ', 'stF'], ['thethao', 'Thể thao', 'stG'], ['hoacu', 'Hoạ cụ', 'stH']];
 const MALL_GOODS = {
   phim: [{ id: 'vephim', name: 'Vé xem phim', price: 45000, desc: 'Vào rạp xem một suất phim', act: 'movie' }],
   sach: [{ id: 'sachtk', name: 'Sách tham khảo', price: 60000, desc: 'Chọn một môn để đọc thêm (mỗi ngày một cuốn)', act: 'book' }],
@@ -241,6 +299,9 @@ const MALL_GOODS = {
   nhaccu: [{ id: 'micro', name: 'Micro karaoke', price: 150000, desc: 'Để trong phòng ngủ, tập hát ở nhà', own: 'micro' }, { id: 'guitar', name: 'Đàn guitar', price: 400000, desc: 'Dựng trong phòng ngủ; có đàn tập hát vào hơn', own: 'guitar' }],
   thethao: [{ id: 'daynhay', name: 'Dây nhảy', price: 60000, desc: 'Dụng cụ tập thể dục ở nhà', own: 'daynhay' }, { id: 'tatay', name: 'Tạ tay', price: 150000, desc: 'Dụng cụ tập thể dục ở nhà, nặng hơn dây nhảy', own: 'tatay' }, { id: 'xadon', name: 'Xà đơn gắn cửa', price: 350000, desc: 'Dụng cụ tập thể dục ở nhà, khó nhất', own: 'xadon' }],
 };
+MALL_GOODS.hoacu = [{ id: 'giayve', name: 'Giấy vẽ', price: 10000, desc: 'Cầm theo người, bấm vào mình để ngồi vẽ ở bất cứ đâu', inv: 'giayve', n: 1 }, { id: 'khungtranh', name: 'Khung tranh (giá vẽ)', price: 150000, desc: 'Dựng ở góc phòng khách nhà mình để ngồi vẽ tranh', own: 'khungtranh' }];
+MALL_GOODS.sach = MALL_GOODS.sach.concat(BOOK_SUBJ.map(s => ({ id: 'sach_' + s, name: 'Sách ' + SUBJ[s].name, price: 35000, desc: 'Mua lại sách giáo khoa (đã bán / tặng mất)', school: true })), [{ id: 'hopbut', name: 'Hộp bút', price: 25000, desc: 'Mua lại hộp bút (đã bán / tặng mất)', school: true }]);
+MALL_GOODS.thethao = MALL_GOODS.thethao.concat([{ id: 'dp_td', name: 'Đồng phục thể dục', price: 90000, desc: 'Mua lại đồng phục thể dục', school: true }, { id: 'dp_qp', name: 'Đồ quốc phòng', price: 110000, desc: 'Mua lại quân phục học sinh', school: true }]);
 const DECOR_SLEEP = 2;        // mỗi món trang trí phòng: ngủ dậy hồi thêm chừng này thể lực
 /* ---------- Khu game: chơi bằng xèng ---------- */
 const TOKENS = { price: 10000, n: 5 };
@@ -285,8 +346,8 @@ const TASK_BOARD = { open: 3, maxActive: 3, failAff: -3, dropAff: -1, stam: 4 };
 // Làm xong luôn được thêm thân thiết với người nhờ; tiền công thì có lúc có lúc không (payChance)
 const TASK_QUOTA = { p: [0.25, 0.45, 0.30], payChance: 0.5 };
 const TASKS = {
-  xepsach: { tid: 'lan', name: 'Xếp lại sách thư viện', desc: 'Sau giờ đọc, các kệ sách bị xáo trộn hết. Cô cần một bạn xếp lại sách theo từng môn.', steps: [{ map: 'thuvien', x: 92, y: 48, do: 'Xếp sách lên kệ theo môn', where: 'Thư viện (kệ sách)' }], mins: 40, win: [390, 1080], days: 3, until: 1080, pay: 6000, aff: 6, stat: ['kheotay', 2] },
-  laubang: { tid: 'hanh', name: 'Trực nhật lớp sau giờ học', desc: 'Tan học rồi em lau bảng, kê lại bàn ghế và quét lớp 10A1 giúp cô nhé.', steps: [{ map: 'class', x: 160, y: 54, do: 'Lau bảng, kê bàn ghế, quét lớp', where: 'Lớp 10A1 (trước bảng)' }], mins: 30, win: [CFG.SCHOOL_END, 1110], days: 2, until: 1110, pay: 5000, aff: 6, stat: ['kheotay', 1] },
+  xepsach: { tid: 'lan', name: 'Xếp lại sách thư viện', desc: 'Sau giờ đọc, các kệ sách bị xáo trộn hết. Cô cần một bạn xếp lại sách theo từng môn.', steps: [{ map: 'thuvien', x: 92, y: 48, do: 'Xếp sách lên kệ theo môn', where: 'Thư viện (kệ sách)' }], mins: 40, win: [390, 1080], days: 3, until: 1080, pay: 6000, aff: 6 },
+  laubang: { tid: 'hanh', name: 'Trực nhật lớp sau giờ học', desc: 'Tan học rồi em lau bảng, kê lại bàn ghế và quét lớp 10A1 giúp cô nhé.', steps: [{ map: 'class', x: 160, y: 54, do: 'Lau bảng, kê bàn ghế, quét lớp', where: 'Lớp 10A1 (trước bảng)' }], mins: 30, win: [CFG.SCHOOL_END, 1110], days: 2, until: 1110, pay: 5000, aff: 6 },
   tuoicay: { tid: 'tung', name: 'Tưới cây phượng sân trường', desc: 'Mấy hôm nay nắng to quá, thầy nhờ em tưới mấy gốc phượng trước sân trường.', steps: [{ map: 'school', x: 114, y: 194, do: 'Xách bình tưới các gốc phượng', where: 'Sân trường (gốc phượng bên trái)' }], mins: 20, win: [390, 1080], days: 2, until: 1080, pay: 4000, aff: 5, stat: ['thethao', 1] },
   dungcu: { tid: 'manh', name: 'Dọn dụng cụ thể dục', desc: 'Sau giờ thể dục bóng, cầu, dây nhảy vương vãi khắp sân. Thầy nhờ em gom lại cất vào kho.', steps: [{ map: 'school', x: 600, y: 214, do: 'Gom bóng, cầu, dây nhảy cất vào kho', where: 'Sân thể dục' }], mins: 30, win: [CFG.SCHOOL_END, 1110], days: 3, until: 1110, pay: 6000, aff: 7, stat: ['thethao', 2] },
   decuong: { tid: 'tung', name: 'Mang đề cương ôn tập về lớp', desc: 'Thầy để xấp đề cương ôn tập Toán ở bàn thủ thư. Em lấy giúp thầy rồi đặt lên bàn giáo viên lớp 10A1.', steps: [{ map: 'thuvien', x: 252, y: 154, do: 'Nhận xấp đề cương ở bàn thủ thư', where: 'Thư viện (bàn thủ thư)' }, { map: 'class', x: 56, y: 64, do: 'Đặt đề cương lên bàn giáo viên', where: 'Lớp 10A1 (bàn giáo viên)' }], mins: 16, win: [390, 1080], days: 2, until: 1080, pay: 4000, aff: 6 },
@@ -302,6 +363,8 @@ const TASKS = {
  * where: chỗ đưa · lunch: chỉ nhắn lúc nghỉ trưa · off: việc cuối tuần (bố mẹ ở nhà) · cost: tiền bỏ ra mua (bố mẹ trả lại) */
 const PARENT_TASK = { chance: 0.3, slots: { lunch: [630, PM_START - 15], after: [CFG.SCHOOL_END + 10, CFG.SCHOOL_END + 50], summer: [540, 1050], off: [540, 720] }, pay: 8000, aff: 3 };
 const PARENT_TASKS = {
+  chorau: { who: 'mom', name: 'Đi chợ mua rau cho mẹ', msg: 'Con ơi, ra chợ Bờ Đông mua giúp mẹ bó rau muống với mấy quả cà chua nhé, về mẹ gửi lại tiền!', item: 'raume', off: true, cost: 20000, market: 'rau', pick: { map: 'cho', x: 50, y: 82, do: 'Mua rau muống, cà chua ở hàng rau quả', where: 'Chợ Bờ Đông (hàng rau quả)' }, where: 'Mẹ (ở nhà)' },
+  choca: { who: 'dad', name: 'Đi chợ mua cá cho bố', msg: 'Bố thèm cá kho quá. Con ra chợ Bờ Đông mua giúp bố con cá chép nhé, về bố gửi lại tiền!', item: 'cabo', off: true, cost: 25000, market: 'ca', pick: { map: 'cho', x: 130, y: 82, do: 'Mua con cá chép ở hàng cá', where: 'Chợ Bờ Đông (hàng cá)' }, where: 'Bố (ở nhà)' },
   tailieu: { who: 'dad', name: 'Mang tài liệu cho bố', msg: 'Con ơi, bố để quên tập tài liệu trong hộc bàn làm việc ở phòng bố mẹ. Con mang lên nhà máy giúp bố được không? Chiều nay bố phải nộp rồi.', item: 'tailieu', pick: { map: 'phongbm', x: 37, y: 60, do: 'Lấy tập tài liệu trong hộc bàn của bố', where: 'Phòng bố mẹ (bàn làm việc)' }, where: 'Nhà máy bánh kẹo (phố Bờ Đông)' },
   comtrua: { who: 'mom', name: 'Mang cơm trưa cho mẹ', msg: 'Mẹ để quên hộp cơm trưa trên bàn ăn ở nhà rồi. Trưa nay con mang qua công ty giúp mẹ nhé, công ty Sen Vàng ở cuối phố Hoa Phượng đó!', item: 'comme', lunch: true, pick: { map: 'home', x: 416, y: 146, do: 'Lấy hộp cơm trưa mẹ để quên trên bàn ăn', where: 'Nhà mình (bàn ăn)' }, where: 'Công ty Sen Vàng (cuối phố Hoa Phượng)' },
   vi: { who: 'dad', name: 'Mang ví cho bố', msg: 'Bố quên cái ví ở tủ đầu giường rồi. Con mang lên nhà máy cho bố nhé, chiều bố còn đổ xăng.', item: 'vibo', pick: { map: 'phongbm', x: 160, y: 70, do: 'Lấy cái ví bố để ở tủ đầu giường', where: 'Phòng bố mẹ (tủ đầu giường)' }, where: 'Nhà máy bánh kẹo (phố Bờ Đông)' },
@@ -309,7 +372,7 @@ const PARENT_TASKS = {
   usb: { who: 'dad', name: 'Mang USB cho bố', msg: 'Cái USB bố cắm ở máy tính bàn làm việc ngoài phòng khách có file bố cần gấp. Con rút ra mang lên nhà máy giúp bố với!', item: 'usb', pick: { map: 'home', x: 299, y: 64, do: 'Rút cái USB ở máy tính bàn làm việc', where: 'Nhà mình (bàn làm việc phòng khách)' }, where: 'Nhà máy bánh kẹo (phố Bờ Đông)' },
   nuocmam: { who: 'mom', name: 'Mua nước mắm cho mẹ', msg: 'Nhà hết nước mắm rồi con ơi. Con chạy ra tạp hoá Cô Ba mua giúp mẹ một chai, về mẹ gửi lại tiền nhé!', item: 'nuocmam', off: true, cost: 25000, pick: { map: 'town', x: 290, y: 150, do: 'Mua một chai nước mắm ở tạp hoá Cô Ba', where: 'Tạp hoá Cô Ba (khu phố nhà mình)' }, where: 'Mẹ (ở nhà)' },
 };
-const PARENT_ITEMS = { tailieu: 'Tập tài liệu của bố', comme: 'Hộp cơm trưa của mẹ', vibo: 'Cái ví của bố', kinhme: 'Kính của mẹ', usb: 'USB của bố', nuocmam: 'Chai nước mắm' };
+const PARENT_ITEMS = { tailieu: 'Tập tài liệu của bố', comme: 'Hộp cơm trưa của mẹ', vibo: 'Cái ví của bố', kinhme: 'Kính của mẹ', usb: 'USB của bố', nuocmam: 'Chai nước mắm', raume: 'Túi rau của mẹ', cabo: 'Con cá chép cho bố' };
 
 /* ---------- Nhóm học sinh trường trên điện thoại ----------
  * Ai cũng tự động được vào nhóm “Học sinh THPT Hoa Phượng”. Ngày đi học (không đăng trong giờ học), các bạn thân và anh chị
@@ -598,6 +661,7 @@ const MEMO_BADGES = {
   phudong: { name: 'Phù Đổng', icon: 'b_phudong', desc: 'Cùng cả lớp giành cúp tập thể ở Hội khoẻ Phù Đổng.', hint: 'Giành cúp tập thể ở Hội khoẻ Phù Đổng' },
 };
 const MEMO_SCENES = {
+  nangkhieu: { name: 'Lớp năng khiếu', icon: 'sc_hsg', desc: 'Đăng ký học vẽ, học hát ở trung tâm năng khiếu Hoạ Mi.' },
   hsgchon: { name: 'Chọn môn thi học sinh giỏi', icon: 'sc_hsg', desc: 'Bố mẹ đi họp về báo tin được vào đội tuyển, cả nhà cùng chọn môn thi.' },
   hsgthi: { name: 'Thi học sinh giỏi quốc gia', icon: 'sc_hsg', desc: 'Ngồi trong phòng thi số 07 trường THPT chuyên Hoa Đào, đề khó mà tay vẫn viết đều.' },
   anmung: { name: 'Bữa tối ăn mừng', icon: 'sc_anmung', desc: 'Cả nhà đi nhà hàng Sen Hồng ăn mừng giải học sinh giỏi quốc gia.' },

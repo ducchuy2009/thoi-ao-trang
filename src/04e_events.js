@@ -169,10 +169,9 @@ async function tetVisitFriend(fid) {
   const F = FRIENDS[fid], T = tetYear(), who = { look: fid, outfit: friendOutfit(fid) };
   if (T.f[fid]) return UI.ask(F.name, '<p>“Cậu chúc Tết tớ rồi mà! Vào nhà chơi đi.”</p>', ['OK'], { who });
   T.f[fid] = true;
-  const money = LIXI.friend + LIXI.perHeart * hearts(fid);
   if (G.grudge[fid] !== undefined) delete G.grudge[fid];           // năm mới bỏ qua chuyện cũ
-  addFriend(fid, LIXI.friendGain); addMoney(money); addMemo('scene', 'tetvisit');
-  await UI.ask(F.name, `<p>“Chúc mừng năm mới! Chúc cậu năm nay học giỏi, hay ăn chóng lớn!”</p><p>Mẹ ${F.name} cười hiền, dúi vào tay bạn một bao lì xì đỏ: <b>${fmtMoney(money)}</b>.</p>`, ['Cháu cảm ơn cô ạ!'], { who });
+  addFriend(fid, LIXI.friendGain); addMemo('scene', 'tetvisit');
+  await UI.ask(F.name, `<p>“Chúc mừng năm mới! Chúc cậu năm nay học giỏi, hay ăn chóng lớn!”</p><p>“Vào nhà chúc Tết bố mẹ tớ đi, bố mẹ tớ lì xì cho đấy!”</p>`, ['Năm mới vui vẻ nha!'], { who });
 }
 // Nhà thầy cô ở khu phố nhà mình: ngày Tết tới chúc Tết được lì xì, thầy cô quý hơn
 ACT.teacherHouse = async tid => {
@@ -355,7 +354,8 @@ function drawFestProps(now) {
 /* ---------- điều phối sự kiện mỗi khung hình (khi không bận) ---------- */
 function eventTick() {
   if (pmTick()) return true;
-  if (hsgTick()) return true;                                       // đội tuyển học sinh giỏi: báo tin, buổi học, thi chọn, thi quốc gia, ăn mừng                                        // ngày họp phụ huynh: tới trường 08:00–11:00 là vào cảnh họp
+  if (hsgTick()) return true;
+  if (talentTick()) return true;                                    // trung tâm năng khiếu: thứ 7 tới giờ học                                       // đội tuyển học sinh giỏi: báo tin, buổi học, thi chọn, thi quốc gia, ăn mừng                                        // ngày họp phụ huynh: tới trường 08:00–11:00 là vào cảnh họp
   if (hkEventTick()) return true;                                   // Hội khoẻ Phù Đổng: qua cổng trường là vào hội
   if (isTetDay1() && G.map === 'home' && G.time < 720 && !tetYear().ask) { tetMorning(); return true; }
   if (isEveDay(G.day) && !G.daily.eveAsked && !RT.fest && G.time < EVE.from) { eveInvite(); return true; }   // sáng ngày cuối năm: được rủ đón giao thừa

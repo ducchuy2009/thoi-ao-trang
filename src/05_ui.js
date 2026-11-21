@@ -197,8 +197,9 @@ const UI = {
     for (const k in PARENT_ITEMS) if (G.inv[k]) add(k, 1, `${PARENT_ITEMS[k]} — bấm để cầm lên rồi bấm vào bố / mẹ để đưa tận tay`, 'hold');
     for (const k in GROUP_ITEMS) if (G.inv[k]) add(k, 1, `${GROUP_ITEMS[k]} — bấm để cầm lên rồi bấm vào bạn đã nhờ để đưa tận tay`, 'hold');
     if (G.inv.denongsao) add('denongsao', G.inv.denongsao, 'Đèn ông sao tự làm — bấm để cầm lên (rước đèn, hoặc tặng bạn)', 'hold');
+    for (const g of goodsCarried()) if (!FOODS[g.id] && !ITEMS[g.id] && !['gaubong', 'voso', 'denongsao', 'banhtrang'].includes(g.id) && !TT_MATS.some(m => m.id === g.id) && !isFish(g.id)) add(g.id, g.n, `${goodsInfo(g.id).name} — bấm để cầm lên${g.id === 'chau' || g.id === 'thung' ? ' (bấm vào mình ngoài vườn để đặt)' : g.id === 'giayve' ? ' (bấm vào mình để ngồi vẽ)' : ''}, bấm vào người khác để bán / tặng`, 'hold');
+    for (const f of FISH) if (G.fish[f.id]) add(f.id, G.fish[f.id], `${f.name} — bấm để cầm lên rồi bán / tặng; bán ở chợ Bờ Đông`, 'hold');
     for (const m of TT_MATS) if (G.inv[m.id]) add(m.id, G.inv[m.id], `${m.name} — nguyên liệu làm đèn ông sao (mang tới sạp làm đèn lồng đêm Trung thu)`);
-    if (fishCount()) add('ca', fishCount(), 'Cá câu được — bán cho Cô Ba hoặc đưa mẹ nấu');
     if (G.owned.cancau) add('cancau', 0, 'Cần câu — câu cá ở bờ sông');
     return it;
   },
@@ -233,6 +234,8 @@ const UI = {
       if (G.inv.voso) h += `<div class="rowi"><span><b>Vỏ sò</b> ×${G.inv.voso} <small>quà tặng bạn thân</small></span><button class="btn sm" data-act="hold" data-id="voso">${RT.hold === 'voso' ? 'Cất đi' : 'Cầm lên'}</button></div>`;
       if (G.inv.denongsao) h += `<div class="rowi"><span><b>Đèn ông sao</b> ×${G.inv.denongsao} <small>tự làm đêm Trung thu</small></span><button class="btn sm" data-act="hold" data-id="denongsao">${RT.hold === 'denongsao' ? 'Cất đi' : 'Cầm lên'}</button></div>`;
       if (TT_MATS.some(m => G.inv[m.id])) h += `<h4>Nguyên liệu làm đèn lồng</h4><p>${TT_MATS.map(m => `${m.name}: <b>${G.inv[m.id] || 0}</b>`).join(' · ')} <small class="dim">— đủ cả ba thì làm được một chiếc đèn ông sao ở hội Trung thu</small></p>`;
+      const gs = goodsCarried().filter(g => !FOODS[g.id]);
+      if (gs.length) h += '<h4>Đồ đạc mang theo</h4><div class="rows">' + gs.map(g => `<div class="rowi"><span><img class="ico" src="${itemIcon(g.id)}" alt=""><b>${goodsInfo(g.id).name}</b> ×${g.n} <small>giá trị ${fmtMoney(goodsInfo(g.id).value)}</small></span><button class="btn sm" data-act="hold" data-id="${g.id}">${RT.hold === g.id ? 'Cất đi' : 'Cầm lên'}</button></div>`).join('') + '</div><p class="dim">Cầm lên rồi bấm vào người khác để bán hoặc tặng. Đồ học tập bán / tặng đi thì phải mua lại ở TTTM.</p>';
       h += '<h4>Tài sản ở nhà</h4><p>' + (own.length ? own.join(' · ') : '<span class="dim">Chưa có gì.</span>') + '</p>';
       if (G.busPassUntil >= G.day) h += `<p>Vé tháng xe bus còn hạn đến <b>${dateLabel(G.busPassUntil)}</b>.</p>`;
       return h;
@@ -291,7 +294,7 @@ const UI = {
     this.panel('Tủ sách · soạn cặp', () => {
       const day = packTargetDay(), books = BOOK_SUBJ.map(s => 'sach_' + s);
       const gear = ['hopbut', 'thehs'].concat(G.busPassUntil >= G.day ? ['vethang'] : []), cloth = ['dp_td', 'dp_qp'], all = books.concat(gear, cloth);
-      const onShelf = a => a.filter(i => !G.bag[i]).map(i => book(i, false)).join('') || '<i class="cab-empty">trống</i>';
+      const onShelf = a => a.filter(i => !G.bag[i] && !G.noOwn[i]).map(i => book(i, false)).join('') || '<i class="cab-empty">trống</i>';
       let tt = '';
       if (day !== null) tt = `<h4>${day === G.day ? 'Hôm nay' : 'Ngày học tới'} · ${dateLabel(day)}</h4><ol class="ttl">` + TIMETABLE[cal(day).dow].map((s, i) => {
         if (!s) return i === 4 ? '<li class="pm"><i>Chiều nghỉ học</i></li>' : '';
@@ -351,7 +354,7 @@ UI.refresh = function () { if (this._panel && this._panel._keep) { this._panel._
  *  MENU CHUNG (Esc hoặc M): một bảng duy nhất, các tab là icon
  *  Chỉ số · Bạn bè · Thời khoá biểu · Học bạ · Lịch · Thẻ cầu thủ · Cài đặt
  * ============================================================ */
-const MENU_TABS = [['stats', 'Chỉ số'], ['friends', 'Bạn bè'], ['tt', 'Thời khoá biểu'], ['grades', 'Học bạ'], ['cal', 'Lịch'], ['cards', 'Thẻ cầu thủ'], ['map', 'Bản đồ'], ['memo', 'Lưu bút'], ['set', 'Cài đặt']];
+const MENU_TABS = [['stats', 'Chỉ số'], ['friends', 'Bạn bè'], ['tt', 'Thời khoá biểu'], ['grades', 'Học bạ'], ['cal', 'Lịch'], ['cards', 'Bộ sưu tập'], ['map', 'Bản đồ'], ['memo', 'Lưu bút'], ['set', 'Cài đặt']];
 const MV = {};
 const subTabs = (act, cur, list) => '<div class="tabs">' + list.map(([id, name]) => `<button class="tab ${cur === id ? 'on' : ''}" data-act="${act}" data-id="${id}">${name}</button>`).join('') + '</div>';
 const heartsHtml = n => `<span class="hearts">${'♥'.repeat(n)}<i>${'♥'.repeat(5 - n)}</i></span>`;
@@ -374,11 +377,11 @@ MV.stats = {
   render() {
     const st = UI._stab === 'khac' ? 'khac' : 'ht';
     const bar = (cur, need, col) => `<div class="pb"><div style="width:${need ? Math.round(100 * cur / need) : 100}%;background:${col || ''}"></div></div>`;
-    const cell = k => { const i = lvlInfo(G.stats[k]), col = SUBJ[k] ? SUBJ[k].color : ({ thethao: '#d9742b', buonban: '#c9862b', kheotay: '#3f8f9b', vannghe: '#9a72d6' })[k]; return `<div class="st"><div class="sth"><b>${STAT_NAMES[k]}</b><span class="lv">Lv ${i.lv}</span></div>${bar(i.cur, i.need, col)}<small>${i.lv >= 10 ? 'Tối đa' : `${i.cur}/${i.need}`}</small></div>`; };
+    const cell = k => { const i = lvlInfo(G.stats[k]), col = SUBJ[k] ? SUBJ[k].color : ({ thethao: '#d9742b', buonban: '#c9862b', kheotay: '#3f8f9b', vannghe: '#9a72d6', nongsan: '#5fae4a' })[k]; return `<div class="st"><div class="sth"><b>${STAT_NAMES[k]}</b><span class="lv">Lv ${i.lv}</span></div>${bar(i.cur, i.need, col)}<small>${i.lv >= 10 ? 'Tối đa' : `${i.cur}/${i.need}`}</small></div>`; };
     const big = (name, v, note) => `<div class="st big"><div class="sth"><b>${name}</b><span class="lv">${fmtAvg(v)}</span></div><small>${note}</small></div>`;
     let h = subTabs('stab', st, [['ht', 'Học tập'], ['khac', 'Khác']]);
     if (st === 'ht') h += big('Học tập', hocTap(), 'Trung bình cấp các môn. Môn có thực hành (Lý, Hoá, Sinh, Quốc phòng): tiết lý thuyết và tiết thực hành cộng chung vào chỉ số của môn') + '<div class="sgrid">' + STUDY_SUBJ.map(cell).join('') + '</div>';
-    else h += '<div class="sgrid">' + ['thethao', 'buonban', 'kheotay', 'vannghe'].map(cell).join('') + '</div>';
+    else h += '<div class="sgrid">' + ['thethao', 'buonban', 'kheotay', 'vannghe', 'nongsan'].map(cell).join('') + '</div><p class="dim">Hội hoạ: vẽ tranh, lớp vẽ ở trung tâm năng khiếu · Văn nghệ: hát, nhảy, lớp thanh nhạc · Nông sản: câu cá, thu hoạch cây trồng · Buôn bán: phụ bán hàng, bán đồ.</p>';
     return h;
   },
 };
@@ -505,7 +508,8 @@ MV.cards = {
   init() { UI._sq = null; },
   render() {
     const t = UI._ctab || 'album';
-    let h = subTabs('ctab', t, [['album', 'Bộ sưu tập'], ['squad', 'Đội hình']]);
+    let h = subTabs('ctab', t, [['album', 'Thẻ cầu thủ'], ['squad', 'Đội hình'], ['fish', 'Cá']]);
+    if (t === 'fish') return h + fishAlbumHtml();
     if (t === 'album') {
       h += `<p>Đã sưu tầm <b>${cardKinds()}/${CARDS.length}</b> loại · tổng <b>${cardCount()}</b> lá.${G.cardDone === CARDS.length ? ' <b class="tag">Đủ bộ!</b>' : ''}</p><div class="pcards">`;
       for (const c of CARDS) h += G.cards[c.id] ? cardHtml(c, '×' + G.cards[c.id]) : `<div class="pcard none" style="--rc:${CARD_RARITY[c.r].col}"><div class="pc-q">?</div><div class="pc-n">Số ${c.no}</div><div class="pc-r">${starsOf(c)} ${CARD_RARITY[c.r].name}</div></div>`;

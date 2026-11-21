@@ -113,13 +113,13 @@ ACT.karaoke = async () => {
 // vào nơi làm việc của bố mẹ / nhà hàng / karaoke
 const WORKPLACE = { mom: 'congty', dad: 'nhamay' };
 ACT.enterWork = async who => {
-  if (RT.lock) return;
+  if (RT.lock || tetShut(who === 'mom' ? 'Công ty Sen Vàng' : 'Nhà máy bánh kẹo')) return;
   if (!inWin(G.time, 360, 1140)) return UI.say(who === 'mom' ? 'Công ty Sen Vàng' : 'Nhà máy bánh kẹo', 'Đã hết giờ làm việc, cửa đóng rồi.<p class="dim">Mở cửa 06:00–19:00</p>');
   if (G.ride) dismount(true);
   const e = MAPS[WORKPLACE[who]].entry; await goPlace(WORKPLACE[who], e[0], e[1], e[2], 0);
 };
 ACT.enterDong = async id => {
-  if (RT.lock) return;
+  if (RT.lock || tetShut(id === 'nhahang' ? 'Nhà hàng Sen Hồng' : 'Karaoke Âm Vang')) return;
   const hours = id === 'nhahang' ? [600, 1320] : [840, 1380];
   if (!inWin(G.time, hours[0], hours[1])) return UI.say(id === 'nhahang' ? 'Nhà hàng Sen Hồng' : 'Karaoke Âm Vang', `Chưa tới giờ mở cửa.<p class="dim">Mở cửa ${fmtTime(hours[0])}–${fmtTime(hours[1])}</p>`);
   if (G.ride) dismount(true);

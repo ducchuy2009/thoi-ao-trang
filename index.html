@@ -477,6 +477,11 @@ b.bad{color:#d9534f}
 .pm-rank table{margin:0}
 .pm-rank tr.me td{background:#ffe9a8;font-weight:800}
 
+.rowi .ico{width:20px;height:20px;image-rendering:pixelated;vertical-align:-5px;margin-right:6px}
+.fishgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:6px}
+.fishc{display:flex;flex-direction:column;align-items:center;text-align:center;background:#fff6e3;border:2px solid var(--ink);border-radius:10px;padding:6px 6px 8px}
+.fishc img{width:44px;height:44px;image-rendering:pixelated}.fishc b{font-size:14px}.fishc small{font-size:11px;color:var(--dim);line-height:1.25}
+.fishc.none{background:#e9e2d2;border-style:dashed}.fishc .q{font:800 30px/44px inherit;color:#b9ab8f;height:44px}
 .tvline{font-size:17px;line-height:1.5}.tvline .tag{font-style:normal;margin-right:8px;font-size:12px!important;background:#ffe066;vertical-align:2px}
 .lk-mini{color:#e8a400;letter-spacing:1px}.lk-mini i{font-style:normal;color:#b7aec9}
 
@@ -676,7 +681,7 @@ const PARENT = {
 const STAT_NAMES = {
   toan: 'Toán', van: 'Văn', anh: 'Tiếng Anh', ly: 'Lý', hoa: 'Hoá', su: 'Sử', dia: 'Địa', sinh: 'Sinh học', qp: 'Quốc phòng',
   th_ly: 'TH Lý', th_hoa: 'TH Hoá', th_sinh: 'TH Sinh',
-  thethao: 'Thể thao', buonban: 'Buôn bán', kheotay: 'Khéo tay', vannghe: 'Văn nghệ',
+  thethao: 'Thể thao', buonban: 'Buôn bán', kheotay: 'Hội hoạ', vannghe: 'Văn nghệ', nongsan: 'Nông sản',
 };
 
 /* ---------- Việc nhà ---------- */
@@ -722,13 +727,70 @@ const PARENT_RIDE_MIN = 10;
 const TRAIN = { price: 15000, mins: 40, hours: [360, 1140], lastBack: 1260 };
 const BEACH = { swim: { mins: 40, stam: 12, pts: 6 }, castle: { mins: 30, pts: 3, stam: 4 }, food: { price: 30000, mins: 20, stam: 30, friend: 8 }, rest: { mins: 30, stam: 15 }, shell: { mins: 10, perDay: 3 }, friend: 12 };
 const SHELL_FRIEND = 6;
-// Câu cá ở bờ sông (minigame giữ cá trong vùng xanh). diff: độ khó 1–5 · w: tỉ lệ gặp
-const FISHING = { mins: 20, stam: 3, nothing: 0.15, momGift: 2 };
+// Câu cá ở sông (bến dưới phố Hoa Phượng), hồ (ao trong công viên khu nhà) và biển. Mỗi lần thả câu FISHING.mins phút.
+// where: song | ho | bien · seasons: mùa có cá (0 Thu, 1 Đông, 2 Xuân, 3 Hè) · hours: [từ, đến] tính bằng phút (quá 1440 là sau nửa đêm; null = cả ngày)
+// diff 1–5: càng quý càng khó · price: giá trị bán cố định · fp: điểm nông sản khi câu được · col: màu vảy
+const FISHING = { mins: 20, stam: 3, nothing: 0.12, momGift: 2, baitRare: 1.8 };
 const FISH = [
-  { id: 'ro', name: 'Cá rô', diff: 1, price: 6000, w: 34 }, { id: 'tre', name: 'Cá trê', diff: 2, price: 10000, w: 28 },
-  { id: 'chep', name: 'Cá chép', diff: 3, price: 16000, w: 20 }, { id: 'loc', name: 'Cá lóc', diff: 4, price: 26000, w: 13 },
-  { id: 'chinh', name: 'Cá chình', diff: 5, price: 48000, w: 5 },
+  { id: 'ro', name: 'Cá rô', where: 'song', seasons: [0, 1, 2, 3], hours: null, diff: 1, price: 7000, fp: 2, col: '#6f8440' },
+  { id: 'bong', name: 'Cá bống', where: 'song', seasons: [0, 1, 2, 3], hours: null, diff: 1, price: 6000, fp: 2, col: '#a8906a' },
+  { id: 'tre', name: 'Cá trê', where: 'song', seasons: [0, 2, 3], hours: [1080, 1620], diff: 2, price: 12000, fp: 3, col: '#4a4a52' },
+  { id: 'chep', name: 'Cá chép', where: 'song', seasons: [0, 1, 2], hours: null, diff: 3, price: 18000, fp: 5, col: '#d9a441' },
+  { id: 'tram', name: 'Cá trắm cỏ', where: 'song', seasons: [2, 3], hours: [360, 1080], diff: 3, price: 22000, fp: 6, col: '#7a8a5a' },
+  { id: 'loc', name: 'Cá lóc', where: 'song', seasons: [0, 3], hours: [300, 660], diff: 4, price: 30000, fp: 8, col: '#3f4a3a' },
+  { id: 'chinh', name: 'Cá chình', where: 'song', seasons: [1, 2], hours: [1140, 1620], diff: 5, price: 55000, fp: 14, col: '#5a4a3a' },
+  { id: 'rophi', name: 'Cá rô phi', where: 'ho', seasons: [0, 1, 2, 3], hours: null, diff: 1, price: 8000, fp: 2, col: '#8a96a8' },
+  { id: 'diec', name: 'Cá diếc', where: 'ho', seasons: [0, 1, 2], hours: null, diff: 2, price: 10000, fp: 3, col: '#b8b0a0' },
+  { id: 'came', name: 'Cá mè', where: 'ho', seasons: [2, 3], hours: [360, 1020], diff: 2, price: 13000, fp: 4, col: '#c9ccd4' },
+  { id: 'vang', name: 'Cá vàng', where: 'ho', seasons: [1, 2], hours: [540, 900], diff: 3, price: 25000, fp: 6, col: '#f2a93b' },
+  { id: 'koi', name: 'Cá chép Koi', where: 'ho', seasons: [3, 0], hours: [480, 960], diff: 4, price: 45000, fp: 11, col: '#e2574c' },
+  { id: 'nuc', name: 'Cá nục', where: 'bien', seasons: [0, 1, 2, 3], hours: null, diff: 1, price: 9000, fp: 2, col: '#5a8fc4' },
+  { id: 'bacma', name: 'Cá bạc má', where: 'bien', seasons: [0, 3], hours: null, diff: 2, price: 14000, fp: 4, col: '#9fb6d6' },
+  { id: 'thu', name: 'Cá thu', where: 'bien', seasons: [1, 2], hours: [360, 900], diff: 3, price: 28000, fp: 7, col: '#3b6fb6' },
+  { id: 'muc', name: 'Mực ống', where: 'bien', seasons: [3, 0], hours: [1080, 1620], diff: 3, price: 32000, fp: 8, col: '#e8c8d0' },
+  { id: 'mu', name: 'Cá mú', where: 'bien', seasons: [2, 3], hours: [300, 720], diff: 4, price: 60000, fp: 15, col: '#c9862b' },
+  { id: 'ngu', name: 'Cá ngừ đại dương', where: 'bien', seasons: [3], hours: [300, 600], diff: 5, price: 120000, fp: 25, col: '#2f4a7a' },
 ];
+const FISH_WHERE = { song: 'Sông', ho: 'Hồ công viên', bien: 'Biển' };
+// Cây trồng trong chậu ngoài vườn. hoa: nảy mầm nhanh, rẻ hơn quả, thu 1 lần (hoa càng đắt càng lâu nở) · qua: thu nhiều lần, lứa sau sau regrow ngày
+// seed: giá hạt · grow: số ngày được tưới tới lứa đầu · yield: số quả mỗi lứa · price: giá trị 1 bông / quả · fp: điểm nông sản mỗi lần thu
+const CROPS = {
+  cuc: { name: 'Hoa cúc', kind: 'hoa', seed: 6000, grow: 2, yield: 1, price: 12000, fp: 3, col: '#ffd23a' },
+  hong: { name: 'Hoa hồng', kind: 'hoa', seed: 10000, grow: 3, yield: 1, price: 20000, fp: 5, col: '#e2574c' },
+  huongduong: { name: 'Hoa hướng dương', kind: 'hoa', seed: 14000, grow: 4, yield: 1, price: 28000, fp: 7, col: '#f2a93b' },
+  lan: { name: 'Hoa lan', kind: 'hoa', seed: 24000, grow: 5, yield: 1, price: 45000, fp: 11, col: '#b07ad6' },
+  ot: { name: 'Ớt', kind: 'qua', seed: 9000, grow: 5, regrow: 2, yield: 3, price: 9000, fp: 4, col: '#d9534f' },
+  cachua: { name: 'Cà chua', kind: 'qua', seed: 12000, grow: 6, regrow: 3, yield: 3, price: 12000, fp: 5, col: '#e2574c' },
+  dau: { name: 'Dâu tây', kind: 'qua', seed: 22000, grow: 7, regrow: 3, yield: 2, price: 30000, fp: 8, col: '#e83f5f' },
+  chanh: { name: 'Chanh', kind: 'qua', seed: 30000, grow: 9, regrow: 4, yield: 4, price: 22000, fp: 10, col: '#8fd067' },
+};
+const FARM = { pot: 20000, chest: 60000, chestCap: 30, waterStam: 2, wither: 3 };      // chậu · thùng chứa (tối đa 30 món) · tưới tốn thể lực · không tưới 3 ngày thì héo
+// Vẽ tranh (khung tranh đặt ở nhà, hoặc giấy vẽ cầm tay): 30 phút, tốn thể lực; tranh đẹp hay không tuỳ cấp Hội hoạ
+const PAINT = { mins: 30, stam: 6, pts: 4, paper: 10000, frame: 150000,
+  tiers: [['tranh1', 'Bức tranh nguệch ngoạc', 15000], ['tranh2', 'Tranh phác hoạ', 30000], ['tranh3', 'Tranh phong cảnh', 55000], ['tranh4', 'Tranh màu nước đẹp', 90000], ['tranh5', 'Kiệt tác hội hoạ', 160000]] };
+// Trung tâm năng khiếu (phố Hoa Phượng): mua gói theo tháng (days ngày); mỗi thứ 7 học 2 tiết liền 30', có mặt trước giờ mới được vào
+const TALENT = { price: 250000, days: 28, stam: 4, ve: { name: 'Lớp vẽ', from: 540, stat: 'kheotay', pts: 6 }, hat: { name: 'Lớp thanh nhạc', from: 900, stat: 'vannghe', pts: 6 } };
+// Thú cưng: mua xong hôm sau cửa hàng giao tới nhà
+const PETS = { dog: { name: 'Chó con', price: 800000, pet: 'Cún' }, cat: { name: 'Mèo con', price: 600000, pet: 'Mướp' } };
+// Sở thích quà: love (+nhiều) · dislike (−ít) · hate (−nhiều) · còn lại là bình thường (+ít). Ghi theo mã món hoặc nhóm (food, drink, fish, flower, fruit, veg, art, gift, school, seed, tool)
+const GIFT_PTS = { love: 8, norm: 2, dislike: -2, hate: -6 };
+const GIFT_TASTE = {
+  khoa: { love: ['garan', 'xien', 'bimbim', 'haisan'], dislike: ['flower', 'veg'], hate: ['school'] },
+  vy: { love: ['c_hong', 'c_lan', 'trasua', 'gaubong', 'tranh4', 'tranh5'], dislike: ['fish'], hate: ['c_ot', 'bimbim'] },
+  dat: { love: ['trasua', 'kem', 'tradao', 'art'], dislike: ['school', 'veg'], hate: ['fish'] },
+  ngan: { love: ['garan', 'sua', 'c_chanh', 'c_dau', 'haisan'], dislike: ['kem', 'flower'], hate: ['bimbim'] },
+  mom: { love: ['flower', 'fruit', 'fish', 'veg'], dislike: ['trasua'], hate: ['bimbim'] },
+  dad: { love: ['fish', 'art', 'c_chanh'], dislike: ['flower'], hate: ['kem'] },
+  hanh: { love: ['flower', 'art', 'school'], dislike: ['fish'], hate: ['bimbim'] },
+  lan: { love: ['c_lan', 'c_hong', 'tradao', 'art'], dislike: ['veg'], hate: ['fish'] },
+  tung: { love: ['school', 'art', 'c_chanh'], dislike: ['kem'], hate: ['bimbim'] },
+  manh: { love: ['garan', 'sua', 'fruit'], dislike: ['art'], hate: ['bimbim'] },
+  quan: { love: ['fish', 'haisan', 'c_ot'], dislike: ['flower'], hate: ['kem'] },
+  nghiem: { love: ['school', 'tradao'], dislike: ['bimbim'], hate: ['gaubong'] },
+  coba: { love: ['fruit', 'veg', 'fish'], dislike: ['art'], hate: [] },
+};
+// Bán đồ cho người khác: khả năng nhận mua = base theo người + perHeart × số tim (± sở thích)
+const SELL_TO = { friend: 0.45, parent: 0.6, teacher: 0.3, soc: 0.5, other: 0.4, perHeart: 0.07, love: 0.25, dislike: -0.25, hate: -0.6 };
 
 /* ---------- Vật phẩm ---------- */
 const ITEMS = {
@@ -770,7 +832,8 @@ const SHOP = [
   { id: 'bimbim5', name: 'Lốc 5 gói bim bim Sao Vàng', price: 23000, desc: '5 gói, mỗi gói 1 thẻ cầu thủ', inv: 'bimbim', n: 5 },
   { id: 'banhtrang', name: 'Bánh tráng trộn ×5', price: 25000, desc: 'Hàng để bán lại cho bạn trong giờ ra chơi', inv: 'banhtrang', n: 5 },
   { id: 'vethang', name: 'Vé tháng xe bus', price: BUS_PASS_PRICE, desc: 'Dùng 30 ngày kể từ ngày mua', special: 'vethang' },
-  { id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu cá ở bờ sông (dưới phố Hoa Phượng)', own: 'cancau' },
+  { id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu cá ở bờ sông, ao công viên, bãi biển', own: 'cancau' },
+  { id: 'thung', name: 'Thùng chứa nhỏ', price: FARM.chest, desc: 'Đặt ở chỗ bất kỳ ngoài vườn trước nhà, cất được 30 món đồ', inv: 'thung', n: 1 },
   { id: 'xedap', name: 'Xe đạp', price: 400000, desc: 'Để ở sân nhà, bấm vào xe để đi', own: 'xedap' },
   { id: 'xedapdien', name: 'Xe đạp điện', price: 2500000, desc: 'Chạy nhanh hơn xe đạp', own: 'xedapdien' },
   { id: 'xemay', name: 'Xe máy 50cc', price: 6000000, desc: 'Chạy nhanh nhất', own: 'xemay' },
@@ -783,7 +846,7 @@ const CANTEEN = [
 ];
 /* ---------- Gian hàng trong TTTM ---------- */
 // [id, tên, sprite]. Hàng của từng gian: own = mua một lần (để ở nhà); act = làm ngay tại chỗ
-const MALL_STALLS = [['phim', 'Rạp phim', 'stA'], ['sach', 'Nhà sách', 'stB'], ['sieuthi', 'Siêu thị', 'stC'], ['anuong', 'Ăn uống', 'stD'], ['noithat', 'Nội thất', 'stE'], ['nhaccu', 'Nhạc cụ', 'stF'], ['thethao', 'Thể thao', 'stG']];
+const MALL_STALLS = [['phim', 'Rạp phim', 'stA'], ['sach', 'Nhà sách', 'stB'], ['sieuthi', 'Siêu thị', 'stC'], ['anuong', 'Ăn uống', 'stD'], ['noithat', 'Nội thất', 'stE'], ['nhaccu', 'Nhạc cụ', 'stF'], ['thethao', 'Thể thao', 'stG'], ['hoacu', 'Hoạ cụ', 'stH']];
 const MALL_GOODS = {
   phim: [{ id: 'vephim', name: 'Vé xem phim', price: 45000, desc: 'Vào rạp xem một suất phim', act: 'movie' }],
   sach: [{ id: 'sachtk', name: 'Sách tham khảo', price: 60000, desc: 'Chọn một môn để đọc thêm (mỗi ngày một cuốn)', act: 'book' }],
@@ -793,6 +856,9 @@ const MALL_GOODS = {
   nhaccu: [{ id: 'micro', name: 'Micro karaoke', price: 150000, desc: 'Để trong phòng ngủ, tập hát ở nhà', own: 'micro' }, { id: 'guitar', name: 'Đàn guitar', price: 400000, desc: 'Dựng trong phòng ngủ; có đàn tập hát vào hơn', own: 'guitar' }],
   thethao: [{ id: 'daynhay', name: 'Dây nhảy', price: 60000, desc: 'Dụng cụ tập thể dục ở nhà', own: 'daynhay' }, { id: 'tatay', name: 'Tạ tay', price: 150000, desc: 'Dụng cụ tập thể dục ở nhà, nặng hơn dây nhảy', own: 'tatay' }, { id: 'xadon', name: 'Xà đơn gắn cửa', price: 350000, desc: 'Dụng cụ tập thể dục ở nhà, khó nhất', own: 'xadon' }],
 };
+MALL_GOODS.hoacu = [{ id: 'giayve', name: 'Giấy vẽ', price: 10000, desc: 'Cầm theo người, bấm vào mình để ngồi vẽ ở bất cứ đâu', inv: 'giayve', n: 1 }, { id: 'khungtranh', name: 'Khung tranh (giá vẽ)', price: 150000, desc: 'Dựng ở góc phòng khách nhà mình để ngồi vẽ tranh', own: 'khungtranh' }];
+MALL_GOODS.sach = MALL_GOODS.sach.concat(BOOK_SUBJ.map(s => ({ id: 'sach_' + s, name: 'Sách ' + SUBJ[s].name, price: 35000, desc: 'Mua lại sách giáo khoa (đã bán / tặng mất)', school: true })), [{ id: 'hopbut', name: 'Hộp bút', price: 25000, desc: 'Mua lại hộp bút (đã bán / tặng mất)', school: true }]);
+MALL_GOODS.thethao = MALL_GOODS.thethao.concat([{ id: 'dp_td', name: 'Đồng phục thể dục', price: 90000, desc: 'Mua lại đồng phục thể dục', school: true }, { id: 'dp_qp', name: 'Đồ quốc phòng', price: 110000, desc: 'Mua lại quân phục học sinh', school: true }]);
 const DECOR_SLEEP = 2;        // mỗi món trang trí phòng: ngủ dậy hồi thêm chừng này thể lực
 /* ---------- Khu game: chơi bằng xèng ---------- */
 const TOKENS = { price: 10000, n: 5 };
@@ -837,8 +903,8 @@ const TASK_BOARD = { open: 3, maxActive: 3, failAff: -3, dropAff: -1, stam: 4 };
 // Làm xong luôn được thêm thân thiết với người nhờ; tiền công thì có lúc có lúc không (payChance)
 const TASK_QUOTA = { p: [0.25, 0.45, 0.30], payChance: 0.5 };
 const TASKS = {
-  xepsach: { tid: 'lan', name: 'Xếp lại sách thư viện', desc: 'Sau giờ đọc, các kệ sách bị xáo trộn hết. Cô cần một bạn xếp lại sách theo từng môn.', steps: [{ map: 'thuvien', x: 92, y: 48, do: 'Xếp sách lên kệ theo môn', where: 'Thư viện (kệ sách)' }], mins: 40, win: [390, 1080], days: 3, until: 1080, pay: 6000, aff: 6, stat: ['kheotay', 2] },
-  laubang: { tid: 'hanh', name: 'Trực nhật lớp sau giờ học', desc: 'Tan học rồi em lau bảng, kê lại bàn ghế và quét lớp 10A1 giúp cô nhé.', steps: [{ map: 'class', x: 160, y: 54, do: 'Lau bảng, kê bàn ghế, quét lớp', where: 'Lớp 10A1 (trước bảng)' }], mins: 30, win: [CFG.SCHOOL_END, 1110], days: 2, until: 1110, pay: 5000, aff: 6, stat: ['kheotay', 1] },
+  xepsach: { tid: 'lan', name: 'Xếp lại sách thư viện', desc: 'Sau giờ đọc, các kệ sách bị xáo trộn hết. Cô cần một bạn xếp lại sách theo từng môn.', steps: [{ map: 'thuvien', x: 92, y: 48, do: 'Xếp sách lên kệ theo môn', where: 'Thư viện (kệ sách)' }], mins: 40, win: [390, 1080], days: 3, until: 1080, pay: 6000, aff: 6 },
+  laubang: { tid: 'hanh', name: 'Trực nhật lớp sau giờ học', desc: 'Tan học rồi em lau bảng, kê lại bàn ghế và quét lớp 10A1 giúp cô nhé.', steps: [{ map: 'class', x: 160, y: 54, do: 'Lau bảng, kê bàn ghế, quét lớp', where: 'Lớp 10A1 (trước bảng)' }], mins: 30, win: [CFG.SCHOOL_END, 1110], days: 2, until: 1110, pay: 5000, aff: 6 },
   tuoicay: { tid: 'tung', name: 'Tưới cây phượng sân trường', desc: 'Mấy hôm nay nắng to quá, thầy nhờ em tưới mấy gốc phượng trước sân trường.', steps: [{ map: 'school', x: 114, y: 194, do: 'Xách bình tưới các gốc phượng', where: 'Sân trường (gốc phượng bên trái)' }], mins: 20, win: [390, 1080], days: 2, until: 1080, pay: 4000, aff: 5, stat: ['thethao', 1] },
   dungcu: { tid: 'manh', name: 'Dọn dụng cụ thể dục', desc: 'Sau giờ thể dục bóng, cầu, dây nhảy vương vãi khắp sân. Thầy nhờ em gom lại cất vào kho.', steps: [{ map: 'school', x: 600, y: 214, do: 'Gom bóng, cầu, dây nhảy cất vào kho', where: 'Sân thể dục' }], mins: 30, win: [CFG.SCHOOL_END, 1110], days: 3, until: 1110, pay: 6000, aff: 7, stat: ['thethao', 2] },
   decuong: { tid: 'tung', name: 'Mang đề cương ôn tập về lớp', desc: 'Thầy để xấp đề cương ôn tập Toán ở bàn thủ thư. Em lấy giúp thầy rồi đặt lên bàn giáo viên lớp 10A1.', steps: [{ map: 'thuvien', x: 252, y: 154, do: 'Nhận xấp đề cương ở bàn thủ thư', where: 'Thư viện (bàn thủ thư)' }, { map: 'class', x: 56, y: 64, do: 'Đặt đề cương lên bàn giáo viên', where: 'Lớp 10A1 (bàn giáo viên)' }], mins: 16, win: [390, 1080], days: 2, until: 1080, pay: 4000, aff: 6 },
@@ -854,6 +920,8 @@ const TASKS = {
  * where: chỗ đưa · lunch: chỉ nhắn lúc nghỉ trưa · off: việc cuối tuần (bố mẹ ở nhà) · cost: tiền bỏ ra mua (bố mẹ trả lại) */
 const PARENT_TASK = { chance: 0.3, slots: { lunch: [630, PM_START - 15], after: [CFG.SCHOOL_END + 10, CFG.SCHOOL_END + 50], summer: [540, 1050], off: [540, 720] }, pay: 8000, aff: 3 };
 const PARENT_TASKS = {
+  chorau: { who: 'mom', name: 'Đi chợ mua rau cho mẹ', msg: 'Con ơi, ra chợ Bờ Đông mua giúp mẹ bó rau muống với mấy quả cà chua nhé, về mẹ gửi lại tiền!', item: 'raume', off: true, cost: 20000, market: 'rau', pick: { map: 'cho', x: 50, y: 82, do: 'Mua rau muống, cà chua ở hàng rau quả', where: 'Chợ Bờ Đông (hàng rau quả)' }, where: 'Mẹ (ở nhà)' },
+  choca: { who: 'dad', name: 'Đi chợ mua cá cho bố', msg: 'Bố thèm cá kho quá. Con ra chợ Bờ Đông mua giúp bố con cá chép nhé, về bố gửi lại tiền!', item: 'cabo', off: true, cost: 25000, market: 'ca', pick: { map: 'cho', x: 130, y: 82, do: 'Mua con cá chép ở hàng cá', where: 'Chợ Bờ Đông (hàng cá)' }, where: 'Bố (ở nhà)' },
   tailieu: { who: 'dad', name: 'Mang tài liệu cho bố', msg: 'Con ơi, bố để quên tập tài liệu trong hộc bàn làm việc ở phòng bố mẹ. Con mang lên nhà máy giúp bố được không? Chiều nay bố phải nộp rồi.', item: 'tailieu', pick: { map: 'phongbm', x: 37, y: 60, do: 'Lấy tập tài liệu trong hộc bàn của bố', where: 'Phòng bố mẹ (bàn làm việc)' }, where: 'Nhà máy bánh kẹo (phố Bờ Đông)' },
   comtrua: { who: 'mom', name: 'Mang cơm trưa cho mẹ', msg: 'Mẹ để quên hộp cơm trưa trên bàn ăn ở nhà rồi. Trưa nay con mang qua công ty giúp mẹ nhé, công ty Sen Vàng ở cuối phố Hoa Phượng đó!', item: 'comme', lunch: true, pick: { map: 'home', x: 416, y: 146, do: 'Lấy hộp cơm trưa mẹ để quên trên bàn ăn', where: 'Nhà mình (bàn ăn)' }, where: 'Công ty Sen Vàng (cuối phố Hoa Phượng)' },
   vi: { who: 'dad', name: 'Mang ví cho bố', msg: 'Bố quên cái ví ở tủ đầu giường rồi. Con mang lên nhà máy cho bố nhé, chiều bố còn đổ xăng.', item: 'vibo', pick: { map: 'phongbm', x: 160, y: 70, do: 'Lấy cái ví bố để ở tủ đầu giường', where: 'Phòng bố mẹ (tủ đầu giường)' }, where: 'Nhà máy bánh kẹo (phố Bờ Đông)' },
@@ -861,7 +929,7 @@ const PARENT_TASKS = {
   usb: { who: 'dad', name: 'Mang USB cho bố', msg: 'Cái USB bố cắm ở máy tính bàn làm việc ngoài phòng khách có file bố cần gấp. Con rút ra mang lên nhà máy giúp bố với!', item: 'usb', pick: { map: 'home', x: 299, y: 64, do: 'Rút cái USB ở máy tính bàn làm việc', where: 'Nhà mình (bàn làm việc phòng khách)' }, where: 'Nhà máy bánh kẹo (phố Bờ Đông)' },
   nuocmam: { who: 'mom', name: 'Mua nước mắm cho mẹ', msg: 'Nhà hết nước mắm rồi con ơi. Con chạy ra tạp hoá Cô Ba mua giúp mẹ một chai, về mẹ gửi lại tiền nhé!', item: 'nuocmam', off: true, cost: 25000, pick: { map: 'town', x: 290, y: 150, do: 'Mua một chai nước mắm ở tạp hoá Cô Ba', where: 'Tạp hoá Cô Ba (khu phố nhà mình)' }, where: 'Mẹ (ở nhà)' },
 };
-const PARENT_ITEMS = { tailieu: 'Tập tài liệu của bố', comme: 'Hộp cơm trưa của mẹ', vibo: 'Cái ví của bố', kinhme: 'Kính của mẹ', usb: 'USB của bố', nuocmam: 'Chai nước mắm' };
+const PARENT_ITEMS = { tailieu: 'Tập tài liệu của bố', comme: 'Hộp cơm trưa của mẹ', vibo: 'Cái ví của bố', kinhme: 'Kính của mẹ', usb: 'USB của bố', nuocmam: 'Chai nước mắm', raume: 'Túi rau của mẹ', cabo: 'Con cá chép cho bố' };
 
 /* ---------- Nhóm học sinh trường trên điện thoại ----------
  * Ai cũng tự động được vào nhóm “Học sinh THPT Hoa Phượng”. Ngày đi học (không đăng trong giờ học), các bạn thân và anh chị
@@ -1150,6 +1218,7 @@ const MEMO_BADGES = {
   phudong: { name: 'Phù Đổng', icon: 'b_phudong', desc: 'Cùng cả lớp giành cúp tập thể ở Hội khoẻ Phù Đổng.', hint: 'Giành cúp tập thể ở Hội khoẻ Phù Đổng' },
 };
 const MEMO_SCENES = {
+  nangkhieu: { name: 'Lớp năng khiếu', icon: 'sc_hsg', desc: 'Đăng ký học vẽ, học hát ở trung tâm năng khiếu Hoạ Mi.' },
   hsgchon: { name: 'Chọn môn thi học sinh giỏi', icon: 'sc_hsg', desc: 'Bố mẹ đi họp về báo tin được vào đội tuyển, cả nhà cùng chọn môn thi.' },
   hsgthi: { name: 'Thi học sinh giỏi quốc gia', icon: 'sc_hsg', desc: 'Ngồi trong phòng thi số 07 trường THPT chuyên Hoa Đào, đề khó mà tay vẫn viết đều.' },
   anmung: { name: 'Bữa tối ăn mừng', icon: 'sc_anmung', desc: 'Cả nhà đi nhà hàng Sen Hồng ăn mừng giải học sinh giỏi quốc gia.' },
@@ -2187,7 +2256,7 @@ function buildSprites2() {
     R(x, '#e9e4d8', 0, 28, 52, 6); R(x, '#fbf8f0', 0, 28, 52, 2); R(x, shade(col, 35), 0, 34, 52, 12); R(x, shade(col, -10), 0, 43, 52, 3);
     R(x, col, 4, 24, 6, 6); R(x, shade(col, 30), 12, 25, 5, 5); R(x, '#f4d35e', 38, 24, 5, 6); R(x, '#5a8fd6', 44, 25, 5, 5);
   });
-  stall('stA', '#d9534f'); stall('stB', '#3b82c4'); stall('stC', '#5fae4a'); stall('stD', '#f2a93b'); stall('stE', '#7a5fc9'); stall('stF', '#2e9e86'); stall('stG', '#e06a9a');
+  stall('stA', '#d9534f'); stall('stB', '#3b82c4'); stall('stC', '#5fae4a'); stall('stD', '#f2a93b'); stall('stE', '#7a5fc9'); stall('stF', '#2e9e86'); stall('stG', '#e06a9a'); stall('stH', '#9a72d6');
   // máy trong khu game
   const cab = (name, body, scr, top) => def(name, 20, 36, x => {
     R(x, body, 0, 4, 20, 32); R(x, shade(body, 25), 0, 4, 20, 2); R(x, shade(body, -25), 0, 32, 20, 4); R(x, top, 1, 0, 18, 5); R(x, '#fff', 3, 1, 3, 1); R(x, '#fff', 12, 2, 4, 1);
@@ -2724,6 +2793,7 @@ function itemIcon(id) {
     else if (k === 'hsg') { R(x, '#2a2136', 4, 7, 9, 2); R(x, '#2a2136', 6, 9, 5, 1); R(x, '#2a2136', 8, 10, 1, 2); R(x, '#e2574c', 12, 8, 1, 4); R(x, '#fbf7ee', 6, 12, 5, 3); R(x, '#e2574c', 7, 13, 3, 1); }   // mũ tốt nghiệp + giấy khen
     else if (k === 'keoco') { R(x, '#8a5a3a', 4, 10, 9, 1); R(x, '#a9703f', 4, 11, 9, 1); R(x, '#d9534f', 8, 8, 1, 5); R(x, '#2a2136', 4, 8, 1, 2); R(x, '#2a2136', 12, 8, 1, 2); }
   }
+  else if (typeof extraIcon === 'function' && extraIcon(id, x)) { }   // icon các món vòng 23 (02f_art3.js)
   else { R(x, '#c9b58a', 3, 3, 10, 10); }
   const oc = outline(c); _iconCv[id] = oc;
   return (_icons[id] = oc.toDataURL());
@@ -2900,6 +2970,148 @@ const AVATARS = {
   sG: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAATCAYAAACdkl3yAAADDElEQVR42q2UW2gUZxiGn5mdndmZ3ezG3Y1iYrI2MRgTlZgaa5EUsSSoTYsnELVUb0QvRBEhCmoRVKhLm1YKvWkvSqlIL0stCL1RFhNPYDzFeDbGxBzW1UT38M9OZ3qxutG6KV70vxre/+N5v++djx/+pyO9a2FZZb3zby3oL+Zq1ynpnUBTy+c6klcveOck0wA87rsiKRMB5tQvdizVQajaxC7hAGJg+L9HK5lc47iDATzhAACaKd6AaqYAQKga6d5B5EIQn6/CcQdzgHTvIK6H/ayIBDi2so61Uz24HvazqnEBM22LdO8gklcvDNINg4Dfg2QKllUF+WVHC+evPaKn4x77WsvpOriY1kqLpA0LIpMJeSYAFXtcjMVH+eL9Cto2NPHjH5eQdZ0Pl87FEikskWKS34dh6GzavodMYgRXIdCfX35+wGPbfLawCuv+XT7edoDhWxeJlPgo0TLIpk2x8Tea4mV2UYKsMAuH3fnNTscvRinVMnlN0dxYIouiuQHy35bI0sOUwqPt++n0W1rP/SR3Bkwskc1rr2B+MfpmR9UVdQ5AhVcjMsXPt+vfQzZt5CIflkihaAZm/Cl3BkxmlKoomhtblel+XjwOam5Y5BiGjpRJk7TBK0PQ52ZXSyXTy97ebEukeCxNo/PkFX7t7suF3TBroRMOeAkpFmNFJWzZ3kZH7BQBzUXn3afMqashdi2BNZxgZCjJyFCSC3EPf/WrnLx6E610GgpASHcRUixi90Y4cTxKdeN8PlmxhK0tSwB4EFlNfa1Jd/8Yz377PjdB+0HUczcAuH6uYzzsvrEs0a+PUt04P/eXgMSLXLCx348BUFvmx4iEADhzdD/Lljex/8ihfH3ONf6M2jI/ty9cBODn7w6x7qOZdPXFsYdv5g062p8QezJKE6CqbiSXRNDnRmluWOR4ZVjzQRWJs8fHV6C1HEukWFoTIno5DIBp5jrcfTjKkb1tbHxZu/nTeSiGoUMm967UMPTa8skomsGJy2laKy142UFz+w+EQ2F2H47mTedt+Yp/AIibEn4vJu73AAAAAElFTkSuQmCC',
   sA: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAATCAYAAACdkl3yAAACwUlEQVR42sWUS2sTURSAv5kk02SmD/OwVmnSovWBCvGBj7YgVVGUuhDEF+hOdOPGB0jVjeBGVLTgQvEHKIoiiKJWoVhRVCq6KrQWUi2ozctMMpMx0+a6SB0cW916N/eee8/5zjn3nHvhf49odKn4Xfb+S3nZyk3ifX+PFGqMCzWgYBZLjFsGvhlBDKvk0pWmA6havQjNaaIoIBBQMLMF1GA1tqTg88oAmGMpMqMfpL+CQo1x8csIcAwBFE0FwMgVsDMZxi0DPfVRcqWmavUiNHc++PwVwB8OfkEAtLpqbEUhlxh29hx3/uDsysK23IRJuWSYGLmCMwN4tTpCjXHhAlnZL0hV1UhV1RUl4alArJIDs3M65HV8ooT4UUBVZGKz6t0ReQO1mN8zmN8zYFtEZZOrnUu4c7CViP6VSDqBlfrMvm1biehfMbMF9GyW9/09kuuyayMtwqvVIflkonaGx10dTOhlJAVkv0wir9FcY5DIawBsOveQ2mCQ0aG3kisiAFWRiXg8nN27kbJV5sT9IbZeeg5Ac40BwKErDwAYL+oOxAWKNzVwdcdyAlYSgIvPsyTMylkir1G2ypx/kgbg+M13LFgUd9XEATWrMDPs59rhTmaG/exsjbGmKcLJLauJ+fIA7GyNAXDkwB4aAu4WdPooYcLtV5/oWFDPygYbUYJj64Iu5Zgvz+OuDhL5wSmvwYmor/+F9HTE4PSNZ3yya5hsbEQJ+gYs+gYsZL/MhF4mmbamgFzxNS/fLADCxRxntsdZEbKRFBhtPwpAufc6ybRF7+AYF+7ek6YFhVtWiYVL17u8zEu/ZHf7YsxsnjfJIt+SKZJC5dGLJ9JfU/OqlY7uPrWfvW2NeLQQw+E2egfHAHg9kmLYvxA9EJ32y3FAAY+P7lP7OXr5Abc+VOpu6hma1m7gTbLIrt27Jl9seFrQT0lyCBj7YATIAAAAAElFTkSuQmCC',
 };
+
+'use strict';
+/* ============================================================
+ *  02f. ĐỒ HOẠ VÒNG 23: cửa hàng hoa, thú cưng, trung tâm năng khiếu, chợ, sạp đồ câu, gian hoạ cụ trong TTTM,
+ *  chậu cây theo từng giai đoạn, thùng chứa, giá vẽ, chó mèo, icon cá / hoa quả / hạt giống / tranh…
+ * ============================================================ */
+function shopHouse(name, wall, roof, awning, sign, deco) {   // nhà cửa hàng 96×76 kiểu dãy phố
+  def(name, 96, 76, x => {
+    R(x, shade(roof, -25), 0, 2, 96, 6); R(x, roof, 2, 0, 92, 6); R(x, shade(roof, 20), 4, 0, 88, 2);
+    R(x, wall, 4, 8, 88, 66); R(x, shade(wall, -14), 4, 70, 88, 4); R(x, shade(wall, 12), 4, 8, 88, 2);
+    R(x, '#2a2136', 10, 12, 76, 14); R(x, sign, 11, 13, 74, 12); R(x, shade(sign, 30), 11, 13, 74, 2);
+    for (let i = 0; i < 8; i++) R(x, i % 2 ? '#fffaf0' : awning, 6 + i * 10.5, 28, 10.5, 7); R(x, shade(awning, -30), 6, 35, 84, 2);
+    R(x, '#cfe8f7', 10, 40, 30, 24); R(x, '#9cc8e6', 10, 40, 30, 3); R(x, '#2a2136', 24, 40, 1, 24);
+    R(x, '#8a5a3a', 58, 40, 24, 34); R(x, '#a9703f', 60, 42, 20, 32); R(x, '#cfe8f7', 63, 45, 14, 12); R(x, '#f4d35e', 76, 58, 2, 3);
+    if (deco) deco(x);
+  });
+}
+function buildSprites3() {
+  shopHouse('flowershop', '#f6efe2', '#c96a8a', '#e98fa5', '#5fae4a', x => {
+    for (const [a, c] of [[12, '#e2574c'], [18, '#ffd23a'], [24, '#b07ad6'], [30, '#f2a93b']]) { R(x, '#5fae4a', a, 56, 4, 6); ell(x, c, a + 2, 54, 2.5, 2.5); }
+    for (let i = 0; i < 4; i++) { R(x, '#c8583f', 6 + i * 8, 66, 6, 6); ell(x, ['#e2574c', '#ffd23a', '#e98fa5', '#fffaf0'][i], 9 + i * 8, 63, 3, 3); }
+    R(x, '#fffaf0', 30, 17, 36, 3); ell(x, '#e2574c', 22, 19, 4, 4); ell(x, '#ffd23a', 74, 19, 4, 4);
+  });
+  shopHouse('petshop', '#eef3f8', '#3b6fb6', '#5fb0e8', '#f2a93b', x => {
+    R(x, '#fffaf0', 26, 17, 44, 3); ell(x, '#8a5a3a', 18, 19, 4, 3); R(x, '#8a5a3a', 15, 15, 2, 3); R(x, '#8a5a3a', 20, 15, 2, 3);   // mặt chó trên biển
+    R(x, '#f2a93b', 12, 52, 10, 8); R(x, '#f2a93b', 12, 49, 3, 3); R(x, '#f2a93b', 19, 49, 3, 3); R(x, '#2a2136', 14, 54, 1, 1); R(x, '#2a2136', 19, 54, 1, 1);   // mèo trong tủ kính
+    R(x, '#c9a467', 26, 54, 12, 8); R(x, '#a8853f', 26, 60, 12, 2); ell(x, '#fffaf0', 32, 56, 3, 2);
+  });
+  shopHouse('talentB', '#f3e7f6', '#7a5fc9', '#b49ae8', '#7a5fc9', x => {
+    R(x, '#fffaf0', 24, 17, 48, 3); R(x, '#ffd23a', 16, 15, 2, 7); ell(x, '#ffd23a', 15, 21, 2, 1.6);                 // nốt nhạc
+    R(x, '#e2574c', 76, 16, 6, 6); R(x, '#3b82c4', 79, 18, 4, 4); R(x, '#8a5a3a', 78, 22, 1, 3);                        // bảng màu
+    R(x, '#8a5a3a', 14, 46, 2, 16); R(x, '#fffaf0', 12, 44, 14, 10); R(x, '#5fae4a', 14, 48, 10, 3); R(x, '#5a8fd6', 14, 45, 10, 3);   // giá vẽ trong tủ kính
+  });
+  def('marketB', 128, 80, x => {                                          // chợ: mái ngói đỏ, cửa rộng, sạp hàng bày trước
+    R(x, '#8a3a2a', 0, 4, 128, 14); R(x, '#b2503a', 4, 0, 120, 14); for (let i = 6; i < 124; i += 8) R(x, '#9a4230', i, 2, 1, 14);
+    R(x, '#f2e6c8', 6, 18, 116, 58); R(x, '#d9c8a0', 6, 72, 116, 4);
+    R(x, '#2a2136', 34, 22, 60, 13); R(x, '#d9534f', 35, 23, 58, 11); R(x, '#ffd23a', 35, 23, 58, 2);
+    R(x, '#4a3020', 44, 40, 40, 36); R(x, '#6f472c', 46, 42, 36, 34); R(x, '#3a2418', 63, 42, 2, 34);
+    for (const [a, c] of [[8, '#5fae4a'], [96, '#e2574c']]) { R(x, '#8a5a3a', a, 56, 24, 4); R(x, '#a9703f', a, 60, 24, 14); for (let i = 0; i < 5; i++) ell(x, c, a + 3 + i * 4.5, 54, 2.4, 2.4); }
+    R(x, '#5fb0e8', 10, 40, 20, 12); R(x, '#cfe8f7', 10, 40, 20, 3); R(x, '#5fb0e8', 98, 40, 20, 12); R(x, '#cfe8f7', 98, 40, 20, 3);
+  });
+  def('tackle', 64, 50, x => {                                            // sạp đồ câu ngoài biển
+    for (let i = 0; i < 6; i++) R(x, i % 2 ? '#fffaf0' : '#3b82c4', 2 + i * 10, 0, 10, 8); R(x, '#2f5a94', 2, 8, 60, 2);
+    R(x, '#8a5a3a', 4, 10, 3, 26); R(x, '#8a5a3a', 57, 10, 3, 26);
+    R(x, '#c9a467', 0, 30, 64, 16); R(x, '#a9853f', 0, 44, 64, 4); R(x, '#dcb878', 0, 30, 64, 2);
+    R(x, '#2a2136', 14, 14, 36, 10); R(x, '#5fb0e8', 15, 15, 34, 8); ell(x, '#fffaf0', 32, 19, 7, 2.5); R(x, '#fffaf0', 38, 17, 3, 4);   // biển hình cá
+    for (let i = 0; i < 3; i++) { R(x, '#6f472c', 12 + i * 16, 32, 1, 10); R(x, '#2a2136', 12 + i * 16, 31, 6, 1); }
+    R(x, '#5f656f', 46, 34, 10, 8); R(x, '#8b8f9c', 47, 35, 8, 3);
+  });
+  def('potE', 16, 22, () => { }, true);                                   // khung kích thước cho chậu (sprite thật vẽ theo giai đoạn: potKey)
+  def('chestS', 18, 16, x => { R(x, '#6f472c', 0, 4, 18, 12); R(x, '#a9703f', 1, 5, 16, 10); R(x, '#8a5a3a', 0, 0, 18, 6); R(x, '#c58c56', 1, 1, 16, 4); R(x, '#5a3a24', 0, 6, 18, 1); R(x, '#ffd23a', 8, 5, 2, 3); for (const a of [4, 13]) R(x, '#5a3a24', a, 1, 1, 15); });
+  def('easel', 22, 30, x => {                                             // giá vẽ có khung tranh
+    R(x, '#8a5a3a', 3, 10, 2, 20); R(x, '#8a5a3a', 17, 10, 2, 20); R(x, '#8a5a3a', 10, 2, 2, 28); R(x, '#6f472c', 2, 22, 18, 2);
+    R(x, '#c9a467', 1, 3, 20, 17); R(x, '#fffaf0', 3, 5, 16, 13); R(x, '#cfe8f7', 3, 5, 16, 6); R(x, '#5fae4a', 3, 13, 16, 5); ell(x, '#ffd23a', 14, 8, 2, 2); R(x, '#6f472c', 6, 10, 2, 5); ell(x, '#3f8f3a', 7, 9, 3, 2.5);
+  });
+  def('mstallG', 52, 30, x => mstall(x, '#5fae4a', ['#5fae4a', '#8fd067', '#e2574c', '#f2a93b']));
+  def('mstallB', 52, 30, x => mstall(x, '#3b82c4', ['#9fb6d6', '#5a8fc4', '#c9ccd4', '#d9a441']));
+  def('mstallO', 52, 30, x => mstall(x, '#f2a93b', ['#fffaf0', '#e98f4a', '#c9862b', '#f4d35e']));
+  def('mstallR', 52, 30, x => mstall(x, '#d9534f', ['#e2574c', '#ffd23a', '#b07ad6', '#fffaf0']));
+  def('piano', 40, 26, x => { R(x, '#2a2136', 0, 0, 40, 20); R(x, '#3a3f55', 1, 1, 38, 6); R(x, '#fffaf0', 2, 9, 36, 7); for (let i = 4; i < 38; i += 4) R(x, '#2a2136', i, 9, 2, 4); R(x, '#2a2136', 2, 20, 3, 6); R(x, '#2a2136', 35, 20, 3, 6); });
+  // gian hoạ cụ trong TTTM (cùng kiểu các gian khác)
+  def('sh_hoacu_b', 54, 44, x => {
+    R(x, shade('#f6e9f6', -22), 0, 0, 54, 44); R(x, '#f6e9f6', 1, 9, 52, 35); R(x, '#9a72d6', 0, 0, 54, 9); R(x, shade('#9a72d6', 28), 0, 0, 54, 1);
+    for (let i = 0; i < 4; i++) { R(x, '#c9a467', 4 + i * 12, 14, 10, 12); R(x, '#fffaf0', 5 + i * 12, 15, 8, 10); R(x, ['#5fae4a', '#e2574c', '#3b82c4', '#f2a93b'][i], 6 + i * 12, 20, 6, 4); }
+    R(x, '#8a5a3a', 8, 30, 2, 12); R(x, '#8a5a3a', 18, 30, 2, 12); R(x, '#fffaf0', 6, 28, 16, 8);
+  });
+  def('sh_hoacu_f', 54, 22, x => { R(x, shade('#9a72d6', 32), 0, 7, 54, 3); R(x, '#9a72d6', 0, 10, 54, 9); R(x, shade('#9a72d6', -25), 0, 19, 54, 3); for (let i = 0; i < 5; i++) R(x, ['#e2574c', '#ffd23a', '#5fae4a', '#3b82c4', '#fffaf0'][i], 6 + i * 10, 12, 6, 2); });
+  // chó, mèo (2 khung đi bộ, quay trái thì lật)
+  for (const k of ['dog', 'cat']) for (let f = 0; f < 2; f++) { def(`${k}${f}`, 16, 14, x => petDraw(x, k, f)); SPR[`${k}L${f}`] = flipH(SPR[`${k}${f}`]); }
+}
+function mstall(x, roof, goods) {
+  for (let i = 0; i < 5; i++) R(x, i % 2 ? '#fffaf0' : roof, i * 10.4, 0, 10.4, 7); R(x, shade(roof, -30), 0, 7, 52, 2);
+  R(x, '#8a5a3a', 2, 9, 2, 12); R(x, '#8a5a3a', 48, 9, 2, 12);
+  R(x, '#a9703f', 0, 18, 52, 12); R(x, '#c58c56', 0, 18, 52, 2); R(x, '#6f472c', 0, 28, 52, 2);
+  goods.forEach((c, i) => { R(x, '#6f472c', 3 + i * 12, 14, 10, 5); for (let j = 0; j < 3; j++) ell(x, c, 5.5 + i * 12 + j * 2.5, 13.5 - (j % 2), 1.8, 1.8); });
+}
+function petDraw(x, k, f) {
+  const c = k === 'dog' ? '#c9862b' : '#e8a94a', d = shade(c, -28), l = shade(c, 25), o = f ? 1 : 0;
+  R(x, c, 4, 6, 9, 5); R(x, l, 5, 6, 7, 1);                                                        // thân
+  R(x, d, 4 + o, 11, 2, 3); R(x, d, 10 - o, 11, 2, 3);                                              // chân
+  R(x, c, 0, 3, 6, 6); R(x, l, 1, 3, 4, 1);                                                         // đầu (quay trái)
+  if (k === 'dog') { R(x, d, 0, 2, 2, 4); R(x, d, 5, 2, 2, 3); R(x, '#2a2136', 0, 6, 1, 1); } else { R(x, c, 0, 1, 2, 2); R(x, c, 4, 1, 2, 2); R(x, '#f5a79b', 0, 2, 1, 1); R(x, '#f5a79b', 5, 2, 1, 1); R(x, '#8fd067', 1, 5, 1, 1); R(x, '#8fd067', 4, 5, 1, 1); }
+  R(x, '#2a2136', 2, 5, 1, 1);
+  if (k === 'dog') { R(x, c, 13, 5 - o, 2, 2); } else { R(x, c, 13, 3, 1, 4); R(x, c, 14, 2 - o, 1, 2); }   // đuôi
+}
+// Chậu cây ngoài vườn theo giai đoạn: stage 0 mới gieo · 1 nảy mầm · 2 cây non · 3 ra hoa / chín quả · dead: héo · water: đất ẩm
+function potKey(crop, stage, dead, wet) {
+  const k = `pot:${crop || ''}:${stage}:${dead ? 1 : 0}:${wet ? 1 : 0}`;
+  if (SPR[k]) return k;
+  const c = mk(16, 22), x = cx(c), C = crop && CROPS[crop];
+  if (C && !dead) {
+    const g = '#3f8f3a', gl = '#5fae4a';
+    if (stage >= 1) { R(x, g, 7, 10, 2, 6); R(x, gl, 5, 10, 2, 2); R(x, gl, 9, 11, 2, 2); }
+    if (stage >= 2) { R(x, g, 7, 5, 2, 6); R(x, gl, 4, 6, 3, 2); R(x, gl, 9, 7, 3, 2); R(x, gl, 3, 9, 3, 2); R(x, gl, 10, 4, 3, 2); }
+    if (stage >= 3) {
+      if (C.kind === 'hoa') { const big = crop === 'huongduong'; ell(x, C.col, 8, big ? 3 : 4, big ? 4 : 3, big ? 4 : 3); ell(x, shade(C.col, 30), 7, 3, 1.4, 1.4); if (big) ell(x, '#6f472c', 8, 3, 1.6, 1.6); if (crop === 'cuc' || crop === 'hong') { ell(x, C.col, 4, 7, 2, 2); ell(x, C.col, 12, 6, 2, 2); } }
+      else { for (const [a, b] of [[4, 8], [11, 6], [7, 4], [10, 10]].slice(0, C.yield >= 4 ? 4 : C.yield + 1)) { ell(x, C.col, a, b, 1.8, 1.8); R(x, shade(C.col, 35), a - 1, b - 1, 1, 1); } }
+    }
+  } else if (C && dead) { R(x, '#8a6a3a', 7, 8, 2, 8); R(x, '#a8853f', 4, 9, 3, 1); R(x, '#a8853f', 9, 11, 4, 1); R(x, '#6f5a3a', 5, 12, 2, 2); }
+  R(x, '#a84530', 2, 15, 12, 7); R(x, '#c8583f', 1, 14, 14, 3); R(x, '#e07a5f', 2, 14, 12, 1); R(x, '#8a3a28', 3, 20, 10, 2);   // chậu đất nung
+  R(x, wet ? '#4a3020' : '#6f472c', 2, 14, 12, 1);
+  if (stage === 0 && C && !dead) { R(x, '#8a6a3a', 5, 13, 1, 1); R(x, '#8a6a3a', 9, 13, 1, 1); }
+  SPR[k] = outline(c);
+  return k;
+}
+// Icon thêm cho thanh đồ / cửa hàng (gọi từ itemIcon khi không có sẵn)
+function extraIcon(id, x) {
+  const fish = typeof FISH !== 'undefined' && FISH.find(f => f.id === id);
+  if (fish) {                                                                 // cá: thân bầu dục, đuôi, vây, mắt
+    const c = fish.col, d = shade(c, -30), l = shade(c, 30);
+    if (id === 'muc') { ell(x, c, 9, 6, 4, 5); R(x, c, 5, 9, 8, 3); for (let i = 0; i < 4; i++) R(x, d, 5 + i * 2, 12, 1, 3); R(x, '#2a2136', 7, 7, 1, 1); R(x, '#2a2136', 10, 7, 1, 1); return true; }
+    ell(x, c, 7, 8, 6, 3.5); R(x, l, 3, 6, 7, 1); R(x, d, 12, 5, 3, 7); R(x, c, 13, 6, 2, 5); R(x, d, 6, 4, 3, 2); R(x, '#2a2136', 3, 7, 1, 1); R(x, d, 2, 9, 2, 1);
+    if (id === 'koi') { R(x, '#fffaf0', 6, 7, 3, 2); R(x, '#fffaf0', 9, 9, 2, 1); }
+    return true;
+  }
+  if (id.startsWith('c_') && CROPS[id.slice(2)]) {                           // bông hoa / quả thu hoạch
+    const C = CROPS[id.slice(2)];
+    if (C.kind === 'hoa') { R(x, '#3f8f3a', 7, 7, 2, 8); R(x, '#5fae4a', 4, 10, 3, 2); ell(x, C.col, 8, 5, 4, 4); ell(x, shade(C.col, 30), 7, 4, 1.5, 1.5); if (id === 'c_huongduong') ell(x, '#6f472c', 8, 5, 2, 2); }
+    else { for (const [a, b] of id === 'c_ot' ? [[5, 8], [10, 7]] : [[5, 9], [10, 9], [8, 5]]) { ell(x, C.col, a, b, id === 'c_ot' ? 1.6 : 3, id === 'c_ot' ? 4 : 3); R(x, '#3f8f3a', a, b - (id === 'c_ot' ? 5 : 4), 1, 2); R(x, shade(C.col, 40), a - 1, b - 1, 1, 1); } }
+    return true;
+  }
+  if (id.startsWith('h_') && CROPS[id.slice(2)]) { const C = CROPS[id.slice(2)]; R(x, '#e8d6b0', 3, 2, 10, 13); R(x, '#c9a467', 3, 2, 10, 2); ell(x, C.col, 8, 9, 3, 3); R(x, '#3f8f3a', 7, 11, 2, 3); R(x, '#6f472c', 5, 14, 6, 1); return true; }   // gói hạt giống
+  if (id === 'chau') { R(x, '#a84530', 3, 7, 10, 8); R(x, '#c8583f', 2, 5, 12, 3); R(x, '#e07a5f', 3, 5, 10, 1); R(x, '#6f472c', 3, 5, 10, 1); return true; }
+  if (id === 'thung') { R(x, '#6f472c', 1, 5, 14, 10); R(x, '#a9703f', 2, 6, 12, 8); R(x, '#8a5a3a', 1, 2, 14, 4); R(x, '#ffd23a', 7, 5, 2, 3); return true; }
+  if (id === 'binhtuoi') { R(x, '#5fae4a', 3, 6, 8, 7); R(x, '#8fd067', 3, 6, 8, 2); R(x, '#3f8f3a', 11, 5, 4, 2); R(x, '#3f8f3a', 14, 3, 1, 3); R(x, '#3f8f3a', 4, 3, 6, 1); R(x, '#3f8f3a', 4, 3, 1, 3); R(x, '#3f8f3a', 9, 3, 1, 3); return true; }
+  if (id === 'giayve') { R(x, '#fffaf0', 2, 2, 12, 12); R(x, '#e3ddd0', 2, 12, 12, 2); R(x, '#cfe8f7', 4, 4, 8, 4); R(x, '#8fd067', 4, 8, 8, 3); R(x, '#e2574c', 11, 1, 2, 9); R(x, '#ffd23a', 11, 0, 2, 1); return true; }
+  if (id === 'khungtranh') { R(x, '#8a5a3a', 3, 8, 2, 8); R(x, '#8a5a3a', 11, 8, 2, 8); R(x, '#c9a467', 1, 1, 14, 10); R(x, '#fffaf0', 2, 2, 12, 8); R(x, '#cfe8f7', 2, 2, 12, 4); R(x, '#5fae4a', 2, 7, 12, 3); return true; }
+  if (/^tranh[1-5]$/.test(id)) {                                             // tranh đã vẽ: khung càng đẹp khi tranh càng giá trị
+    const t = +id[5], fr = ['#8a5a3a', '#a9703f', '#c9a467', '#d9b23a', '#ffd23a'][t - 1];
+    R(x, fr, 1, 2, 14, 12); R(x, '#fffaf0', 2, 3, 12, 10); R(x, '#9cc8e6', 2, 3, 12, 5); R(x, '#5fae4a', 2, 8, 12, 5);
+    if (t >= 2) ell(x, '#ffd23a', 11, 5, 1.6, 1.6); if (t >= 3) { R(x, '#6f472c', 5, 6, 1, 4); ell(x, '#3f8f3a', 5, 6, 2, 2); } if (t >= 4) { R(x, '#e2574c', 9, 9, 2, 2); R(x, '#ffd23a', 4, 10, 2, 1); } if (t >= 5) { R(x, '#fff6c8', 1, 2, 14, 1); R(x, '#fffaf0', 0, 1, 1, 1); R(x, '#fffaf0', 15, 13, 1, 1); }
+    return true;
+  }
+  if (id === 'moi') { R(x, '#c9a467', 3, 5, 10, 9); R(x, '#a8853f', 3, 5, 10, 2); for (let i = 0; i < 3; i++) R(x, '#e98fa5', 5 + i * 3, 8 + (i % 2), 2, 3); return true; }
+  if (id === 'cancau' || id === 'cancau2') { const c = id === 'cancau2' ? '#d9534f' : '#8a5a3a'; for (let i = 0; i < 12; i++) R(x, c, 2 + i, 13 - i, 1, 1); R(x, '#cfe8f7', 13, 2, 1, 10); R(x, '#5f656f', 4, 10, 3, 3); return true; }
+  if (id === 'rau') { for (let i = 0; i < 4; i++) { R(x, '#3f8f3a', 4 + i * 2, 4, 2, 10); ell(x, '#5fae4a', 5 + i * 2, 4, 2, 3); } R(x, '#d9c690', 3, 10, 10, 2); return true; }
+  if (id === 'banhcuon') { ell(x, '#fffaf0', 8, 10, 6, 3); R(x, '#f4ead2', 3, 8, 10, 3); R(x, '#c98f5a', 5, 8, 6, 1); R(x, '#5fae4a', 10, 7, 2, 1); return true; }
+  if (id === 'nuocdua') { ell(x, '#5fae4a', 8, 10, 5, 5); ell(x, '#8fd067', 8, 7, 4, 2); R(x, '#fffaf0', 9, 1, 1, 6); R(x, '#e2574c', 9, 1, 3, 1); return true; }
+  if (id === 'p_dog' || id === 'p_cat') { x.drawImage(SPR[id === 'p_dog' ? 'dog0' : 'cat0'], 0, 1); return true; }
+  if (id === 'goi_ve' || id === 'goi_hat') { R(x, '#fffaf0', 2, 2, 12, 12); R(x, id === 'goi_ve' ? '#9a72d6' : '#e98fa5', 2, 2, 12, 4); if (id === 'goi_ve') { R(x, '#e2574c', 5, 8, 3, 3); R(x, '#3b82c4', 8, 9, 3, 3); } else { R(x, '#2a2136', 8, 7, 1, 5); ell(x, '#2a2136', 7, 12, 1.6, 1.2); R(x, '#2a2136', 8, 7, 3, 1); } return true; }
+  return false;
+}
 
 'use strict';
 /* ============================================================
@@ -3188,7 +3400,7 @@ function buildRiver() {
   paint(m, 'plank', 19, 7, 2, 7, 0);                               // cầu gỗ vươn ra sông
   for (let j = 0; j < 7; j++) { R(x, '#8a5a3a', 303, 116 + j * 16, 2, 6); R(x, '#8a5a3a', 335, 116 + j * 16, 2, 6); }
   R(x, '#d9c690', 0, 126, 640, 2); for (let i = 0; i < 40; i++) R(x, '#eaf6fc', i * 16 + (i % 3) * 3, 130 + (i % 2) * 2, 7, 1);
-  addObj(m, { s: 'fishspot', x: 322, y: 196, sol: [2, 8, 9, 9], ir: [-14, 0, 30, 22], label: () => fishLabel(), act: () => ACT.fish() });
+  addObj(m, { s: 'fishspot', x: 322, y: 196, sol: [2, 8, 9, 9], ir: [-14, 0, 30, 22], label: () => fishLabel('song'), act: () => ACT.fish('song') });
   addObj(m, { s: 'boat', x: 430, y: 150, flat: true }); addObj(m, { s: 'boat', x: 120, y: 250, flat: true });
   for (const [s2, a, b] of [['tree', 40, 10], ['tree2', 150, 30], ['treePink', 230, 4], ['tree', 380, 8], ['treeOrange', 470, 30], ['tree2', 570, 12]]) addObj(m, { s: s2, x: a, y: b, sol: [13, 38, 10, 9] });
   addObj(m, { s: 'bench', x: 250, y: 84, sol: [1, 1, 28, 12] }); addObj(m, { s: 'bench', x: 366, y: 84, sol: [1, 1, 28, 12] });
@@ -3408,7 +3620,7 @@ function buildMaps() {
   buildWC('wc', 'Nhà vệ sinh nữ', '#fbe4ea', '#eab2c2', '#e98fa5', 'wtile'); buildWC('wcm', 'Nhà vệ sinh nam', '#e4eef7', '#a9c6dc', '#5a8fd6', 'ltile');
   buildRide('ride', false); buildRide('rail', true);
   buildRooms();
-  addMeetNpcs(); buildFamily(); buildFamilyPlaces(); buildHsgPlaces(); buildCenter();
+  addMeetNpcs(); buildFamily(); buildFamilyPlaces(); buildHsgPlaces(); buildCenter(); buildEcoPlaces(); buildHobbyPlaces();
   seasonTrees();                                   // cây đổi màu theo mùa
   buildTrips();                                    // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch (04l)
   widenEdgeZones();                                // đi qua mép trái / phải chỗ nào không bị chặn cũng sang được bản đồ kế tiếp
@@ -3559,7 +3771,7 @@ const SCHOOL_ROOMS = [['yte', 202, 'Y TẾ'], ['nhac', 264, 'NHẠC'], ['ngutrua
 const WC_BLOCK = { x: 628, y: 36, nam: 646, nu: 684 };
 const wcGate = g => () => (G.gender === g ? null : g === 'girl' ? 'Đây là nhà vệ sinh NỮ — con trai không được vào!' : 'Đây là nhà vệ sinh NAM — con gái không được vào!');
 // Nhân viên đứng quầy ở từng cửa hàng trong TTTM: [dáng, trang phục]
-const MALL_VENDOR = { phim: ['clerk', null], sach: ['teacherB', null], sieuthi: ['vendor', null], anuong: ['c6', 'cas_ngan'], noithat: ['c7', 'cas_vy'], nhaccu: ['c3', 'cas_dat'], thethao: ['c5', 'cas_khoa'] };
+const MALL_VENDOR = { phim: ['clerk', null], sach: ['teacherB', null], sieuthi: ['vendor', null], anuong: ['c6', 'cas_ngan'], noithat: ['c7', 'cas_vy'], nhaccu: ['c3', 'cas_dat'], thethao: ['c5', 'cas_khoa'], hoacu: ['c4', 'cas_vy'] };
 // Cửa hàng 2 lớp: kệ trưng bày phía sau + quầy phía trước, người bán đứng giữa
 function addShop(m, id, a, name, label, act, vendor) {
   addObj(m, { s: `sh_${id}_b`, x: a, y: 4, sol: [0, 26, 56, 20] });
@@ -3669,7 +3881,7 @@ function buildRooms() {
   }
 
   /* ---------- BÊN TRONG TTTM: mỗi gian hàng bán một loại ---------- */
-  m = roomBase('tttm', 'TTTM Hoa Phượng Plaza', '#eef3f8', '#b9c9dc', 'ltile', 28, 16);
+  m = roomBase('tttm', 'TTTM Hoa Phượng Plaza', '#eef3f8', '#b9c9dc', 'ltile', 31, 16);
   MALL_STALLS.forEach(([id, name], k) => addShop(m, id, 18 + k * 58, name, () => `${name} — xem hàng`, () => ACT.stallShop(id), MALL_VENDOR[id]));
   addObj(m, { s: 'fountain', x: 200, y: 130, sol: [2, 8, 42, 20] });
   for (const [a, b] of [[110, 136], [300, 136], [110, 190], [300, 190]]) addObj(m, { s: 'bench', x: a, y: b, sol: [1, 1, 28, 12] });
@@ -3704,6 +3916,8 @@ function buildRooms() {
   addObj(m, { s: 'blank', x: 176, y: 96, sol: [0, 0, 16, 32], ir: [-8, 0, 24, 32], vis: () => hearts(G.visit) < FRIEND_ROOM_HEARTS, label: () => 'Phòng riêng — chưa đủ thân để vào', act: () => UI.say(FRIENDS[G.visit].name, '“Phòng tớ bừa lắm, bữa khác thân hơn tớ cho vào chơi.”') });
   NPCS.push({ id: 'fh', name: 'Bạn', look: 'khoa', dynLook: () => G.visit || 'khoa', outfit: () => friendOutfit(G.visit || 'khoa'), map: 'fhome', x: 130, y: 110, dir: 0, wander: 18, vis: () => !sceneHides('fh'), label: () => FRIENDS[G.visit].name, act: () => ACT.friend(G.visit, 'in') });
   m.zones.push({ x: 272, y: 216, w: 32, h: 8, fn: () => ACT.leaveFh(), by: -8 });
+  // ngày Tết bố mẹ bạn ở nhà: chúc Tết được lì xì (mỗi người 1 lần mỗi Tết)
+  [['bo', 'Bố', 0, 40, 150], ['me', 'Mẹ', 1, 60, 152]].forEach(([k, nm, li, a, b]) => NPCS.push({ id: 'fhp_' + k, name: nm, look: 'ph1', dynLook: () => FRIEND_PARENTS[G.visit || 'khoa'][li], map: 'fhome', x: a, y: b, dir: 0, vis: () => tetTime(), label: () => `${nm} của ${FRIENDS[G.visit].name} — chúc Tết`, act: () => tetElder(`fp_${G.visit}_${k}`, `${nm} ${FRIENDS[G.visit].name}`, { look: FRIEND_PARENTS[G.visit][li] }, 20000) }));
 
   buildFest(); buildBcFest(); buildTrungThu(); buildTaskSpots();
   /* ---------- đồ trang trí phòng ngủ ở nhà (mua ở gian Nội thất, Nhạc cụ) ---------- */
@@ -3918,6 +4132,7 @@ const NEIGHBOR_TALK = {
 };
 function neighborTalk(soc) {
   const S = SOCIETY[soc]; meetSoc(soc);
+  if (tetTime()) return tetElder('nb_' + soc, S.name, { look: S.look }, 20000);
   const k = 'nb_' + soc; if (!G.daily[k]) { G.daily[k] = true; }
   UI.ask(S.name, `<p>“${pick(NEIGHBOR_TALK[soc])}”</p>`, ['Dạ, cháu chào ạ!'], { who: { look: S.look } });
 }
@@ -4028,7 +4243,7 @@ function newGame(name, gender) {
     day: 0, time: CFG.DAY_START, map: 'home', x: 58, y: 76, dir: 0,
     money: CFG.START_MONEY, earned: 0, stamina: 100, tlXp: 0,
     parent: PARENT.start,   // thiện cảm của bố mẹ → cấp tiền tiêu vặt
-    stats: { toan: 0, van: 0, anh: 0, ly: 0, hoa: 0, sinh: 0, su: 0, dia: 0, qp: 0, thethao: 0, buonban: 0, kheotay: 0, vannghe: 0 },
+    stats: { toan: 0, van: 0, anh: 0, ly: 0, hoa: 0, sinh: 0, su: 0, dia: 0, qp: 0, thethao: 0, buonban: 0, kheotay: 0, vannghe: 0, nongsan: 0 },
     bag: { hopbut: true, thehs: true }, inv: { comhop: 0, banhmi: 0, sua: 0, banhtrang: 0, bimbim: 0, gaubong: 0 },
     owned: {}, busPassUntil: -1,
     conduct: 10, conductLog: [], conductWeeks: 0, caughtCycle: 0,
@@ -4050,6 +4265,9 @@ function migrate() {
   for (const k in SOCIETY) if (G.soc[k] === undefined) G.soc[k] = 0;
   def('comp', null);                                   // bạn đang đi cùng: { fid, skip, n }
   if (G.stats.vannghe === undefined) G.stats.vannghe = 0;
+  if (G.stats.nongsan === undefined) G.stats.nongsan = 0;            // điểm Nông sản (câu cá, trồng cây)
+  def('yard', { items: [], seq: 0 }); def('noOwn', {}); def('fishLog', {}); def('talent', {}); def('pet', null);   // vườn (chậu, thùng) · đồ học tập đã bán · cá đã câu · gói năng khiếu · thú cưng
+  for (const id in G.fish) if (G.fish[id] > 0 && !G.fishLog[id] && FISH.some(f => f.id === id)) G.fishLog[id] = { n: G.fish[id], day: G.day };
   delete G.stats.giaotiep;                             // đã bỏ chỉ số Giao tiếp
   for (const k of ['th_ly', 'th_hoa', 'th_sinh']) if (G.stats[k] !== undefined) { const b = SUBJ[k].base; G.stats[b] = (G.stats[b] || 0) + G.stats[k]; delete G.stats[k]; }   // gộp chỉ số thực hành vào chỉ số học tập của môn
   def('cards', {}); def('cardDone', false);            // thẻ cầu thủ: id → số lá
@@ -4083,6 +4301,7 @@ function migrate() {
   for (const f in FRIENDS) if (G.friends[f] === undefined) G.friends[f] = 0;
   for (const k of ['bimbim', 'gaubong', 'voso']) if (G.inv[k] === undefined) G.inv[k] = 0;
   if (G.daily) { const d = G.daily; resetDaily(); G.daily = Object.assign(G.daily, d); }
+  if (typeof yardSync === 'function') yardSync();                      // dựng lại chậu cây, thùng chứa ngoài vườn
 }
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); return true; } catch (e) { return false; } }
 function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } }
@@ -4293,7 +4512,8 @@ function beginDay(first) {
   checkBondBadges();
   pmNewDay();
   hsgNewDay();                                                          // đội tuyển HSG: nhắc buổi học / ngày thi quốc gia được miễn học
-  examWishes();                                                         // ngày thi: bố mẹ (nhóm Gia đình) và bạn thân nhắn chúc may mắn                                                           // vắng họp phụ huynh kỳ trước: trừ hạnh kiểm ngày học đầu tiên của kỳ này
+  examWishes();
+  farmNewDay(); petNewDay();                                            // cây lớn / héo · thú cưng được giao tới nhà                                                         // ngày thi: bố mẹ (nhóm Gia đình) và bạn thân nhắn chúc may mắn                                                           // vắng họp phụ huynh kỳ trước: trừ hạnh kiểm ngày học đầu tiên của kỳ này
   for (const n of cutPeriods(G.day)) G.daily.done[n] = true;          // tiết bị thay bằng sự kiện: nghỉ, không tính vắng
   if (c.dow === 0 && !first) { const a = parentInfo(G.parent).allowance; addMoney(a, true); if (RT.bill) RT.bill.got.push(['Mẹ cho tiền tiêu vặt đầu tuần', a]); else RT.morning.push(`Mẹ cho tiền tiêu vặt đầu tuần: ${fmtMoney(a)}.`); }
   save();
@@ -4810,7 +5030,7 @@ function neededItems(day) {
   return need;
 }
 function missingToday() { return neededItems(G.day).filter(i => !G.bag[i] && i !== 'thehs' && i !== 'vethang'); }
-function quickPack(day) { G.bag = {}; for (const i of neededItems(day)) G.bag[i] = true; }
+function quickPack(day) { G.bag = {}; for (const i of neededItems(day)) if (!G.noOwn[i]) G.bag[i] = true; }   // đồ đã bán / tặng đi thì không có để soạn
 
 /* ---------- ăn uống ---------- */
 function mealNow() {
@@ -4861,7 +5081,7 @@ ACT.chore = async (id, ax) => {
   if (G.daily.chores[id]) return UI.toast('Việc này hôm nay bạn đã làm rồi.');
   const cost = choreStam(c);
   if (G.stamina < cost) return UI.toast('Không đủ thể lực. Ăn gì đó hoặc nghỉ ngơi đã!', 'bad');
-  const done = () => { G.daily.chores[id] = true; useStam(cost, true); addWage('Việc nhà', c.pay); addStat('kheotay', c.kt); addParent(PARENT.chore, '', true); };
+  const done = () => { G.daily.chores[id] = true; useStam(cost, true); addWage('Việc nhà', c.pay); addParent(PARENT.chore, '', true); };
   const label = `Đang ${c.name.toLowerCase()}…`;
   if (id === 'quetnha') await animActivity(label, c.mins, mopCut(), done);            // cầm cây lau đi quanh nhà
   else if (id === 'ruaxe') await animActivity(label, c.mins, washCut(ax || 133), done);   // xịt nước, cọ xe, bọt bay
@@ -4940,7 +5160,7 @@ function chat(sid, fid) {
 // ACT.mate / ACT.friend: xem 04c_social.js
 
 /* ---------- cửa hàng, học thêm, căn tin ---------- */
-ACT.shop = () => { if (!inWin(G.time, 360, 1260)) return UI.say('Tạp hoá Cô Ba', 'Tiệm đóng cửa rồi.<p class="dim">Mở cửa 06:00–21:00</p>'); meetSoc('coba'); UI.shop(); };
+ACT.shop = () => { if (tetShut('Tạp hoá Cô Ba')) return; if (!inWin(G.time, 360, 1260)) return UI.say('Tạp hoá Cô Ba', 'Tiệm đóng cửa rồi.<p class="dim">Mở cửa 06:00–21:00</p>'); meetSoc('coba'); UI.shop(); };
 function buy(it) {
   if (it.own && G.owned[it.own]) return UI.toast('Bạn đã có món này rồi.');
   if (it.special === 'vethang' && G.busPassUntil >= G.day) return UI.toast('Vé tháng vẫn còn hạn đến ' + dateLabel(G.busPassUntil) + '.');
@@ -4956,8 +5176,12 @@ async function partTime() {
   if (!inWin(G.time, 480, 1080)) return UI.toast('Phụ bán từ 08:00 đến 18:00.');
   if (G.daily.partTime) return UI.toast('Hôm nay bạn đã phụ bán rồi.');
   if (G.stamina < PART_TIME.stam) return UI.toast('Không đủ thể lực.', 'bad');
-  UI.close();
-  await activity('Đang phụ bán hàng…', PART_TIME.mins, () => { G.daily.partTime = true; useStam(PART_TIME.stam, true); addWage('Phụ cô Ba bán hàng', PART_TIME.pay + PART_TIME.payPerLv * lv('buonban')); addStat('buonban', PART_TIME.pts); });
+  UI.close(); if (RT.lock) return;
+  RT.lock = true;
+  await partTimeCut();                                                  // đứng quầy trước tạp hoá, khách tới thì đưa hàng
+  advanceTime(PART_TIME.mins); G.daily.partTime = true; useStam(PART_TIME.stam, true); addWage('Phụ cô Ba bán hàng', PART_TIME.pay + PART_TIME.payPerLv * lv('buonban')); addStat('buonban', PART_TIME.pts + 2);
+  RT.lock = false; UI.hud();
+  UI.toast(`Phụ bán xong 2 tiếng: +${PART_TIME.pts + 2} Buôn bán, tiền công trả cuối ngày.`, 'good');
 }
 // ACT.center (vào trung tâm Sao Mai, đăng ký ở quầy lễ tân, cảnh học thêm): xem 04p_center.js
 // ACT.canteen: xem 04d_life.js (cửa hàng dạng icon)
@@ -5846,29 +6070,7 @@ ACT.beach = async kind => {
   }
 };
 
-/* ---------- câu cá ở bờ sông ---------- */
-const fishCount = () => Object.values(G.fish).reduce((a, b) => a + b, 0);
-const fishValue = () => FISH.reduce((a, f) => a + (G.fish[f.id] || 0) * f.price, 0);
-const fishLabel = () => (G && G.owned.cancau ? 'Câu cá' : 'Chỗ câu cá — cần có cần câu (bán ở tạp hoá Cô Ba)');
-ACT.fish = async () => {
-  if (RT.lock) return;
-  if (!G.owned.cancau) return UI.say('Bờ sông', 'Sông rộng mênh mông, cá quẫy lách tách.<p class="dim">Muốn câu cá phải có cần câu — bán ở tạp hoá Cô Ba (80.000đ). Cá câu được bán lại cho Cô Ba hoặc mang về cho mẹ nấu.</p>');
-  if (G.stamina < FISHING.stam) return UI.toast('Mệt quá, không câu nổi.', 'bad');
-  RT.lock = true;
-  await UI.progress('Thả câu, chờ cá cắn…', 1300);
-  advanceTime(FISHING.mins); useStam(FISHING.stam);
-  if (Math.random() < FISHING.nothing) { RT.lock = false; UI.hud(); return UI.toast('Ngồi mãi chẳng con nào cắn câu.'); }
-  let r = Math.random() * FISH.reduce((a, f) => a + f.w, 0), f = FISH[0];
-  for (const q of FISH) { r -= q.w; if (r < 0) { f = q; break; } }
-  const res = await UI.minigame({ title: 'Cá cắn câu!', task: 'Giữ con cá trong vùng xanh cho tới khi kéo được lên bờ', icon: 'ca', diff: f.diff, level: lv('kheotay'), tired: G.stamina < 10 });
-  if (res.win) { G.fish[f.id] = (G.fish[f.id] || 0) + 1; addStat('kheotay', 2); UI.toast(`Câu được một con ${f.name.toLowerCase()}!`, 'good'); }
-  else { addStat('kheotay', 1); UI.toast(`Con ${f.name.toLowerCase()} giật đứt dây, sổng mất rồi…`, 'info'); }
-  RT.lock = false; UI.hud();
-};
-function sellFish() {
-  const v = fishValue(); if (!v) return UI.toast('Bạn không có con cá nào.');
-  G.fish = {}; addMoney(v); addStat('buonban', 2); addMoney(0, true); UI.toast('Bán hết cá cho Cô Ba.', 'good'); UI.hud();
-}
+/* ---------- câu cá: xem 04r_fish.js ---------- */
 
 /* ---------- hẹn đi chơi · bạn đi cùng ---------- */
 const meetOn = () => (G && G.meet && G.meet.day === G.day ? G.meet : null);
@@ -5973,9 +6175,11 @@ async function talkMenu(fid, where) {
   if (bd && !G.daily.bday[fid]) add('bday', `Chúc mừng sinh nhật ${F.name}!`);
   if ((where === 'school' || where === 'class') && G.atSchool) for (const id of breakFunFor(fid)) add('brk:' + id, BREAK_FUN[id].name);
   if (cardCount()) add('duel', 'Đấu thẻ cầu thủ');
+  if (tetTime() && !tetY2().give[fid]) add('lixi', `Lì xì cho ${F.name}`);
   const c = ids.length === 1 ? 'chat' : (add('x', 'Thôi'), ids[await UI.ask(F.name, '<p>“Sao đó?”</p>', opts)] || 'x');
   if (c === 'chat') chat('f_' + fid, fid);
   else if (c === 'duel') cardDuel('f_' + fid, fid, F.name, F.duel);
+  else if (c === 'lixi') giveLixi(fid);
   else if (c.startsWith('brk:')) doBreakFun(fid, c.slice(4));
   else if (c === 'gift') { G.inv.gaubong--; G.daily.gift[fid] = true; addFriend(fid, GIFT_FRIEND * (bd ? 2 : 1)); UI.toast(`${F.name} ôm con gấu bông cười tít mắt.`, 'good'); }
   else if (c === 'shell') { G.inv.voso--; G.daily.gift['v_' + fid] = true; addFriend(fid, SHELL_FRIEND * (bd ? 2 : 1)); UI.toast(`${F.name} áp vỏ sò lên tai nghe tiếng sóng.`, 'good'); }
@@ -6432,7 +6636,7 @@ async function lunchJoin(fid, j) {
 /* ---------- phố Hoa Phượng: trà sữa · TTTM · khu game · xiên que, kem ---------- */
 const withF = fid => (fid ? ` cùng ${FRIENDS[fid].name}` : '');
 ACT.tea = () => {
-  const P = PLACES.tea; if (RT.lock || !placeOpen(P)) return;
+  const P = PLACES.tea; if (RT.lock || tetShut(P.name) || !placeOpen(P)) return;
   const fid = palAt('tea'), wf = withF(fid), T = TEA;
   UI.store(P.name, '“Em uống gì nè?”', () => [
     { id: 'trasua', name: 'Trà sữa trân châu', price: T.cup.price, desc: `Ly to, trân châu đường đen${fid ? ' — mời cả ' + FRIENDS[fid].name + ' uống chung' : ''}`, inv: 'trasua' },
@@ -7119,7 +7323,7 @@ ACT.canteen = () => {
 const DOORS = { mall: ['tttm', 'mall'], arcade: ['arc', 'arcade'] };
 ACT.enter = async k => {
   const [map, pl] = DOORS[k], P = PLACES[pl];
-  if (RT.lock || !placeOpen(P)) return;
+  if (RT.lock || tetShut(P.name) || !placeOpen(P)) return;
   if (G.ride) dismount(true);
   const e = MAPS[map].entry;
   await goPlace(map, e[0], e[1], e[2], 0);
@@ -7129,7 +7333,7 @@ ACT.mall = () => ACT.enter('mall'); ACT.arcade = () => ACT.enter('arcade');
 // Một gian hàng trong TTTM
 ACT.stallShop = id => {
   const name = MALL_STALLS.find(s => s[0] === id)[1], fid = palAt('mall'), wf = withF(fid), M = MALL;
-  const items = () => MALL_GOODS[id].map(it => Object.assign({}, it, { owned: !!(it.own && G.owned[it.own]), desc: (it.desc || '') + (it.duo && fid ? ` (đi${wf})` : '') }));
+  const items = () => MALL_GOODS[id].filter(it => !it.school || G.noOwn[it.id]).map(it => Object.assign({}, it, { owned: !!(it.own && G.owned[it.own]), desc: (it.desc || '') + (it.duo && fid ? ` (đi${wf})` : '') }));
   UI.store(name, '“Mời em xem hàng.”', items, async it => {
     if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
     if (it.act === 'movie') { UI.close(); return jointAct(`Đang xem phim${wf}…`, M.movie.mins, 'movie', fid, () => { if (fid) addMemo('scene', 'movie'); addMoney(-it.price); gainStam(M.movie.stam); palGain('mall', M.movie.friend); }); }
@@ -7140,6 +7344,7 @@ ACT.stallShop = id => {
       if (k < 0 || k >= BOOK_SUBJ.length) return;
       G.daily.book = true; addMoney(-it.price); addStat(BOOK_SUBJ[k], M.book.pts); UI.hud(); return;
     }
+    if (it.school) { addMoney(-it.price, true); delete G.noOwn[it.id]; UI.toast(`Đã mua lại ${it.name.toLowerCase()} — để sẵn ở tủ sách trong phòng ngủ.`, 'good'); UI.hud(); return; }
     if (it.act === 'box') { UI.close(); addMoney(-it.price); UI.hud(); return showPack(openPacks(M.box.n, 1), 'Mở hộp thẻ đặc biệt'); }
     if (it.inv && FOODS[it.inv]) return buyFood(it.inv, it.price, it.name);
     addMoney(-it.price, true);
@@ -7507,12 +7712,13 @@ ACT.senior = async soc => {
  *  CẦM VẬT PHẨM: bấm món đồ trong túi / thanh đồ để cầm lên
  *  Đang cầm mà tương tác với người khác → tặng quà · bấm vào mình hoặc chỗ trống → ăn (nếu ăn được)
  * ============================================================ */
-const holdName = id => (FOODS[id] ? FOODS[id].name : id === 'gaubong' ? 'Gấu bông' : id === 'voso' ? 'Vỏ sò' : id === 'denongsao' ? 'Đèn ông sao' : PARENT_ITEMS[id] || GROUP_ITEMS[id] || id);
-const holdable = id => !!(FOODS[id] || id === 'gaubong' || id === 'voso' || id === 'denongsao' || PARENT_ITEMS[id] || GROUP_ITEMS[id]);
+const holdName = id => (FOODS[id] ? FOODS[id].name : PARENT_ITEMS[id] || GROUP_ITEMS[id] || (goodsInfo(id) || {}).name || id);
+const holdable = id => !!(FOODS[id] || PARENT_ITEMS[id] || GROUP_ITEMS[id] || goodsInfo(id));
 function toggleHold(id) {
-  if (!holdable(id) || !G.inv[id]) return;
+  if (!holdable(id) || !gCount(id)) return;
   RT.hold = RT.hold === id ? null : id;
-  UI.toast(RT.hold ? `Đang cầm ${holdName(id)}. Bấm vào người khác để tặng${FOODS[id] ? ', bấm vào mình để ăn' : ''}. Bấm lại món đó để cất đi.` : `Cất ${holdName(id)} vào túi.`, 'info');
+  const self = FOODS[id] ? ', bấm vào mình để ăn' : id === 'giayve' ? ', bấm vào mình để ngồi vẽ' : id === 'chau' || id === 'thung' ? ', quay mặt về chỗ trống ngoài vườn rồi bấm vào mình để đặt xuống' : '';
+  UI.toast(RT.hold ? `Đang cầm ${holdName(id)}. Bấm vào người khác để bán hoặc tặng${self}. Bấm lại món đó để cất đi.` : `Cất ${holdName(id)} vào túi.`, 'info');
   UI._hb = null; UI.hotbar();
 }
 // Ai đang đứng trước mặt: bạn thân, bố mẹ, thầy cô, người quen ngoài xã hội, hay một bạn học bình thường
@@ -7529,13 +7735,14 @@ function giftTarget(t) {
   return { kind: 'other', id: n.id, name: n.name, look: n.dynLook ? n.dynLook() : n.look, outfit: n.outfit ? n.outfit() : null };
 }
 async function giveHeld(t) {
-  const id = RT.hold, T = giftTarget(t); if (!id || !T || !G.inv[id]) return;
+  const id = RT.hold, T = giftTarget(t); if (!id || !T || !gCount(id)) return;
   if (PARENT_ITEMS[id]) { if (T.kind === 'parent' && await parentDeliver(T.id)) return; return UI.toast(`${PARENT_ITEMS[id]} là đồ của ${Object.values(PARENT_TASKS).find(P => P.item === id).who === 'dad' ? 'bố' : 'mẹ'} — mang tới đưa tận tay nhé.`, 'info'); }
   if (GROUP_ITEMS[id]) {
     if ((T.kind === 'friend' || T.kind === 'soc') && await groupDeliver(T.id)) return;
     const t = G.tasks.active.find(x => x.gr && taskDef(x).item === id);
     return UI.toast(t ? `${GROUP_ITEMS[id]} là đồ ${grLow(t.who)} nhờ lấy — mang tới đưa tận tay ${grLow(t.who)} nhé.` : `${GROUP_ITEMS[id]} không phải của người này.`, 'info');
   }
+  if (goodsInfo(id)) return giveOrSell(T, id);                                   // món đồ thường: hỏi bán hay tặng
   const key = 'g_' + T.kind + '_' + T.id, isFood = !!FOODS[id], it = holdName(id).toLowerCase();
   let who, name, line, done = () => { };
   if (T.kind === 'friend') {
@@ -7569,13 +7776,16 @@ async function giveHeld(t) {
 }
 // Bấm vào chính mình hoặc chỗ trống khi đang cầm đồ: đồ ăn được thì hỏi có ăn không, còn lại thì thôi
 async function heldSelf() {
-  const id = RT.hold; if (!id || !FOODS[id] || !G.inv[id]) return;
+  const id = RT.hold; if (!id || !gCount(id)) return;
+  if (id === 'chau' || id === 'thung') return placeHeld(id);
+  if (id === 'giayve') return ACT.paint('paper');
+  if (!FOODS[id]) return;
   const c = await meSay(`<p>Ăn ${FOODS[id].drink ? 'uống ' : ''}<b>${FOODS[id].name.toLowerCase()}</b> luôn bây giờ?</p><p class="dim">Hồi ${FOODS[id].stam} thể lực${FOODS[id].pack ? ' · mở gói ra có 1 thẻ cầu thủ' : ''}${G.comp ? ' · ăn chung với ' + FRIENDS[G.comp.fid].name : ''}.</p>`, [FOODS[id].drink ? 'Uống' : 'Ăn', 'Không ăn']);
   if (c === 0) { await eat(id); UI._hb = null; UI.hud(); }
 }
 // vẽ món đang cầm lơ lửng trên đầu nhân vật
 function drawHeld(now) {
-  if (!RT.hold || (RT.scene && RT.scene.hideMe) || !G.inv[RT.hold]) return;
+  if (!RT.hold || (RT.scene && RT.scene.hideMe) || !gCount(RT.hold)) return;
   drawSpr(iconCv(RT.hold), G.x - 9, G.y - 42 + Math.round(Math.sin(now / 260)) + (RT.scene && RT.scene.meOy || 0));
 }
 
@@ -7780,10 +7990,9 @@ async function tetVisitFriend(fid) {
   const F = FRIENDS[fid], T = tetYear(), who = { look: fid, outfit: friendOutfit(fid) };
   if (T.f[fid]) return UI.ask(F.name, '<p>“Cậu chúc Tết tớ rồi mà! Vào nhà chơi đi.”</p>', ['OK'], { who });
   T.f[fid] = true;
-  const money = LIXI.friend + LIXI.perHeart * hearts(fid);
   if (G.grudge[fid] !== undefined) delete G.grudge[fid];           // năm mới bỏ qua chuyện cũ
-  addFriend(fid, LIXI.friendGain); addMoney(money); addMemo('scene', 'tetvisit');
-  await UI.ask(F.name, `<p>“Chúc mừng năm mới! Chúc cậu năm nay học giỏi, hay ăn chóng lớn!”</p><p>Mẹ ${F.name} cười hiền, dúi vào tay bạn một bao lì xì đỏ: <b>${fmtMoney(money)}</b>.</p>`, ['Cháu cảm ơn cô ạ!'], { who });
+  addFriend(fid, LIXI.friendGain); addMemo('scene', 'tetvisit');
+  await UI.ask(F.name, `<p>“Chúc mừng năm mới! Chúc cậu năm nay học giỏi, hay ăn chóng lớn!”</p><p>“Vào nhà chúc Tết bố mẹ tớ đi, bố mẹ tớ lì xì cho đấy!”</p>`, ['Năm mới vui vẻ nha!'], { who });
 }
 // Nhà thầy cô ở khu phố nhà mình: ngày Tết tới chúc Tết được lì xì, thầy cô quý hơn
 ACT.teacherHouse = async tid => {
@@ -7966,7 +8175,8 @@ function drawFestProps(now) {
 /* ---------- điều phối sự kiện mỗi khung hình (khi không bận) ---------- */
 function eventTick() {
   if (pmTick()) return true;
-  if (hsgTick()) return true;                                       // đội tuyển học sinh giỏi: báo tin, buổi học, thi chọn, thi quốc gia, ăn mừng                                        // ngày họp phụ huynh: tới trường 08:00–11:00 là vào cảnh họp
+  if (hsgTick()) return true;
+  if (talentTick()) return true;                                    // trung tâm năng khiếu: thứ 7 tới giờ học                                       // đội tuyển học sinh giỏi: báo tin, buổi học, thi chọn, thi quốc gia, ăn mừng                                        // ngày họp phụ huynh: tới trường 08:00–11:00 là vào cảnh họp
   if (hkEventTick()) return true;                                   // Hội khoẻ Phù Đổng: qua cổng trường là vào hội
   if (isTetDay1() && G.map === 'home' && G.time < 720 && !tetYear().ask) { tetMorning(); return true; }
   if (isEveDay(G.day) && !G.daily.eveAsked && !RT.fest && G.time < EVE.from) { eveInvite(); return true; }   // sáng ngày cuối năm: được rủ đón giao thừa
@@ -8948,13 +9158,13 @@ ACT.karaoke = async () => {
 // vào nơi làm việc của bố mẹ / nhà hàng / karaoke
 const WORKPLACE = { mom: 'congty', dad: 'nhamay' };
 ACT.enterWork = async who => {
-  if (RT.lock) return;
+  if (RT.lock || tetShut(who === 'mom' ? 'Công ty Sen Vàng' : 'Nhà máy bánh kẹo')) return;
   if (!inWin(G.time, 360, 1140)) return UI.say(who === 'mom' ? 'Công ty Sen Vàng' : 'Nhà máy bánh kẹo', 'Đã hết giờ làm việc, cửa đóng rồi.<p class="dim">Mở cửa 06:00–19:00</p>');
   if (G.ride) dismount(true);
   const e = MAPS[WORKPLACE[who]].entry; await goPlace(WORKPLACE[who], e[0], e[1], e[2], 0);
 };
 ACT.enterDong = async id => {
-  if (RT.lock) return;
+  if (RT.lock || tetShut(id === 'nhahang' ? 'Nhà hàng Sen Hồng' : 'Karaoke Âm Vang')) return;
   const hours = id === 'nhahang' ? [600, 1320] : [840, 1380];
   if (!inWin(G.time, hours[0], hours[1])) return UI.say(id === 'nhahang' ? 'Nhà hàng Sen Hồng' : 'Karaoke Âm Vang', `Chưa tới giờ mở cửa.<p class="dim">Mở cửa ${fmtTime(hours[0])}–${fmtTime(hours[1])}</p>`);
   if (G.ride) dismount(true);
@@ -11160,7 +11370,7 @@ function buildCenter() {
 }
 // cửa trung tâm trên phố: vào sảnh lễ tân
 ACT.center = async () => {
-  if (RT.lock) return;
+  if (RT.lock || tetShut('Trung tâm Sao Mai')) return;
   if (!inWin(G.time, CENTER.open[0], CENTER.open[1])) return UI.say('Trung tâm Sao Mai', `Trung tâm đã đóng cửa.<p class="dim">Mở cửa ${fmtTime(CENTER.open[0])}–${fmtTime(CENTER.open[1])}. Lớp học: ngày đi học sau giờ tan học đến 20:00 · ngày nghỉ 08:00–19:00.</p>`);
   if (G.ride) dismount(true);
   const e = MAPS[CENTER.room].entry; await goPlace(CENTER.room, e[0], e[1], e[2], 0);
@@ -11199,6 +11409,655 @@ async function centerLesson(s) {
   RT.lock = false; UI.hud();
   const n = T[s];
   UI.toast(`Xong buổi học thêm ${S.name} (+${TUTOR.pts} điểm môn). Đã học ${n} buổi học kỳ này: bài kiểm tra môn này +${fmtScore(Math.min(STUDY.tutorMax, STUDY.tutor * n))} điểm (tối đa +${fmtScore(STUDY.tutorMax)}).`, 'good');
+}
+
+'use strict';
+/* ============================================================
+ *  04q. ĐỒ VẬT · BÁN / TẶNG · THÙNG CHỨA · VƯỜN (chậu cây) · THÚ CƯNG · CỬA HÀNG HOA, THÚ CƯNG, ĐỒ CÂU · CHỢ
+ *  - Mọi món mang theo (trừ thẻ học sinh) đều có GIÁ TRỊ cố định (cao hơn giá mua một chút) → cầm lên, bấm vào ai đó:
+ *    Tặng (không lấy tiền; sở thích quyết định thân thiết: thích +nhiều, bình thường +ít, không thích −ít, ghét −nhiều, sinh nhật ×2)
+ *    hoặc Bán (được tiền, không thêm thân thiết; người ta có thể từ chối). Bán sách / hộp bút / đồng phục thì mua lại ở TTTM.
+ *  - Vườn = sân trước nhà mình (khu phố): cầm chậu hoặc thùng chứa, bấm chỗ trống để đặt. Chậu thì gieo hạt, tưới mỗi ngày.
+ * ============================================================ */
+const r1000 = v => Math.max(1000, Math.round(v / 1000) * 1000);
+const FISH_BY = Object.fromEntries(FISH.map(f => [f.id, f]));
+const isFish = id => !!FISH_BY[id];
+// Hàng chợ, hàng hoa, đồ câu, hoạ cụ (giá mua; giá trị bán lại tính từ giá này)
+const MARKET = {
+  rau: [{ id: 'rau', name: 'Bó rau muống', price: 8000, desc: 'Rau tươi buổi sáng, mẹ thích lắm' }, { id: 'c_cachua', name: 'Cà chua', price: 12000, desc: 'Một quả cà chua đỏ mọng' }, { id: 'c_chanh', name: 'Chanh', price: 6000, desc: 'Chanh tươi vắt nước' }, { id: 'c_dau', name: 'Dâu tây', price: 30000, desc: 'Hộp dâu tây Đà Lạt' }],
+  ca: [{ id: 'ro', name: 'Cá rô', price: 8000, desc: 'Cá rô đồng tươi rói', fish: true }, { id: 'chep', name: 'Cá chép', price: 20000, desc: 'Cá chép to, kho tộ là ngon', fish: true }, { id: 'nuc', name: 'Cá nục', price: 10000, desc: 'Cá nục biển', fish: true }, { id: 'thu', name: 'Cá thu', price: 32000, desc: 'Khúc cá thu chiên giòn', fish: true }],
+  an: [{ id: 'banhcuon', name: 'Bánh cuốn', price: 15000, desc: 'Bánh cuốn nóng chấm nước mắm', food: true }, { id: 'xoi', name: 'Xôi gấc', price: 12000, desc: 'Gói xôi gấc đỏ au', food: true }, { id: 'nuocdua', name: 'Nước dừa', price: 12000, desc: 'Trái dừa xiêm mát lạnh', food: true }, { id: 'banhmi', name: 'Bánh mì', price: 10000, desc: 'Bánh mì nóng giòn', food: true }],
+};
+Object.assign(FOODS, { banhcuon: { name: 'Bánh cuốn', stam: 18, gift: 3 }, nuocdua: { name: 'Nước dừa', stam: 8, drink: true, gift: 3 } });
+const FLOWER_SHOP = () => [{ id: 'chau', name: 'Chậu trồng cây', price: FARM.pot, desc: 'Đặt ngoài vườn trước nhà rồi gieo hạt. Không có chậu thì không trồng được.' }]
+  .concat(Object.keys(CROPS).map(k => ({ id: 'h_' + k, name: `Hạt ${CROPS[k].name.toLowerCase()}`, price: CROPS[k].seed, desc: CROPS[k].kind === 'hoa' ? `Nở sau ${CROPS[k].grow} ngày tưới · thu 1 lần · bông bán ${fmtMoney(CROPS[k].price)}` : `Lứa đầu sau ${CROPS[k].grow} ngày, rồi ${CROPS[k].regrow} ngày một lứa · ${CROPS[k].yield} quả × ${fmtMoney(CROPS[k].price)}` })));
+const TACKLE_SHOP = () => [{ id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu được ở sông, hồ công viên và biển', own: 'cancau' }, { id: 'cancau2', name: 'Cần câu sợi carbon', price: 350000, desc: 'Vùng giữ lực rộng hơn, dễ kéo cá to', own: 'cancau2' }, { id: 'moi', name: 'Hộp mồi câu ×5', price: 15000, desc: 'Mỗi lần thả câu dùng 1 mồi: dễ gặp cá quý hơn', n: 5 }];
+const ART_SHOP = () => [{ id: 'giayve', name: 'Giấy vẽ', price: PAINT.paper, desc: 'Cầm theo người, bấm vào mình để ngồi vẽ ở bất cứ đâu' }, { id: 'khungtranh', name: 'Khung tranh (giá vẽ)', price: PAINT.frame, desc: 'Dựng ở phòng khách nhà mình để ngồi vẽ tranh', own: 'khungtranh' }];
+const SCHOOL_PRICE = { hopbut: 25000, dp_td: 90000, dp_qp: 110000, vethang: 35000 };
+// giá mua tham khảo (để tính giá trị bán lại)
+function buyPrice(id) {
+  if (buyPrice._m === undefined) {
+    const m = buyPrice._m = {}, put = (k, p) => { if (k && p && !m[k]) m[k] = p; };
+    for (const it of SHOP.concat(CANTEEN, TT_FOOD, TT_MATS)) put(it.inv || it.id, it.n > 1 ? it.price / it.n : it.price);
+    for (const k in MALL_GOODS) for (const it of MALL_GOODS[k]) put(it.inv || it.id, it.price);
+    for (const k in MARKET) for (const it of MARKET[k]) put(it.id, it.price);
+    for (const it of FLOWER_SHOP().concat(TACKLE_SHOP(), ART_SHOP())) put(it.id, it.n > 1 ? it.price / it.n : it.price);
+  }
+  return buyPrice._m[id] || 0;
+}
+// Thông tin một món: tên, giá trị bán cố định, nhóm (dùng cho sở thích quà)
+function goodsInfo(id) {
+  if (!id || id === 'thehs') return null;
+  if (isFish(id)) return { name: FISH_BY[id].name, value: FISH_BY[id].price, cat: 'fish' };
+  if (id.startsWith('c_') && CROPS[id.slice(2)]) { const C = CROPS[id.slice(2)]; return { name: C.name, value: C.price, cat: C.kind === 'hoa' ? 'flower' : 'fruit' }; }
+  if (id.startsWith('h_') && CROPS[id.slice(2)]) return { name: `Hạt ${CROPS[id.slice(2)].name.toLowerCase()}`, value: r1000(CROPS[id.slice(2)].seed * 1.15), cat: 'seed' };
+  const T = PAINT.tiers.find(t => t[0] === id); if (T) return { name: T[1], value: T[2], cat: 'art' };
+  if (ITEMS[id]) return { name: ITEMS[id].name, value: r1000((id.startsWith('sach_') ? 35000 : SCHOOL_PRICE[id] || 20000) * 1.15), cat: 'school' };
+  const special = { gaubong: ['Gấu bông', 70000, 'gift'], voso: ['Vỏ sò', 9000, 'gift'], denongsao: ['Đèn ông sao', 35000, 'gift'], banhtrang: ['Bánh tráng trộn', 6000, 'food'], rau: ['Bó rau muống', 9000, 'veg'], chau: ['Chậu trồng cây', 23000, 'tool'], thung: ['Thùng chứa nhỏ', 69000, 'tool'], giayve: ['Giấy vẽ', 12000, 'tool'], moi: ['Mồi câu', 3000, 'tool'] }[id];
+  if (special) return { name: special[0], value: special[1], cat: special[2] };
+  if (FOODS[id]) return { name: FOODS[id].name, value: r1000((buyPrice(id) || FOODS[id].stam * 700) * 1.15), cat: FOODS[id].drink ? 'drink' : 'food' };
+  const m = TT_MATS.find(t => t.id === id); if (m) return { name: m.name, value: r1000(m.price * 1.15), cat: 'tool' };
+  return null;
+}
+// cất / lấy đồ: cá ở G.fish, đồ dùng học tập ở G.bag (bán đi thì phải mua lại: G.noOwn), còn lại ở G.inv
+const gCount = id => (isFish(id) ? G.fish[id] || 0 : ITEMS[id] ? (G.bag[id] ? 1 : 0) : G.inv[id] || 0);
+function gAdd(id, n) { n = n || 1; if (isFish(id)) G.fish[id] = (G.fish[id] || 0) + n; else if (ITEMS[id]) { G.bag[id] = true; delete G.noOwn[id]; } else G.inv[id] = (G.inv[id] || 0) + n; }
+function gTake(id, n) {
+  n = n || 1;
+  if (isFish(id)) G.fish[id] = Math.max(0, (G.fish[id] || 0) - n);
+  else if (ITEMS[id]) { delete G.bag[id]; G.noOwn[id] = true; if (id === 'vethang') G.busPassUntil = -1; }
+  else G.inv[id] = Math.max(0, (G.inv[id] || 0) - n);
+  if (!gCount(id) && RT.hold === id) RT.hold = null;
+}
+// tất cả đồ đang mang theo (bán / tặng / cất thùng được)
+function goodsCarried() {
+  const out = [];
+  for (const id in G.inv) if (G.inv[id] > 0 && goodsInfo(id) && !PARENT_ITEMS[id] && !GROUP_ITEMS[id] && id !== 'xeng' && id !== 'comhop') out.push({ id, n: G.inv[id] });
+  for (const id in G.fish) if (G.fish[id] > 0) out.push({ id, n: G.fish[id] });
+  for (const id in ITEMS) if (G.bag[id] && id !== 'thehs') out.push({ id, n: 1 });
+  return out;
+}
+
+/* ---------- Tặng / bán khi đưa đồ cho người khác ---------- */
+function tasteOf(key, id) {
+  const T = GIFT_TASTE[key]; if (!T) return 'norm';
+  const cat = (goodsInfo(id) || {}).cat, hit = a => (a || []).some(k => k === id || k === cat);
+  return hit(T.hate) ? 'hate' : hit(T.love) ? 'love' : hit(T.dislike) ? 'dislike' : 'norm';
+}
+function personOf(T) {
+  if (T.kind === 'friend') { const F = FRIENDS[T.id]; return { name: F.name, who: { look: T.id, outfit: friendOutfit(T.id) }, key: T.id, bday: isDate(F.bday, G.day), hearts: hearts(T.id), add: n => addFriend(T.id, n) }; }
+  if (T.kind === 'parent') return { name: PNAME[T.id], who: { look: T.id, outfit: T.id === 'mom' && G.map !== 'home' ? 'noapron' : null }, key: T.id, bday: isDate(PARENT_BDAY[T.id], G.day), hearts: Math.min(5, Math.ceil(parentInfo(G.parent).lv / 2)), add: n => addParent(n, '', true) };
+  if (T.kind === 'teacher') { const Tc = TEACHERS[T.id]; return { name: Tc.name, who: { look: Tc.look }, key: T.id, bday: false, hearts: teacherLv(T.id), add: n => addTeacher(n, T.id) }; }
+  if (T.kind === 'soc') { const S = SOCIETY[T.id]; return { name: S.name, who: { look: S.look }, key: T.id, bday: false, hearts: Math.floor((G.soc[T.id] || 0) / 20), add: n => { G.soc[T.id] = clamp((G.soc[T.id] || 0) + n, 0, 100); } }; }
+  return { name: T.name || 'Bạn', who: { look: T.look, outfit: T.outfit }, key: 'o_' + T.id, bday: false, hearts: 1, add: () => { } };
+}
+const GIFT_LINE = {
+  love: ['Ôi! Đúng thứ mình thích nhất luôn! Cảm ơn nhiều nha!', 'Trời ơi, sao biết mình mê cái này? Vui quá đi!'],
+  norm: ['Cho mình à? Cảm ơn nhé!', 'Quà hả? Cảm ơn nha, dễ thương ghê.'],
+  dislike: ['À… ừ, cảm ơn. Mình không thích cái này lắm…', 'Ờm… cũng được, cảm ơn nhé.'],
+  hate: ['Cái này… thật lòng mình ghét lắm. Cầm về đi.', 'Ơ… sao lại tặng mình cái này? Mình không thích chút nào.'],
+};
+async function giveOrSell(T, id) {
+  const I = goodsInfo(id), P = personOf(T);
+  const c = await UI.ask(P.name, `<p>Bạn đưa <b>${I.name}</b> cho ${P.name}.</p><p class="dim">Tặng: không lấy tiền, hợp sở thích thì thân hơn (không hợp thì bị trừ)${P.bday ? ' — <b>hôm nay sinh nhật, hiệu ứng gấp đôi</b>' : ''}. Bán: được ${fmtMoney(I.value)}, không thêm thân thiết, có thể bị từ chối.</p>`, ['Tặng', `Bán · ${fmtMoney(I.value)}`, 'Thôi'], { who: P.who });
+  if (c === 0) return giftTo(T, id, P, I);
+  if (c === 1) return sellTo(T, id, P, I);
+}
+async function giftTo(T, id, P, I) {
+  const key = 'g_' + T.kind + '_' + T.id;
+  if (T.kind === 'friend' && grudge(T.id)) return UI.ask(P.name, '<p>“Tớ không nhận quà của đứa mách lẻo đâu.”</p>', ['…'], { who: P.who });
+  if (G.daily.gift[key]) return UI.ask(P.name, '<p>“Hôm nay tặng quà rồi mà, giữ lại mà dùng đi!”</p>', ['OK'], { who: P.who });
+  const t = T.kind === 'other' ? 'norm' : tasteOf(P.key, id), pts = GIFT_PTS[t] * (P.bday ? 2 : 1);
+  G.daily.gift[key] = true; gTake(id); P.add(pts);
+  UI._hb = null; UI.hud();
+  const line = pick(GIFT_LINE[t]) + (P.bday && pts > 0 ? ' Lại đúng sinh nhật nữa chứ!' : '');
+  await UI.ask(P.name, `<p>Bạn tặng <b>${I.name.toLowerCase()}</b>.</p><p>“${line}”</p>${T.kind !== 'other' ? `<p class="dim">${{ love: 'Quà rất thích', norm: 'Quà bình thường', dislike: 'Quà không thích lắm', hate: 'Quà ghét' }[t]}: ${pts > 0 ? '+' : '−'}${Math.abs(pts)} thân thiết${P.bday ? ' (sinh nhật ×2)' : ''}</p>` : ''}`, ['Không có gì!'], { who: P.who });
+  if (I.cat === 'school') UI.toast(`Đã tặng ${I.name.toLowerCase()} — muốn có lại thì mua ở TTTM (nhà sách / gian thể thao).`, 'info');
+}
+async function sellTo(T, id, P, I) {
+  const key = 'sv_' + T.kind + '_' + T.id;
+  if (G.daily.sold[key]) return UI.ask(P.name, '<p>“Hôm nay mua của cậu một lần rồi, thôi nhé!”</p>', ['Dạ'], { who: P.who });
+  const t = T.kind === 'other' ? 'norm' : tasteOf(P.key, id), S = SELL_TO;
+  let p = (S[T.kind] || S.other) + S.perHeart * P.hearts + (t === 'love' ? S.love : t === 'dislike' ? S.dislike : t === 'hate' ? S.hate : 0);
+  if (T.kind === 'soc' && T.id === 'coba' && ['food', 'drink', 'fish', 'fruit', 'veg'].includes(I.cat)) p += 0.35;        // cô Ba buôn bán, hay mua lại hàng ăn
+  G.daily.sold[key] = true;
+  if (Math.random() >= clamp(p, 0.05, 0.95)) {
+    const no = t === 'hate' ? 'Cái này hả? Cho không mình cũng không lấy đâu.' : t === 'dislike' ? 'Mình không thích cái này lắm, không mua đâu.' : pick(['Thôi, mình không cần cái này đâu. Cậu đem bán chỗ khác nhé.', 'Giá đó hơi cao với mình… thôi khỏi nhé.', 'Mình đang hết tiền rồi, hôm khác nha.']);
+    return UI.ask(P.name, `<p>“${no}”</p>`, ['Vậy thôi'], { who: P.who });
+  }
+  gTake(id); addMoney(I.value); addStat('buonban', 1);
+  UI._hb = null; UI.hud();
+  await UI.ask(P.name, `<p>“${t === 'love' ? 'Đúng cái mình đang tìm! Mình lấy luôn.' : 'Ừ được, mình lấy cái này.'}”</p><p class="dim">Bán ${I.name.toLowerCase()} được ${fmtMoney(I.value)} · +1 Buôn bán</p>`, ['Cảm ơn nhé!'], { who: P.who });
+  if (I.cat === 'school') UI.toast(`Đã bán ${I.name.toLowerCase()} — cần thì phải mua lại ở TTTM (nhà sách / gian thể thao).`, 'bad');
+}
+
+/* ---------- Vườn trước nhà: đặt chậu, thùng chứa ở chỗ trống ---------- */
+const YARD = { x0: 8, x1: 270, y0: 22, y1: 156, door: [76, 120, 40, 40] };   // vùng sân vườn trên bản đồ khu phố · tránh lối vào cửa nhà
+const inYard = (x, y) => G.map === 'town' && x >= YARD.x0 && x <= YARD.x1 && y >= YARD.y0 && y <= YARD.y1;
+function yardSync() {
+  const m = MAPS.town; if (!m || !G) return;
+  m.objs = m.objs.filter(o => !o.yard);
+  for (const it of (G.yard && G.yard.items) || []) {
+    if (it.k === 'pot') addObj(m, { yard: it.uid, s: 'potE', dyn: () => potState(it).key, x: it.x - 8, y: it.y - 20, sol: [3, 15, 10, 6], ir: [-4, -2, 24, 26], label: () => potLabel(it), act: () => potAct(it) });
+    else addObj(m, { yard: it.uid, s: 'chestS', x: it.x - 9, y: it.y - 14, sol: [1, 6, 16, 9], ir: [-4, -2, 26, 20], label: () => `Thùng chứa (${chestUsed(it)}/${FARM.chestCap}) — cất / lấy đồ`, act: () => chestUI(it) });
+  }
+}
+function placeSpot() {                                         // chỗ đặt: ngay trước mặt theo hướng nhìn
+  const d = [[0, 14], [-14, 0], [14, 0], [0, -14]][G.dir] || [0, 14];
+  return [Math.round(G.x + d[0]), Math.round(G.y + d[1])];
+}
+function canPlace(x, y) {
+  if (!inYard(x, y)) return false;
+  const [a, b, w, h] = YARD.door; if (x > a && x < a + w && y > b && y < b + h) return false;
+  for (const it of G.yard.items) if (Math.abs(it.x - x) < 16 && Math.abs(it.y - y) < 14) return false;
+  for (const [dx, dy] of [[-6, 0], [6, 0], [0, -4], [0, 2]]) if (blocked(MAPS.town, x + dx, y + dy)) return false;
+  return Math.abs(G.x - x) > 6 || Math.abs(G.y - y) > 6;
+}
+async function placeHeld(id) {
+  const [x, y] = placeSpot();
+  if (G.map !== 'town' || !inYard(G.x, G.y)) return UI.toast(`${id === 'chau' ? 'Chậu' : 'Thùng chứa'} chỉ đặt được ngoài vườn trước nhà mình.`, 'info');
+  if (!canPlace(x, y)) return UI.toast('Chỗ này vướng rồi — quay sang chỗ trống khác rồi đặt nhé.', 'info');
+  const c = await meSay(`<p>Đặt ${id === 'chau' ? 'chậu trồng cây' : 'thùng chứa'} ở ngay trước mặt?</p>`, ['Đặt ở đây', 'Thôi']);
+  if (c !== 0) return;
+  gTake(id); G.yard.items.push(id === 'chau' ? { uid: ++G.yard.seq, k: 'pot', x, y, crop: null } : { uid: ++G.yard.seq, k: 'chest', x, y, items: {} });
+  yardSync(); UI._hb = null; UI.hud();
+  UI.toast(id === 'chau' ? 'Đã đặt chậu. Bấm vào chậu để gieo hạt (mua hạt ở cửa hàng hoa trong công viên).' : 'Đã đặt thùng chứa. Bấm vào để cất / lấy đồ.', 'good');
+}
+
+/* ---------- Chậu cây: gieo hạt · tưới · lớn dần · héo · thu hoạch ---------- */
+function potState(it) {
+  const C = it.crop && CROPS[it.crop];
+  if (!C) return { key: potKey(null, 0, false, false), stage: -1 };
+  const need = it.harv ? C.regrow : C.grow, ready = !it.dead && it.grow >= need, wet = it.last === G.day;
+  const stage = it.dead ? 0 : ready ? 3 : it.grow >= need * 0.6 || it.harv ? 2 : it.grow >= 1 ? 1 : 0;
+  return { key: potKey(it.crop, stage, it.dead, wet), stage, ready, need };
+}
+function potLabel(it) {
+  const C = it.crop && CROPS[it.crop], S = potState(it);
+  if (!C) return 'Chậu trống — gieo hạt';
+  if (it.dead) return `${C.name} đã héo (quên tưới 3 ngày) — dọn đi`;
+  if (S.ready) return `${C.name} — thu hoạch!`;
+  return `${C.name} · ${it.grow}/${S.need} ngày · ${it.last === G.day ? 'đã tưới hôm nay' : 'cần tưới nước'}`;
+}
+async function potAct(it) {
+  if (RT.lock) return;
+  const C = it.crop && CROPS[it.crop], S = potState(it);
+  if (!C) {
+    const seeds = Object.keys(CROPS).filter(k => G.inv['h_' + k] > 0);
+    const opts = seeds.map(k => `Gieo hạt ${CROPS[k].name.toLowerCase()} (còn ${G.inv['h_' + k]})`).concat('Cất chậu vào túi', 'Thôi');
+    const c = await meSay(seeds.length ? '<p>Gieo hạt gì vào chậu này?</p>' : '<p>Chậu trống. Chưa có hạt giống nào — mua ở cửa hàng hoa trong công viên khu nhà.</p>', opts);
+    if (c >= 0 && c < seeds.length) {
+      const k = seeds[c]; G.inv['h_' + k]--; Object.assign(it, { crop: k, grow: 0, last: -9, planted: G.day, harv: 0, dead: false });
+      await waterCut(it, true); UI._hb = null; UI.hud();
+      return UI.toast(`Đã gieo ${CROPS[k].name.toLowerCase()}. Nhớ tưới nước mỗi ngày — bỏ 3 ngày không tưới là cây héo.`, 'good');
+    }
+    if (c === seeds.length) { G.yard.items = G.yard.items.filter(x => x !== it); gAdd('chau'); yardSync(); UI._hb = null; UI.hud(); UI.toast('Đã cất chậu vào túi.'); }
+    return;
+  }
+  if (it.dead) { const c = await meSay(`<p>Cây ${C.name.toLowerCase()} héo khô rồi vì mấy ngày không tưới…</p>`, ['Dọn cây héo', 'Thôi']); if (c === 0) { it.crop = null; yardSync(); } return; }
+  if (S.ready) return harvest(it);
+  if (it.last === G.day) return UI.toast(`${C.name} hôm nay tưới rồi. Còn ${S.need - it.grow} ngày nữa.`, 'info');
+  if (!G.owned.binhtuoi) return UI.toast('Chưa có bình tưới — mua hạt giống ở cửa hàng hoa sẽ được tặng một bình.', 'bad');
+  if (G.stamina < FARM.waterStam) return UI.toast('Mệt quá, không tưới nổi.', 'bad');
+  await waterCut(it); useStam(FARM.waterStam); advanceTime(5); it.last = G.day; UI.hud();
+  UI.toast(`Đã tưới ${C.name.toLowerCase()} (−${FARM.waterStam} thể lực).`, 'good');
+}
+// tưới nước: nhìn về phía chậu, bình tưới nghiêng, nước nhỏ giọt
+async function waterCut(it, sow) {
+  RT.lock = true;
+  const dir = Math.abs(it.x - G.x) > Math.abs(it.y - G.y) ? (it.x < G.x ? 1 : 2) : (it.y < G.y ? 3 : 0);
+  G.dir = dir; it.last = sow ? -9 : it.last;
+  await playCut({ inPlace: true, bars: false, steps: [{ wait: UI._fast ? 10 : 1300 }], props: [now => {
+    const t = (now % 1300) / 1300, cx0 = it.x + (it.x < G.x ? 6 : -6), top = it.y - 26;
+    if (sow) { for (let i = 0; i < 3; i++) wRect('#8a6a3a', it.x - 3 + i * 3, it.y - 14 + ((now / 120 + i * 3) % 6), 1, 1); return; }
+    wRect('#3f8f3a', cx0 - 4, top, 8, 6); wRect('#5fae4a', cx0 - 4, top, 8, 2); wRect('#3f8f3a', it.x < G.x ? cx0 - 8 : cx0 + 4, top + 1, 4, 2);
+    for (let i = 0; i < 4; i++) { const k = (t + i / 4) % 1; wRect('#7fc1ee', it.x - 3 + i * 2, top + 6 + k * 12, 1, 2); }
+  }] });
+  if (sow) it.last = -9;
+  RT.lock = false;
+}
+async function harvest(it) {
+  const C = CROPS[it.crop], n = C.yield;
+  RT.lock = true;
+  await playCut({ inPlace: true, bars: false, steps: [{ hop: 'me' }, { wait: UI._fast ? 10 : 500 }] });
+  RT.lock = false;
+  gAdd('c_' + it.crop, n); addStat('nongsan', C.fp); G.farmLog = G.farmLog || {}; G.farmLog[it.crop] = (G.farmLog[it.crop] || 0) + n;
+  if (C.kind === 'hoa') it.crop = null; else { it.harv = (it.harv || 0) + 1; it.grow = 0; }
+  yardSync(); UI._hb = null; UI.hud();
+  UI.toast(`Thu hoạch ${n > 1 ? n + ' ' : ''}${C.name.toLowerCase()}! +${C.fp} Nông sản${C.kind === 'qua' ? ` · lứa sau ${C.regrow} ngày nữa` : ''}.`, 'good');
+}
+// đầu ngày mới: cây được tưới hôm qua thì lớn thêm 1 ngày; 3 ngày liền không tưới thì héo
+function farmNewDay() {
+  for (const it of (G.yard && G.yard.items) || []) {
+    if (it.k !== 'pot' || !it.crop || it.dead) continue;
+    if (it.last === G.day - 1) it.grow++;
+    if (G.day - Math.max(it.last, it.planted) >= FARM.wither) it.dead = true;
+  }
+  yardSync();
+}
+
+/* ---------- Thùng chứa ngoài vườn (tối đa 30 món) ---------- */
+const chestUsed = it => Object.values(it.items).reduce((a, b) => a + b, 0);
+function chestUI(it) {
+  UI.panel('Thùng chứa ngoài vườn', () => {
+    const used = chestUsed(it), carried = goodsCarried().filter(g => !ITEMS[g.id]);
+    let h = `<p>Đã dùng <b>${used}/${FARM.chestCap}</b> chỗ. Đồ dùng học tập (sách, đồng phục…) thì để ở tủ sách trong phòng.</p><h4>Trong thùng</h4><div class="rows">`;
+    const inn = Object.keys(it.items).filter(k => it.items[k] > 0);
+    h += inn.length ? inn.map(k => `<div class="rowi"><span><img class="ico" src="${itemIcon(k)}" alt=""><b>${goodsInfo(k).name}</b> ×${it.items[k]}</span><button class="btn sm" data-act="out" data-id="${k}">Lấy 1</button><button class="btn sm ghost" data-act="outall" data-id="${k}">Lấy hết</button></div>`).join('') : '<span class="dim">Thùng trống.</span>';
+    h += '</div><h4>Đang mang theo</h4><div class="rows">';
+    h += carried.length ? carried.map(g => `<div class="rowi"><span><img class="ico" src="${itemIcon(g.id)}" alt=""><b>${goodsInfo(g.id).name}</b> ×${g.n}</span><button class="btn sm" data-act="in" data-id="${g.id}" ${used >= FARM.chestCap ? 'disabled' : ''}>Cất 1</button><button class="btn sm ghost" data-act="inall" data-id="${g.id}" ${used >= FARM.chestCap ? 'disabled' : ''}>Cất hết</button></div>`).join('') : '<span class="dim">Không mang theo gì cất được.</span>';
+    return h + '</div><div class="btns"><button class="btn ghost" data-act="pick">Cất thùng vào túi (thùng phải trống)</button><button class="btn primary" data-close="1">Xong</button></div>';
+  }, {
+    in: d => { if (chestUsed(it) >= FARM.chestCap || !gCount(d.id)) return; gTake(d.id); it.items[d.id] = (it.items[d.id] || 0) + 1; },
+    inall: d => { while (chestUsed(it) < FARM.chestCap && gCount(d.id)) { gTake(d.id); it.items[d.id] = (it.items[d.id] || 0) + 1; } },
+    out: d => { if (!it.items[d.id]) return; it.items[d.id]--; gAdd(d.id); },
+    outall: d => { const n = it.items[d.id] || 0; if (n) { it.items[d.id] = 0; gAdd(d.id, n); } },
+    pick: () => { if (chestUsed(it)) return UI.toast('Lấy hết đồ ra trước đã.', 'info'); G.yard.items = G.yard.items.filter(x => x !== it); gAdd('thung'); yardSync(); UI.close(-1); UI.toast('Đã cất thùng chứa vào túi.'); },
+  });
+}
+
+/* ---------- Thú cưng: mua ở cửa hàng, hôm sau giao tới nhà ---------- */
+function petNewDay() {
+  if (G.pet && !G.pet.home && G.day >= G.pet.day) { G.pet.home = true; RT.morning.push(`Cửa hàng thú cưng đã giao ${PETS[G.pet.kind].name.toLowerCase()} tới nhà! Bé tên là ${G.pet.name}, đang chạy quanh phòng khách đó.`); }
+}
+ACT.pet = async () => {
+  if (!G.pet) return;
+  const P = PETS[G.pet.kind], n = G.pet.name;
+  const c = await meSay(`<p>${n} ${G.pet.kind === 'dog' ? 'vẫy đuôi rối rít' : 'cọ cọ vào chân, kêu meo meo'}.</p>`, [`Vuốt ve ${n}`, 'Chơi đùa một lát', 'Thôi']);
+  if (c === 0) { if (!G.daily.petted) { G.daily.petted = true; gainStam(4); UI.toast(`${n} sướng lắm, bạn cũng thấy khoẻ khoắn hơn (+4 thể lực).`, 'good'); } else UI.toast(`${n} lim dim ngủ trong lòng bạn.`); }
+  else if (c === 1) await activity(`Đang chơi với ${n}…`, 15, () => { if (!G.daily.petPlay) { G.daily.petPlay = true; gainStam(6); } });
+};
+
+/* ---------- Cửa hàng hoa, thú cưng, đồ câu ---------- */
+const closedTet = () => !!G && cal(G.day).season === 2 && cal(G.day).dos === 1;   // mùng 1 Tết: cửa hàng, dịch vụ, văn phòng đều nghỉ
+const tetShut = name => { if (!closedTet()) return false; UI.say(name, 'Cửa đóng then cài, treo tấm biển đỏ: “Nghỉ Tết — mùng 2 mở cửa lại. Chúc mừng năm mới!”'); return true; };
+ACT.flowerShop = () => {
+  if (tetShut('Cửa hàng hoa Hồng Nhung')) return;
+  if (!inWin(G.time, 420, 1200)) return UI.say('Cửa hàng hoa Hồng Nhung', 'Cửa hàng đã đóng.<p class="dim">Mở cửa 07:00–20:00.</p>');
+  UI.store('Cửa hàng hoa Hồng Nhung', '“Chào em! Mua hạt về trồng hả? Mua hạt lần đầu chị tặng luôn bình tưới nhé!”', FLOWER_SHOP, it => {
+    if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
+    addMoney(-it.price, true); gAdd(it.id);
+    let note = '';
+    if (it.id.startsWith('h_') && !G.owned.binhtuoi) { G.owned.binhtuoi = true; note = ' · được tặng bình tưới'; }
+    UI.toast(`Đã mua ${it.name.toLowerCase()} (−${fmtMoney(it.price)})${note}.`, 'good'); UI.hud();
+  }, () => '<p class="dim">Đặt chậu ngoài vườn trước nhà (cầm chậu lên, bấm vào chỗ trống), gieo hạt rồi tưới mỗi ngày. Hoa nở nhanh, thu 1 lần; cây quả thu được nhiều lứa. Hoa, quả bán ở chợ phố Bờ Đông.</p>');
+};
+ACT.petShop = () => {
+  if (tetShut('Cửa hàng thú cưng Bông Gòn')) return;
+  if (!inWin(G.time, 480, 1140)) return UI.say('Cửa hàng thú cưng Bông Gòn', 'Cửa hàng đã đóng.<p class="dim">Mở cửa 08:00–19:00.</p>');
+  const items = () => Object.keys(PETS).map(k => ({ id: 'p_' + k, kind: k, name: PETS[k].name, price: PETS[k].price, desc: `Hôm sau cửa hàng giao tận nhà. Mỗi ngày vuốt ve, chơi đùa được thêm thể lực.`, owned: !!G.pet }));
+  UI.store('Cửa hàng thú cưng Bông Gòn', G.pet ? `“${G.pet.name} ở nhà em khoẻ chứ? Nhà mình nuôi một bé là đủ rồi.”` : '“Em muốn nuôi bé chó hay bé mèo nào?”', items, it => {
+    if (G.pet) return UI.toast('Nhà mình đã có thú cưng rồi.');
+    if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
+    addMoney(-it.price, true); G.pet = { kind: it.kind, name: PETS[it.kind].pet, day: G.day + 1, home: false };
+    UI.toast(`Đã mua ${it.name.toLowerCase()}! Ngày mai cửa hàng giao tới nhà.`, 'good'); UI.hud(); UI.refresh();
+  });
+};
+ACT.tackleShop = () => {
+  if (tetShut('Sạp đồ câu Biển Xanh')) return;
+  if (!inWin(G.time, 360, 1140)) return UI.say('Sạp đồ câu Biển Xanh', 'Sạp đã dọn hàng.<p class="dim">Mở 06:00–19:00.</p>');
+  const items = () => TACKLE_SHOP().map(it => Object.assign({}, it, { owned: !!(it.own && G.owned[it.own]) }));
+  UI.store('Sạp đồ câu Biển Xanh', '“Câu biển phải có cần tốt, mồi ngon! Cá ngừ đại dương chỉ có mùa hè, sáng sớm thôi nhé.”', items, it => {
+    if (it.own && G.owned[it.own]) return UI.toast('Bạn có rồi.');
+    if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
+    addMoney(-it.price, true); if (it.own) G.owned[it.own] = true; else gAdd(it.id, it.n || 1);
+    UI.toast(`Đã mua ${it.name.toLowerCase()} (−${fmtMoney(it.price)}).`, 'good'); UI.hud();
+  }, () => `<p class="dim">Chỗ câu: bến sông dưới phố Hoa Phượng · ao trong công viên khu nhà · mép nước bãi biển này. Mỗi nơi, mỗi mùa, mỗi giờ có loài cá khác nhau — xem trong Bộ sưu tập.</p>`);
+};
+
+/* ---------- Chợ phố Bờ Đông: mua rau, cá, đồ ăn · bán lại hoa, quả, cá, tranh ---------- */
+const MARKET_NAME = { rau: 'Hàng rau quả', ca: 'Hàng cá', an: 'Hàng ăn sáng' };
+ACT.marketStall = k => {
+  if (!inWin(G.time, 300, 1080)) return UI.say(MARKET_NAME[k], 'Chợ đã tan.<p class="dim">Chợ họp 05:00–18:00.</p>');
+  const items = () => MARKET[k].map(it => Object.assign({}, it));
+  UI.store(MARKET_NAME[k], pick(['“Mua gì đi cháu, hàng tươi lắm!”', '“Cháu lấy gì? Cô bớt cho!”']), items, async it => {
+    if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
+    const pt = G.tasks.active.find(t => t.pt && t.step === 0 && PARENT_TASKS[t.id].market === k);
+    if (pt) return pickParentItem(pt, ptDef(pt.id), ptDef(pt.id).steps[0]);
+    if (it.food) return buyFood(it.id, it.price, it.name);
+    addMoney(-it.price, true); gAdd(it.id); UI.toast(`Đã mua ${it.name.toLowerCase()} (−${fmtMoney(it.price)}).`, 'good'); UI.hud();
+  }, () => { const pt = G.tasks.active.find(t => t.pt && t.step === 0 && PARENT_TASKS[t.id].market === k); return pt ? `<p class="okbox">${PARENT_TASKS[pt.id].name}: bấm mua bất kỳ món nào để mua giúp ${PNAME[PARENT_TASKS[pt.id].who].toLowerCase()}.</p>` : ''; });
+};
+const MARKET_BUY = ['flower', 'fruit', 'fish', 'veg', 'art'];
+ACT.marketBuyer = () => {
+  if (!inWin(G.time, 300, 1080)) return UI.say('Quầy thu mua', 'Chợ đã tan.<p class="dim">Chợ họp 05:00–18:00.</p>');
+  UI.panel('Quầy thu mua · chợ Bờ Đông', () => {
+    const L = goodsCarried().filter(g => MARKET_BUY.includes(goodsInfo(g.id).cat));
+    let h = '<p>“Hoa, quả trồng được, cá câu được, tranh vẽ — mang ra đây cô mua hết!”</p><div class="rows">';
+    h += L.length ? L.map(g => { const I = goodsInfo(g.id); return `<div class="rowi"><span><img class="ico" src="${itemIcon(g.id)}" alt=""><b>${I.name}</b> ×${g.n} <small>${fmtMoney(I.value)} / món</small></span><button class="btn sm" data-act="one" data-id="${g.id}">Bán 1</button><button class="btn sm ghost" data-act="all" data-id="${g.id}">Bán hết · ${fmtMoney(I.value * g.n)}</button></div>`; }).join('') : '<span class="dim">Bạn không mang theo hoa, quả, cá hay tranh nào.</span>';
+    return h + '</div><p class="dim">Mỗi món bán được cộng tiền ngay và điểm Buôn bán.</p><div class="btns"><button class="btn primary" data-close="1">Xong</button></div>';
+  }, { one: d => marketSell(d.id, 1), all: d => marketSell(d.id, gCount(d.id)) });
+};
+function marketSell(id, n) {
+  const I = goodsInfo(id); n = Math.min(n, gCount(id)); if (!n) return;
+  gTake(id, n); addMoney(I.value * n);
+  const pts = Math.min(n, Math.max(0, 8 - (G.daily.mkPts || 0))); if (pts) { G.daily.mkPts = (G.daily.mkPts || 0) + pts; addStat('buonban', pts); }
+  UI.toast(`Bán ${n} ${I.name.toLowerCase()} được ${fmtMoney(I.value * n)}${pts ? ` · +${pts} Buôn bán` : ''}.`, 'good'); UI._hb = null; UI.hud();
+}
+
+/* ---------- Bản đồ: cửa hàng mới, chợ, chỗ câu cá, vườn, thú cưng ---------- */
+function buildEcoPlaces() {
+  const t = MAPS.town;
+  // dải công viên khu nhà: dọn bớt cây để dựng cửa hàng hoa, thú cưng
+  t.objs = t.objs.filter(o => !(o.y > 270 && ((o.x > 196 && o.x < 300) || (o.x > 420 && o.x < 545))));
+  addObj(t, { door: true, s: 'flowershop', x: 200, y: 300, sol: [1, 24, 96, 53], label: () => 'Cửa hàng hoa Hồng Nhung — chậu, hạt giống', act: () => ACT.flowerShop() });
+  addObj(t, { door: true, s: 'petshop', x: 440, y: 300, sol: [1, 24, 96, 53], label: () => 'Cửa hàng thú cưng Bông Gòn — chó, mèo', act: () => ACT.petShop() });
+  addObj(t, { s: 'fishspot', x: 150, y: 352, sol: [2, 8, 9, 9], ir: [-14, 0, 30, 22], label: () => fishLabel('ho'), act: () => ACT.fish('ho') });   // bờ ao công viên
+  // thú cưng chạy quanh phòng khách
+  NPCS.push({ id: 'pet', name: 'Thú cưng', look: 'boy', map: 'home', x: 320, y: 170, dir: 1, wander: 60, critter: n => `${G.pet.kind}${n.cdir === 2 ? '' : 'L'}${n.walk >= 0 ? Math.floor(performance.now() / 160) % 2 : 0}`, vis: () => !!(G.pet && G.pet.home), label: () => `${G.pet.name} — ${PETS[G.pet.kind].name.toLowerCase()} nhà mình`, act: () => ACT.pet() });
+  // biển: sạp đồ câu + chỗ câu cá ở mép nước
+  const b = MAPS.bien;
+  addObj(b, { door: true, s: 'tackle', x: 270, y: 104, sol: [1, 30, 62, 16], label: () => 'Sạp đồ câu Biển Xanh — cần câu, mồi', act: () => ACT.tackleShop() });
+  addObj(b, { s: 'fishspot', x: 196, y: 282, sol: [2, 8, 9, 9], ir: [-14, 0, 30, 22], label: () => fishLabel('bien'), act: () => ACT.fish('bien') });
+  // chợ phố Bờ Đông
+  const d = MAPS.dong;
+  addObj(d, { door: true, s: 'marketB', x: 820, y: 46, sol: [1, 30, 126, 50], label: () => 'Chợ Bờ Đông — mua rau, cá, đồ ăn · bán hoa, quả, cá, tranh', act: () => (tetShut('Chợ Bờ Đông') ? null : goPlace('cho', MAPS.cho.entry[0], MAPS.cho.entry[1], 3, 0)) });
+  const m = roomBase('cho', 'Chợ Bờ Đông', '#f2e6c8', '#c9a467', 'wood', 22, 13);
+  roomExit(m, { map: 'dong', x: 884, y: 140, dir: 0 });
+  m.labels.push({ x: 176, y: 16, text: 'CHỢ BỜ ĐÔNG', size: 6, col: '#b2503a', maxw: 90 });
+  const ST = [['rau', 'mstallG', 24, 46, 'vendor'], ['ca', 'mstallB', 104, 46, 'clerk'], ['an', 'mstallO', 184, 46, 'c2'], ['mua', 'mstallR', 264, 46, 'c4']];
+  for (const [k, spr, a, y, look] of ST) {
+    addObj(m, { s: spr, x: a, y, sol: [0, 18, 52, 12], label: () => (k === 'mua' ? 'Quầy thu mua — bán hoa, quả, cá, tranh' : `${MARKET_NAME[k]} — xem hàng`), act: () => (k === 'mua' ? ACT.marketBuyer() : ACT.marketStall(k)) });
+    NPCS.push({ id: 'mk_' + k, name: k === 'mua' ? 'Cô thu mua' : 'Người bán hàng', look, outfit: look === 'c2' || look === 'c4' ? () => 'cas_ngan' : undefined, map: 'cho', x: a + 26, y: y + 6, dir: 0, label: () => (k === 'mua' ? 'Cô thu mua — bán hoa, quả, cá, tranh' : `${MARKET_NAME[k]} — mua hàng`), act: () => (k === 'mua' ? ACT.marketBuyer() : ACT.marketStall(k)) });
+  }
+  for (const id in PARENT_TASKS) { const P = PARENT_TASKS[id], s = P.pick; if (s.map !== 'cho') continue;     // việc bố mẹ nhờ mua ở chợ (bản đồ chợ dựng sau buildTaskSpots)
+    addObj(m, { s: 'blank', x: s.x, y: s.y, ir: [-14, -20, 28, 30], vis: () => !!taskAt(id, 0), label: () => `Việc ${PNAME[P.who].toLowerCase()} nhờ: ${s.do.toLowerCase()}`, act: () => doTaskStep(id, 0) }); }
+  for (const [look, a, b2] of [['x2', 90, 120], ['ph3', 200, 140], ['ph4', 290, 118]]) NPCS.push({ id: 'mk_k' + a, name: 'Người đi chợ', look, outfit: look === 'x2' ? () => 'cas_vy' : undefined, map: 'cho', x: a, y: b2, dir: 3, wander: 30, vis: () => inWin(G.time, 300, 1080) });
+}
+
+'use strict';
+/* ============================================================
+ *  04r. CÂU CÁ (cận cảnh như các môn thực hành) · BỘ SƯU TẬP CÁ
+ *  - Ba chỗ câu: bến sông dưới phố Hoa Phượng · ao trong công viên khu nhà · mép nước bãi biển. Cần có cần câu.
+ *  - Mỗi nơi có loài riêng, tuỳ mùa và giờ trong ngày (FISH ở 01_data.js). Cá càng quý càng hiếm, càng khó kéo, càng nhiều điểm Nông sản.
+ *  - Cá cắn câu → khung cận cảnh: GIỮ chuột / SPACE / nút KÉO để kéo dây (lực tăng), thả ra để nhả (lực giảm).
+ *    Giữ kim lực trong VÙNG XANH (vùng này trôi theo con cá vùng vẫy) thì thanh kéo cá đầy dần; ra ngoài thì tụt.
+ *    Lực chạm đỏ → đứt dây · thanh kéo về 0 → cá sổng. Đầy thanh → kéo được cá lên.
+ * ============================================================ */
+const fishCount = () => Object.values(G.fish).reduce((a, b) => a + b, 0);
+const fishValue = () => FISH.reduce((a, f) => a + (G.fish[f.id] || 0) * f.price, 0);
+const fishLabel = where => (G && G.owned.cancau ? `Câu cá ở ${FISH_WHERE[where || 'song'].toLowerCase()}` : 'Chỗ câu cá — cần có cần câu (tạp hoá Cô Ba hoặc sạp đồ câu ngoài biển)');
+const fishHere = (f, where, day, time) => {
+  if (f.where !== where || !f.seasons.includes(cal(day).season)) return false;
+  if (!f.hours) return true;
+  const t = time < 300 ? time + 1440 : time;                                      // sau nửa đêm tính tiếp ngày hôm trước
+  return t >= f.hours[0] && t < f.hours[1];
+};
+const FISH_W = [40, 26, 16, 9, 4];                                                  // tỉ lệ gặp theo độ khó
+function rollFish(where, bait) {
+  const L = FISH.filter(f => fishHere(f, where, G.day, G.time));
+  if (!L.length) return null;
+  const w = f => FISH_W[f.diff - 1] * (bait && f.diff >= 3 ? FISHING.baitRare : 1);
+  let r = Math.random() * L.reduce((a, f) => a + w(f), 0);
+  for (const f of L) { r -= w(f); if (r < 0) return f; }
+  return L[0];
+}
+ACT.fish = async where => {
+  where = where || 'song';
+  if (RT.lock) return;
+  if (!G.owned.cancau && !G.owned.cancau2) return UI.say(FISH_WHERE[where], 'Mặt nước lăn tăn, cá quẫy lách tách.<p class="dim">Muốn câu phải có cần câu — bán ở tạp hoá Cô Ba (khu nhà) hoặc sạp đồ câu ngoài biển. Cá câu được bán ở chợ phố Bờ Đông, tặng người khác, hoặc mang về cho mẹ nấu.</p>');
+  if (G.stamina < FISHING.stam) return UI.toast('Mệt quá, không câu nổi.', 'bad');
+  const bait = (G.inv.moi || 0) > 0;
+  const c = await meSay(`<p>Thả câu ở ${FISH_WHERE[where].toLowerCase()}?</p><p class="dim">${FISHING.mins} phút · −${FISHING.stam} thể lực${bait ? ` · dùng 1 mồi câu (còn ${G.inv.moi}) — dễ gặp cá quý` : ''}</p>`, ['Thả câu', 'Thôi']);
+  if (c !== 0) return;
+  RT.lock = true;
+  if (bait) G.inv.moi--;
+  await UI.progress('Thả câu, chờ cá cắn…', UI._fast ? 10 : 1300, '#3b82c4');
+  advanceTime(FISHING.mins); useStam(FISHING.stam);
+  const f = Math.random() < FISHING.nothing ? null : rollFish(where, bait);
+  if (!f) { RT.lock = false; UI.hud(); return UI.toast('Ngồi mãi chẳng con nào cắn câu. Thử giờ khác, chỗ khác xem.'); }
+  const r = await fishScene(f, where);
+  RT.lock = false;
+  if (r.score >= 0.5) {
+    G.fish[f.id] = (G.fish[f.id] || 0) + 1; addStat('nongsan', f.fp);
+    const L = (G.fishLog[f.id] = G.fishLog[f.id] || { n: 0, day: G.day }); L.n++;
+    UI.toast(`${L.n === 1 ? 'Loài mới! ' : ''}Câu được ${f.name.toLowerCase()} (${fmtMoney(f.price)}) · +${f.fp} Nông sản.`, 'good');
+  } else UI.toast(r.skipped ? 'Bạn thả cần, con cá bơi mất.' : `Con ${f.name.toLowerCase()} giật đứt dây, sổng mất rồi…`, 'info');
+  UI._hb = null; UI.hud();
+};
+// khung cận cảnh câu cá
+async function fishScene(f, where) {
+  const d = f.diff, rod = G.owned.cancau2 ? 0.05 : 0, zw = clamp(0.21 - 0.024 * d + rod + 0.004 * lv('nongsan'), 0.08, 0.3);   // cá càng quý vùng xanh càng hẹp; cần carbon, cấp Nông sản nới rộng
+  const st = { T: 0.3, P: 0.3, zc: 0.5, zv: 0, pull: 0, pt: 0, held: false, t: 0, fin: 0, res: 0, msg: 'Giữ chuột / SPACE để kéo dây · thả ra để nhả', splash: 0, fx: 0 };
+  const sea = where === 'bien', water = sea ? '#3b82c4' : where === 'ho' ? '#4fa3b8' : '#5f9fc4', waterL = shade(water, 22);
+  const draw = (c, T, now) => {
+    gR(c, sea ? '#9fd6f2' : '#bfe6c8', 0, 0, CUW, 34); gR(c, sea ? '#f2e2a8' : '#5fae4a', 0, 30, CUW, 6);                // trời, bờ
+    if (!sea) for (let i = 0; i < 6; i++) { gR(c, '#3f8f3a', 10 + i * 38, 18, 10, 14); gR(c, '#5fae4a', 12 + i * 38, 16, 6, 4); }
+    else { gR(c, '#fff6c8', 190, 6, 14, 14); gR(c, '#ffe066', 192, 8, 10, 10); }
+    gR(c, water, 0, 36, CUW, CUH - 36);
+    for (let i = 0; i < 14; i++) { const x = (i * 37 + now / 40) % (CUW + 20) - 10; gR(c, waterL, x, 44 + (i * 13) % 80, 10, 1); }
+    // cá vùng vẫy dưới nước (lệch theo lực kéo của cá)
+    const fx = 120 + Math.sin(now / 260) * 26 + st.pull * 30, fy = 96 + Math.cos(now / 340) * 6;
+    st.fx = fx;
+    gR(c, shade(water, -25), fx - 14, fy - 4, 28, 8); gR(c, shade(water, -25), fx + 12, fy - 6, 6, 12);
+    // phao và dây câu: từ đầu cần (góc trên trái) tới phao; cần cong theo lực
+    const bx = fx - 20, by = 62 + st.T * 6, bend = st.T * 22, tipX = 50 + bend * 0.6, tipY = 14 + bend;
+    for (let i = 0; i < 20; i++) { const k = i / 20; gR(c, '#8a5a3a', 6 + (tipX - 6) * k, 70 - (70 - tipY) * k + Math.sin(k * 3.1) * bend * 0.3, 2, 2); }
+    for (let i = 0; i < 24; i++) { const k = i / 24; gR(c, 'rgba(255,255,255,0.8)', tipX + (bx - tipX) * k, tipY + (by - tipY) * k + Math.sin(k * 3.14) * (1 - st.T) * 10, 1, 1); }
+    gR(c, '#e2574c', bx - 2, by - 3, 4, 3); gR(c, '#fffaf0', bx - 2, by, 4, 2);
+    if (st.splash > 0) for (let i = 0; i < 6; i++) gR(c, '#eaf6fc', bx - 8 + i * 3, by - 4 - ((i * 7 + now / 30) % 8), 1, 2);
+    // thước lực bên phải: vùng xanh + kim
+    const GX = 214, GY = 12, GH = 110;
+    gR(c, '#2a2136', GX - 2, GY - 2, 14, GH + 4); gR(c, '#fff6e3', GX, GY, 10, GH); gR(c, '#e2574c', GX, GY, 10, 6);
+    const z0 = GY + GH - (st.zc + zw) * GH, z1 = GY + GH - (st.zc - zw) * GH; gR(c, '#8fd067', GX, Math.max(GY, z0), 10, Math.min(GY + GH, z1) - Math.max(GY, z0));
+    const ny = GY + GH - st.T * GH; gR(c, '#2a2136', GX - 4, ny - 1, 18, 3); gR(c, inZone() ? '#3f8f3a' : '#e2574c', GX - 3, ny, 16, 1);
+    // thanh kéo cá
+    gR(c, '#2a2136', GX - 18, GY - 2, 9, GH + 4); gR(c, '#5f656f', GX - 16, GY, 5, GH); gR(c, '#ffd23a', GX - 16, GY + GH - st.P * GH, 5, st.P * GH);
+    T.text('LỰC', GX + 5, GY + GH + 8, 5); T.text('KÉO', GX - 13, GY + GH + 8, 5);
+    T.text(`${f.name} ${'★'.repeat(d)}`, 92, 8, 7, '#2a2136', '#fff6e3');
+    if (st.msg) T.text(st.msg, 100, 128, 5.5);
+  };
+  const inZone = () => Math.abs(st.T - st.zc) <= zw;
+  const tick = dt => {
+    st.t += dt; st.splash = Math.max(0, st.splash - dt);
+    if (st.fin) { st.fw = (st.fw || 0) + dt; return st.fw > 0.9 ? st.res : undefined; }
+    // cá đổi hướng vùng vẫy · vùng xanh trôi theo cá
+    st.pt -= dt; if (st.pt <= 0) { st.pt = 0.5 + Math.random() * (1.3 - d * 0.12); st.pull = (Math.random() * 2 - 1) * (0.25 + d * 0.13); }
+    st.zv += (st.pull * 0.5 - st.zv) * dt * 3; st.zc = clamp(st.zc + st.zv * dt, zw * 0.6, 1 - zw * 0.6 - 0.06);
+    st.T = clamp(st.T + (st.held ? 0.85 : -0.7) * dt + st.pull * 0.12 * dt, 0, 1);
+    const ok = inZone();
+    st.P = clamp(st.P + (ok ? 0.16 + 0.02 * (5 - d) : -(0.12 + 0.025 * d)) * dt, 0, 1);
+    st.msg = st.T > 0.9 ? 'Căng quá! Thả bớt dây ra!' : ok ? 'Tốt lắm, giữ lực đều tay…' : st.T < st.zc ? 'Dây chùng rồi, kéo thêm!' : 'Nhả bớt dây ra!';
+    if (!ok && Math.random() < dt * 2) st.splash = 0.4;
+    arenaText(`<b>Câu cá · ${FISH_WHERE[where]}</b><div class="sc">${f.name} <i>${'★'.repeat(d)}</i></div><small>GIỮ chuột / SPACE / nút KÉO để kéo dây, thả ra để nhả · giữ kim lực trong vùng xanh cho tới khi đầy thanh KÉO</small>`);
+    if (st.T >= 1) { st.fin = 1; st.res = 0; st.msg = 'Phựt! Đứt dây rồi…'; }
+    else if (st.P <= 0) { st.fin = 1; st.res = 0; st.msg = 'Cá giãy mạnh, sổng mất rồi!'; }
+    else if (st.P >= 1) { st.fin = 1; st.res = 1; st.msg = `Kéo lên rồi! Một con ${f.name.toLowerCase()}!`; }
+  };
+  const hold = () => { st.held = true; }, rel = () => { st.held = false; };
+  return stageGame({ title: `Câu cá · ${FISH_WHERE[where]}`, btn: 'KÉO',
+    intro: () => [{ say: ['me', 'Phao chìm rồi! Cá cắn câu!'] }],
+    key: k => { if (k === ' ') hold(); }, tap: hold,
+    bot: () => (Math.random() < clamp(0.92 - 0.14 * (d - 1) + 0.02 * lv('nongsan') + rod * 2, 0.15, 0.97) ? 1 : 0),
+    play: (sc, base, esc) => cuPlay(sc, { draw, tick, down: p => { if (cuIn(p)) hold(); }, up: rel, keyup: e => { if (e.code === 'Space') rel(); }, btnUp: rel }, esc),
+    outro: (b, s) => [{ say: ['me', s >= 0.5 ? `Được một con ${f.name.toLowerCase()}!` : 'Tiếc quá…'] }] });
+}
+function sellFish() {
+  const v = fishValue(); if (!v) return UI.toast('Bạn không có con cá nào.');
+  const n = fishCount(); G.fish = {}; addMoney(v); addStat('buonban', Math.min(4, n)); UI.toast(`Bán hết ${n} con cá cho Cô Ba được ${fmtMoney(v)}.`, 'good'); UI.hud();
+}
+// tab Bộ sưu tập · Cá
+function fishAlbumHtml() {
+  const got = FISH.filter(f => G.fishLog[f.id]).length;
+  let h = `<p>Đã câu được <b>${got}/${FISH.length}</b> loài · điểm Nông sản cấp <b>${lv('nongsan')}</b>.</p>`;
+  for (const w of Object.keys(FISH_WHERE)) {
+    h += `<h4>${FISH_WHERE[w]}</h4><div class="fishgrid">`;
+    for (const f of FISH.filter(x => x.where === w)) {
+      const L = G.fishLog[f.id], seas = f.seasons.map(s => SEASONS[s].name).join(', '), hrs = f.hours ? `${fmtTime(f.hours[0])}–${fmtTime(f.hours[1] % 1440)}` : 'cả ngày';
+      h += L ? `<div class="fishc"><img src="${itemIcon(f.id)}" alt=""><b>${f.name}</b><small>${'★'.repeat(f.diff)} · ${fmtMoney(f.price)} · +${f.fp} nông sản</small><small>Mùa ${seas} · ${hrs}</small><small>Đã câu ${L.n} con${G.fish[f.id] ? ` · đang có ${G.fish[f.id]}` : ''}</small></div>`
+        : `<div class="fishc none"><span class="q">?</span><b>Chưa câu được</b><small>${'★'.repeat(f.diff)} · mùa ${seas}</small><small>${f.hours ? 'Có giờ nhất định' : 'Câu cả ngày'}</small></div>`;
+    }
+    h += '</div>';
+  }
+  return h + '<p class="dim">Cá câu được bán ở chợ phố Bờ Đông (quầy thu mua), cho Cô Ba, tặng người khác, hoặc mang về cho mẹ nấu.</p>';
+}
+
+'use strict';
+/* ============================================================
+ *  04s. HỘI HOẠ (vẽ tranh ở giá vẽ / giấy vẽ) · TRUNG TÂM NĂNG KHIẾU (vẽ, thanh nhạc — gói tháng, học thứ 7)
+ *       PHỤ CÔ BA BÁN HÀNG (hoạt cảnh) · TẾT: đóng cửa mùng 1, chúc Tết bố mẹ bạn / hàng xóm nhận lì xì, lì xì cho bạn bè
+ * ============================================================ */
+const EASEL = { x: 305, y: 118, stand: [316, 160] };             // giá vẽ ở góc phải phòng khách
+Object.assign(LOOKS, {
+  artT: { hair: '#6b3f2a', style: 'bob', shirt: '#e98fa5', pants: '#3a3340', apron: '#d9c690', eye: 'smile', hb: '#5fb0e8' },   // cô dạy vẽ
+  musicT: { hair: '#2c2733', style: 'side', shirt: '#2f4a7a', pants: '#2a2136', tie: '#d9534f', eye: 'round' },                  // thầy dạy thanh nhạc
+});
+const FRIEND_PARENTS = { khoa: ['ph2', 'ph1'], vy: ['ph6', 'ph5'], dat: ['ph4', 'ph3'], ngan: ['ph8', 'ph7'] };
+
+/* ---------- Vẽ tranh ---------- */
+const paintTier = () => clamp(1 + Math.floor((lv('kheotay') + rnd(0, 3)) / 2.4), 1, 5);
+ACT.paint = async kind => {
+  if (RT.lock) return;
+  if (kind === 'paper' && !(G.inv.giayve > 0)) return;
+  if (G.stamina < PAINT.stam) return UI.toast('Mệt quá, không vẽ nổi.', 'bad');
+  const c = await meSay(`<p>${kind === 'paper' ? 'Ngồi xuống trải giấy ra vẽ một bức tranh?' : 'Ngồi vào giá vẽ vẽ một bức tranh?'}</p><p class="dim">${PAINT.mins} phút · −${PAINT.stam} thể lực · +${PAINT.pts} Hội hoạ. Cấp Hội hoạ càng cao tranh càng đẹp, bán càng được giá (chợ Bờ Đông, hoặc bán / tặng người khác).</p>`, ['Ngồi vẽ', 'Thôi']);
+  if (c !== 0) return;
+  RT.lock = true;
+  if (kind === 'paper') G.inv.giayve--;
+  const tier = paintTier();
+  await paintCut(kind, tier);
+  advanceTime(PAINT.mins); useStam(PAINT.stam); addStat('kheotay', PAINT.pts);
+  const T = PAINT.tiers[tier - 1]; gAdd(T[0]);
+  RT.lock = false; UI._hb = null; UI.hud();
+  UI.toast(`Vẽ xong “${T[1]}” — bán được ${fmtMoney(T[2])}.`, 'good');
+};
+// hoạt cảnh vẽ: nét cọ hiện dần lên khung tranh (giá vẽ) hoặc tờ giấy trải dưới đất
+async function paintCut(kind, tier) {
+  const easel = kind === 'easel', pal = ['#5fae4a', '#9cc8e6', '#ffd23a', '#e2574c', '#7a5fc9', '#f2a93b', '#3b6fb6'].slice(0, 3 + tier), t0 = performance.now(), dur = UI._fast ? 30 : 2600;
+  if (easel) { G.x = EASEL.stand[0]; G.y = EASEL.stand[1]; G.dir = 3; }
+  UI.progress(easel ? 'Đang vẽ tranh ở giá vẽ…' : 'Đang ngồi vẽ trên giấy…', dur, '#9a72d6');
+  await playCut({ inPlace: true, bars: false, steps: [{ fn: sc => { if (!easel) sc.meOy = 3; } }, { wait: dur }, { fn: sc => { sc.meOy = 0; } }], props: [now => {
+    const k = clamp((now - t0) / dur, 0, 1), ax = easel ? EASEL.x + 3 : G.x - 8, ay = easel ? EASEL.y + 5 : G.y + 2, w = 16, h = easel ? 13 : 10;
+    if (!easel) { wRect('#2a2136', ax - 1, ay - 1, w + 2, h + 2); wRect('#fffaf0', ax, ay, w, h); }
+    const n = Math.floor(k * 22);
+    for (let i = 0; i < n; i++) wRect(pal[i % pal.length], ax + 1 + (i * 5) % (w - 3), ay + 1 + Math.floor(i * 7 / 3) % (h - 2), 2 + (i % 2), 1 + (i % 3 === 0 ? 1 : 0));
+    const bx = ax + 2 + Math.sin(now / 90) * 5 + w / 2, by = ay + h / 2 + Math.cos(now / 120) * 3;   // cây cọ
+    wRect('#8a5a3a', bx, by - 4, 1, 5); wRect(pal[Math.floor(now / 400) % pal.length], bx, by + 1, 1, 1);
+  }] });
+}
+
+/* ---------- Trung tâm năng khiếu (phố Hoa Phượng): lễ tân · phòng vẽ · phòng thanh nhạc ---------- */
+const TL_ROOM = 'nangkhieu', TL_KEYS = ['ve', 'hat'];
+const talentOn = k => !!(G.talent && G.talent[k] >= G.day);
+const TL_SEAT = { ve: [76, 150], hat: [270, 104] };
+function buildHobbyPlaces() {
+  addObj(MAPS.home, { s: 'easel', x: EASEL.x, y: EASEL.y, sol: [2, 22, 18, 8], ir: [-6, 0, 34, 40], vis: () => !!G.owned.khungtranh, label: () => 'Giá vẽ — ngồi vẽ tranh', act: () => ACT.paint('easel') });
+  addObj(MAPS.pho, { door: true, s: 'talentB', x: 900, y: 300, sol: [1, 24, 96, 53], label: () => 'Trung tâm năng khiếu Hoạ Mi — lớp vẽ, lớp thanh nhạc', act: () => ACT.talent() });
+  const m = roomBase(TL_ROOM, 'Trung tâm năng khiếu Hoạ Mi', '#f3e7f6', '#c9b0e0', 'wood', 22, 14);
+  roomExit(m, { map: 'pho', x: 948, y: 390, dir: 0 });
+  paint(m, 'walltop', 13, 2, 1, 8, 1);                                                // vách ngăn: phòng vẽ (trái) · phòng thanh nhạc + lễ tân (phải)
+  m.labels.push({ x: 104, y: 16, text: 'PHÒNG VẼ', size: 5, col: '#7a5fc9', maxw: 80 }, { x: 280, y: 16, text: 'THANH NHẠC · LỄ TÂN', size: 4.6, col: '#7a5fc9', maxw: 100 });
+  for (let i = 0; i < 6; i++) addObj(m, { s: 'easel', x: 26 + (i % 3) * 58, y: 60 + Math.floor(i / 3) * 52, sol: [2, 22, 18, 8] });
+  addObj(m, { s: 'piano', x: 236, y: 40, sol: [0, 12, 40, 14] }); addObj(m, { s: 'mic', x: 296, y: 56, sol: [1, 16, 6, 6] });
+  for (const a of [276, 292]) addObj(m, { s: 'counter', x: a, y: 136, sol: [1, 4, 16, 23] });
+  addObj(m, { s: 'plant', x: 232, y: 140, sol: [2, 14, 12, 9] });
+  NPCS.push({ id: 'tl_letan', name: 'Chị lễ tân', look: 'letan', map: TL_ROOM, x: 292, y: 130, dir: 0, label: () => 'Chị lễ tân — đăng ký gói học tháng', act: () => ACT.talentDesk() });
+  NPCS.push({ id: 'tl_ve', name: 'Cô Mai Anh', look: 'artT', map: TL_ROOM, x: 104, y: 46, dir: 0, vis: () => !sceneHides('tl_ve'), label: () => 'Cô Mai Anh — dạy vẽ', act: () => UI.ask('Cô Mai Anh', `<p>“Lớp vẽ học sáng thứ 7, ${fmtTime(TALENT.ve.from)}–${fmtTime(TALENT.ve.from + 60)}. Em đăng ký gói tháng ở quầy lễ tân nhé.”</p>`, ['Dạ'], { who: { look: 'artT' } }) });
+  NPCS.push({ id: 'tl_hat', name: 'Thầy Khang', look: 'musicT', map: TL_ROOM, x: 250, y: 74, dir: 0, vis: () => !sceneHides('tl_hat'), label: () => 'Thầy Khang — dạy thanh nhạc', act: () => UI.ask('Thầy Khang', `<p>“Lớp thanh nhạc học chiều thứ 7, ${fmtTime(TALENT.hat.from)}–${fmtTime(TALENT.hat.from + 60)}. Đăng ký ở quầy lễ tân là vào học được.”</p>`, ['Dạ'], { who: { look: 'musicT' } }) });
+}
+ACT.talent = async () => {
+  if (RT.lock || tetShut('Trung tâm năng khiếu Hoạ Mi')) return;
+  if (!inWin(G.time, 420, 1260)) return UI.say('Trung tâm năng khiếu Hoạ Mi', 'Trung tâm đã đóng cửa.<p class="dim">Mở cửa 07:00–21:00. Lớp học vào thứ 7.</p>');
+  if (G.ride) dismount(true);
+  const e = MAPS[TL_ROOM].entry; await goPlace(TL_ROOM, e[0], e[1], e[2], 0);
+};
+ACT.talentDesk = async () => {
+  const who = { look: 'letan' }, line = k => `${TALENT[k].name}: thứ 7 ${fmtTime(TALENT[k].from)}–${fmtTime(TALENT[k].from + 60)} (2 tiết liền)${talentOn(k) ? ` · đã đăng ký đến <b>${dateLabel(G.talent[k])}</b>` : ''}`;
+  const opts = TL_KEYS.map(k => `${talentOn(k) ? 'Gia hạn' : 'Mua'} gói tháng ${TALENT[k].name.toLowerCase()} · ${fmtMoney(TALENT.price)}`).concat('Thôi');
+  const c = await UI.ask('Chị lễ tân · Trung tâm năng khiếu', `<p>“Trung tâm có lớp vẽ và lớp thanh nhạc, học theo gói tháng (${TALENT.days} ngày) nhé em.”</p><ul class="res"><li>${line('ve')} → +Hội hoạ</li><li>${line('hat')} → +Văn nghệ</li></ul><p class="dim">Phải có mặt ở trung tâm trước giờ học mới được vào lớp; tới muộn thì mất tiết đó.</p>`, opts, { who });
+  if (c < 0 || c >= TL_KEYS.length) return;
+  const k = TL_KEYS[c];
+  if (G.money < TALENT.price) return UI.ask('Chị lễ tân', `<p>“Gói tháng ${fmtMoney(TALENT.price)} em ạ, em chưa đủ tiền rồi.”</p>`, ['Dạ'], { who });
+  addMoney(-TALENT.price, true); G.talent[k] = Math.max(G.talent[k] || G.day - 1, G.day - 1) + TALENT.days;
+  addMemo('scene', 'nangkhieu');
+  await UI.ask('Chị lễ tân', `<p>“Xong rồi! ${TALENT[k].name} của em học sáng / chiều thứ 7 hằng tuần, lúc ${fmtTime(TALENT[k].from)}, đến hết ${dateLabel(G.talent[k])}. Nhớ tới sớm nhé!”</p>`, ['Dạ, em cảm ơn chị!'], { who });
+  UI.hud();
+};
+// mỗi khung hình: thứ 7 tới giờ học thì vào lớp nếu đang ở trung tâm; không có mặt thì mất tiết
+function talentTick() {
+  if (!G || !G.talent || RT.lock || UI.isOpen() || RT.scene || cal(G.day).dow !== 5) return false;
+  for (const k of TL_KEYS) {
+    if (!talentOn(k)) continue;
+    const L = TALENT[k], st = G.daily['tl_' + k] || 0, here = G.map === TL_ROOM;
+    if (st === 0 && G.time >= L.from) {
+      if (here && G.time < L.from + 30) { talentClass(k, 2); return true; }
+      G.daily['tl_' + k] = 1; UI.toast(`Không có mặt ở trung tâm lúc ${fmtTime(L.from)} — mất tiết 1 ${L.name.toLowerCase()}.`, 'bad');
+      return true;
+    }
+    if (st === 1 && G.time >= L.from + 30) {
+      if (here && G.time < L.from + 60) { talentClass(k, 1); return true; }
+      G.daily['tl_' + k] = 3; UI.toast(`Mất cả buổi ${L.name.toLowerCase()} hôm nay.`, 'bad');
+      return true;
+    }
+  }
+  return false;
+}
+async function talentClass(k, n) {
+  RT.lock = true; G.daily['tl_' + k] = 3;
+  const L = TALENT[k], [sx, sy] = TL_SEAT[k], tl = k === 've' ? { look: 'artT', x: 104, y: 46, id: 'tl_ve' } : { look: 'musicT', x: 250, y: 74, id: 'tl_hat' };
+  const mates = k === 've' ? [['x2', 26 + 58 + 11, 60 + 30], ['sF', 26 + 116 + 11, 60 + 30], ['x4', 26 + 11, 112 + 30]] : [['c4', 236, 104], ['x1', 300, 104]];
+  await playCut({ inPlace: true, bars: false, title: L.name, hide: [tl.id], cam: { x: k === 've' ? 110 : 270, y: 100 },
+    actors: [{ look: tl.look, x: tl.x, y: tl.y, dir: 0 }].concat(mates.map(([look, x, y]) => ({ look, x, y, dir: 3 }))),
+    props: k === 've' ? [now => { const n2 = Math.floor(now / 300) % 12; for (let i = 0; i < n2; i++) wRect(['#5fae4a', '#e2574c', '#ffd23a', '#3b82c4'][i % 4], sx - 7 + (i * 3) % 12, sy - 40 + (i * 5) % 9, 2, 1); }] : [now => { const f = Math.floor(now / 260) % 3; wRect('#2a2136', sx + 8 + f * 3, sy - 34 - f * 2, 1, 4); wRect('#2a2136', sx + 8 + f * 3, sy - 31 - f * 2, 2, 1); }],
+    steps: [{ move: ['me', sx, sy, 700] }, { fn: () => { G.dir = 3; } },
+      { say: [0, n === 2 ? (k === 've' ? 'Hôm nay cô hướng dẫn vẽ phong cảnh màu nước nhé!' : 'Chúng ta khởi động giọng trước, rồi tập bài mới nhé!') : 'Em đến muộn, vào học nốt tiết sau nhé.'] },
+      { live: async () => { for (let i = 0; i < n; i++) await UI.progress(`Tiết ${3 - n + i} · ${L.name}`, UI._fast ? 10 : 1700, k === 've' ? '#9a72d6' : '#d9742b'); } },
+      { say: [0, 'Hôm nay các em làm tốt lắm. Hẹn thứ 7 tuần sau!'] }] });
+  advanceTime(Math.max(0, L.from + 60 - G.time)); useStam(TALENT.stam * n); addStat(L.stat, L.pts * n);
+  RT.lock = false; UI.hud();
+  UI.toast(`Xong ${n} tiết ${L.name.toLowerCase()}: +${L.pts * n} ${STAT_NAMES[L.stat]}.`, 'good');
+}
+
+/* ---------- Phụ cô Ba bán hàng: đứng quầy trước tạp hoá, khách tới thì đưa hàng ---------- */
+async function partTimeCut() {
+  const CX = 351, CY = 146, items = ['bimbim', 'sua', 'banhmi', 'nuocmia'], st = { give: null };
+  const cust = [['x1', 'Cho cháu gói bim bim ạ!'], ['ph3', 'Cô lấy hai hộp sữa nhé.'], ['c5', 'Một ổ bánh mì nha bạn!'], ['ph4', 'Chai nước mắm với gói mì nhé cháu.']];
+  const actors = [{ look: 'vendor', x: CX - 30, y: CY - 6, dir: 2 }].concat(cust.map(([look], i) => ({ look, x: i % 2 ? 560 : 140, y: CY + 22, dir: i % 2 ? 1 : 2 })));
+  const steps = [{ say: [0, 'Con đứng quầy giúp cô nhé, khách tới thì đưa hàng, thu tiền cẩn thận!'] }];
+  cust.forEach(([, line], i) => {
+    const k = i + 1;
+    steps.push({ move: [k, CX, CY + 22, 900] }, { fn: sc => { sc.actors[k].dir = 3; } }, { say: [k, line] },
+      { fn: () => { st.give = { t: performance.now(), it: items[i], to: k }; } }, { wait: 550 }, { fn: () => { st.give = null; } },
+      { say: ['me', pick(['Dạ, của cô / chú đây ạ!', 'Cảm ơn ạ, lần sau lại ghé nhé!', 'Dạ có ngay!'])] },
+      { move: [k, i % 2 ? 140 : 560, CY + 22, 900] });
+  });
+  await playCut({ map: 'town', me: [CX, CY - 4, 0], cam: { x: CX, y: CY }, title: 'Phụ cô Ba bán hàng', actors, steps,
+    props: [now => {
+      wRect('#6f472c', CX - 22, CY + 2, 44, 3); wRect('#a9703f', CX - 22, CY + 5, 44, 9); wRect('#c58c56', CX - 22, CY + 2, 44, 1);   // quầy hàng
+      items.forEach((it, i) => drawSpr(iconCv(it), CX - 21 + i * 11, CY - 9));
+      if (st.give) { const k = clamp((now - st.give.t) / 450, 0, 1), a = RT.scene.actors[st.give.to]; drawSpr(iconCv(st.give.it), CX - 8 + (a.x - CX) * k, CY - 14 + (a.y - 20 - CY + 14) * k - Math.sin(k * 3.14) * 8); }
+    }] });
+}
+
+/* ---------- TẾT: chúc Tết người lớn → lì xì (mỗi người 1 lần mỗi Tết) · lì xì cho bạn ---------- */
+const tetY2 = () => { const T = tetYear(); T.lx = T.lx || {}; T.give = T.give || {}; return T; };
+async function tetElder(key, name, who, base) {
+  const T = tetY2();
+  if (T.lx[key]) return UI.ask(name, '<p>“Cháu chúc Tết rồi mà! Ăn miếng mứt rồi đi chơi tiếp đi cháu.”</p>', ['Dạ'], { who });
+  const c = await UI.ask(name, `<p>“Ôi, ${G.name} đấy à? Năm mới vào nhà chơi đi cháu!”</p>`, [`Chúc Tết ${name.replace(/^./, s => s.toLowerCase())}`, 'Cháu chào ạ'], { who });
+  if (c !== 0) return;
+  T.lx[key] = true;
+  const money = r1000((base || 20000) + Math.random() * 30000);
+  addMoney(money); addMemo('scene', 'tetvisit');
+  await UI.ask(name, `<p>Bạn khoanh tay: “Cháu chúc ${name.replace(/^./, s => s.toLowerCase())} năm mới an khang thịnh vượng, vạn sự như ý ạ!”</p><p>“Cháu ngoan quá! Lì xì cho cháu lấy may đầu năm này.” — nhận bao lì xì <b>${fmtMoney(money)}</b>.</p>`, ['Cháu cảm ơn ạ!'], { who });
+}
+const LIXI_GIVE = [[10000, 2], [20000, 4], [50000, 7], [100000, 10], [200000, 14]];
+async function giveLixi(fid) {
+  const F = FRIENDS[fid], T = tetY2(), who = { look: fid, outfit: friendOutfit(fid) };
+  if (T.give[fid]) return UI.ask(F.name, '<p>“Cậu lì xì tớ rồi mà, cảm ơn nha!”</p>', ['Hihi'], { who });
+  const L = LIXI_GIVE.filter(([v]) => v <= G.money);
+  if (!L.length) return UI.toast('Không đủ tiền để lì xì.', 'bad');
+  const c = await UI.ask(`Lì xì cho ${F.name}`, `<p>Bỏ bao nhiêu tiền vào phong bao lì xì?</p><p class="dim">Bạn đang có ${fmtMoney(G.money)}. Lì xì càng hậu, ${F.name} càng quý.</p>`, L.map(([v]) => fmtMoney(v)).concat('Thôi'), { grid: true });
+  if (c < 0 || c >= L.length) return;
+  const [v, pts] = L[c];
+  T.give[fid] = true; addMoney(-v, true);
+  const n = NPCS.find(q => q.map === G.map && (q.fid === fid || q.sid === fid || (q.id === 'fh' && G.visit === fid)) && (!q.vis || q.vis())), fx = n ? n.cx : G.x + 16, fy = n ? n.cy : G.y, t0 = { t: 0 };
+  await playCut({ inPlace: true, bars: false, title: 'Lì xì đầu năm', actors: [{ look: fid, outfit: friendOutfit(fid), x: fx, y: fy, dir: fx < G.x ? 2 : 1 }],
+    props: [now => { if (!t0.t) return; const k = clamp((now - t0.t) / 600, 0, 1); drawSpr(iconCv('lixi'), G.x - 8 + (fx - G.x) * k, G.y - 30 + (fy - G.y) * k - Math.sin(k * 3.14) * 10); }],
+    steps: [{ fn: () => { G.dir = fx < G.x ? 1 : 2; } }, { say: ['me', `Chúc mừng năm mới! Lì xì cho ${F.name} lấy may nè!`] }, { fn: () => { t0.t = performance.now(); } }, { wait: 650 }, { fn: () => { t0.t = 0; } }, { hop: 0 },
+      { say: [0, v >= 100000 ? 'Trời ơi nhiều thế! Cảm ơn cậu nhiều lắm, năm mới phát tài nha!' : 'Ôi, cảm ơn cậu! Chúc cậu năm mới học giỏi, may mắn nha!'] }] });
+  addFriend(fid, pts);
+  UI.toast(`Đã lì xì ${fmtMoney(v)} cho ${F.name} (+${pts} ♥).`, 'good'); UI.hud();
 }
 
 'use strict';
@@ -11400,8 +12259,9 @@ const UI = {
     for (const k in PARENT_ITEMS) if (G.inv[k]) add(k, 1, `${PARENT_ITEMS[k]} — bấm để cầm lên rồi bấm vào bố / mẹ để đưa tận tay`, 'hold');
     for (const k in GROUP_ITEMS) if (G.inv[k]) add(k, 1, `${GROUP_ITEMS[k]} — bấm để cầm lên rồi bấm vào bạn đã nhờ để đưa tận tay`, 'hold');
     if (G.inv.denongsao) add('denongsao', G.inv.denongsao, 'Đèn ông sao tự làm — bấm để cầm lên (rước đèn, hoặc tặng bạn)', 'hold');
+    for (const g of goodsCarried()) if (!FOODS[g.id] && !ITEMS[g.id] && !['gaubong', 'voso', 'denongsao', 'banhtrang'].includes(g.id) && !TT_MATS.some(m => m.id === g.id) && !isFish(g.id)) add(g.id, g.n, `${goodsInfo(g.id).name} — bấm để cầm lên${g.id === 'chau' || g.id === 'thung' ? ' (bấm vào mình ngoài vườn để đặt)' : g.id === 'giayve' ? ' (bấm vào mình để ngồi vẽ)' : ''}, bấm vào người khác để bán / tặng`, 'hold');
+    for (const f of FISH) if (G.fish[f.id]) add(f.id, G.fish[f.id], `${f.name} — bấm để cầm lên rồi bán / tặng; bán ở chợ Bờ Đông`, 'hold');
     for (const m of TT_MATS) if (G.inv[m.id]) add(m.id, G.inv[m.id], `${m.name} — nguyên liệu làm đèn ông sao (mang tới sạp làm đèn lồng đêm Trung thu)`);
-    if (fishCount()) add('ca', fishCount(), 'Cá câu được — bán cho Cô Ba hoặc đưa mẹ nấu');
     if (G.owned.cancau) add('cancau', 0, 'Cần câu — câu cá ở bờ sông');
     return it;
   },
@@ -11436,6 +12296,8 @@ const UI = {
       if (G.inv.voso) h += `<div class="rowi"><span><b>Vỏ sò</b> ×${G.inv.voso} <small>quà tặng bạn thân</small></span><button class="btn sm" data-act="hold" data-id="voso">${RT.hold === 'voso' ? 'Cất đi' : 'Cầm lên'}</button></div>`;
       if (G.inv.denongsao) h += `<div class="rowi"><span><b>Đèn ông sao</b> ×${G.inv.denongsao} <small>tự làm đêm Trung thu</small></span><button class="btn sm" data-act="hold" data-id="denongsao">${RT.hold === 'denongsao' ? 'Cất đi' : 'Cầm lên'}</button></div>`;
       if (TT_MATS.some(m => G.inv[m.id])) h += `<h4>Nguyên liệu làm đèn lồng</h4><p>${TT_MATS.map(m => `${m.name}: <b>${G.inv[m.id] || 0}</b>`).join(' · ')} <small class="dim">— đủ cả ba thì làm được một chiếc đèn ông sao ở hội Trung thu</small></p>`;
+      const gs = goodsCarried().filter(g => !FOODS[g.id]);
+      if (gs.length) h += '<h4>Đồ đạc mang theo</h4><div class="rows">' + gs.map(g => `<div class="rowi"><span><img class="ico" src="${itemIcon(g.id)}" alt=""><b>${goodsInfo(g.id).name}</b> ×${g.n} <small>giá trị ${fmtMoney(goodsInfo(g.id).value)}</small></span><button class="btn sm" data-act="hold" data-id="${g.id}">${RT.hold === g.id ? 'Cất đi' : 'Cầm lên'}</button></div>`).join('') + '</div><p class="dim">Cầm lên rồi bấm vào người khác để bán hoặc tặng. Đồ học tập bán / tặng đi thì phải mua lại ở TTTM.</p>';
       h += '<h4>Tài sản ở nhà</h4><p>' + (own.length ? own.join(' · ') : '<span class="dim">Chưa có gì.</span>') + '</p>';
       if (G.busPassUntil >= G.day) h += `<p>Vé tháng xe bus còn hạn đến <b>${dateLabel(G.busPassUntil)}</b>.</p>`;
       return h;
@@ -11494,7 +12356,7 @@ const UI = {
     this.panel('Tủ sách · soạn cặp', () => {
       const day = packTargetDay(), books = BOOK_SUBJ.map(s => 'sach_' + s);
       const gear = ['hopbut', 'thehs'].concat(G.busPassUntil >= G.day ? ['vethang'] : []), cloth = ['dp_td', 'dp_qp'], all = books.concat(gear, cloth);
-      const onShelf = a => a.filter(i => !G.bag[i]).map(i => book(i, false)).join('') || '<i class="cab-empty">trống</i>';
+      const onShelf = a => a.filter(i => !G.bag[i] && !G.noOwn[i]).map(i => book(i, false)).join('') || '<i class="cab-empty">trống</i>';
       let tt = '';
       if (day !== null) tt = `<h4>${day === G.day ? 'Hôm nay' : 'Ngày học tới'} · ${dateLabel(day)}</h4><ol class="ttl">` + TIMETABLE[cal(day).dow].map((s, i) => {
         if (!s) return i === 4 ? '<li class="pm"><i>Chiều nghỉ học</i></li>' : '';
@@ -11554,7 +12416,7 @@ UI.refresh = function () { if (this._panel && this._panel._keep) { this._panel._
  *  MENU CHUNG (Esc hoặc M): một bảng duy nhất, các tab là icon
  *  Chỉ số · Bạn bè · Thời khoá biểu · Học bạ · Lịch · Thẻ cầu thủ · Cài đặt
  * ============================================================ */
-const MENU_TABS = [['stats', 'Chỉ số'], ['friends', 'Bạn bè'], ['tt', 'Thời khoá biểu'], ['grades', 'Học bạ'], ['cal', 'Lịch'], ['cards', 'Thẻ cầu thủ'], ['map', 'Bản đồ'], ['memo', 'Lưu bút'], ['set', 'Cài đặt']];
+const MENU_TABS = [['stats', 'Chỉ số'], ['friends', 'Bạn bè'], ['tt', 'Thời khoá biểu'], ['grades', 'Học bạ'], ['cal', 'Lịch'], ['cards', 'Bộ sưu tập'], ['map', 'Bản đồ'], ['memo', 'Lưu bút'], ['set', 'Cài đặt']];
 const MV = {};
 const subTabs = (act, cur, list) => '<div class="tabs">' + list.map(([id, name]) => `<button class="tab ${cur === id ? 'on' : ''}" data-act="${act}" data-id="${id}">${name}</button>`).join('') + '</div>';
 const heartsHtml = n => `<span class="hearts">${'♥'.repeat(n)}<i>${'♥'.repeat(5 - n)}</i></span>`;
@@ -11577,11 +12439,11 @@ MV.stats = {
   render() {
     const st = UI._stab === 'khac' ? 'khac' : 'ht';
     const bar = (cur, need, col) => `<div class="pb"><div style="width:${need ? Math.round(100 * cur / need) : 100}%;background:${col || ''}"></div></div>`;
-    const cell = k => { const i = lvlInfo(G.stats[k]), col = SUBJ[k] ? SUBJ[k].color : ({ thethao: '#d9742b', buonban: '#c9862b', kheotay: '#3f8f9b', vannghe: '#9a72d6' })[k]; return `<div class="st"><div class="sth"><b>${STAT_NAMES[k]}</b><span class="lv">Lv ${i.lv}</span></div>${bar(i.cur, i.need, col)}<small>${i.lv >= 10 ? 'Tối đa' : `${i.cur}/${i.need}`}</small></div>`; };
+    const cell = k => { const i = lvlInfo(G.stats[k]), col = SUBJ[k] ? SUBJ[k].color : ({ thethao: '#d9742b', buonban: '#c9862b', kheotay: '#3f8f9b', vannghe: '#9a72d6', nongsan: '#5fae4a' })[k]; return `<div class="st"><div class="sth"><b>${STAT_NAMES[k]}</b><span class="lv">Lv ${i.lv}</span></div>${bar(i.cur, i.need, col)}<small>${i.lv >= 10 ? 'Tối đa' : `${i.cur}/${i.need}`}</small></div>`; };
     const big = (name, v, note) => `<div class="st big"><div class="sth"><b>${name}</b><span class="lv">${fmtAvg(v)}</span></div><small>${note}</small></div>`;
     let h = subTabs('stab', st, [['ht', 'Học tập'], ['khac', 'Khác']]);
     if (st === 'ht') h += big('Học tập', hocTap(), 'Trung bình cấp các môn. Môn có thực hành (Lý, Hoá, Sinh, Quốc phòng): tiết lý thuyết và tiết thực hành cộng chung vào chỉ số của môn') + '<div class="sgrid">' + STUDY_SUBJ.map(cell).join('') + '</div>';
-    else h += '<div class="sgrid">' + ['thethao', 'buonban', 'kheotay', 'vannghe'].map(cell).join('') + '</div>';
+    else h += '<div class="sgrid">' + ['thethao', 'buonban', 'kheotay', 'vannghe', 'nongsan'].map(cell).join('') + '</div><p class="dim">Hội hoạ: vẽ tranh, lớp vẽ ở trung tâm năng khiếu · Văn nghệ: hát, nhảy, lớp thanh nhạc · Nông sản: câu cá, thu hoạch cây trồng · Buôn bán: phụ bán hàng, bán đồ.</p>';
     return h;
   },
 };
@@ -11708,7 +12570,8 @@ MV.cards = {
   init() { UI._sq = null; },
   render() {
     const t = UI._ctab || 'album';
-    let h = subTabs('ctab', t, [['album', 'Bộ sưu tập'], ['squad', 'Đội hình']]);
+    let h = subTabs('ctab', t, [['album', 'Thẻ cầu thủ'], ['squad', 'Đội hình'], ['fish', 'Cá']]);
+    if (t === 'fish') return h + fishAlbumHtml();
     if (t === 'album') {
       h += `<p>Đã sưu tầm <b>${cardKinds()}/${CARDS.length}</b> loại · tổng <b>${cardCount()}</b> lá.${G.cardDone === CARDS.length ? ' <b class="tag">Đủ bộ!</b>' : ''}</p><div class="pcards">`;
       for (const c of CARDS) h += G.cards[c.id] ? cardHtml(c, '×' + G.cards[c.id]) : `<div class="pcard none" style="--rc:${CARD_RARITY[c.r].col}"><div class="pc-q">?</div><div class="pc-n">Số ${c.no}</div><div class="pc-r">${starsOf(c)} ${CARD_RARITY[c.r].name}</div></div>`;
@@ -12915,6 +13778,7 @@ function render(now) {
       const n = e.n; drawRider(n.look, n.outfit ? n.outfit() : null, BIKE[n.fam].spr, n.cx, n.cy, n.cdir === 1, null, true);
     }
     else if (e.n && e.n.cride) drawRider(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cride, e.n.cx, e.n.cy, e.n.cdir === 1, null, e.n.walk >= 0);   // đang đạp xe / chạy xe máy
+    else if (e.n && e.n.critter) drawSpr(SPR[e.n.critter(e.n)], e.n.cx - 8, e.n.cy - 13);   // thú cưng
     else if (e.n) drawChar(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cx, e.n.cy, e.n.cdir, e.n.walk, e.n.coy);
     else if (e.a) { if (!e.a.hidden) drawChar(e.a.look, e.a.outfit, e.a.x, e.a.y, e.a.dir, e.a.walk === undefined ? -1 : e.a.walk, e.a.oy); }
     else if (e.v) drawSpr(SPR[VEHICLES[e.v.id].spr], e.v.x - 15, e.v.y - 19);
@@ -13046,7 +13910,7 @@ function initTitle() {
 
 function boot() {
   cv = $('cv'); ctx = cv.getContext('2d');
-  buildSprites(); buildSprites2(); buildMaps();
+  buildSprites(); buildSprites2(); buildSprites3(); buildMaps();
   resize(); bindInput(); bindUI(); initTitle();
   requestAnimationFrame(frame);
 }

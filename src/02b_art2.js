@@ -223,7 +223,7 @@ function buildSprites2() {
     R(x, '#e9e4d8', 0, 28, 52, 6); R(x, '#fbf8f0', 0, 28, 52, 2); R(x, shade(col, 35), 0, 34, 52, 12); R(x, shade(col, -10), 0, 43, 52, 3);
     R(x, col, 4, 24, 6, 6); R(x, shade(col, 30), 12, 25, 5, 5); R(x, '#f4d35e', 38, 24, 5, 6); R(x, '#5a8fd6', 44, 25, 5, 5);
   });
-  stall('stA', '#d9534f'); stall('stB', '#3b82c4'); stall('stC', '#5fae4a'); stall('stD', '#f2a93b'); stall('stE', '#7a5fc9'); stall('stF', '#2e9e86'); stall('stG', '#e06a9a');
+  stall('stA', '#d9534f'); stall('stB', '#3b82c4'); stall('stC', '#5fae4a'); stall('stD', '#f2a93b'); stall('stE', '#7a5fc9'); stall('stF', '#2e9e86'); stall('stG', '#e06a9a'); stall('stH', '#9a72d6');
   // máy trong khu game
   const cab = (name, body, scr, top) => def(name, 20, 36, x => {
     R(x, body, 0, 4, 20, 32); R(x, shade(body, 25), 0, 4, 20, 2); R(x, shade(body, -25), 0, 32, 20, 4); R(x, top, 1, 0, 18, 5); R(x, '#fff', 3, 1, 3, 1); R(x, '#fff', 12, 2, 4, 1);
@@ -760,6 +760,7 @@ function itemIcon(id) {
     else if (k === 'hsg') { R(x, '#2a2136', 4, 7, 9, 2); R(x, '#2a2136', 6, 9, 5, 1); R(x, '#2a2136', 8, 10, 1, 2); R(x, '#e2574c', 12, 8, 1, 4); R(x, '#fbf7ee', 6, 12, 5, 3); R(x, '#e2574c', 7, 13, 3, 1); }   // mũ tốt nghiệp + giấy khen
     else if (k === 'keoco') { R(x, '#8a5a3a', 4, 10, 9, 1); R(x, '#a9703f', 4, 11, 9, 1); R(x, '#d9534f', 8, 8, 1, 5); R(x, '#2a2136', 4, 8, 1, 2); R(x, '#2a2136', 12, 8, 1, 2); }
   }
+  else if (typeof extraIcon === 'function' && extraIcon(id, x)) { }   // icon các món vòng 23 (02f_art3.js)
   else { R(x, '#c9b58a', 3, 3, 10, 10); }
   const oc = outline(c); _iconCv[id] = oc;
   return (_icons[id] = oc.toDataURL());

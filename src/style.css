@@ -468,6 +468,11 @@ b.bad{color:#d9534f}
 .pm-rank table{margin:0}
 .pm-rank tr.me td{background:#ffe9a8;font-weight:800}
 
+.rowi .ico{width:20px;height:20px;image-rendering:pixelated;vertical-align:-5px;margin-right:6px}
+.fishgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:6px}
+.fishc{display:flex;flex-direction:column;align-items:center;text-align:center;background:#fff6e3;border:2px solid var(--ink);border-radius:10px;padding:6px 6px 8px}
+.fishc img{width:44px;height:44px;image-rendering:pixelated}.fishc b{font-size:14px}.fishc small{font-size:11px;color:var(--dim);line-height:1.25}
+.fishc.none{background:#e9e2d2;border-style:dashed}.fishc .q{font:800 30px/44px inherit;color:#b9ab8f;height:44px}
 .tvline{font-size:17px;line-height:1.5}.tvline .tag{font-style:normal;margin-right:8px;font-size:12px!important;background:#ffe066;vertical-align:2px}
 .lk-mini{color:#e8a400;letter-spacing:1px}.lk-mini i{font-style:normal;color:#b7aec9}
 

@@ -350,6 +350,7 @@ function render(now) {
       const n = e.n; drawRider(n.look, n.outfit ? n.outfit() : null, BIKE[n.fam].spr, n.cx, n.cy, n.cdir === 1, null, true);
     }
     else if (e.n && e.n.cride) drawRider(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cride, e.n.cx, e.n.cy, e.n.cdir === 1, null, e.n.walk >= 0);   // đang đạp xe / chạy xe máy
+    else if (e.n && e.n.critter) drawSpr(SPR[e.n.critter(e.n)], e.n.cx - 8, e.n.cy - 13);   // thú cưng
     else if (e.n) drawChar(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cx, e.n.cy, e.n.cdir, e.n.walk, e.n.coy);
     else if (e.a) { if (!e.a.hidden) drawChar(e.a.look, e.a.outfit, e.a.x, e.a.y, e.a.dir, e.a.walk === undefined ? -1 : e.a.walk, e.a.oy); }
     else if (e.v) drawSpr(SPR[VEHICLES[e.v.id].spr], e.v.x - 15, e.v.y - 19);
@@ -481,7 +482,7 @@ function initTitle() {
 
 function boot() {
   cv = $('cv'); ctx = cv.getContext('2d');
-  buildSprites(); buildSprites2(); buildMaps();
+  buildSprites(); buildSprites2(); buildSprites3(); buildMaps();
   resize(); bindInput(); bindUI(); initTitle();
   requestAnimationFrame(frame);
 }

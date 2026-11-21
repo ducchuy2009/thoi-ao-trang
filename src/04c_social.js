@@ -172,29 +172,7 @@ ACT.beach = async kind => {
   }
 };
 
-/* ---------- câu cá ở bờ sông ---------- */
-const fishCount = () => Object.values(G.fish).reduce((a, b) => a + b, 0);
-const fishValue = () => FISH.reduce((a, f) => a + (G.fish[f.id] || 0) * f.price, 0);
-const fishLabel = () => (G && G.owned.cancau ? 'Câu cá' : 'Chỗ câu cá — cần có cần câu (bán ở tạp hoá Cô Ba)');
-ACT.fish = async () => {
-  if (RT.lock) return;
-  if (!G.owned.cancau) return UI.say('Bờ sông', 'Sông rộng mênh mông, cá quẫy lách tách.<p class="dim">Muốn câu cá phải có cần câu — bán ở tạp hoá Cô Ba (80.000đ). Cá câu được bán lại cho Cô Ba hoặc mang về cho mẹ nấu.</p>');
-  if (G.stamina < FISHING.stam) return UI.toast('Mệt quá, không câu nổi.', 'bad');
-  RT.lock = true;
-  await UI.progress('Thả câu, chờ cá cắn…', 1300);
-  advanceTime(FISHING.mins); useStam(FISHING.stam);
-  if (Math.random() < FISHING.nothing) { RT.lock = false; UI.hud(); return UI.toast('Ngồi mãi chẳng con nào cắn câu.'); }
-  let r = Math.random() * FISH.reduce((a, f) => a + f.w, 0), f = FISH[0];
-  for (const q of FISH) { r -= q.w; if (r < 0) { f = q; break; } }
-  const res = await UI.minigame({ title: 'Cá cắn câu!', task: 'Giữ con cá trong vùng xanh cho tới khi kéo được lên bờ', icon: 'ca', diff: f.diff, level: lv('kheotay'), tired: G.stamina < 10 });
-  if (res.win) { G.fish[f.id] = (G.fish[f.id] || 0) + 1; addStat('kheotay', 2); UI.toast(`Câu được một con ${f.name.toLowerCase()}!`, 'good'); }
-  else { addStat('kheotay', 1); UI.toast(`Con ${f.name.toLowerCase()} giật đứt dây, sổng mất rồi…`, 'info'); }
-  RT.lock = false; UI.hud();
-};
-function sellFish() {
-  const v = fishValue(); if (!v) return UI.toast('Bạn không có con cá nào.');
-  G.fish = {}; addMoney(v); addStat('buonban', 2); addMoney(0, true); UI.toast('Bán hết cá cho Cô Ba.', 'good'); UI.hud();
-}
+/* ---------- câu cá: xem 04r_fish.js ---------- */
 
 /* ---------- hẹn đi chơi · bạn đi cùng ---------- */
 const meetOn = () => (G && G.meet && G.meet.day === G.day ? G.meet : null);
@@ -299,9 +277,11 @@ async function talkMenu(fid, where) {
   if (bd && !G.daily.bday[fid]) add('bday', `Chúc mừng sinh nhật ${F.name}!`);
   if ((where === 'school' || where === 'class') && G.atSchool) for (const id of breakFunFor(fid)) add('brk:' + id, BREAK_FUN[id].name);
   if (cardCount()) add('duel', 'Đấu thẻ cầu thủ');
+  if (tetTime() && !tetY2().give[fid]) add('lixi', `Lì xì cho ${F.name}`);
   const c = ids.length === 1 ? 'chat' : (add('x', 'Thôi'), ids[await UI.ask(F.name, '<p>“Sao đó?”</p>', opts)] || 'x');
   if (c === 'chat') chat('f_' + fid, fid);
   else if (c === 'duel') cardDuel('f_' + fid, fid, F.name, F.duel);
+  else if (c === 'lixi') giveLixi(fid);
   else if (c.startsWith('brk:')) doBreakFun(fid, c.slice(4));
   else if (c === 'gift') { G.inv.gaubong--; G.daily.gift[fid] = true; addFriend(fid, GIFT_FRIEND * (bd ? 2 : 1)); UI.toast(`${F.name} ôm con gấu bông cười tít mắt.`, 'good'); }
   else if (c === 'shell') { G.inv.voso--; G.daily.gift['v_' + fid] = true; addFriend(fid, SHELL_FRIEND * (bd ? 2 : 1)); UI.toast(`${F.name} áp vỏ sò lên tai nghe tiếng sóng.`, 'good'); }
@@ -758,7 +738,7 @@ async function lunchJoin(fid, j) {
 /* ---------- phố Hoa Phượng: trà sữa · TTTM · khu game · xiên que, kem ---------- */
 const withF = fid => (fid ? ` cùng ${FRIENDS[fid].name}` : '');
 ACT.tea = () => {
-  const P = PLACES.tea; if (RT.lock || !placeOpen(P)) return;
+  const P = PLACES.tea; if (RT.lock || tetShut(P.name) || !placeOpen(P)) return;
   const fid = palAt('tea'), wf = withF(fid), T = TEA;
   UI.store(P.name, '“Em uống gì nè?”', () => [
     { id: 'trasua', name: 'Trà sữa trân châu', price: T.cup.price, desc: `Ly to, trân châu đường đen${fid ? ' — mời cả ' + FRIENDS[fid].name + ' uống chung' : ''}`, inv: 'trasua' },

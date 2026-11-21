@@ -127,7 +127,7 @@ const SCHOOL_ROOMS = [['yte', 202, 'Y TẾ'], ['nhac', 264, 'NHẠC'], ['ngutrua
 const WC_BLOCK = { x: 628, y: 36, nam: 646, nu: 684 };
 const wcGate = g => () => (G.gender === g ? null : g === 'girl' ? 'Đây là nhà vệ sinh NỮ — con trai không được vào!' : 'Đây là nhà vệ sinh NAM — con gái không được vào!');
 // Nhân viên đứng quầy ở từng cửa hàng trong TTTM: [dáng, trang phục]
-const MALL_VENDOR = { phim: ['clerk', null], sach: ['teacherB', null], sieuthi: ['vendor', null], anuong: ['c6', 'cas_ngan'], noithat: ['c7', 'cas_vy'], nhaccu: ['c3', 'cas_dat'], thethao: ['c5', 'cas_khoa'] };
+const MALL_VENDOR = { phim: ['clerk', null], sach: ['teacherB', null], sieuthi: ['vendor', null], anuong: ['c6', 'cas_ngan'], noithat: ['c7', 'cas_vy'], nhaccu: ['c3', 'cas_dat'], thethao: ['c5', 'cas_khoa'], hoacu: ['c4', 'cas_vy'] };
 // Cửa hàng 2 lớp: kệ trưng bày phía sau + quầy phía trước, người bán đứng giữa
 function addShop(m, id, a, name, label, act, vendor) {
   addObj(m, { s: `sh_${id}_b`, x: a, y: 4, sol: [0, 26, 56, 20] });
@@ -237,7 +237,7 @@ function buildRooms() {
   }
 
   /* ---------- BÊN TRONG TTTM: mỗi gian hàng bán một loại ---------- */
-  m = roomBase('tttm', 'TTTM Hoa Phượng Plaza', '#eef3f8', '#b9c9dc', 'ltile', 28, 16);
+  m = roomBase('tttm', 'TTTM Hoa Phượng Plaza', '#eef3f8', '#b9c9dc', 'ltile', 31, 16);
   MALL_STALLS.forEach(([id, name], k) => addShop(m, id, 18 + k * 58, name, () => `${name} — xem hàng`, () => ACT.stallShop(id), MALL_VENDOR[id]));
   addObj(m, { s: 'fountain', x: 200, y: 130, sol: [2, 8, 42, 20] });
   for (const [a, b] of [[110, 136], [300, 136], [110, 190], [300, 190]]) addObj(m, { s: 'bench', x: a, y: b, sol: [1, 1, 28, 12] });
@@ -272,6 +272,8 @@ function buildRooms() {
   addObj(m, { s: 'blank', x: 176, y: 96, sol: [0, 0, 16, 32], ir: [-8, 0, 24, 32], vis: () => hearts(G.visit) < FRIEND_ROOM_HEARTS, label: () => 'Phòng riêng — chưa đủ thân để vào', act: () => UI.say(FRIENDS[G.visit].name, '“Phòng tớ bừa lắm, bữa khác thân hơn tớ cho vào chơi.”') });
   NPCS.push({ id: 'fh', name: 'Bạn', look: 'khoa', dynLook: () => G.visit || 'khoa', outfit: () => friendOutfit(G.visit || 'khoa'), map: 'fhome', x: 130, y: 110, dir: 0, wander: 18, vis: () => !sceneHides('fh'), label: () => FRIENDS[G.visit].name, act: () => ACT.friend(G.visit, 'in') });
   m.zones.push({ x: 272, y: 216, w: 32, h: 8, fn: () => ACT.leaveFh(), by: -8 });
+  // ngày Tết bố mẹ bạn ở nhà: chúc Tết được lì xì (mỗi người 1 lần mỗi Tết)
+  [['bo', 'Bố', 0, 40, 150], ['me', 'Mẹ', 1, 60, 152]].forEach(([k, nm, li, a, b]) => NPCS.push({ id: 'fhp_' + k, name: nm, look: 'ph1', dynLook: () => FRIEND_PARENTS[G.visit || 'khoa'][li], map: 'fhome', x: a, y: b, dir: 0, vis: () => tetTime(), label: () => `${nm} của ${FRIENDS[G.visit].name} — chúc Tết`, act: () => tetElder(`fp_${G.visit}_${k}`, `${nm} ${FRIENDS[G.visit].name}`, { look: FRIEND_PARENTS[G.visit][li] }, 20000) }));
 
   buildFest(); buildBcFest(); buildTrungThu(); buildTaskSpots();
   /* ---------- đồ trang trí phòng ngủ ở nhà (mua ở gian Nội thất, Nhạc cụ) ---------- */

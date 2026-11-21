@@ -428,7 +428,7 @@ ACT.canteen = () => {
 const DOORS = { mall: ['tttm', 'mall'], arcade: ['arc', 'arcade'] };
 ACT.enter = async k => {
   const [map, pl] = DOORS[k], P = PLACES[pl];
-  if (RT.lock || !placeOpen(P)) return;
+  if (RT.lock || tetShut(P.name) || !placeOpen(P)) return;
   if (G.ride) dismount(true);
   const e = MAPS[map].entry;
   await goPlace(map, e[0], e[1], e[2], 0);
@@ -438,7 +438,7 @@ ACT.mall = () => ACT.enter('mall'); ACT.arcade = () => ACT.enter('arcade');
 // Một gian hàng trong TTTM
 ACT.stallShop = id => {
   const name = MALL_STALLS.find(s => s[0] === id)[1], fid = palAt('mall'), wf = withF(fid), M = MALL;
-  const items = () => MALL_GOODS[id].map(it => Object.assign({}, it, { owned: !!(it.own && G.owned[it.own]), desc: (it.desc || '') + (it.duo && fid ? ` (đi${wf})` : '') }));
+  const items = () => MALL_GOODS[id].filter(it => !it.school || G.noOwn[it.id]).map(it => Object.assign({}, it, { owned: !!(it.own && G.owned[it.own]), desc: (it.desc || '') + (it.duo && fid ? ` (đi${wf})` : '') }));
   UI.store(name, '“Mời em xem hàng.”', items, async it => {
     if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
     if (it.act === 'movie') { UI.close(); return jointAct(`Đang xem phim${wf}…`, M.movie.mins, 'movie', fid, () => { if (fid) addMemo('scene', 'movie'); addMoney(-it.price); gainStam(M.movie.stam); palGain('mall', M.movie.friend); }); }
@@ -449,6 +449,7 @@ ACT.stallShop = id => {
       if (k < 0 || k >= BOOK_SUBJ.length) return;
       G.daily.book = true; addMoney(-it.price); addStat(BOOK_SUBJ[k], M.book.pts); UI.hud(); return;
     }
+    if (it.school) { addMoney(-it.price, true); delete G.noOwn[it.id]; UI.toast(`Đã mua lại ${it.name.toLowerCase()} — để sẵn ở tủ sách trong phòng ngủ.`, 'good'); UI.hud(); return; }
     if (it.act === 'box') { UI.close(); addMoney(-it.price); UI.hud(); return showPack(openPacks(M.box.n, 1), 'Mở hộp thẻ đặc biệt'); }
     if (it.inv && FOODS[it.inv]) return buyFood(it.inv, it.price, it.name);
     addMoney(-it.price, true);
@@ -816,12 +817,13 @@ ACT.senior = async soc => {
  *  CẦM VẬT PHẨM: bấm món đồ trong túi / thanh đồ để cầm lên
  *  Đang cầm mà tương tác với người khác → tặng quà · bấm vào mình hoặc chỗ trống → ăn (nếu ăn được)
  * ============================================================ */
-const holdName = id => (FOODS[id] ? FOODS[id].name : id === 'gaubong' ? 'Gấu bông' : id === 'voso' ? 'Vỏ sò' : id === 'denongsao' ? 'Đèn ông sao' : PARENT_ITEMS[id] || GROUP_ITEMS[id] || id);
-const holdable = id => !!(FOODS[id] || id === 'gaubong' || id === 'voso' || id === 'denongsao' || PARENT_ITEMS[id] || GROUP_ITEMS[id]);
+const holdName = id => (FOODS[id] ? FOODS[id].name : PARENT_ITEMS[id] || GROUP_ITEMS[id] || (goodsInfo(id) || {}).name || id);
+const holdable = id => !!(FOODS[id] || PARENT_ITEMS[id] || GROUP_ITEMS[id] || goodsInfo(id));
 function toggleHold(id) {
-  if (!holdable(id) || !G.inv[id]) return;
+  if (!holdable(id) || !gCount(id)) return;
   RT.hold = RT.hold === id ? null : id;
-  UI.toast(RT.hold ? `Đang cầm ${holdName(id)}. Bấm vào người khác để tặng${FOODS[id] ? ', bấm vào mình để ăn' : ''}. Bấm lại món đó để cất đi.` : `Cất ${holdName(id)} vào túi.`, 'info');
+  const self = FOODS[id] ? ', bấm vào mình để ăn' : id === 'giayve' ? ', bấm vào mình để ngồi vẽ' : id === 'chau' || id === 'thung' ? ', quay mặt về chỗ trống ngoài vườn rồi bấm vào mình để đặt xuống' : '';
+  UI.toast(RT.hold ? `Đang cầm ${holdName(id)}. Bấm vào người khác để bán hoặc tặng${self}. Bấm lại món đó để cất đi.` : `Cất ${holdName(id)} vào túi.`, 'info');
   UI._hb = null; UI.hotbar();
 }
 // Ai đang đứng trước mặt: bạn thân, bố mẹ, thầy cô, người quen ngoài xã hội, hay một bạn học bình thường
@@ -838,13 +840,14 @@ function giftTarget(t) {
   return { kind: 'other', id: n.id, name: n.name, look: n.dynLook ? n.dynLook() : n.look, outfit: n.outfit ? n.outfit() : null };
 }
 async function giveHeld(t) {
-  const id = RT.hold, T = giftTarget(t); if (!id || !T || !G.inv[id]) return;
+  const id = RT.hold, T = giftTarget(t); if (!id || !T || !gCount(id)) return;
   if (PARENT_ITEMS[id]) { if (T.kind === 'parent' && await parentDeliver(T.id)) return; return UI.toast(`${PARENT_ITEMS[id]} là đồ của ${Object.values(PARENT_TASKS).find(P => P.item === id).who === 'dad' ? 'bố' : 'mẹ'} — mang tới đưa tận tay nhé.`, 'info'); }
   if (GROUP_ITEMS[id]) {
     if ((T.kind === 'friend' || T.kind === 'soc') && await groupDeliver(T.id)) return;
     const t = G.tasks.active.find(x => x.gr && taskDef(x).item === id);
     return UI.toast(t ? `${GROUP_ITEMS[id]} là đồ ${grLow(t.who)} nhờ lấy — mang tới đưa tận tay ${grLow(t.who)} nhé.` : `${GROUP_ITEMS[id]} không phải của người này.`, 'info');
   }
+  if (goodsInfo(id)) return giveOrSell(T, id);                                   // món đồ thường: hỏi bán hay tặng
   const key = 'g_' + T.kind + '_' + T.id, isFood = !!FOODS[id], it = holdName(id).toLowerCase();
   let who, name, line, done = () => { };
   if (T.kind === 'friend') {
@@ -878,13 +881,16 @@ async function giveHeld(t) {
 }
 // Bấm vào chính mình hoặc chỗ trống khi đang cầm đồ: đồ ăn được thì hỏi có ăn không, còn lại thì thôi
 async function heldSelf() {
-  const id = RT.hold; if (!id || !FOODS[id] || !G.inv[id]) return;
+  const id = RT.hold; if (!id || !gCount(id)) return;
+  if (id === 'chau' || id === 'thung') return placeHeld(id);
+  if (id === 'giayve') return ACT.paint('paper');
+  if (!FOODS[id]) return;
   const c = await meSay(`<p>Ăn ${FOODS[id].drink ? 'uống ' : ''}<b>${FOODS[id].name.toLowerCase()}</b> luôn bây giờ?</p><p class="dim">Hồi ${FOODS[id].stam} thể lực${FOODS[id].pack ? ' · mở gói ra có 1 thẻ cầu thủ' : ''}${G.comp ? ' · ăn chung với ' + FRIENDS[G.comp.fid].name : ''}.</p>`, [FOODS[id].drink ? 'Uống' : 'Ăn', 'Không ăn']);
   if (c === 0) { await eat(id); UI._hb = null; UI.hud(); }
 }
 // vẽ món đang cầm lơ lửng trên đầu nhân vật
 function drawHeld(now) {
-  if (!RT.hold || (RT.scene && RT.scene.hideMe) || !G.inv[RT.hold]) return;
+  if (!RT.hold || (RT.scene && RT.scene.hideMe) || !gCount(RT.hold)) return;
   drawSpr(iconCv(RT.hold), G.x - 9, G.y - 42 + Math.round(Math.sin(now / 260)) + (RT.scene && RT.scene.meOy || 0));
 }
 

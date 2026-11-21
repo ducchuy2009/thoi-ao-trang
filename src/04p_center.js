@@ -37,7 +37,7 @@ function buildCenter() {
 }
 // cửa trung tâm trên phố: vào sảnh lễ tân
 ACT.center = async () => {
-  if (RT.lock) return;
+  if (RT.lock || tetShut('Trung tâm Sao Mai')) return;
   if (!inWin(G.time, CENTER.open[0], CENTER.open[1])) return UI.say('Trung tâm Sao Mai', `Trung tâm đã đóng cửa.<p class="dim">Mở cửa ${fmtTime(CENTER.open[0])}–${fmtTime(CENTER.open[1])}. Lớp học: ngày đi học sau giờ tan học đến 20:00 · ngày nghỉ 08:00–19:00.</p>`);
   if (G.ride) dismount(true);
   const e = MAPS[CENTER.room].entry; await goPlace(CENTER.room, e[0], e[1], e[2], 0);

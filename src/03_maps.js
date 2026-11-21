@@ -285,7 +285,7 @@ function buildRiver() {
   paint(m, 'plank', 19, 7, 2, 7, 0);                               // cầu gỗ vươn ra sông
   for (let j = 0; j < 7; j++) { R(x, '#8a5a3a', 303, 116 + j * 16, 2, 6); R(x, '#8a5a3a', 335, 116 + j * 16, 2, 6); }
   R(x, '#d9c690', 0, 126, 640, 2); for (let i = 0; i < 40; i++) R(x, '#eaf6fc', i * 16 + (i % 3) * 3, 130 + (i % 2) * 2, 7, 1);
-  addObj(m, { s: 'fishspot', x: 322, y: 196, sol: [2, 8, 9, 9], ir: [-14, 0, 30, 22], label: () => fishLabel(), act: () => ACT.fish() });
+  addObj(m, { s: 'fishspot', x: 322, y: 196, sol: [2, 8, 9, 9], ir: [-14, 0, 30, 22], label: () => fishLabel('song'), act: () => ACT.fish('song') });
   addObj(m, { s: 'boat', x: 430, y: 150, flat: true }); addObj(m, { s: 'boat', x: 120, y: 250, flat: true });
   for (const [s2, a, b] of [['tree', 40, 10], ['tree2', 150, 30], ['treePink', 230, 4], ['tree', 380, 8], ['treeOrange', 470, 30], ['tree2', 570, 12]]) addObj(m, { s: s2, x: a, y: b, sol: [13, 38, 10, 9] });
   addObj(m, { s: 'bench', x: 250, y: 84, sol: [1, 1, 28, 12] }); addObj(m, { s: 'bench', x: 366, y: 84, sol: [1, 1, 28, 12] });
@@ -505,7 +505,7 @@ function buildMaps() {
   buildWC('wc', 'Nhà vệ sinh nữ', '#fbe4ea', '#eab2c2', '#e98fa5', 'wtile'); buildWC('wcm', 'Nhà vệ sinh nam', '#e4eef7', '#a9c6dc', '#5a8fd6', 'ltile');
   buildRide('ride', false); buildRide('rail', true);
   buildRooms();
-  addMeetNpcs(); buildFamily(); buildFamilyPlaces(); buildHsgPlaces(); buildCenter();
+  addMeetNpcs(); buildFamily(); buildFamilyPlaces(); buildHsgPlaces(); buildCenter(); buildEcoPlaces(); buildHobbyPlaces();
   seasonTrees();                                   // cây đổi màu theo mùa
   buildTrips();                                    // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch (04l)
   widenEdgeZones();                                // đi qua mép trái / phải chỗ nào không bị chặn cũng sang được bản đồ kế tiếp
