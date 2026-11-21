@@ -484,7 +484,7 @@ function venueCut(id, fid, caught, stay) {
 // Gương nhà vệ sinh: phản chiếu khuôn mặt + thỏi son / bông phấn + lấp lánh
 function mirrorProp(now, mx, look, kind, k) {
   const S = VIEW.S, fr = charSheet(look)[0][0];
-  ctx.drawImage(fr, 0, 0, 18, 15, VIEW.ox + (mx + 3) * S, VIEW.oy + 9 * S, 18 * S, 15 * S);
+  const [fx, fy, fw, fh] = faceRect(fr); ctx.drawImage(fr, fx, fy, fw, fh * (fr.hi ? 0.85 : 15 / 19), VIEW.ox + (mx + 3) * S, VIEW.oy + 9 * S, 18 * S, 15 * S);
   const sway = Math.round(Math.sin(now / 240 + k * 2.1) * 1.4);
   if (kind === 'son') drawSpr(SPR.lipstick, mx + 12 + sway, 17); else drawSpr(SPR.puff, mx + 15 + sway, 15 + Math.round(Math.cos(now / 240 + k) * 1.2));
   const f = Math.floor(now / 160 + k * 3);
@@ -579,7 +579,7 @@ const friendPeople = fids => fids.map(f => ({ look: f, name: FRIENDS[f].name }))
 // TRONG GIỜ HỌC (bấm Q lúc cô đang giảng): quay sang bạn tám chuyện, đấu thẻ, chơi bài, chọi con quay; nữ: xin ra ngoài đi vệ sinh chung.
 // Trả về null nếu đổi ý nghe giảng tiếp; ngược lại { delta, lines } (mất tập trung, có thể bị cô bắt).
 async function classAction(p, subj) {
-  const fids = Object.keys(FRIENDS).filter(f => !grudge(f));
+  const fids = Object.keys(FRIENDS).filter(f => !grudge(f) && !FRIENDS[f].senior);          // chị Ngân học lớp 11, không ngồi trong lớp mình
   if (!fids.length) { UI.toast('Mấy đứa bạn đang giận, chẳng ai thèm quay sang chơi với bạn.'); return null; }
   const k = await pickPerson('Quay sang ai?', '', friendPeople(fids), 'Thôi, nghe giảng tiếp');
   if (k < 0) return null;
@@ -616,7 +616,7 @@ async function askBorrow(subj) {
   let gain = 1;
   if (Math.random() < borrowChance(fid)) {
     gain = fid === 'khoa' ? 3 : 4; addFriend(fid, 1);
-    L.push(li(fid === 'khoa' ? 'Khoa đẩy sách ra giữa bàn cho xem chung.' : `${F.name} đưa sách cho mượn, bạn ấy xem chung với bạn cùng bàn.`, 'good'));
+    L.push(li(fid === 'khoa' ? `${F.name} đẩy sách ra giữa bàn cho xem chung.` : `${F.name} đưa sách cho mượn, bạn ấy xem chung với bạn cùng bàn.`, 'good'));
   } else L.push(li(grudge(fid) ? `${F.name} quay mặt đi: “Đi mà mượn giám thị ấy.”` : `${F.name} lắc đầu: “Tớ cũng đang cần sách, cậu hỏi bạn khác đi.”`, 'warn'));
   if (fid !== 'khoa' && Math.random() < BORROW.scold) L.push(li('Cô gõ thước: “Em kia, đừng quay ngang quay ngửa!”', 'warn'));
   return { gain, lines: L };
@@ -642,7 +642,7 @@ async function classEvent(subj) {
     delta = -1; addFriend(fid, 3);
     if (Math.random() < 0.18 + 0.04 * G.caughtCycle) { addTeacher(-1); L.push(li(`${co} bắt được mẩu giấy và đọc to trước lớp. Ngượng chín mặt!`, 'bad')); }
   } else if (id === 'hoibai') {
-    const c = await UI.ask(T, '<p><b>Khoa</b> huých tay bạn thì thào: “Ê, chỗ này làm sao vậy? Giảng tớ với.”</p>', ['Giảng lại cho Khoa', '“Suỵt, nghe giảng đi!”']);
+    const c = await UI.ask(T, `<p><b>${FRIENDS.khoa.name}</b> huých tay bạn thì thào: “Ê, chỗ này làm sao vậy? Giảng tớ với.”</p>`, [`Giảng lại cho ${FRIENDS.khoa.name}`, '“Suỵt, nghe giảng đi!”']);
     if (c !== 0) return { delta, lines: L };
     addFriend('khoa', 3);
     if (lv(stat) >= 1) delta = 1; else L.push(li('Bạn cũng chưa hiểu lắm… hai đứa cùng ngơ ngác.', 'warn'));
@@ -732,13 +732,13 @@ async function lunchJoin(fid, j) {
     if (j.review) G.review[s] = Math.max(G.review[s] === undefined ? -1 : G.review[s], j.review);
   } else if (j.kind === 'guitar') {
     const [bx, by] = [136, 172], notes = now => { const t = now / 1000; for (let i = 0; i < 3; i++) { const k = (t * 0.8 + i / 3) % 1; wRect('#7a5fc9', bx + 6 + i * 8 + Math.sin(k * 6) * 3, by - 18 - k * 22, 2, 2); wRect('#7a5fc9', bx + 7 + i * 8 + Math.sin(k * 6) * 3, by - 22 - k * 22, 1, 4); } drawSpr(SPR.guitar, bx + 4, by - 20); };
-    await playCut({ map: 'school', me: [bx + 46, by + 12, 1], cam: { x: bx + 20, y: by }, title: 'Hát cùng Đạt dưới gốc phượng', hide: ['dat'], actors: [{ look: 'dat', x: bx + 12, y: by + 10, dir: 0 }, { look: 'c2', x: bx - 6, y: by + 22, dir: 2 }, { look: 'x3', x: bx + 30, y: by + 26, dir: 1 }], props: [notes],
+    await playCut({ map: 'school', me: [bx + 46, by + 12, 1], cam: { x: bx + 20, y: by }, title: `Hát cùng ${FRIENDS.dat.name} dưới gốc phượng`, hide: ['dat'], actors: [{ look: 'dat', x: bx + 12, y: by + 10, dir: 0 }, { look: 'c2', x: bx - 6, y: by + 22, dir: 2 }, { look: 'x3', x: bx + 30, y: by + 26, dir: 1 }], props: [notes],
       steps: [{ say: [0, 'Ngồi xuống đây! Bài này ai cũng thuộc nè.'] }, { move: ['me', bx + 26, by + 14, 400] }, { fn: () => { G.dir = 1; } }, { say: ['me', 'La la la… hát to lên nào!'] }, { say: [1, 'Đạt đánh đàn hay ghê!'] }, { say: [0, 'Mai mốt tụi mình lập ban nhạc đi!'] }] });
     advanceTime(20); gainStam(8); addStat('vannghe', 3); addFriend('dat', 4);
   } else if (j.kind === 'khao') {
     const snack = now => { for (const [a, k] of [[G, 0], [RT.scene.actors[0], 1]]) { wRect('#c9862f', a.x + 4, a.y - 16 + ((bob() + k) % 2), 5, 3); wRect('#c9e9f2', a.x - 8, a.y - 18, 3, 5); } };
-    await playCut({ map: 'school', me: [96, 128, 3], cam: { x: 80, y: 110 }, title: 'Khoa khao ăn vặt ở căn tin', hide: ['khoa'], actors: [{ look: 'khoa', x: 72, y: 126, dir: 3 }, { look: 'c3', x: 56, y: 134, dir: 2 }], props: [snack],
-      steps: [{ say: [0, 'Cô ơi cho con ba ly trà đá với ba bịch bánh tráng nướng!'] }, { fn: sc => { G.dir = 1; sc.actors[0].dir = 2; } }, { say: ['me', 'Khoa hôm nay chơi lớn ghê!'] }, { say: [0, 'Trúng nắp chai mà, ăn đi đừng ngại!'] }, { say: [1, 'Giòn quá trời luôn!'] }] });
+    await playCut({ map: 'school', me: [96, 128, 3], cam: { x: 80, y: 110 }, title: `${FRIENDS.khoa.name} khao ăn vặt ở căn tin`, hide: ['khoa'], actors: [{ look: 'khoa', x: 72, y: 126, dir: 3 }, { look: 'c3', x: 56, y: 134, dir: 2 }], props: [snack],
+      steps: [{ say: [0, 'Cô ơi cho con ba ly trà đá với ba bịch bánh tráng nướng!'] }, { fn: sc => { G.dir = 1; sc.actors[0].dir = 2; } }, { say: ['me', `${FRIENDS.khoa.name} hôm nay chơi lớn ghê!`] }, { say: [0, 'Trúng nắp chai mà, ăn đi đừng ngại!'] }, { say: [1, 'Giòn quá trời luôn!'] }] });
     advanceTime(10); gainStam(10); addFriend('khoa', 3); 
   } else if (j.kind === 'tapchi') {
     const [bx, by] = [396, 172], mag = now => { const a = RT.scene.actors[0]; wRect('#e98fa5', a.x + 4, a.y - 20, 9, 7); wRect('#fffaf0', a.x + 5, a.y - 19 + bob(), 7, 2); };

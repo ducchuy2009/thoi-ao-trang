@@ -264,7 +264,7 @@ function drawBubble(b) {
   for (const w of b.text.split(' ')) { const t = cur ? cur + ' ' + w : w; if (cur && ctx.measureText(t).width > maxw) { lines.push(cur); cur = w; } else cur = t; }
   if (cur) lines.push(cur);
   const lh = Math.round(fs * 1.25), bw = Math.ceil(Math.max(...lines.map(l => ctx.measureText(l).width))) + pad * 2, bh = lines.length * lh + pad * 2;
-  const ax = VIEW.ox + b.x * S, ay = VIEW.oy + b.y * S, tail = 3 * S;
+  const ax = VIEW.ox + b.x * S, ay = VIEW.oy + (b.y - (b.below ? 0 : 4)) * S, tail = 3 * S;   // nhân vật cao hơn khung cũ: bong bóng nhích lên
   const x = Math.round(clamp(ax - bw / 2, 6, cv.width - bw - 6)), y = Math.round(b.below ? ay + tail : Math.max(6, ay - bh - tail));
   const ty = b.below ? y : y + bh, sg = b.below ? -1 : 1;          // đuôi bong bóng: chĩa xuống đầu người nói, hoặc chĩa lên nếu bong bóng nằm dưới chân
   ctx.fillStyle = '#2a2136'; ctx.fillRect(x - bd, y - bd, bw + bd * 2, bh + bd * 2);
@@ -273,7 +273,14 @@ function drawBubble(b) {
   ctx.beginPath(); ctx.moveTo(ax - tail, ty - sg); ctx.lineTo(ax + tail, ty - sg); ctx.lineTo(ax, ty + sg * tail); ctx.fill();
   ctx.fillStyle = '#2a2136'; lines.forEach((l, i) => ctx.fillText(l, x + pad, y + pad + i * lh));
 }
-function drawSpr(spr, x, y) { const S = VIEW.S; ctx.drawImage(spr, VIEW.ox + Math.round(x) * S, VIEW.oy + Math.round(y) * S, spr.width * S, spr.height * S); }
+function drawSpr(spr, x, y) {
+  const S = VIEW.S;
+  if (spr.hi) {                                                         // nhân vật vẽ từ ảnh (gấp đôi điểm ảnh): giữ chân / giữa người trùng chỗ khung 16×22 cũ
+    const w = spr.width / spr.hi, h = spr.height / spr.hi, X = Math.round((x + 8 - w / 2) * 2) / 2, Y = Math.round((y + 22 - h) * 2) / 2;
+    ctx.drawImage(spr, VIEW.ox + X * S, VIEW.oy + Y * S, w * S, h * S); return;
+  }
+  ctx.drawImage(spr, VIEW.ox + Math.round(x) * S, VIEW.oy + Math.round(y) * S, spr.width * S, spr.height * S);
+}
 function drawChar(look, outfit, x, y, dir, walkT, oy) {
   const sh = charSheet(look, outfit), fr = charFrame(sh, dir, walkT);
   const bob = walkT >= 0 && (Math.floor(walkT * 8) % 2 === 1) ? -1 : 0;
@@ -413,10 +420,17 @@ function bindInput() {
 /* ---------- màn hình mở đầu ---------- */
 function drawPreview(id, look) {
   const c = $(id), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.clearRect(0, 0, c.width, c.height);
-  x.drawImage(charSheet(look)[0][0], 0, 0, 18, 24, 3, 0, 72, 96);
+  const f = charSheet(look)[0][0];
+  if (f.hi) x.drawImage(f, 0, 0, f.width, f.height, (c.width - f.width * 96 / f.height) / 2, 0, f.width * 96 / f.height, 96); else x.drawImage(f, 0, 0, 18, 24, 3, 0, 72, 96);
+}
+// bạn cùng bàn đổi theo giới tính nhân vật chính (Đạt / Duyên): cập nhật tên NPC đã dựng sẵn, xoá chân dung cũ
+function refreshCast() {
+  for (const n of NPCS) if (n.fid === 'khoa' || n.sid === 'khoa' || n.id === 'trip_p_khoa' || n.id === 'trip_h_khoa' || n.id === 'trip_s_khoa') n.name = FRIENDS.khoa.name;
+  for (const k in _faces) delete _faces[k];
 }
 function startGame(isNew) {
   if (isNew) newGame($('t-name').value.trim().slice(0, 16), TITLE.gender);
+  refreshCast();
   $('title').classList.add('off'); document.body.classList.add('playing');
   UI.hud();
   if (isNew) {
@@ -448,4 +462,5 @@ function boot() {
   resize(); bindInput(); bindUI(); initTitle();
   requestAnimationFrame(frame);
 }
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+const go = () => loadAtlas().then(boot);                             // nạp ảnh nhân vật (02c) trước khi dựng sprite
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();

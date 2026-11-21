@@ -134,7 +134,7 @@ function classFunCut(kind, fid, caught, only) {
   return { map: 'class', me: S.me, cam: { x: 160, y: 96 }, title: `Trong giờ học · ${K.title}`, actors, hide, props: funProps(K, S.p), steps };
 }
 // Bạn bị gọi lên bảng trả bài, mình ngồi dưới nhắc bài · caught: bị thầy cô phát hiện
-const SEAT_OF = { khoa: [125, 134], vy: [191, 134], ngan: [61, 134], dat: [111, 168] };
+const SEAT_OF = { khoa: [125, 134], vy: [191, 134], dat: [111, 168] };   // chị Ngân học lớp 11 nên không có chỗ trong lớp
 const SEAT_AISLE = { khoa: 150, vy: 170, ngan: 86, dat: 150 };
 const PROMPT_HINT = { toan: ['bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông…', 'Dạ… bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông ạ!'], van: ['bài thơ viết năm 1948… tình đồng chí…', 'Dạ… bài thơ ra đời năm 1948, nói về tình đồng chí ạ!'], anh: ['have/has cộng quá khứ phân từ…', 'Dạ… thì hiện tại hoàn thành là have hoặc has cộng quá khứ phân từ ạ!'], ly: ['F bằng m nhân a…', 'Dạ… lực bằng khối lượng nhân gia tốc ạ!'], hoa: ['hai H một O…', 'Dạ… công thức của nước là H2O ạ!'], sinh: ['ti thể… nhà máy năng lượng…', 'Dạ… ti thể là nơi tạo năng lượng cho tế bào ạ!'], su: ['năm 1945… mùng 2 tháng 9…', 'Dạ… ngày 2 tháng 9 năm 1945 ạ!'], dia: ['sông Hồng… phù sa…', 'Dạ… đồng bằng sông Hồng do phù sa bồi đắp ạ!'] };
 function promptCut(fid, subj, caught) {

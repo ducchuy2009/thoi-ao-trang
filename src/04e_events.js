@@ -524,7 +524,7 @@ async function bcContest(join) {
 }
 // Trao giải: người thắng lên bục nhận cúp từ thầy hiệu trưởng
 function awardCut(win, top) {
-  const looks = { 'Minh (10A1)': 'c1', 'Tú (10A2)': 'x1', 'Bảo (10A3)': 'x3' }, P = { look: 'principal', x: 272, y: 174, dir: 0 }, t0 = { v: 1e12 };
+  const looks = { 'Quang (10A1)': 'c1', 'Tú (10A2)': 'x1', 'Bảo (10A3)': 'x3' }, P = { look: 'principal', x: 272, y: 174, dir: 0 }, t0 = { v: 1e12 };
   const actors = [P].concat(win ? [] : [{ look: looks[top.name] || 'c1', x: 250, y: 236, dir: 3 }]);
   const winnerWho = win ? 'me' : 1;
   return playCut({
@@ -537,7 +537,7 @@ function awardCut(win, top) {
 // Chụp ảnh cả lớp ăn mừng quanh chiếc cúp
 function winPhotoCut() {
   const cx0 = 300, cy0 = 222;
-  const row = [['khoa', -44, -16], ['vy', -22, -18], ['dat', 22, -18], ['ngan', 44, -16], ['c3', -60, 2], ['c4', 60, 2], ['c5', -34, 4], ['c8', 34, 4]];
+  const row = [['khoa', -44, -16], ['vy', -22, -18], ['dat', 22, -18], ['c9', 44, -16], ['c3', -60, 2], ['c4', 60, 2], ['c5', -34, 4], ['c8', 34, 4]];
   const actors = row.map(([look, dx, dy]) => ({ look, x: cx0 + dx, y: cy0 + dy, dir: 0 })).concat([{ look: 'teacherA', x: cx0, y: cy0 + 50, dir: 3 }]);
   return playCut({
     map: 'school', me: [cx0, cy0, 0], cam: { x: cx0, y: cy0 - 10 }, title: 'Ảnh lưu niệm — Vua gói bánh chưng', actors, hide: BC_ALL.concat(['bc_principal']),

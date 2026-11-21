@@ -419,11 +419,11 @@ function buildSchool() {
   NPCS.push({ id: 'guard', name: 'Bác bảo vệ', look: 'guard', map: 'school', x: 392, y: 410, dir: 1, vis: () => G.time < 1200, label: () => 'Bác bảo vệ', act: () => ACT.guard() });
   // học sinh ra sân giờ ra chơi
   const yard = () => yardTime();
-  const spots = [[250, 250], [300, 300], [180, 220], [220, 320], [380, 240], [330, 200], [200, 280], [360, 310]];
-  const mates = [['khoa', 'Khoa', 'khoa'], ['vy', 'Vy', 'vy'], ['dat', 'Đạt', 'dat'], ['m1', 'Bạn cùng lớp', 'c1'], ['ngan', 'Ngân', 'ngan'], ['m3', 'Bạn cùng lớp', 'c3'], ['m4', 'Bạn cùng lớp', 'c4'], ['m5', 'Bạn cùng lớp', 'c5']];
+  const spots = [[250, 250], [300, 300], [180, 220], [220, 320], [380, 240], [330, 200], [200, 280], [360, 310], [270, 230]];
+  const mates = [['khoa', 'Đạt', 'khoa'], ['vy', 'Vy', 'vy'], ['dat', 'Thái', 'dat'], ['m1', 'Quang · lớp trưởng', 'c1'], ['ngan', 'Ngân · 11A1', 'ngan'], ['m3', 'Đức', 'c3'], ['m4', 'Minh Anh', 'c4'], ['m2', 'Hiền', 'c9'], ['m5', 'Vũ', 'c5']];
   mates.forEach(([id, name, look], i) => {
     const fr = !!FRIENDS[id];
-    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(id) && !!yardPos(id) && !sceneHides(id), label: () => name, act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
+    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(id) && !!yardPos(id) && !sceneHides(id), label: () => (fr ? FRIENDS[id].name : name), act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
   });
 }
 
@@ -447,9 +447,11 @@ function buildClass() {
   addObj(m, { s: 'tdesk', x: 38, y: 34, sol: [1, 2, 32, 19] });
   addObj(m, { s: 'hoportrait', x: 73, y: 6, base: 0 });                // ảnh Bác Hồ treo trên tường cạnh bảng
   const X = [40, 104, 184, 248], Y = [70, 104, 138, 172];
-  const looks = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'];
-  const special = { '1,1,1': 'khoa', '2,1,0': 'vy', '1,2,0': 'dat', '0,1,1': 'ngan', '0,0,0': 'm1', '3,0,0': 'm3', '2,2,1': 'm4', '3,3,0': 'm5' };
-  const spLook = { khoa: 'khoa', vy: 'vy', dat: 'dat', ngan: 'ngan', m1: 'c1', m3: 'c3', m4: 'c4', m5: 'c5' };
+  // bạn có tên ngồi trước (Thảo, Hoa, Nam Anh, Phương, Đạt/Duyên), còn lại là bạn cùng lớp lấp chỗ (ảnh bạn có tên đổi màu tóc — chủ yếu thấy từ phía sau)
+  const named = ['c2', 'c6', 'c7', 'c8', 'c10'], VB = ['quang', 'duc', 'vu', 'namanh', 'thao', 'hoa', 'minhanh', 'phuong', 'hien', 'thai', 'duyen', 'dat'];
+  const looks = i => (i < named.length ? named[i] : `v:${VB[(i * 5) % VB.length]}:${i}`);
+  const special = { '1,1,1': 'khoa', '2,1,0': 'vy', '1,2,0': 'dat', '0,1,1': 'm2', '0,0,0': 'm1', '3,0,0': 'm3', '2,2,1': 'm4', '3,3,0': 'm5' };
+  const spLook = { khoa: 'khoa', vy: 'vy', dat: 'dat', m2: 'c9', m1: 'c1', m3: 'c3', m4: 'c4', m5: 'c5' };
   let k = 0;
   for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
     const mine = (c === 1 && r === 1);
@@ -462,9 +464,9 @@ function buildClass() {
       CLASS_SEATED.add(c + ',' + r + ',' + sd);
       // bạn thân ngồi gần: giờ giải lao 10' giữa 2 tiết có thể quay sang rủ rê, trò chuyện, đấu thẻ
       NPCS.push({
-        id: 's_' + c + r + sd, sid: sp || null, fid: fr ? sp : null, name: fr ? fr.name : 'Bạn học', look: sp ? spLook[sp] : looks[(k++ * 3 + r) % 8], map: 'class', x: sx, y: sy, dir: 3, solid: true,
+        id: 's_' + c + r + sd, sid: sp || null, fid: fr ? sp : null, name: fr ? fr.name : 'Bạn học', look: sp ? spLook[sp] : looks(k++), map: 'class', x: sx, y: sy, dir: 3, solid: true,
         vis: sp ? () => classSeated() && !yardTime() && !sceneHides(sp) && !isComp(sp) : () => classSeated(),
-        label: fr ? () => `${fr.name} (${fr.seat})` : null, act: fr ? () => ACT.friend(sp, 'class') : null,
+        label: fr ? () => `${FRIENDS[sp].name} (${fr.seat})` : null, act: fr ? () => ACT.friend(sp, 'class') : null,
       });
     }
   }

@@ -424,7 +424,7 @@ async function sceneKeepup(d, title, opt) {
   const ball = typeof opt === 'object' && opt && opt.ball, need = 5 + 2 * d, lives = 3, T = labTeacher(), FOOT = 106, GROUND = 114, PXX = 128;
   const st = { h: 60, v: 0, kicks: 0, drops: 0, wait: 0.8, msg: '', kickT: 0, cool: 0, fin: 0, t: 0, pop: 0 };
   const sc0 = RT.scene, tLook = T >= 0 && sc0 && sc0.actors[T] ? sc0.actors[T].look : null, mate = sc0 && sc0.actors && sc0.actors[0] ? sc0.actors[0] : { look: 'c3', outfit: null };
-  const big = (c, look, outfit, dir, x, y, oy) => { const fr = charSheet(look, outfit)[dir][0]; c.fillStyle = 'rgba(0,0,0,0.22)'; c.fillRect(x + 6, y + 46, 24, 4); c.drawImage(fr, x, y + (oy || 0), fr.width * 2, fr.height * 2); };
+  const big = (c, look, outfit, dir, x, y, oy) => { const fr = charSheet(look, outfit)[dir][0], k = fr.hi ? 2 / fr.hi : 2, w = fr.width * k, h = fr.height * k; c.fillStyle = 'rgba(0,0,0,0.22)'; c.fillRect(x + 6, y + 46, 24, 4); c.drawImage(fr, x + 16 - w / 2, y + 44 - h + (oy || 0), w, h); };
   const shuttle = (c, x, y, up) => {
     if (ball) { gR(c, '#2a2136', x - 4, y - 4, 9, 9); gR(c, '#fbf7ee', x - 3, y - 3, 7, 7); gR(c, '#2a2136', x, y - 2, 2, 2); gR(c, '#2a2136', x - 2, y + 1, 2, 2); gR(c, '#2a2136', x + 2, y + 1, 1, 1); return; }
     const s = up ? -1 : 1;                                                     // cầu lông gà: đế đỏ hướng xuống khi rơi

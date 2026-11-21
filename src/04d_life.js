@@ -15,7 +15,7 @@ function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Ma
 /* ============================================================
  *  TỤ CHƠI NGOÀI SÂN
  * ============================================================ */
-const YARD_KIDS = ['khoa', 'vy', 'dat', 'ngan', 'm1', 'm3', 'm4', 'm5', 'x1', 'x2', 'x3', 'x4', 'sA', 'sB', 'sC', 'sD'];
+const YARD_KIDS = ['khoa', 'vy', 'dat', 'ngan', 'm1', 'm2', 'm3', 'm4', 'm5', 'x1', 'x2', 'x3', 'x4', 'sA', 'sB', 'sC', 'sD', 'hoang'];
 // chỗ đặt từng tụ: [x, y] tâm
 const YARD_SPOT = { dauthe: [196, 272], chat: [250, 256], chat2: [168, 326], danhbai: [200, 206], conquay: [384, 216], dacau: [302, 236], duoibat: [352, 300], rongran: [232, 316], dabong: [584, 250], trontim: [448, 304], eat: [150, 192], eat2: [80, 116] };
 const HIDE_SPOTS = [[448, 174], [150, 334], [70, 203], [110, 174], [22, 200]];          // núp sau gốc cây, bụi rậm
@@ -781,6 +781,7 @@ const SENIOR_TIPS = {
   a_hung: ['Thi học kỳ hay ra mấy phần cuối chương lắm, ôn kỹ đoạn đó nhé em.', 'Hạnh kiểm chốt hai tuần một lần, đừng để bị giám thị ghi tên nhiều quá.', 'Đoàn trường sắp có hội thi gói bánh chưng trước Tết đấy, lớp em đăng ký chưa?'],
   c_mai: ['Phòng nhạc ở dãy nhà chính, nghỉ trưa vào tập hát là lên tay nhanh lắm.', 'Muốn lên sân khấu văn nghệ thì luyện máy nhảy ở khu game cũng được đó!', 'Giao thừa năm nào trên núi sau trường cũng có hội chợ, vui cực!'],
   a_phong: ['Thể lực yếu thì sáng tập hít đất, chiều ra sân đá bóng với tụi anh.', 'Tiết thể dục nhớ mang đồng phục, quên là thầy Mạnh không cho điểm đâu.', 'Đói thì xuống căn tin, cơm trưa hồi nhiều thể lực nhất.'],
+  a_hoang: ['Ở trường này có gì cứ báo anh, đứa nào bắt nạt em là biết tay anh!', 'Đừng có trốn học ra quán net như anh hồi lớp 10, bị ghi tên mãi đấy.', 'Đá bóng giờ ra chơi thì gọi anh, anh đá tiền đạo.'],
   c_thao: ['Thư viện có tủ sách từng môn, nghỉ trưa vào đọc một cuốn là đỡ lắm.', 'Ngủ trưa ở phòng ngủ trưa đi em, chiều đỡ gục trong lớp.', 'Trước hôm kiểm tra nhớ ôn bài ở bàn học, vào lớp được cộng điểm đó.', 'Ngày nào xui thì đi chùa xin quẻ, hên thì làm bài cũng dễ trúng tủ hơn.'],
 };
 ACT.senior = async soc => {

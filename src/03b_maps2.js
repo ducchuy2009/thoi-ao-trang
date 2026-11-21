@@ -57,6 +57,14 @@ function buildUpstairs() {
     for (let k = 0; k < 4; k++) { const row = Math.floor(k / 4), c = k % 4; addObj(r, { s: 'sdesk', x: X[c] - 1, y: Y[row] - 1, sol: [1, 1, 28, 12] }); seats.push([X[c] + 7, Y[row] + 30], [X[c] + 21, Y[row] + 30]); }
     const soc = SENIOR_OF[id], S = SOCIETY[soc];
     seats.forEach(([a, b], k) => {
+      if (id === 'l11a1' && k === 2) {                                 // chị Ngân (bạn thân, học 11A1)
+        NPCS.push({ id: 'l11a1_ngan', fid: 'ngan', sid: 'ngan', name: 'Ngân', look: 'ngan', map: id, x: a, y: b, dir: 3, solid: true, vis: () => !(yardTime() && !!yardPos('ngan')) && !isComp('ngan'), label: () => 'Ngân (11A1)', act: () => ACT.friend('ngan', 'school') });
+        return;
+      }
+      if (id === 'l12a2' && k === 2) {                                 // anh Hoàng, “đầu gấu” khối 12
+        NPCS.push({ id: 'l12a2_hoang', sid: 'r_a_hoang', soc: 'a_hoang', name: 'Anh Hoàng', look: 'hoang', map: id, x: a, y: b, dir: 3, solid: true, vis: () => !(yardTime() && !!yardPos('hoang')), label: () => 'Anh Hoàng', act: () => ACT.senior('a_hoang') });
+        return;
+      }
       const named = k === 1, look = named ? S.look : looks[k % looks.length], name = named ? S.name : (['sB', 'sD', 'sF', 'sH'].includes(look) ? 'Chị lớp ' : 'Anh lớp ') + label;
       NPCS.push({ id: `${id}_${k}`, sid: named ? 'r_' + soc : null, soc: named ? soc : null, name, look, map: id, x: a, y: b, dir: 3, solid: true,
         vis: named ? () => !(yardTime() && !!yardPos(S.look)) : null, label: () => name + (named ? '' : ' — trò chuyện'), act: () => (named ? ACT.senior(soc) : seniorChat(`${id}${k}`, name, look, k)) });
@@ -161,7 +169,7 @@ function buildRooms() {
   // thêm học sinh ra sân cho đông vui + cho mọi học sinh ngoài sân nhập vào các tụ chơi
   for (const [id, a, b, name] of [['x1', 150, 240, 'Tú · 10A2'], ['x2', 420, 300, 'Linh · 10A2'], ['x3', 260, 200, 'Bảo · 10A3'], ['x4', 340, 330, 'Nhi · 10A4']]) NPCS.push({ id: 'y_' + id, sid: id, name, look: id, map: 'school', x: a, y: b, dir: 0, wander: 30, vis: () => yardTime() && !!yardPos(id), label: () => name, act: () => ACT.mate(id) });
   // anh chị khoá trên (11, 12): nói chuyện riêng thì được chỉ mẹo học hành, đi lại trong trường
-  for (const [id, soc] of [['sA', 'a_hung'], ['sB', 'c_mai'], ['sC', 'a_phong'], ['sD', 'c_thao']]) { const S = SOCIETY[soc]; NPCS.push({ id: 'y_' + id, sid: id, soc, name: `${S.name} · ${S.note.split(' · ')[1].split(',')[0]}`, look: id, map: 'school', x: 300, y: 260, dir: 0, vis: () => yardTime() && !!yardPos(id), label: () => S.name, act: () => ACT.senior(soc) }); }
+  for (const [id, soc] of [['sA', 'a_hung'], ['sB', 'c_mai'], ['sC', 'a_phong'], ['sD', 'c_thao'], ['hoang', 'a_hoang']]) { const S = SOCIETY[soc]; NPCS.push({ id: 'y_' + id, sid: id, soc, name: `${S.name} · ${S.note.split(' · ')[1].split(',')[0]}`, look: id, map: 'school', x: 300, y: 260, dir: 0, vis: () => yardTime() && !!yardPos(id), label: () => S.name, act: () => ACT.senior(soc) }); }
   // học sinh ngoài sân: đứng theo tụ chơi; nói chuyện với bạn nào thì bạn đó hỏi có vào chơi cùng không
   for (const n of NPCS) if (n.id.startsWith('y_')) {
     const v0 = n.vis; n.vis = () => !!leavePos(n) || ((!v0 || v0()) && yardArrived(n.sid));   // tan học: đi bộ ra cổng rồi mới khuất · buổi sáng: lần lượt tới trường

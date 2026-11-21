@@ -84,7 +84,7 @@ function buildHkpd() {
   NPCS.push({ id: 'hk_principal', soc: 'hieutruong', name: 'Thầy hiệu trưởng', look: 'principal', map: 'school', x: HK_SPOT.principal[0], y: HK_SPOT.principal[1], dir: 0, vis: hkOn, label: () => 'Thầy hiệu trưởng — trao giải', act: () => ACT.hkPrincipal() });
   NPCS.push({ id: 'hk_hanh', tid: 'hanh', name: 'Cô Hạnh', look: 'teacherA', map: 'school', x: 456, y: 210, dir: 1, vis: hkOn, label: () => 'Cô Hạnh — chủ nhiệm lớp mình', act: () => hkTalk('Cô Hạnh', { look: 'teacherA' }, `Cả lớp mình cố lên nhé! Thi xong môn nào cô cũng tự hào về các em. Còn ${hkLeft().length} môn nữa đấy.`, 'hanh') });
   // các bạn đứng xem, cổ vũ quanh khu thi
-  const spect = [['khoa', 548, 210, 0, 'Kéo co để tớ với Đạt lo! Cậu vào kéo cùng nha!'], ['dat', 620, 210, 0, 'Lớp 10A2 khoẻ lắm đó, nhưng tụi mình đoàn kết hơn!'], ['vy', 196, 290, 3, 'Tung còn phải canh gió đó, đừng ném mạnh quá!'], ['ngan', 226, 296, 3, 'Ném lọt vòng là có điểm, cố lên!'],
+  const spect = [['khoa', 548, 210, 0, 'Kéo co để tớ với Thái lo! Cậu vào kéo cùng nha!'], ['dat', 620, 210, 0, 'Lớp 10A2 khoẻ lắm đó, nhưng tụi mình đoàn kết hơn!'], ['vy', 196, 290, 3, 'Tung còn phải canh gió đó, đừng ném mạnh quá!'], ['ngan', 226, 296, 3, 'Ném lọt vòng là có điểm, cố lên!'],
     ['c1', 262, 212, 0, 'Cả lớp ra sân cổ vũ đông đủ luôn!'], ['c4', 340, 300, 0, 'Tớ không thi nhưng hò hét khản cả cổ rồi đây.'], ['c2', 456, 330, 1, 'Cô Hạnh mua nước mía cho cả lớp đó!'],
     ['x1', 652, 214, 0, 'Lớp 10A2 bọn tớ vô địch năm ngoái đấy nhé!'], ['x3', 120, 280, 2, 'Lớp 10A3 luyện tung còn cả tuần rồi.'], ['x4', 362, 276, 1, 'Tớ lớp 10A4, chơi vui là chính thôi!']];
   for (const [k, x, y, d, line] of spect) {
@@ -632,7 +632,7 @@ async function hkCeremony() {
   for (const k of ['a2', 'a3', 'a4']) { reps[k] = actors.length; actors.push({ look: HK_CLASSES[k].looks[0], x: 250 + actors.length * 18, y: 252, dir: 3 }); }
   const iP = actors.length; actors.push({ look: 'principal', x: px + 84, y: py + 30, dir: 1 });          // đứng cạnh bục, không che
   const crowd = [];
-  ['khoa', 'vy', 'dat', 'ngan', 'c1', 'c3', 'c4', 'c5', 'c2', 'c6'].forEach((k, i) => { crowd.push(actors.length); actors.push({ look: k, x: px - 20 + (i % 5) * 26 + (i > 4 ? 13 : 0), y: py + 70 + (i > 4 ? 14 : 0), dir: 3 }); });
+  ['khoa', 'vy', 'dat', 'c9', 'c1', 'c3', 'c4', 'c5', 'c2', 'c6'].forEach((k, i) => { crowd.push(actors.length); actors.push({ look: k, x: px - 20 + (i % 5) * 26 + (i > 4 ? 13 : 0), y: py + 70 + (i > 4 ? 14 : 0), dir: 3 }); });
   const iH = actors.length; actors.push({ look: 'teacherA', x: px + 120, y: py + 62, dir: 1 });
   const st = { medals: {} }, M = hkMedals(), cup = M[0].k;
   const prop = () => { for (const k in st.medals) { const e = reps[k] === 'me' ? G : RT.scene.actors[reps[k]]; const c = medalCol(st.medals[k]); wRect('#3b82c4', e.x - 1, e.y - 9, 1, 2); wRect('#e2574c', e.x, e.y - 9, 1, 2); wRect(c, e.x - 1.5, e.y - 7, 3, 3); } if (st.cup) { const e = reps[st.cup] === 'me' ? G : RT.scene.actors[reps[st.cup]]; drawSpr(SPR.hkcup, e.x - 6, e.y - 40 + (Math.floor(performance.now() / 300) % 2)); } };

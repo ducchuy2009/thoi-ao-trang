@@ -540,7 +540,7 @@ async function showReport(r) {
 
 /* ---------- vào tiết học ---------- */
 const TEACHER_OF = { toan: 'teacherC', van: 'teacherA', anh: 'teacherB', ly: 'teacherC', hoa: 'teacherB', sinh: 'teacherA', su: 'teacherC', dia: 'teacherB', shl: 'teacherA' };
-const MATE_LOOKS = ['khoa', 'vy', 'dat', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'];
+const MATE_LOOKS = ['khoa', 'vy', 'dat', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10'];   // bạn cùng lớp (vẽ từ ảnh: Quang, Thảo, Đức, Minh Anh, Vũ, Hoa, Nam Anh, Phương, Hiền, Đạt/Duyên)
 function formation(x0, y0, dx, dy, cols, rows, skipC, skipR, outfit) {
   const a = []; let k = 0;
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { if (c === skipC && r === skipR) continue; a.push({ look: MATE_LOOKS[k++ % MATE_LOOKS.length], outfit, x: x0 + c * dx, y: y0 + r * dy, dir: 3 }); }

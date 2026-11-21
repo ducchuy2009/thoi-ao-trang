@@ -327,7 +327,7 @@ const GROUP_ITEMS = { gr_vo: 'Vở ghi Hoá', gr_sach: 'Sách “Bài tập Toá
 // gặp người nhờ ở đâu để đưa đồ
 const GROUP_MEET = { khoa: 'sân trường / lớp 10A1', vy: 'sân trường / lớp 10A1', dat: 'sân trường / lớp 10A1', ngan: 'sân trường / lớp 10A1', a_hung: 'sân trường giờ ra chơi / lớp 12A1 (tầng 2)', c_mai: 'sân trường giờ ra chơi / lớp 12A2 (tầng 2)', a_phong: 'sân trường giờ ra chơi / lớp 11A1 (tầng 2)', c_thao: 'sân trường giờ ra chơi / lớp 11A3 (tầng 2)' };
 // người trong nhóm hay nhắn chuyện phiếm: [tên, look]
-const GROUP_PEOPLE = { x1: ['Tú · 10A2', 'x1'], x2: ['Linh · 10A2', 'x2'], x3: ['Bảo · 10A3', 'x3'], x4: ['Nhi · 10A4', 'x4'], m1: ['Lớp trưởng 10A1', 'c1'], m3: ['Hà · 10A1', 'c3'] };
+const GROUP_PEOPLE = { x1: ['Tú · 10A2', 'x1'], x2: ['Linh · 10A2', 'x2'], x3: ['Bảo · 10A3', 'x3'], x4: ['Nhi · 10A4', 'x4'], m1: ['Quang · lớp trưởng 10A1', 'c1'], m3: ['Đức · 10A1', 'c3'] };
 const GROUP_CHAT = [
   ['m1', 'Nhắc cả lớp: mai kiểm tra 15 phút Toán nhé, ôn kỹ phần bài tập về nhà!'], ['x1', 'Hôm nay căn tin có bánh mì pate mới, ngon xỉu luôn 😋'],
   ['x2', 'Ai có ảnh buổi chào cờ sáng nay gửi lên nhóm với, mình nhắm mắt trong ảnh mất rồi 😂'], ['x3', 'Chiều nay đội bóng 10A3 đá giao hữu với 10A1, ra cổ vũ đi mọi người!'],
@@ -403,10 +403,11 @@ const STUDY = { base: 5.3, kLv: 1.15, kLt: 0.45, comp: 0.04, gradeOff: [0, 1.65,
 
 /* ---------- Bạn bè ---------- */
 const FRIENDS = {
-  khoa: { name: 'Khoa', note: 'Bạn cùng bàn', g: 'boy', seat: 'cùng bàn', duel: 'kha', bday: [0, 12] },
-  vy: { name: 'Vy', note: 'Lớp phó học tập', g: 'girl', seat: 'bàn bên phải', duel: 'gà', bday: [1, 8] },
-  dat: { name: 'Đạt', note: 'Cây văn nghệ của lớp', g: 'boy', seat: 'bàn dưới', duel: 'caothu', bday: [2, 20] },
-  ngan: { name: 'Ngân', note: 'Bạn bàn bên, mê làm đẹp', g: 'girl', seat: 'bàn bên trái', duel: 'gà', bday: [0, 25] },
+  // bạn cùng bàn (mã 'khoa'): nhân vật chính là nam thì là Đạt (lanh lợi, hơi tròn trịa), là nữ thì là Duyên (hậu đậu)
+  khoa: { get name() { return isGirlMain() ? 'Duyên' : 'Đạt'; }, get note() { return isGirlMain() ? 'Bạn cùng bàn, hơi hậu đậu' : 'Bạn cùng bàn, lanh lợi'; }, get g() { return isGirlMain() ? 'girl' : 'boy'; }, seat: 'cùng bàn', duel: 'kha', bday: [0, 12] },
+  vy: { name: 'Vy', note: 'Hoa khôi của trường, lớp phó học tập', g: 'girl', seat: 'bàn bên phải', duel: 'gà', bday: [1, 8] },
+  dat: { name: 'Thái', note: 'Cây văn nghệ của lớp, fan cứng ca sĩ thần tượng', g: 'boy', seat: 'bàn dưới', duel: 'caothu', bday: [2, 20] },
+  ngan: { name: 'Ngân', note: 'Chị khoá trên lớp 11A1, mê thể thao', g: 'girl', seat: 'lớp 11A1', senior: true, duel: 'gà', bday: [0, 25] },
 };
 // Sinh nhật: [chỉ số mùa (0 Thu, 1 Đông, 2 Xuân, 3 Hè), ngày]. Hiện trên Lịch; hôm đó chúc mừng / tặng quà được cộng nhiều hơn.
 const PARENT_BDAY = { mom: [1, 20], dad: [2, 12] };
@@ -462,7 +463,8 @@ const SOCIETY = {
   a_hung: { name: 'Anh Hùng', note: 'Khoá trên · 12A1, bí thư Đoàn trường', look: 'sA' },
   c_mai: { name: 'Chị Mai', note: 'Khoá trên · 12A2, đội trưởng văn nghệ', look: 'sB' },
   a_phong: { name: 'Anh Phong', note: 'Khoá trên · 11A1, đội trưởng đội bóng', look: 'sC' },
-  c_thao: { name: 'Chị Thảo', note: 'Khoá trên · 11A3, lớp phó học tập', look: 'sD' },
+  c_thao: { name: 'Chị Trang', note: 'Khoá trên · 11A3, lớp phó học tập', look: 'sD' },
+  a_hoang: { name: 'Anh Hoàng', note: 'Khoá trên · 12A2, “đầu gấu” khối 12', look: 'hoang' },
   su: { name: 'Sư thầy', note: 'Trụ trì chùa Hoa Phượng', look: 'monk' },
   hieutruong: { name: 'Thầy hiệu trưởng', note: 'Hiệu trưởng trường THPT Hoa Phượng', look: 'principal' },
   thitruong: { name: 'Ông thị trưởng', note: 'Thị trưởng thành phố Hoa Phượng', look: 'mayor' },
@@ -529,7 +531,7 @@ const FEST_FOOD = [
   { id: 'keobong', name: 'Kẹo bông', price: 8000, stam: 6, desc: 'Ngọt lịm, tan ngay trong miệng' },
 ];
 // Hội gói bánh chưng (chiều ngày học cuối cùng của mùa đông): time: giây chơi mini-game thi · npc: [mã, tên, số bánh trung bình gói được] của 3 đối thủ
-const BANHCHUNG = { time: 60, npc: [['m1', 'Minh (10A1)', 4.6], ['x1', 'Tú (10A2)', 5.4], ['x3', 'Bảo (10A3)', 6.2]], end: 1020 };
+const BANHCHUNG = { time: 60, npc: [['m1', 'Quang (10A1)', 4.6], ['x1', 'Tú (10A2)', 5.4], ['x3', 'Bảo (10A3)', 6.2]], end: 1020 };
 // Sự kiện của trường thay cho một số tiết: các tiết đó nghỉ (không tính vắng), thời khoá biểu, bảng tin, soạn cặp tự cập nhật
 // when(năm) → ngày diễn ra · periods: các tiết bị thay · from/to: giờ sự kiện
 const SCHOOL_EVENTS = [
@@ -564,11 +566,11 @@ const HK_CLASSES = {
   a4: { suf: 'A4', str: 1, col: '#c9962a', looks: ['x4', 'c3', 'c6', 'c5', 'c2', 'c7', 'c4', 'c1'] },
 };
 const HK_ORDER = ['a4', 'a3', 'a2'];        // đối thủ lần lượt của lớp mình: dễ → khó
-const HK_MATES = { khoa: 'Khoa', vy: 'Vy', dat: 'Đạt', ngan: 'Ngân', c1: 'Minh', c3: 'Hà', c4: 'Thảo', c5: 'Tuấn', c2: 'Mai', c6: 'Hương', c7: 'Long', c8: 'Trang' };
+const HK_MATES = { get khoa() { return FRIENDS.khoa.name; }, vy: 'Vy', dat: 'Thái', ngan: 'Ngân', c1: 'Quang', c3: 'Đức', c4: 'Minh Anh', c5: 'Vũ', c2: 'Thảo', c6: 'Hoa', c7: 'Nam Anh', c8: 'Phương', c9: 'Hiền', get c10() { return isGirlMain() ? 'Đạt' : 'Duyên'; } };
 const HK_SPORTS = {
   keoco: { name: 'Kéo co', ref: 'manh', team: ['khoa', 'dat', 'c5', 'c7', 'c3'], rule: 'Hai lớp cầm dây, dải lụa đỏ ở giữa. <b>Bấm Space thật nhanh</b> (hoặc nút BẤM) để cả đội kéo về phía mình — kéo dải lụa qua vạch bên mình là thắng. Điểm Thể thao càng cao kéo càng khoẻ.' },
-  cuopco: { name: 'Cướp cờ', ref: 'quan', team: ['vy', 'ngan', 'khoa', 'dat'], rule: 'Hai đội đứng hai hàng đối diện, mỗi người một số, lá cờ ở giữa. Trọng tài gọi số nào thì hai bạn số đó chạy ra cướp cờ mang về hàng mình. Cầm cờ mà bị đối phương chạm vào là mất điểm. <b>Chỉ khi gọi đúng số của mình</b> mới được chạy (W A S D / phím mũi tên); chạy ra sai lượt hoặc bị gọi "về" mà không chạy về vạch là phạm quy (trọng tài dừng trận nhắc nhở) — 3 lần phạm quy thì lớp mình bị trừ 1 điểm. Mỗi lượt trọng tài chỉ gọi một số; đội nào được 3 điểm trước là thắng.' },
-  tungcon: { name: 'Tung còn', ref: 'lan', team: ['vy', 'ngan', 'c3'], rule: 'Mỗi lớp một cột còn, trên đỉnh có vòng tròn. <b>Nhấn giữ chuột rồi kéo</b> để vẽ hướng và lực ném, thả ra để tung. Để ý gió thổi làm còn bay lệch! Ngày may mắn thì còn dễ lọt vòng hơn. Hết giờ thì không ném được nữa; lớp nào tung lọt nhiều hơn thì thắng, hoà thì hiệp phụ 15 giây, vẫn hoà thì bốc thăm.' },
+  cuopco: { name: 'Cướp cờ', ref: 'quan', team: ['vy', 'c1', 'khoa', 'dat'], rule: 'Hai đội đứng hai hàng đối diện, mỗi người một số, lá cờ ở giữa. Trọng tài gọi số nào thì hai bạn số đó chạy ra cướp cờ mang về hàng mình. Cầm cờ mà bị đối phương chạm vào là mất điểm. <b>Chỉ khi gọi đúng số của mình</b> mới được chạy (W A S D / phím mũi tên); chạy ra sai lượt hoặc bị gọi "về" mà không chạy về vạch là phạm quy (trọng tài dừng trận nhắc nhở) — 3 lần phạm quy thì lớp mình bị trừ 1 điểm. Mỗi lượt trọng tài chỉ gọi một số; đội nào được 3 điểm trước là thắng.' },
+  tungcon: { name: 'Tung còn', ref: 'lan', team: ['vy', 'c6', 'c3'], rule: 'Mỗi lớp một cột còn, trên đỉnh có vòng tròn. <b>Nhấn giữ chuột rồi kéo</b> để vẽ hướng và lực ném, thả ra để tung. Để ý gió thổi làm còn bay lệch! Ngày may mắn thì còn dễ lọt vòng hơn. Hết giờ thì không ném được nữa; lớp nào tung lọt nhiều hơn thì thắng, hoà thì hiệp phụ 15 giây, vẫn hoà thì bốc thăm.' },
   baobo: { name: 'Nhảy bao bố', ref: 'tung', team: ['khoa', 'vy', 'c5'], rule: 'Cả 4 lớp cùng nhảy tiếp sức một vòng quanh sân trường. Bạn điều khiển lần lượt cả 4 bạn trong đội lớp mình: <b>bấm Space thật nhanh</b> để nhảy, tới chỗ bạn kế tiếp là đổi người. Lớp nào về đích trước xếp trên.' },
 };
 const HK_FOOD = [{ id: 'nuocmia', name: 'Nước mía', price: 10000 }, { id: 'kem', name: 'Kem ốc quế', price: 15000 }, { id: 'xoi', name: 'Xôi gấc', price: 15000 }, { id: 'banhmi', name: 'Bánh mì', price: 12000 }, { id: 'xien', name: 'Xiên que', price: 10000 }];

@@ -703,8 +703,8 @@ const _faces = {};
 function faceOf(look, outfit) {
   const k = look + ':' + (outfit || '');
   if (_faces[k]) return _faces[k];
-  const f = charSheet(look, outfit)[0][0], c = mk(18, 19), x = cx(c);
-  x.drawImage(f, 0, 0, 18, 19, 0, 0, 18, 19);
+  const f = charSheet(look, outfit)[0][0], [sx, sy, sw, sh] = faceRect(f), c = f.hi ? mk(sw, sh) : mk(18, 19), x = cx(c);
+  x.drawImage(f, sx, sy, sw, sh, 0, 0, c.width, c.height);
   return (_faces[k] = c.toDataURL());
 }
 
