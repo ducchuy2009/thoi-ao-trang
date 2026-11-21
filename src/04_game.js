@@ -58,7 +58,9 @@ function migrate() {
   def('tet', {});                                      // Tết: năm → { lixi, chua, f: {bạn đã chúc}, t: {thầy cô đã chúc} }
   def('eve', null);                                    // lời rủ đón giao thừa: { day, who }
   def('bc', {});                                       // hội thi gói bánh chưng: năm → { reg, done, won }
-  if (G.time < CFG.DAY_START) G.time = CFG.DAY_START;   // bản lưu cũ (ngày bắt đầu lúc 05:00): 06:00 mới thức dậy
+  if (G.time < CFG.DAY_START) G.time = CFG.DAY_START;
+  def('pm', {}); def('pmPen', null); def('hsg', {});                    // họp phụ huynh: kỳ → { done, absent, rank } · hạnh kiểm bị trừ do vắng họp · đội tuyển HSG theo năm
+  for (const t of G.tests || []) if (!t.q && !t.done && isPmDay(t.day)) { let d = t.day - 1; while (d > 0 && !isSchoolDay(d)) d--; t.day = d; }   // bản lưu cũ: bài kiểm tra rơi vào ngày họp thì dời lên hôm trước   // bản lưu cũ (ngày bắt đầu lúc 05:00): 06:00 mới thức dậy
   def('fish', {});                                     // cá câu được: id → số con
   for (const k in G.bag) if (k.startsWith('vo_')) delete G.bag[k];   // đã bỏ cơ chế soạn vở
   for (const f in FRIENDS) if (G.friends[f] === undefined) G.friends[f] = 0;
@@ -127,6 +129,7 @@ function periodLabel() {
   return 'Ra chơi';
 }
 function phaseLabel() {
+  if (G && isPmDay(G.day)) return 'Họp phụ huynh · Nghỉ học';
   if (!schoolToday()) { const h = holidayOf(G.day); return h ? 'Nghỉ lễ · ' + h.name : (SEASONS[today().season].school ? 'Cuối tuần · Tự do' : 'Nghỉ hè · Tự do'); }
   if (G.time >= schoolEndT()) return halfDay(G.day) ? 'Giai đoạn 3 · Chiều nghỉ học' : 'Giai đoạn 3 · Sau giờ học';
   if (G.atSchool || G.time >= CFG.GATE_TIME) return 'Giai đoạn 2 · Giờ đi học';
@@ -267,6 +270,7 @@ function beginDay(first) {
   socialNewDay();
   taskNewDay();                                                        // bảng thông báo: gỡ việc hết hạn, dán việc mới
   checkBondBadges();
+  pmNewDay();                                                           // vắng họp phụ huynh kỳ trước: trừ hạnh kiểm ngày học đầu tiên của kỳ này
   for (const n of cutPeriods(G.day)) G.daily.done[n] = true;          // tiết bị thay bằng sự kiện: nghỉ, không tính vắng
   if (c.dow === 0 && !first) { const a = parentInfo(G.parent).allowance; addMoney(a, true); if (RT.bill) RT.bill.got.push(['Mẹ cho tiền tiêu vặt đầu tuần', a]); else RT.morning.push(`Mẹ cho tiền tiêu vặt đầu tuần: ${fmtMoney(a)}.`); }
   save();
@@ -374,6 +378,7 @@ function morningBrief() {
   RT.morning = [];
   for (const f in FRIENDS) if (isDate(FRIENDS[f].bday, G.day)) UI.toast(`Hôm nay sinh nhật ${FRIENDS[f].name}! Gặp bạn ấy để chúc mừng, tặng quà nhé.`, 'good');
   for (const w in PARENT_BDAY) if (isDate(PARENT_BDAY[w], G.day)) UI.toast(`Hôm nay sinh nhật ${PNAME[w].toLowerCase()}! Nhớ chúc mừng ${PNAME[w].toLowerCase()} nhé.`, 'good');
+  if (isPmDay(G.day)) UI.toast(`Hôm nay họp phụ huynh cuối ${semOf(G.day).name.toLowerCase()} — cả ngày nghỉ học. ${PNAME[pmParent(G.day)]} lên lớp 10A1 lúc 08:00–11:00, bạn phải có mặt ở trường cùng ${PNAME[pmParent(G.day)].toLowerCase()}! Vắng mặt sẽ bị trừ nặng hạnh kiểm.`, 'bad');
   if (isHkDay(G.day)) UI.toast(`Hôm nay là Hội khoẻ Phù Đổng! Mặc đồng phục tới trường, có mặt ${fmtTime(HKPD.from)}–${fmtTime(HKPD.until)} để thi cùng lớp — không tới là lớp bị xử thua.`, 'good');
   const fe = FESTIVALS.find(f => isDate([f.season, f.day], G.day)); if (fe) UI.toast(`Hôm nay có lễ hội: ${fe.name}`, 'good');
   if (ttMatOpen(G.day) && !isTTDay(G.day) && ttDayOf(cal(G.day).year) - G.day === TT.matDays) UI.toast('Còn một tuần nữa là Trung thu! Tạp hoá Cô Ba và căn tin trường bắt đầu bán nan tre, giấy bóng kính, nến để làm đèn ông sao.', 'info');
@@ -532,13 +537,13 @@ function reportTable(rows, extraCols) {
 }
 async function showReport(r) {
   if (r.type === 'sem') {
-    const rep = semReport(r.year + '-' + r.sem), hk = conductAvg(r.year, r.sem);
+    const rep0 = semReport(r.year + '-' + r.sem), hk = conductAvg(r.year, r.sem), rep = Object.assign({}, rep0, { hl: capByConduct(rep0.hl, hk) });   // hạnh kiểm kỳ giới hạn học lực
     const react = { 'Giỏi': [PARENT.semGioi, 'Bố mẹ rất tự hào về kết quả học kỳ này.'], 'Khá': [PARENT.semKha, 'Bố mẹ hài lòng với kết quả học kỳ này.'], 'Yếu': [PARENT.semYeu, 'Bố mẹ rất buồn vì kết quả học kỳ này.'] }[rep.hl];
     if (react) addParent(react[0], '', true);
-    const html = reportTable(rep.rows) + `<div class="sum"><span>Điểm tổng kết <b>${fmtAvg(rep.avg)}</b></span><span>Học lực <b class="tag">${rep.hl}</b></span><span>Hạnh kiểm <b class="tag">${hanhKiem(hk)}</b> (${fmtAvg(hk)})</span></div>` + (react ? `<p>${react[1]} (thiện cảm ${react[0] > 0 ? '+' : '−'}${Math.abs(react[0])})</p>` : '');
+    const html = reportTable(rep.rows) + `<div class="sum"><span>Điểm tổng kết <b>${fmtAvg(rep.avg)}</b></span><span>Học lực <b class="tag">${rep.hl}</b>${rep.hl !== rep0.hl ? ` <small>(theo điểm là ${rep0.hl} — bị hạ vì hạnh kiểm kỳ ${fmtAvg(hk)})</small>` : ''}</span><span>Hạnh kiểm <b class="tag">${hanhKiem(hk)}</b> (${fmtAvg(hk)})</span></div>` + (react ? `<p>${react[1]} (thiện cảm ${react[0] > 0 ? '+' : '−'}${Math.abs(react[0])})</p>` : '');
     await UI.ask(`Tổng kết ${SEMESTERS[r.sem - 1].name} · Lớp ${G.grade}`, html, ['Tiếp tục']);
   } else {
-    const rep = yearReport(r.year), hk = conductAvg(r.year, 0), hkx = hanhKiem(hk);
+    const rep0 = yearReport(r.year), hk = conductAvg(r.year, 0), hkx = hanhKiem(hk), rep = Object.assign({}, rep0, { hl: capByConduct(rep0.hl, hk) });
     const pass = rep.hl !== 'Yếu' && rep.hl !== '–' && hkx !== 'Yếu';
     let title = '';
     if (rep.hl === 'Giỏi' && hkx === 'Tốt') title = 'Học sinh Giỏi';
@@ -934,6 +939,7 @@ ACT.center = async () => {
 /* ---------- việc cần làm (gợi ý) ---------- */
 function todoList() {
   const t = [];
+  if (isPmDay(G.day)) { const S = pmState(G.day); if (!S.absent) t.push([!!S.done, `Họp phụ huynh 08:00–11:00 — tới trường cùng ${PNAME[pmParent(G.day)].toLowerCase()}${S.done ? ` (hạng ${S.rank})` : ''}`]); }
   if (isHkDay(G.day) && !hkY().done) t.push([false, RT.hkFest ? `Hội khoẻ Phù Đổng: thi xong ${4 - hkLeft().length}/4 môn${hkLeft().length ? ` (còn ${hkLeft().map(k => HK_SPORTS[k].name.toLowerCase()).join(', ')})` : ' — gặp thầy hiệu trưởng dự lễ trao giải'}` : `Đến trường dự Hội khoẻ Phù Đổng: có mặt ${fmtTime(HKPD.from)}–${fmtTime(HKPD.until)}`]);
   for (const e of schoolEventsOn(G.day)) if (G.time < e.to && !(e.id === 'banhchung' && bcY().done)) t.push([false, RT.bcFest ? `${e.name} — gặp thầy hiệu trưởng để thi gói bánh` : `${e.name} ${fmtTime(e.from)}–${fmtTime(e.to)} (nghỉ tiết ${e.periods[0]}–${e.periods[e.periods.length - 1]})`]);
   if (eveOk()) t.push([RT.fest, RT.fest ? 'Đang dự hội đón giao thừa' : `Lễ hội đón giao thừa trên núi sau trường: ${fmtTime(EVE.from)}–24:00`]);

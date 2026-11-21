@@ -456,3 +456,14 @@ b.bad{color:#d9534f}
 .hktab tr.me td{background:#eaf6e2;font-weight:800}
 .hktab .md{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);margin-right:4px;vertical-align:-1px}
 .hktab .md.g{background:#ffd23a}.hktab .md.s{background:#d6dbe3}.hktab .md.b{background:#c8834a}
+
+/* chọn đội hình ra sân */
+.lineup-bar{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.lineup-bar span{border:2px solid var(--ink);border-radius:999px;padding:1px 10px;font-weight:700;font-size:13px;background:#fff}
+.lineup-bar span.ok{background:#d8f0dc}.lineup-bar span.bad{background:#ffd9d4;color:#a8322a}
+.lineup-h{margin:10px 0 4px;font-size:14px}.lineup-h small{font-weight:600}
+
+/* bảng xếp hạng họp phụ huynh */
+.pm-rank{max-height:52vh;overflow-y:auto;border:2px solid var(--ink);border-radius:10px}
+.pm-rank table{margin:0}
+.pm-rank tr.me td{background:#ffe9a8;font-weight:800}

@@ -193,15 +193,47 @@ function needSquadMsg() {
   if (!G.cardTut) return UI.say('Đấu thẻ cầu thủ', 'Bạn chưa biết luật chơi mới và chưa có đội hình.<p class="dim">Giờ ra chơi ra sân trường, tìm <b>tụ đấu thẻ</b> có anh Phong (11A1) — anh ấy sẽ hướng dẫn và tặng bạn một bộ 11 thẻ.</p>');
   return UI.say('Đấu thẻ cầu thủ', `Đội hình chưa hợp lệ: ${squadIssues(G.squad || []).join('; ') || 'chưa xếp đội hình'}.<p class="dim">Vào Menu → Thẻ cầu thủ → Đội hình để xếp (có nút xếp tự động).</p>`);
 }
+// Chọn đội hình ra sân trước mỗi trận (bộ sưu tập hơn 11 lá): đúng 11 người, đủ 4 vị trí, tổng lương không vượt trần.
+// Trả về danh sách 11 thẻ (đồng thời lưu làm đội hình mặc định) hoặc null nếu bỏ không đấu.
+function pickLineup(oppName) {
+  const pool = CARDS.filter(c => G.cards[c.id] > 0);
+  if (pool.length <= SQUAD.size) { if (squadOk()) return Promise.resolve(G.squad.slice()); const a = autoSquad(pool); if (a) { G.squad = a; return Promise.resolve(a.slice()); } needSquadMsg(); return Promise.resolve(null); }
+  let sel = (squadOk() ? G.squad : autoSquad(pool) || (G.squad || []).filter(id => G.cards[id] > 0)).slice();
+  const POS = [['tm', 'Thủ môn', 'đúng 1'], ['hv', 'Hậu vệ', 'ít nhất 2'], ['tv', 'Tiền vệ', 'ít nhất 2'], ['td', 'Tiền đạo', 'ít nhất 1']];
+  const render = () => {
+    const cs = cardsOf(sel), is = squadIssues(sel), sal = squadSal(sel), cnt = p => cs.filter(c => c.pos === p).length;
+    let h = `<p>Gặp <b>${oppName}</b>. Chọn <b>${SQUAD.size}</b> cầu thủ ra sân từ ${pool.length} lá trong bộ sưu tập.</p>`;
+    h += `<div class="lineup-bar"><span class="${sal > SQUAD.cap ? 'bad' : ''}">💰 Lương <b>${sal}/${SQUAD.cap}</b></span><span>👥 <b>${cs.length}/${SQUAD.size}</b></span>${POS.map(([k, n, need]) => { const v = cnt(k), ok = k === 'tm' ? v === 1 : v >= SQUAD.need[k][0]; return `<span class="${ok ? 'ok' : 'bad'}" title="${n}: ${need}">${POS_SHORT[k]} <b>${v}</b></span>`; }).join('')}</div>`;
+    h += is.length ? `<p class="warnbox">${is.join(' · ')}</p>` : '<p class="okbox">Đội hình hợp lệ — bấm “Ra sân”!</p>';
+    h += `<p class="dim">Màu áo trong đội: ${synergyText(cs)}</p>`;
+    h += `<div class="btns"><button class="btn primary" data-act="go">Ra sân</button><button class="btn" data-act="auto">Xếp tự động</button><button class="btn ghost" data-act="clr">Bỏ chọn hết</button><button class="btn ghost" data-close="1">Thôi, không đấu</button></div>`;
+    for (const [k, n, need] of POS) {
+      const list = pool.filter(c => c.pos === k).sort((a, b) => b.r - a.r || cardPower(b) - cardPower(a)); if (!list.length) continue;
+      h += `<h4 class="lineup-h">${n} <small>(${need})</small></h4><div class="cts">${list.map(c => ctile(c, { act: 'lp', on: sel.includes(c.id) })).join('')}</div>`;
+    }
+    return h;
+  };
+  return new Promise(res => {
+    UI.panel('Chọn đội hình ra sân', render, {
+      lp: d => { const i = sel.indexOf(d.id); if (i >= 0) sel.splice(i, 1); else if (sel.length < SQUAD.size) sel.push(d.id); else UI.toast(`Đủ ${SQUAD.size} người rồi — bỏ bớt một người trước.`); },
+      auto: () => { const a = autoSquad(pool); if (a) sel = a; else UI.toast('Không xếp được đội hình hợp lệ từ bộ thẻ này.', 'bad'); },
+      clr: () => { sel = []; },
+      go: () => { const is = squadIssues(sel); if (is.length) return UI.toast(is[0], 'bad'); G.squad = sel.slice(); UI.close('go'); },
+    }, true);
+    UI._res = v => res(v === 'go' ? sel.slice() : null); UI._esc = -1;
+  });
+}
 // Giữ tên cũ để các chỗ gọi (bạn bè, bạn cùng lớp, dưới gầm bàn, giải đấu giờ nghỉ trưa) dùng được luật mới
 async function cardDuel(sid, fid, name, tier, o) {
   o = o || {};
   if (RT.lock) return null;
   if (fid && grudge(fid)) { UI.say(name, '“Tớ không chơi với đứa mách lẻo.”'); return null; }
   if (!o.free && G.daily.duel[sid]) { UI.toast(`Hôm nay ${name} đấu thẻ với bạn rồi.`); return null; }
-  if (!squadOk()) { needSquadMsg(); return null; }
+  if (!G.cardTut) { needSquadMsg(); return null; }
+  const mine = UI._mgBot ? (squadOk() ? G.squad : autoSquad(CARDS.filter(c => G.cards[c.id] > 0))) : await pickLineup(name);   // chọn đội hình ra sân
+  if (!mine) { if (UI._mgBot) needSquadMsg(); return null; }
   const D = oppDeck(sid, tier || 'lop'), look = fid || o.look || 'c1';
-  const r = await cardMatch({ name, look, outfit: fid ? friendOutfit(fid) : o.outfit, deck: D.deck, album: D.album, tier: tier || 'lop', mine: G.squad, onTake: id => oppLost(sid).push(id) });
+  const r = await cardMatch({ name, look, outfit: fid ? friendOutfit(fid) : o.outfit, deck: D.deck, album: D.album, tier: tier || 'lop', mine, onTake: id => oppLost(sid).push(id) });
   if (r.res === null) return null;                                  // bỏ ngang: không tính lượt đấu hôm nay
   if (!o.free) G.daily.duel[sid] = true;
   if (fid) addFriend(fid, 2);

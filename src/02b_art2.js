@@ -680,6 +680,7 @@ function itemIcon(id) {
   else if (id === 'banhdeo') { ell(x, '#e9e4d6', 8, 9, 6.5, 5.5); ell(x, '#fbf8ef', 8, 8, 5.5, 4.5); R(x, '#d9cfb8', 5, 8, 6, 1); R(x, '#d9cfb8', 7, 6, 2, 5); ell(x, '#9fd6a4', 11, 5, 1.5, 1); }
   else if (id === 'buoi') { ell(x, '#7fbf5a', 8, 9, 6.5, 6); ell(x, '#f6c4c0', 8, 9, 5, 4.6); for (const a of [5, 8, 11]) R(x, '#f9dcd8', a, 6, 1, 6); R(x, '#5a8f3a', 7, 2, 2, 2); }
   else if (id === 'anhhkpd') { R(x, '#fffdf6', 1, 2, 14, 12); R(x, '#8fd0f0', 2, 3, 12, 5); R(x, '#e8c47a', 2, 8, 12, 3); for (const a of [3, 6, 9, 12]) { R(x, '#f8d0a8', a, 7, 2, 2); R(x, '#2c2733', a, 6, 2, 1); R(x, '#fbfdff', a, 9, 2, 2); } R(x, '#ffd23a', 7, 9, 2, 2); R(x, '#8b8f9c', 2, 12, 12, 1); }
+  else if (id === 'sc_hopph') { R(x, '#f4e9c8', 0, 0, 16, 16); R(x, '#2f6b4f', 2, 1, 12, 5); R(x, '#dfeee6', 4, 3, 8, 1); for (const a of [2, 7, 12]) { R(x, '#8a5a3a', a, 10, 4, 2); R(x, '#f8d0a8', a + 1, 7, 2, 2); R(x, '#4a3328', a + 1, 6, 2, 1); } R(x, '#9a72d6', 7, 12, 2, 3); }
   else if (id === 'sc_hkpd') { R(x, '#8fd0f0', 0, 0, 16, 9); R(x, '#5fae4a', 0, 9, 16, 7); R(x, '#c9a467', 1, 8, 14, 1); R(x, '#e2574c', 7, 6, 2, 3); for (const a of [2, 4]) { R(x, '#3b82c4', a, 10, 2, 4); R(x, '#f8d0a8', a, 8, 2, 2); } for (const a of [11, 13]) { R(x, '#e2574c', a, 10, 2, 4); R(x, '#f8d0a8', a, 8, 2, 2); } R(x, '#ffd23a', 6, 1, 4, 3); R(x, '#c9962a', 7, 4, 2, 1); }
   else if (id === 'anhgiaothua' || id === 'anhtrungthu') { R(x, '#fffdf6', 1, 2, 14, 12); R(x, id === 'anhgiaothua' ? '#24406b' : '#2f3f6b', 2, 3, 12, 8); R(x, id === 'anhgiaothua' ? '#ff5fa8' : '#ffe9a0', 10, 4, 2, 2); for (const a of [4, 7, 10]) { R(x, '#f8d0a8', a, 8, 2, 2); R(x, '#2c2733', a, 7, 2, 1); } R(x, '#8b8f9c', 2, 12, 12, 1); }
   else if (id.startsWith('b_')) {
@@ -692,6 +693,8 @@ function itemIcon(id) {
     else if (k === 'capybara') { ell(x, '#8a5a3a', 8, 11, 3.8, 3); R(x, '#8a5a3a', 5, 7, 2, 2); R(x, '#8a5a3a', 10, 7, 2, 2); R(x, '#a9703f', 6, 10, 5, 2); R(x, '#2a2136', 6, 10, 1, 1); R(x, '#2a2136', 10, 10, 1, 1); R(x, '#5b3d27', 7, 12, 3, 1); R(x, '#f6a6b2', 11, 12, 1, 1); }
     else if (k === 'connoan') { R(x, '#fffaf0', 4, 9, 9, 5); R(x, '#d9ccb2', 8, 9, 1, 5); R(x, '#e2574c', 5, 7, 2, 2); R(x, '#e2574c', 8, 7, 2, 2); R(x, '#e2574c', 6, 8, 3, 2); R(x, '#e2574c', 7, 9, 1, 1); }
     else if (k === 'phudong') { R(x, '#fff6c8', 5, 7, 7, 4); R(x, '#fff6c8', 6, 11, 5, 1); R(x, '#fff6c8', 8, 12, 1, 2); R(x, '#fff6c8', 6, 14, 5, 1); R(x, '#fff6c8', 4, 8, 1, 2); R(x, '#fff6c8', 12, 8, 1, 2); R(x, '#e2574c', 7, 8, 3, 2); }
+    else if (k === 'hocba') { R(x, '#3b6fb6', 4, 8, 9, 6); R(x, '#fbf7ee', 5, 9, 3, 4); R(x, '#fbf7ee', 9, 9, 3, 4); R(x, '#2a2136', 8, 8, 1, 6); pat(x, STAR7, 5, 4, '#e2574c', '#e2574c'); }   // sách mở + ngôi sao
+    else if (k === 'hsg') { R(x, '#2a2136', 4, 7, 9, 2); R(x, '#2a2136', 6, 9, 5, 1); R(x, '#2a2136', 8, 10, 1, 2); R(x, '#e2574c', 12, 8, 1, 4); R(x, '#fbf7ee', 6, 12, 5, 3); R(x, '#e2574c', 7, 13, 3, 1); }   // mũ tốt nghiệp + giấy khen
     else if (k === 'keoco') { R(x, '#8a5a3a', 4, 10, 9, 1); R(x, '#a9703f', 4, 11, 9, 1); R(x, '#d9534f', 8, 8, 1, 5); R(x, '#2a2136', 4, 8, 1, 2); R(x, '#2a2136', 12, 8, 1, 2); }
   }
   else { R(x, '#c9b58a', 3, 3, 10, 10); }

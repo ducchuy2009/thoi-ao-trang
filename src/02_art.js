@@ -81,6 +81,10 @@ const LOOKS = {
   c6: { ...UNI, hair: '#4a3328', style: 'long', skirt: true, band: '#e98fa5', earring: '#d6dbe3' },
   c7: { ...UNI, hair: '#2c2733', style: 'curly', skin: '#e3ae80', eye: 'smile' },
   c8: { ...UNI, hair: '#3a2a2a', style: 'pony', skirt: true, band: '#8fd067', glasses: 'round', glassCol: '#b23b3b' },
+  // dàn nhân vật mới (kiểu vẽ cũ): Hiền (c9), Duyên (bạn cùng bàn của nhân vật chính nữ), anh Hoàng khoá trên
+  c9: { ...UNI, hair: '#1c1a22', style: 'long', skirt: true, band: '#d8403a', eye: 'round' },
+  duyen: { ...UNI, hair: '#5a3a26', style: 'twin', skirt: true, band: '#f07aa8', clip: '#f07aa8', eye: 'big', freckles: true },
+  hoang: { ...UNI, hair: '#d0632a', style: 'spiky', badge: '#d9534f', skin: '#d9a070', eye: 'narrow' },
 };
 // Trang phục thay theo tiết học
 const OUTFITS = {
@@ -242,12 +246,14 @@ function faceRect(f) {
   const sz = Math.round((f.height - y0) * 0.56), cxm = Math.round((x0 + x1) / 2);
   return (f._face = [clamp(cxm - Math.round(sz / 2), 0, f.width - sz), y0, sz, sz]);
 }
-// Mọi nhân vật vẽ bằng bộ chibi (02c_chibi.js) theo phong cách bản thảo; drawCharFrame bên dưới là kiểu cũ, chỉ còn để tham khảo
+// Mã look → bộ ngoại hình: bạn cùng bàn ('khoa') là Đạt nếu nhân vật chính là nam, Duyên nếu là nữ; 'c10' là người còn lại học cùng lớp
+const isGirlMain = () => typeof G !== 'undefined' && !!G && G.gender === 'girl';
+const LOOK_OF = { khoa: () => (isGirlMain() ? 'duyen' : 'khoa'), c10: () => (isGirlMain() ? 'khoa' : 'duyen') };
+const artOf = key => { const a = LOOK_OF[key]; return a ? a() : key; };
 function charSheet(key, outfit) {
-  const w = isWinter(), chibi = typeof chibiSheet === 'function';         // trang xem thử riêng (alt_art.html) chỉ nạp file này: dùng kiểu vẽ cũ
-  const id = (chibi ? '@' + artOf(key) : key) + (outfit ? ':' + outfit : '') + (w ? ':w' : '');
+  key = artOf(key);
+  const w = isWinter(), id = key + (outfit ? ':' + outfit : '') + (w ? ':w' : '');
   if (SHEETS[id]) return SHEETS[id];
-  if (chibi) return (SHEETS[id] = chibiSheet(key, outfit));
   let L = LOOKS[key] || LOOKS.boy;
   if (outfit && OUTFITS[outfit]) L = { ...L, ...OUTFITS[outfit] };
   if (w) L = winterize(L, outfit);

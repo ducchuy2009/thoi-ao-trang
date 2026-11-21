@@ -582,6 +582,8 @@ const MEMO_BADGES = {
   keoco: { name: 'Lực sĩ kéo co', icon: 'b_keoco', desc: 'Kéo đội bạn qua vạch trong hội Trung thu.', hint: 'Thắng kéo co ở hội Trung thu' },
   capybara: { name: 'Capybara', icon: 'b_capybara', desc: 'Hiền lành, dễ mến như chú capybara — chơi thân hết mức với tất cả bạn bè.', hint: 'Thân thiết tối đa với mọi người bạn' },
   connoan: { name: 'Con Ngoan Trò Giỏi', icon: 'b_connoan', desc: 'Được bố mẹ và tất cả thầy cô thương quý hết mức.', hint: 'Thiện cảm tối đa với bố mẹ và mọi thầy cô' },
+  hocba: { name: 'Học bá', icon: 'b_hocba', desc: 'Đứng hạng nhất lớp trong buổi họp phụ huynh cuối học kỳ.', hint: 'Đứng đầu lớp khi họp phụ huynh cuối kỳ' },
+  hsg: { name: 'Đội tuyển học sinh giỏi', icon: 'b_hsg', desc: 'Lọt tốp 3 của lớp cuối năm học, được chọn vào đội tuyển chuẩn bị thi học sinh giỏi quốc gia.', hint: 'Tốp 3 của lớp cuối học kỳ 2' },
   phudong: { name: 'Phù Đổng', icon: 'b_phudong', desc: 'Cùng cả lớp giành cúp tập thể ở Hội khoẻ Phù Đổng.', hint: 'Giành cúp tập thể ở Hội khoẻ Phù Đổng' },
 };
 const MEMO_SCENES = {
@@ -589,6 +591,7 @@ const MEMO_SCENES = {
   chuatet: { name: 'Đi chùa đầu năm', icon: 'sc_chua', desc: 'Sáng mùng 1 cùng bố mẹ thắp nhang cầu may.' },
   tetvisit: { name: 'Đi chúc Tết', icon: 'sc_tetvisit', desc: 'Đi chúc Tết bạn bè, thầy cô và nhận lì xì.' },
   trungthu: { name: 'Đêm hội Trung thu', icon: 'sc_trungthu', desc: 'Xem múa lân, rước đèn ông sao quanh phố Hoa Phượng dưới trăng rằm.' },
+  hopph: { name: 'Họp phụ huynh', icon: 'sc_hopph', desc: 'Đứng ngoài cửa lớp nghe cô chủ nhiệm đọc bảng xếp hạng cuối học kỳ.' },
   hkpd: { name: 'Hội khoẻ Phù Đổng', icon: 'sc_hkpd', desc: 'Cả lớp thi kéo co, cướp cờ, tung còn, nhảy bao bố với các lớp khác trong trường.' },
   banhchung: { name: 'Hội gói bánh chưng', icon: 'sc_banhchung', desc: 'Cả trường nghỉ học buổi chiều, ngồi quanh mâm lá dong gói bánh đón Tết.' },
   xinxam: { name: 'Xin xăm ở chùa', icon: 'sc_xinxam', desc: 'Lắc ống xăm, hồi hộp chờ thẻ rơi ra.' },
@@ -689,7 +692,17 @@ function cal(day) {
   return { day, year: Math.floor(day / YEAR_DAYS), doy, season, dos: doy % CFG.DAYS_PER_SEASON + 1, dow: ((day % 7) + 7) % 7, sName: SEASONS[season].name };
 }
 function holidayOf(day) { const c = cal(day); return HOLIDAYS.find(h => h.season === c.season && h.day === c.dos) || null; }
-function isSchoolDay(day) { const c = cal(day); return SEASONS[c.season].school && c.dow < 5 && !holidayOf(day); }
+function isSchoolDayRaw(day) { const c = cal(day); return SEASONS[c.season].school && c.dow < 5 && !holidayOf(day); }
+// Ngày họp phụ huynh = ngày học cuối cùng của mỗi học kỳ (sau ngày thi cuối): cả ngày nghỉ học (04n_meeting.js)
+const _pmDays = {};
+function pmDayOf(year, semId) {
+  const k = year + '-' + semId; if (_pmDays[k] !== undefined) return _pmDays[k];
+  const s = SEMESTERS.find(q => q.id === semId), base = year * YEAR_DAYS;
+  let d = -1; for (let i = s.to; i >= s.from; i--) if (isSchoolDayRaw(base + i)) { d = base + i; break; }
+  return (_pmDays[k] = d);
+}
+function isPmDay(day) { const s = semOf(day); return !!s && pmDayOf(cal(day).year, s.id) === day; }
+function isSchoolDay(day) { return isSchoolDayRaw(day) && !isPmDay(day); }
 function semOf(day) { const d = cal(day).doy; return SEMESTERS.find(s => d >= s.from && d <= s.to) || null; }
 function semKey(day) { const s = semOf(day); return s ? cal(day).year + '-' + s.id : null; }
 function dateLabel(day) { const c = cal(day); return `${DOW[c.dow]}, ${c.dos} ${c.sName}`; }
@@ -711,6 +724,13 @@ function hocLuc(avg, toan, van) {
   if (avg >= 6 && mx >= 6) return 'Khá';
   if (avg >= 4 && mx >= 4) return 'Trung bình';
   return 'Yếu';
+}
+// Hạnh kiểm giới hạn học lực: TB hạnh kiểm của kỳ dưới 8 thì không được Giỏi, dưới 6 không được Khá, dưới 5 không được Trung bình
+const HL_ORDER = ['Yếu', 'Trung bình', 'Khá', 'Giỏi'];
+function capByConduct(hl, hk) {
+  if (!HL_ORDER.includes(hl) || hk === null || hk === undefined || isNaN(hk)) return hl;
+  const cap = hk >= 8 ? 3 : hk >= 6 ? 2 : hk >= 5 ? 1 : 0;
+  return HL_ORDER.indexOf(hl) > cap ? HL_ORDER[cap] : hl;
 }
 function hanhKiem(p) {
   if (p === null || p === undefined) return '–';

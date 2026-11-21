@@ -309,19 +309,11 @@ function drawChar(look, outfit, x, y, dir, walkT, oy) {
   drawSpr(SHADOW, x - 7, y - 3); drawSpr(fr, x - 9, y - 23 + bob + (oy || 0));
 }
 // Người ngồi trên xe (xe đạp, xe đạp điện, xe máy): vẽ xe rồi vẽ người lệch lên trên
-// Người lái xe: đạp xe thì dáng đạp (chân đạp khi xe chạy), xe máy thì dáng ngồi, tay cầm lái; người ngồi sau xe dáng ngồi
-// RIDE_HIP: vị trí hông người lái so với gốc (x, y) của xe — [quay phải, quay trái]; hông trong khung chibi ở (13, 23) (quay trái) / (12, 23) (quay phải)
-const RIDE_HIP = { bike: [[-4, -15], [1, -15]], moto: [[-4, -12], [4, -12]] };
-function drawAt(fr, X, Y) { const S = VIEW.S; ctx.drawImage(fr, VIEW.ox + Math.round(X) * S, VIEW.oy + Math.round(Y) * S, fr.width * S, fr.height * S); }
-function drawRider(look, outfit, veh, x, y, left, pal, moving) {
-  const bike = veh === 'bike', side = left ? 1 : 2, [hx, hy] = (bike ? RIDE_HIP.bike : RIDE_HIP.moto)[left ? 1 : 0], ax = left ? 13 : 12;
+// Người ngồi trên xe: vẽ xe rồi vẽ người lệch lên trên; pal: người ngồi sau (mã bạn, hoặc { look, outfit })
+function drawRider(look, outfit, veh, x, y, left, pal) {
   drawSpr(SHADOW, x - 7, y - 3); drawSpr(SPR[veh + (left ? 'L' : '')], x - 15, y - 19);
-  if (pal) {                                                            // người ngồi sau (bạn đi cùng / mình ngồi sau xe bố mẹ)
-    const p = typeof pal === 'string' ? { look: pal, outfit: FRIENDS[pal] ? friendOutfit(pal) : null } : pal;
-    drawAt(charSheet(p.look, p.outfit).rideM[side][0], x + hx + (left ? 8 : -8) - ax, y + hy + (bike ? 1 : 0) - 23);
-  }
-  const sh = charSheet(look, outfit), fr = bike ? sh.rideB[side][moving ? Math.floor(performance.now() / 150) % 2 : 0] : sh.rideM[side][0];
-  drawAt(fr, x + hx - ax, y + hy - 23);
+  if (pal) { const p = typeof pal === 'string' ? { look: pal, outfit: FRIENDS[pal] ? friendOutfit(pal) : null } : pal; drawSpr(charSheet(p.look, p.outfit)[left ? 1 : 2][0], x - 9 + (left ? 9 : -9), y - 30); }     // bạn ngồi sau xe
+  drawSpr(charSheet(look, outfit)[left ? 1 : 2][0], x - 9 + (left ? 2 : -2), y - 31);
 }
 function render(now) {
   const S = VIEW.S, m = MAPS[G ? G.map : 'town'];
@@ -489,7 +481,7 @@ function initTitle() {
 
 function boot() {
   cv = $('cv'); ctx = cv.getContext('2d');
-  buildSprites(); buildSprites2(); buildWorldArt(); buildMaps(); decorWorld();   // 02d: công trình theo phong cách bản thảo + đạo cụ phố phường
+  buildSprites(); buildSprites2(); buildMaps();
   resize(); bindInput(); bindUI(); initTitle();
   requestAnimationFrame(frame);
 }

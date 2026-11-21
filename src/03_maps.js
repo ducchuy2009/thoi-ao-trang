@@ -448,9 +448,9 @@ function buildClass() {
   addObj(m, { s: 'tdesk', x: 38, y: 34, sol: [1, 2, 32, 19] });
   addObj(m, { s: 'hoportrait', x: 73, y: 6, base: 0 });                // ảnh Bác Hồ treo trên tường cạnh bảng
   const X = [40, 104, 184, 248], Y = [70, 104, 138, 172];
-  // bạn có tên ngồi trước (Thảo, Hoa, Nam Anh, Phương, Đạt/Duyên), còn lại là bạn cùng lớp lấp chỗ (ảnh bạn có tên đổi màu tóc — chủ yếu thấy từ phía sau)
-  const named = ['c2', 'c6', 'c7', 'c8', 'c10'], VB = ['quang', 'duc', 'vu', 'namanh', 'thao', 'hoa', 'minhanh', 'phuong', 'hien', 'thai', 'duyen', 'dat'];
-  const looks = i => (i < named.length ? named[i] : `v:${VB[(i * 5) % VB.length]}:${i}`);
+  // bạn có tên ngồi trước (Thảo, Hoa, Nam Anh, Phương, Đạt/Duyên), còn lại là bạn cùng lớp lấp chỗ
+  const named = ['c2', 'c6', 'c7', 'c8', 'c10'], VB = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9'];
+  const looks = i => (i < named.length ? named[i] : VB[(i * 3) % VB.length]);
   const special = { '1,1,1': 'khoa', '2,1,0': 'vy', '1,2,0': 'dat', '0,1,1': 'm2', '0,0,0': 'm1', '3,0,0': 'm3', '2,2,1': 'm4', '3,3,0': 'm5' };
   const spLook = { khoa: 'khoa', vy: 'vy', dat: 'dat', m2: 'c9', m1: 'c1', m3: 'c3', m4: 'c4', m5: 'c5' };
   let k = 0;

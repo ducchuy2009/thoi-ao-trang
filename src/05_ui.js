@@ -41,7 +41,7 @@ const UI = {
     return new Promise(res => {
       const btns = buttons.map((b, i) => `<button class="btn ${i === 0 && !opts.grid && buttons.length < 4 ? 'primary' : ''} ${b === 'Thôi' || b === 'Chưa' ? 'ghost' : ''}" data-i="${i}">${opts.grid || buttons.length < 2 ? '' : `<kbd>${i + 1}</kbd>`}${b}</button>`).join('');
       // opts.esc: giá trị trả về khi bấm Esc / nút ✕ (mặc định = nút cuối cùng)
-      this._open(title, html + `<div class="btns ${opts.cls || (opts.grid ? 'grid' : (buttons.length > 2 ? 'col' : ''))}">${btns}</div>`, res, opts.esc !== undefined ? opts.esc : buttons.length - 1, false, opts.who);      // opts.who = { look, outfit }: ép hiện hội thoại ở dưới với chân dung này
+      this._open(title, html + `<div class="btns ${opts.cls || (opts.grid ? 'grid' : (buttons.length > 2 ? 'col' : ''))}">${btns}</div>`, res, opts.esc !== undefined ? opts.esc : buttons.length - 1, !!opts.wide, opts.who);      // opts.who = { look, outfit }: ép hiện hội thoại ở dưới với chân dung này
     });
   },
   say(title, html) { return this.ask(title, `<p>${html}</p>`, ['OK']); },
@@ -398,13 +398,14 @@ MV.grades = {
       const a = g[s] || [], col = t => a.filter(x => x.t === t).map(x => fmtScore(x.s)).join(' · ') || '–';
       h += `<tr><td><span class="chip" style="background:${SUBJ[s].color}">${SUBJ[s].short}</span></td><td>${col('mieng')}</td><td>${col('p15')}</td><td>${col('tiet')}</td><td>${col('thi')}</td><td><b>${fmtAvg(rep.rows[s])}</b></td></tr>`;
     }
-    h += `</table><div class="sum"><span>Điểm tổng kết <b>${fmtAvg(rep.avg)}</b></span><span>Học lực tạm tính <b class="tag">${rep.hl}</b></span></div>`;
+    const hkS = conductAvg(year, UI._gsem), hlS = capByConduct(rep.hl, hkS);
+    h += `</table><div class="sum"><span>Điểm tổng kết <b>${fmtAvg(rep.avg)}</b></span><span>Học lực tạm tính <b class="tag">${hlS}</b>${hlS !== rep.hl ? ` <small>(theo điểm là ${rep.hl}, bị hạ vì hạnh kiểm kỳ ${fmtAvg(hkS)})</small>` : ''}</span></div>`;
     const yr = yearReport(year);
     if (yr.hk1.avg !== null && yr.hk2.avg !== null) h += `<div class="sum"><span>Cả năm <b>${fmtAvg(yr.avg)}</b></span><span>Học lực <b class="tag">${yr.hl}</b></span></div>`;
     const log = G.conductLog.filter(e => cal(e.day).year === year);
     h += `<h4>Hạnh kiểm</h4><div class="sum"><span>Hiện tại <b>${fmtScore(G.conduct)}</b>/10</span><span><b class="tag">${hanhKiem(G.conduct)}</b></span></div>`;
     if (log.length) h += '<p>Các kỳ 2 tuần đã chốt: ' + log.map(e => `<b>${fmtScore(e.score)}</b> (${hanhKiem(e.score)})`).join(' · ') + '</p>';
-    h += '<p class="dim">Giỏi: ĐTB ≥ 8,0 và Toán hoặc Văn ≥ 8,0 · Khá: ≥ 6,0 · Trung bình: ≥ 4,0. Hạnh kiểm: 8–10 Tốt · 6–8 Khá · 4–6 Trung bình · dưới 4 Yếu.</p>';
+    h += '<p class="dim">Giỏi: ĐTB ≥ 8,0 và Toán hoặc Văn ≥ 8,0 · Khá: ≥ 6,0 · Trung bình: ≥ 4,0. Hạnh kiểm: 8–10 Tốt · 6–8 Khá · 4–6 Trung bình · dưới 4 Yếu. <b>Hạnh kiểm TB của kỳ dưới 8 thì không được Giỏi, dưới 6 không được Khá, dưới 5 không được Trung bình.</b></p>';
     if (G.reports.length) h += '<h4>Các năm trước</h4>' + G.reports.map(r => `<p>Lớp ${r.grade}: ĐTB <b>${fmtAvg(r.avg)}</b> · ${r.hl} · Hạnh kiểm ${r.hk}${r.title ? ' · ' + r.title : ''}</p>`).join('');
     return h;
   },
@@ -434,6 +435,7 @@ MV.cal = {
       // sự kiện hiện thành icon (di chuột / chạm vào icon để xem tên, bấm vào ngày để xem danh sách)
       if (sem && c.doy === sem.from) ev.push(calIco('ci_sem', `Bắt đầu ${sem.name}`, 'sem'));
       if (sem && c.doy === sem.to) ev.push(calIco('ci_semend', `Tổng kết ${sem.name}`, 'sem'));
+      if (sem && isPmDay(d)) ev.push(calIco('ci_semend', `Họp phụ huynh ${sem.name} (08:00–11:00, nghỉ học)`, 'sem'));
       if (hol) ev.push(calIco(/Tết/.test(hol.name) ? 'ci_tet' : 'ci_hol', hol.name, 'hol'));
       if (isEveDay(day)) ev.push(calIco('sc_giaothua', 'Đón giao thừa trên núi', 'fes'));
       for (const f of FESTIVALS) if (f.season === se && f.day === d + 1) ev.push(calIco(f.icon || 'ci_fes', f.name, 'fes'));
