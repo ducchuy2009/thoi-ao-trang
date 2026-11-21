@@ -1,0 +1,782 @@
+{
+ "frames": {
+  "taphoa": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 45
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 40,
+    "h": 45
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#18"
+  },
+  "combinhdan": {
+   "frame": {
+    "x": 41,
+    "y": 0,
+    "w": 38,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 38,
+    "h": 42
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#20"
+  },
+  "phuong": {
+   "frame": {
+    "x": 80,
+    "y": 0,
+    "w": 35,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 35,
+    "h": 42
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#24"
+  },
+  "nuocmia": {
+   "frame": {
+    "x": 116,
+    "y": 0,
+    "w": 38,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 38,
+    "h": 40
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#19"
+  },
+  "cotdien_1": {
+   "frame": {
+    "x": 155,
+    "y": 0,
+    "w": 9,
+    "h": 39
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 9,
+    "h": 39
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#22"
+  },
+  "caycay": {
+   "frame": {
+    "x": 165,
+    "y": 0,
+    "w": 27,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 27,
+    "h": 38
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#25"
+  },
+  "cotdien_2": {
+   "frame": {
+    "x": 193,
+    "y": 0,
+    "w": 10,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 10,
+    "h": 38
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#26"
+  },
+  "tuongrao": {
+   "frame": {
+    "x": 204,
+    "y": 0,
+    "w": 49,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 49,
+    "h": 32
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#28"
+  },
+  "nusinh_saugay_up_1": {
+   "frame": {
+    "x": 254,
+    "y": 0,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#1"
+  },
+  "nusinh_saugay_up_2": {
+   "frame": {
+    "x": 291,
+    "y": 0,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#2"
+  },
+  "nusinh_saugay_up_3": {
+   "frame": {
+    "x": 328,
+    "y": 0,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#3"
+  },
+  "nusinh_noichuyen_down_1": {
+   "frame": {
+    "x": 365,
+    "y": 0,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#4"
+  },
+  "nusinh_noichuyen_down_2": {
+   "frame": {
+    "x": 402,
+    "y": 0,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#5"
+  },
+  "nusinh_noichuyen_down_3": {
+   "frame": {
+    "x": 439,
+    "y": 0,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#6"
+  },
+  "namsinh_saugay_up_1": {
+   "frame": {
+    "x": 476,
+    "y": 0,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#7"
+  },
+  "namsinh_saugay_up_2": {
+   "frame": {
+    "x": 0,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#8"
+  },
+  "namsinh_saugay_up_3": {
+   "frame": {
+    "x": 37,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#9"
+  },
+  "namsinh_noichuyen_down_1": {
+   "frame": {
+    "x": 74,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#10"
+  },
+  "namsinh_noichuyen_down_2": {
+   "frame": {
+    "x": 111,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#11"
+  },
+  "namsinh_noichuyen_down_3": {
+   "frame": {
+    "x": 148,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "nhanvat",
+   "source": "tileset#12"
+  },
+  "baove_dungim_down_1": {
+   "frame": {
+    "x": 185,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "npc",
+   "source": "tileset#13"
+  },
+  "baove_dungim_down_2": {
+   "frame": {
+    "x": 222,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "npc",
+   "source": "tileset#13"
+  },
+  "banrong_dungim_down_1": {
+   "frame": {
+    "x": 259,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "npc",
+   "source": "tileset#14"
+  },
+  "cogiao_dungim_down_1": {
+   "frame": {
+    "x": 296,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "npc",
+   "source": "tileset#15"
+  },
+  "thaygiao_dungim_down_1": {
+   "frame": {
+    "x": 333,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "npc",
+   "source": "tileset#15"
+  },
+  "ongthay_dungim_down_1": {
+   "frame": {
+    "x": 370,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "npc",
+   "source": "tileset#16"
+  },
+  "hocsinh_dungim_down_1": {
+   "frame": {
+    "x": 407,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "npc",
+   "source": "tileset#16"
+  },
+  "hocsinh_dungim_down_2": {
+   "frame": {
+    "x": 444,
+    "y": 46,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "npc",
+   "source": "tileset#16"
+  },
+  "hocsinh_dungim_down_3": {
+   "frame": {
+    "x": 0,
+    "y": 78,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "npc",
+   "source": "tileset#17"
+  },
+  "hocsinh_dungim_down_4": {
+   "frame": {
+    "x": 37,
+    "y": 78,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "npc",
+   "source": "tileset#17"
+  },
+  "hocsinh_dungim_down_5": {
+   "frame": {
+    "x": 74,
+    "y": 78,
+    "w": 36,
+    "h": 31
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 36,
+    "h": 31
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "npc",
+   "source": "tileset#17"
+  },
+  "tulanh": {
+   "frame": {
+    "x": 111,
+    "y": 78,
+    "w": 13,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 13,
+    "h": 18
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#21"
+  },
+  "xemay": {
+   "frame": {
+    "x": 125,
+    "y": 78,
+    "w": 17,
+    "h": 13
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 17,
+    "h": 13
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#27"
+  },
+  "xedap": {
+   "frame": {
+    "x": 143,
+    "y": 78,
+    "w": 19,
+    "h": 12
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 19,
+    "h": 12
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#29"
+  },
+  "meo": {
+   "frame": {
+    "x": 163,
+    "y": 78,
+    "w": 7,
+    "h": 7
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 7,
+    "h": 7
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "congtrinh",
+   "source": "tileset#23"
+  },
+  "ui_bongbongthoai_1": {
+   "frame": {
+    "x": 171,
+    "y": 78,
+    "w": 5,
+    "h": 4
+   },
+   "rotated": false,
+   "trimmed": false,
+   "sourceSize": {
+    "w": 5,
+    "h": 4
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "group": "ui",
+   "source": "tileset#4"
+  }
+ },
+ "animations": {
+  "nusinh_saugay_up": [
+   "nusinh_saugay_up_1",
+   "nusinh_saugay_up_2",
+   "nusinh_saugay_up_3"
+  ],
+  "nusinh_noichuyen_down": [
+   "nusinh_noichuyen_down_1",
+   "nusinh_noichuyen_down_2",
+   "nusinh_noichuyen_down_3"
+  ],
+  "namsinh_saugay_up": [
+   "namsinh_saugay_up_1",
+   "namsinh_saugay_up_2",
+   "namsinh_saugay_up_3"
+  ],
+  "namsinh_noichuyen_down": [
+   "namsinh_noichuyen_down_1",
+   "namsinh_noichuyen_down_2",
+   "namsinh_noichuyen_down_3"
+  ],
+  "baove_dungim_down": [
+   "baove_dungim_down_1",
+   "baove_dungim_down_2"
+  ],
+  "banrong_dungim_down": [
+   "banrong_dungim_down_1"
+  ],
+  "cogiao_dungim_down": [
+   "cogiao_dungim_down_1"
+  ],
+  "thaygiao_dungim_down": [
+   "thaygiao_dungim_down_1"
+  ],
+  "ongthay_dungim_down": [
+   "ongthay_dungim_down_1"
+  ],
+  "hocsinh_dungim_down": [
+   "hocsinh_dungim_down_1",
+   "hocsinh_dungim_down_2",
+   "hocsinh_dungim_down_3",
+   "hocsinh_dungim_down_4",
+   "hocsinh_dungim_down_5"
+  ]
+ },
+ "meta": {
+  "image": "tainguyen.png",
+  "scale": 1,
+  "note": "Ảnh \"Tài nguyên game\": khối điểm ảnh 3 px, nhân vật nhỏ hơn sheet nhân vật (≈ nửa chiều cao). Nhân vật/NPC: ô chung, neo chân giữa đáy. Công trình: giữ kích thước, neo giữa đáy.",
+  "cell": {
+   "w": 36,
+   "h": 31
+  },
+  "size": {
+   "w": 512,
+   "h": 109
+  }
+ }
+}

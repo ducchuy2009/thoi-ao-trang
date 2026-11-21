@@ -1,0 +1,299 @@
+{
+ "cell": [
+  54,
+  52
+ ],
+ "anchor": "bottom-center (giữa hai bàn chân)",
+ "characters": {
+  "nusinh": {
+   "title": "Nữ sinh (nhân vật chính)",
+   "sheet": "sprites/nusinh.png",
+   "atlas": "sprites/nusinh.json",
+   "frames": 7,
+   "animations": {
+    "dungim_down": 2,
+    "dibo_down": 2,
+    "vuive_down": 1,
+    "dibo_up": 1,
+    "vuive_up": 1
+   }
+  },
+  "namsinh": {
+   "title": "Nam sinh (nhân vật chính)",
+   "sheet": "sprites/namsinh.png",
+   "atlas": "sprites/namsinh.json",
+   "frames": 7,
+   "animations": {
+    "dungim_down": 2,
+    "dibo_down": 2,
+    "vaychao_down": 1,
+    "dibo_up": 1,
+    "vaychao_up": 1
+   }
+  },
+  "hoakhoi": {
+   "title": "Hoa khôi trường — Vy",
+   "sheet": "sprites/hoakhoi.png",
+   "atlas": "sprites/hoakhoi.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 1,
+    "dibo_down": 2,
+    "duyendang_down": 2,
+    "dungim_up": 1,
+    "dibo_up": 1,
+    "duyendang_up": 3
+   }
+  },
+  "hocba": {
+   "title": "Nam sinh học bá — Quang",
+   "sheet": "sprites/hocba.png",
+   "atlas": "sprites/hocba.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 2,
+    "dibo_down": 2,
+    "hocba_down": 1,
+    "dungim_up": 1,
+    "dibo_up": 2,
+    "giotay_up": 2
+   }
+  },
+  "daugau": {
+   "title": "Nam sinh đầu gấu — Hoàng",
+   "sheet": "sprites/daugau.png",
+   "atlas": "sprites/daugau.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 2,
+    "dibo_down": 1,
+    "gaysu_down": 2,
+    "dungim_up": 1,
+    "dibo_up": 1,
+    "gaysu_up": 3
+   }
+  },
+  "hamchoi": {
+   "title": "Nam sinh ham chơi — anh Phong",
+   "sheet": "sprites/hamchoi.png",
+   "atlas": "sprites/hamchoi.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 2,
+    "dibo_down": 2,
+    "hamchoi_down": 1,
+    "dungim_up": 1,
+    "dibo_up": 1,
+    "hamchoi_up": 1,
+    "gaysu_up": 2
+   }
+  },
+  "thethao": {
+   "title": "Nữ sinh thể thao — Ngân",
+   "sheet": "sprites/thethao.png",
+   "atlas": "sprites/thethao.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 2,
+    "dibo_down": 2,
+    "thethao_down": 1,
+    "dungim_up": 1,
+    "dibo_up": 2,
+    "thethao_up": 2
+   }
+  },
+  "truyenthong": {
+   "title": "Nữ sinh truyền thống — Hiền",
+   "sheet": "sprites/truyenthong.png",
+   "atlas": "sprites/truyenthong.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 1,
+    "dibo_down": 2,
+    "eap_down": 2,
+    "dungim_up": 1,
+    "dibo_up": 2,
+    "eap_up": 2
+   }
+  },
+  "lanhloi": {
+   "title": "Nam sinh lanh lợi — Đạt",
+   "sheet": "sprites/lanhloi.png",
+   "atlas": "sprites/lanhloi.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 2,
+    "dibo_down": 1,
+    "lanhloi_down": 2,
+    "dungim_up": 1,
+    "dibo_up": 2,
+    "lanhloi_up": 2
+   }
+  },
+  "khoahoc": {
+   "title": "Nữ sinh khoa học — Hoa",
+   "sheet": "sprites/khoahoc.png",
+   "atlas": "sprites/khoahoc.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 1,
+    "dibo_down": 2,
+    "nghiencuu_down": 2,
+    "dungim_up": 1,
+    "dibo_up": 2,
+    "nghiencuu_up": 2
+   }
+  },
+  "yeuve": {
+   "title": "Nữ sinh yêu vẽ — Minh Anh",
+   "sheet": "sprites/yeuve.png",
+   "atlas": "sprites/yeuve.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 1,
+    "dibo_down": 1,
+    "yeuve_down": 1,
+    "sangtac_down": 1,
+    "vuive_down": 1,
+    "dungim_up": 1,
+    "dibo_up": 1,
+    "yeuve_up": 1,
+    "sangtac_up": 1,
+    "vuive_up": 1
+   }
+  },
+  "mongmo": {
+   "title": "Nữ sinh mộng mơ — Thảo",
+   "sheet": "sprites/mongmo.png",
+   "atlas": "sprites/mongmo.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 1,
+    "dibo_down": 1,
+    "mongmo_down": 1,
+    "baybong_down": 1,
+    "vuive_down": 1,
+    "dungim_up": 1,
+    "dibo_up": 1,
+    "mongmo_up": 1,
+    "baybong_up": 1,
+    "vuive_up": 1
+   }
+  },
+  "daigia": {
+   "title": "Nam sinh đại gia — Nam Anh",
+   "sheet": "sprites/daigia.png",
+   "atlas": "sprites/daigia.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 1,
+    "dibo_down": 1,
+    "daigia_down": 1,
+    "sangchanh_down": 1,
+    "vuive_down": 1,
+    "dungim_up": 1,
+    "dibo_up": 1,
+    "daigia_up": 1,
+    "sangchanh_up": 1,
+    "vuive_up": 1
+   }
+  },
+  "metieuthuyet": {
+   "title": "Nam sinh mê tiểu thuyết — Vũ",
+   "sheet": "sprites/metieuthuyet.png",
+   "atlas": "sprites/metieuthuyet.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 1,
+    "dibo_down": 1,
+    "sayme_down": 1,
+    "momong_down": 1,
+    "vuive_down": 1,
+    "dungim_up": 1,
+    "dibo_up": 1,
+    "sayme_up": 1,
+    "momong_up": 1,
+    "vuive_up": 1
+   }
+  },
+  "vamvo": {
+   "title": "Nam sinh vạm vỡ — Đức",
+   "sheet": "sprites/vamvo.png",
+   "atlas": "sprites/vamvo.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 1,
+    "dibo_down": 1,
+    "nghiemtuc_down": 1,
+    "manhme_down": 1,
+    "quyettam_down": 1,
+    "dungim_up": 1,
+    "dibo_up": 1,
+    "nghiemtuc_up": 1,
+    "manhme_up": 1,
+    "quyettam_up": 1
+   }
+  },
+  "haudau": {
+   "title": "Nữ sinh hậu đậu — Duyên",
+   "sheet": "sprites/haudau.png",
+   "atlas": "sprites/haudau.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 1,
+    "dibo_down": 1,
+    "haudau_down": 1,
+    "ngocnghech_down": 1,
+    "vuive_down": 1,
+    "dungim_up": 1,
+    "dibo_up": 1,
+    "haudau_up": 1,
+    "ngocnghech_up": 1,
+    "vuive_up": 1
+   }
+  },
+  "lambao": {
+   "title": "Nữ sinh làm báo — Phương",
+   "sheet": "sprites/lambao.png",
+   "atlas": "sprites/lambao.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 1,
+    "dibo_down": 1,
+    "chupanh_down": 1,
+    "ghichep_down": 1,
+    "vuive_down": 1,
+    "dungim_up": 1,
+    "dibo_up": 1,
+    "chupanh_up": 1,
+    "ghichep_up": 1,
+    "vuive_up": 1
+   }
+  },
+  "idol": {
+   "title": "Nam sinh idol — Thái",
+   "sheet": "sprites/idol.png",
+   "atlas": "sprites/idol.json",
+   "frames": 10,
+   "animations": {
+    "dungim_down": 1,
+    "dibo_down": 1,
+    "bieudien_down": 1,
+    "giaoluu_down": 1,
+    "chayhetminh_down": 1,
+    "dungim_up": 1,
+    "dibo_up": 1,
+    "bieudien_up": 1,
+    "giaoluu_up": 1,
+    "chayhetminh_up": 1
+   }
+  }
+ },
+ "tainguyen": {
+  "title": "Tài nguyên game (nhân vật nhỏ, NPC, công trình, cảnh cổng trường)",
+  "sheet": "sprites/tainguyen.png",
+  "atlas": "sprites/tainguyen.json",
+  "scene": "sprites/tainguyen/canh_congtruong.png",
+  "frames": 36
+ }
+}

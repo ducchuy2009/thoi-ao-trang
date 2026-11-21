@@ -1,0 +1,296 @@
+{
+ "frames": {
+  "truyenthong_dungim_down_1": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 13,
+    "y": 2,
+    "w": 30,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "hien#1"
+  },
+  "truyenthong_dibo_down_1": {
+   "frame": {
+    "x": 54,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 2,
+    "w": 32,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "hien#2"
+  },
+  "truyenthong_dibo_down_2": {
+   "frame": {
+    "x": 108,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 5,
+    "y": 2,
+    "w": 37,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "hien#3"
+  },
+  "truyenthong_eap_down_1": {
+   "frame": {
+    "x": 162,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 13,
+    "y": 2,
+    "w": 29,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "hien#4"
+  },
+  "truyenthong_eap_down_2": {
+   "frame": {
+    "x": 216,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 13,
+    "y": 2,
+    "w": 29,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "hien#5"
+  },
+  "truyenthong_dungim_up_1": {
+   "frame": {
+    "x": 270,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 15,
+    "y": 2,
+    "w": 26,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "hien#6"
+  },
+  "truyenthong_dibo_up_1": {
+   "frame": {
+    "x": 324,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 17,
+    "y": 2,
+    "w": 30,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "hien#7"
+  },
+  "truyenthong_dibo_up_2": {
+   "frame": {
+    "x": 378,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 10,
+    "y": 2,
+    "w": 35,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "hien#8"
+  },
+  "truyenthong_eap_up_1": {
+   "frame": {
+    "x": 0,
+    "y": 52,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 3,
+    "w": 31,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "hien#9"
+  },
+  "truyenthong_eap_up_2": {
+   "frame": {
+    "x": 54,
+    "y": 52,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 17,
+    "y": 3,
+    "w": 26,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "hien#10"
+  }
+ },
+ "animations": {
+  "dungim_down": [
+   "truyenthong_dungim_down_1"
+  ],
+  "dibo_down": [
+   "truyenthong_dibo_down_1",
+   "truyenthong_dibo_down_2"
+  ],
+  "eap_down": [
+   "truyenthong_eap_down_1",
+   "truyenthong_eap_down_2"
+  ],
+  "dungim_up": [
+   "truyenthong_dungim_up_1"
+  ],
+  "dibo_up": [
+   "truyenthong_dibo_up_1",
+   "truyenthong_dibo_up_2"
+  ],
+  "eap_up": [
+   "truyenthong_eap_up_1",
+   "truyenthong_eap_up_2"
+  ]
+ },
+ "meta": {
+  "image": "truyenthong.png",
+  "size": {
+   "w": 432,
+   "h": 104
+  },
+  "cell": {
+   "w": 54,
+   "h": 52
+  },
+  "anchor": {
+   "x": 0.5,
+   "y": 1.0
+  },
+  "scale": 1,
+  "title": "Nữ sinh truyền thống — Hiền",
+  "note": "down = mặt trước, up = mặt sau; frame neo chân giữa đáy ô"
+ }
+}

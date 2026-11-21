@@ -1,0 +1,296 @@
+{
+ "frames": {
+  "hoakhoi_dungim_down_1": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 10,
+    "y": 3,
+    "w": 33,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vy#1"
+  },
+  "hoakhoi_dibo_down_1": {
+   "frame": {
+    "x": 54,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 9,
+    "y": 3,
+    "w": 33,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vy#2"
+  },
+  "hoakhoi_duyendang_down_1": {
+   "frame": {
+    "x": 108,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 10,
+    "y": 2,
+    "w": 32,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vy#3"
+  },
+  "hoakhoi_dibo_down_2": {
+   "frame": {
+    "x": 162,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 10,
+    "y": 3,
+    "w": 32,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vy#4"
+  },
+  "hoakhoi_duyendang_down_2": {
+   "frame": {
+    "x": 216,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 10,
+    "y": 3,
+    "w": 32,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vy#5"
+  },
+  "hoakhoi_dungim_up_1": {
+   "frame": {
+    "x": 270,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 14,
+    "y": 2,
+    "w": 28,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vy#6"
+  },
+  "hoakhoi_dibo_up_1": {
+   "frame": {
+    "x": 324,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 15,
+    "y": 2,
+    "w": 28,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vy#7"
+  },
+  "hoakhoi_duyendang_up_1": {
+   "frame": {
+    "x": 378,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 9,
+    "y": 2,
+    "w": 33,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vy#8"
+  },
+  "hoakhoi_duyendang_up_2": {
+   "frame": {
+    "x": 0,
+    "y": 52,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 7,
+    "y": 2,
+    "w": 35,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vy#9"
+  },
+  "hoakhoi_duyendang_up_3": {
+   "frame": {
+    "x": 54,
+    "y": 52,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 8,
+    "y": 2,
+    "w": 37,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vy#10"
+  }
+ },
+ "animations": {
+  "dungim_down": [
+   "hoakhoi_dungim_down_1"
+  ],
+  "dibo_down": [
+   "hoakhoi_dibo_down_1",
+   "hoakhoi_dibo_down_2"
+  ],
+  "duyendang_down": [
+   "hoakhoi_duyendang_down_1",
+   "hoakhoi_duyendang_down_2"
+  ],
+  "dungim_up": [
+   "hoakhoi_dungim_up_1"
+  ],
+  "dibo_up": [
+   "hoakhoi_dibo_up_1"
+  ],
+  "duyendang_up": [
+   "hoakhoi_duyendang_up_1",
+   "hoakhoi_duyendang_up_2",
+   "hoakhoi_duyendang_up_3"
+  ]
+ },
+ "meta": {
+  "image": "hoakhoi.png",
+  "size": {
+   "w": 432,
+   "h": 104
+  },
+  "cell": {
+   "w": 54,
+   "h": 52
+  },
+  "anchor": {
+   "x": 0.5,
+   "y": 1.0
+  },
+  "scale": 1,
+  "title": "Hoa khôi trường — Vy",
+  "note": "down = mặt trước, up = mặt sau; frame neo chân giữa đáy ô"
+ }
+}

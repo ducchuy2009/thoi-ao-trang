@@ -1,0 +1,304 @@
+{
+ "frames": {
+  "yeuve_dungim_down_1": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 9,
+    "y": 2,
+    "w": 33,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "minhanh#1"
+  },
+  "yeuve_dibo_down_1": {
+   "frame": {
+    "x": 54,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 10,
+    "y": 3,
+    "w": 32,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "minhanh#2"
+  },
+  "yeuve_yeuve_down_1": {
+   "frame": {
+    "x": 108,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 10,
+    "y": 3,
+    "w": 37,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "minhanh#3"
+  },
+  "yeuve_sangtac_down_1": {
+   "frame": {
+    "x": 162,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 9,
+    "y": 3,
+    "w": 38,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "minhanh#4"
+  },
+  "yeuve_vuive_down_1": {
+   "frame": {
+    "x": 216,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 7,
+    "y": 2,
+    "w": 38,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "minhanh#5"
+  },
+  "yeuve_dungim_up_1": {
+   "frame": {
+    "x": 270,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 13,
+    "y": 2,
+    "w": 29,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "minhanh#6"
+  },
+  "yeuve_dibo_up_1": {
+   "frame": {
+    "x": 324,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 13,
+    "y": 2,
+    "w": 28,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "minhanh#7"
+  },
+  "yeuve_yeuve_up_1": {
+   "frame": {
+    "x": 378,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 15,
+    "y": 2,
+    "w": 33,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "minhanh#8"
+  },
+  "yeuve_sangtac_up_1": {
+   "frame": {
+    "x": 0,
+    "y": 52,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 9,
+    "y": 3,
+    "w": 32,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "minhanh#9"
+  },
+  "yeuve_vuive_up_1": {
+   "frame": {
+    "x": 54,
+    "y": 52,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 12,
+    "y": 3,
+    "w": 35,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "minhanh#10"
+  }
+ },
+ "animations": {
+  "dungim_down": [
+   "yeuve_dungim_down_1"
+  ],
+  "dibo_down": [
+   "yeuve_dibo_down_1"
+  ],
+  "yeuve_down": [
+   "yeuve_yeuve_down_1"
+  ],
+  "sangtac_down": [
+   "yeuve_sangtac_down_1"
+  ],
+  "vuive_down": [
+   "yeuve_vuive_down_1"
+  ],
+  "dungim_up": [
+   "yeuve_dungim_up_1"
+  ],
+  "dibo_up": [
+   "yeuve_dibo_up_1"
+  ],
+  "yeuve_up": [
+   "yeuve_yeuve_up_1"
+  ],
+  "sangtac_up": [
+   "yeuve_sangtac_up_1"
+  ],
+  "vuive_up": [
+   "yeuve_vuive_up_1"
+  ]
+ },
+ "meta": {
+  "image": "yeuve.png",
+  "size": {
+   "w": 432,
+   "h": 104
+  },
+  "cell": {
+   "w": 54,
+   "h": 52
+  },
+  "anchor": {
+   "x": 0.5,
+   "y": 1.0
+  },
+  "scale": 1,
+  "title": "Nữ sinh yêu vẽ — Minh Anh",
+  "note": "down = mặt trước, up = mặt sau; frame neo chân giữa đáy ô"
+ }
+}

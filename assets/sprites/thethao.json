@@ -1,0 +1,296 @@
+{
+ "frames": {
+  "thethao_dungim_down_1": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 7,
+    "y": 2,
+    "w": 35,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "ngan#1"
+  },
+  "thethao_dibo_down_1": {
+   "frame": {
+    "x": 54,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 7,
+    "y": 2,
+    "w": 35,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "ngan#2"
+  },
+  "thethao_thethao_down_1": {
+   "frame": {
+    "x": 108,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 7,
+    "y": 2,
+    "w": 37,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "ngan#3"
+  },
+  "thethao_dungim_down_2": {
+   "frame": {
+    "x": 162,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 7,
+    "y": 2,
+    "w": 35,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "ngan#4"
+  },
+  "thethao_dibo_down_2": {
+   "frame": {
+    "x": 216,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 5,
+    "y": 2,
+    "w": 41,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "ngan#5"
+  },
+  "thethao_dungim_up_1": {
+   "frame": {
+    "x": 270,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 13,
+    "y": 2,
+    "w": 28,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "ngan#6"
+  },
+  "thethao_dibo_up_1": {
+   "frame": {
+    "x": 324,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 16,
+    "y": 2,
+    "w": 28,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "ngan#7"
+  },
+  "thethao_thethao_up_1": {
+   "frame": {
+    "x": 378,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 9,
+    "y": 2,
+    "w": 32,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "ngan#8"
+  },
+  "thethao_dibo_up_2": {
+   "frame": {
+    "x": 0,
+    "y": 52,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 3,
+    "w": 30,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "ngan#9"
+  },
+  "thethao_thethao_up_2": {
+   "frame": {
+    "x": 54,
+    "y": 52,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 13,
+    "y": 3,
+    "w": 36,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "ngan#10"
+  }
+ },
+ "animations": {
+  "dungim_down": [
+   "thethao_dungim_down_1",
+   "thethao_dungim_down_2"
+  ],
+  "dibo_down": [
+   "thethao_dibo_down_1",
+   "thethao_dibo_down_2"
+  ],
+  "thethao_down": [
+   "thethao_thethao_down_1"
+  ],
+  "dungim_up": [
+   "thethao_dungim_up_1"
+  ],
+  "dibo_up": [
+   "thethao_dibo_up_1",
+   "thethao_dibo_up_2"
+  ],
+  "thethao_up": [
+   "thethao_thethao_up_1",
+   "thethao_thethao_up_2"
+  ]
+ },
+ "meta": {
+  "image": "thethao.png",
+  "size": {
+   "w": 432,
+   "h": 104
+  },
+  "cell": {
+   "w": 54,
+   "h": 52
+  },
+  "anchor": {
+   "x": 0.5,
+   "y": 1.0
+  },
+  "scale": 1,
+  "title": "Nữ sinh thể thao — Ngân",
+  "note": "down = mặt trước, up = mặt sau; frame neo chân giữa đáy ô"
+ }
+}

@@ -1,0 +1,216 @@
+{
+ "frames": {
+  "nusinh_dungim_down_1": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 3,
+    "w": 33,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_a#1"
+  },
+  "nusinh_dungim_down_2": {
+   "frame": {
+    "x": 54,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 3,
+    "w": 34,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_a#2"
+  },
+  "nusinh_dibo_down_1": {
+   "frame": {
+    "x": 108,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 10,
+    "y": 3,
+    "w": 32,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_a#3"
+  },
+  "nusinh_dibo_down_2": {
+   "frame": {
+    "x": 162,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 8,
+    "y": 4,
+    "w": 33,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_a#4"
+  },
+  "nusinh_vuive_down_1": {
+   "frame": {
+    "x": 216,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 4,
+    "w": 34,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_a#5"
+  },
+  "nusinh_dibo_up_1": {
+   "frame": {
+    "x": 270,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 12,
+    "y": 3,
+    "w": 29,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_b#4"
+  },
+  "nusinh_vuive_up_1": {
+   "frame": {
+    "x": 324,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 3,
+    "w": 35,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_b#5"
+  }
+ },
+ "animations": {
+  "dungim_down": [
+   "nusinh_dungim_down_1",
+   "nusinh_dungim_down_2"
+  ],
+  "dibo_down": [
+   "nusinh_dibo_down_1",
+   "nusinh_dibo_down_2"
+  ],
+  "vuive_down": [
+   "nusinh_vuive_down_1"
+  ],
+  "dibo_up": [
+   "nusinh_dibo_up_1"
+  ],
+  "vuive_up": [
+   "nusinh_vuive_up_1"
+  ]
+ },
+ "meta": {
+  "image": "nusinh.png",
+  "size": {
+   "w": 378,
+   "h": 52
+  },
+  "cell": {
+   "w": 54,
+   "h": 52
+  },
+  "anchor": {
+   "x": 0.5,
+   "y": 1.0
+  },
+  "scale": 1,
+  "title": "Nữ sinh (nhân vật chính)",
+  "note": "down = mặt trước, up = mặt sau; frame neo chân giữa đáy ô"
+ }
+}

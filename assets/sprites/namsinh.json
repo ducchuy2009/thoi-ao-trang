@@ -1,0 +1,216 @@
+{
+ "frames": {
+  "namsinh_dungim_down_1": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 7,
+    "y": 2,
+    "w": 41,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_a#6"
+  },
+  "namsinh_dungim_down_2": {
+   "frame": {
+    "x": 54,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 7,
+    "y": 2,
+    "w": 41,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_a#7"
+  },
+  "namsinh_dibo_down_1": {
+   "frame": {
+    "x": 108,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 7,
+    "y": 2,
+    "w": 36,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_a#8"
+  },
+  "namsinh_dibo_down_2": {
+   "frame": {
+    "x": 162,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 8,
+    "y": 2,
+    "w": 36,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_a#9"
+  },
+  "namsinh_vaychao_down_1": {
+   "frame": {
+    "x": 216,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 8,
+    "y": 2,
+    "w": 36,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_a#10"
+  },
+  "namsinh_dibo_up_1": {
+   "frame": {
+    "x": 270,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 7,
+    "y": 2,
+    "w": 36,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_b#9"
+  },
+  "namsinh_vaychao_up_1": {
+   "frame": {
+    "x": 324,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 8,
+    "y": 2,
+    "w": 36,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "main_b#10"
+  }
+ },
+ "animations": {
+  "dungim_down": [
+   "namsinh_dungim_down_1",
+   "namsinh_dungim_down_2"
+  ],
+  "dibo_down": [
+   "namsinh_dibo_down_1",
+   "namsinh_dibo_down_2"
+  ],
+  "vaychao_down": [
+   "namsinh_vaychao_down_1"
+  ],
+  "dibo_up": [
+   "namsinh_dibo_up_1"
+  ],
+  "vaychao_up": [
+   "namsinh_vaychao_up_1"
+  ]
+ },
+ "meta": {
+  "image": "namsinh.png",
+  "size": {
+   "w": 378,
+   "h": 52
+  },
+  "cell": {
+   "w": 54,
+   "h": 52
+  },
+  "anchor": {
+   "x": 0.5,
+   "y": 1.0
+  },
+  "scale": 1,
+  "title": "Nam sinh (nhân vật chính)",
+  "note": "down = mặt trước, up = mặt sau; frame neo chân giữa đáy ô"
+ }
+}

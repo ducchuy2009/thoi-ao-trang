@@ -1,0 +1,304 @@
+{
+ "frames": {
+  "metieuthuyet_dungim_down_1": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 12,
+    "y": 3,
+    "w": 30,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vu#1"
+  },
+  "metieuthuyet_dibo_down_1": {
+   "frame": {
+    "x": 54,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 13,
+    "y": 3,
+    "w": 30,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vu#2"
+  },
+  "metieuthuyet_sayme_down_1": {
+   "frame": {
+    "x": 108,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 12,
+    "y": 2,
+    "w": 30,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vu#3"
+  },
+  "metieuthuyet_momong_down_1": {
+   "frame": {
+    "x": 162,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 3,
+    "w": 30,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vu#4"
+  },
+  "metieuthuyet_vuive_down_1": {
+   "frame": {
+    "x": 216,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 6,
+    "y": 3,
+    "w": 38,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vu#5"
+  },
+  "metieuthuyet_dungim_up_1": {
+   "frame": {
+    "x": 270,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 13,
+    "y": 3,
+    "w": 29,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vu#6"
+  },
+  "metieuthuyet_dibo_up_1": {
+   "frame": {
+    "x": 324,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 12,
+    "y": 3,
+    "w": 30,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vu#7"
+  },
+  "metieuthuyet_sayme_up_1": {
+   "frame": {
+    "x": 378,
+    "y": 0,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 13,
+    "y": 3,
+    "w": 31,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vu#8"
+  },
+  "metieuthuyet_momong_up_1": {
+   "frame": {
+    "x": 0,
+    "y": 52,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 13,
+    "y": 3,
+    "w": 28,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vu#9"
+  },
+  "metieuthuyet_vuive_up_1": {
+   "frame": {
+    "x": 54,
+    "y": 52,
+    "w": 54,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 9,
+    "y": 3,
+    "w": 39,
+    "h": 49
+   },
+   "sourceSize": {
+    "w": 54,
+    "h": 52
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 1.0
+   },
+   "source": "vu#10"
+  }
+ },
+ "animations": {
+  "dungim_down": [
+   "metieuthuyet_dungim_down_1"
+  ],
+  "dibo_down": [
+   "metieuthuyet_dibo_down_1"
+  ],
+  "sayme_down": [
+   "metieuthuyet_sayme_down_1"
+  ],
+  "momong_down": [
+   "metieuthuyet_momong_down_1"
+  ],
+  "vuive_down": [
+   "metieuthuyet_vuive_down_1"
+  ],
+  "dungim_up": [
+   "metieuthuyet_dungim_up_1"
+  ],
+  "dibo_up": [
+   "metieuthuyet_dibo_up_1"
+  ],
+  "sayme_up": [
+   "metieuthuyet_sayme_up_1"
+  ],
+  "momong_up": [
+   "metieuthuyet_momong_up_1"
+  ],
+  "vuive_up": [
+   "metieuthuyet_vuive_up_1"
+  ]
+ },
+ "meta": {
+  "image": "metieuthuyet.png",
+  "size": {
+   "w": 432,
+   "h": 104
+  },
+  "cell": {
+   "w": 54,
+   "h": 52
+  },
+  "anchor": {
+   "x": 0.5,
+   "y": 1.0
+  },
+  "scale": 1,
+  "title": "Nam sinh mê tiểu thuyết — Vũ",
+  "note": "down = mặt trước, up = mặt sau; frame neo chân giữa đáy ô"
+ }
+}

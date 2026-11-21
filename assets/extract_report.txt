@@ -1,0 +1,40 @@
+main_a: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.80/2)
+main_b: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.81/2)
+vy: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.82/2)
+quang: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.85/2)
+hoang: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.85/2)
+hoang#3: xoá tay hiệu ứng dính người
+phong: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.83/2)
+ngan: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.82/2)
+hien: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.85/2)
+dat: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.87/2)
+hoa: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.80/2)
+hoa#5: xoá tay hiệu ứng dính người
+minhanh: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.84/2)
+thao: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.78/2)
+thao#1: xoá tay hiệu ứng dính người
+thao#2: xoá tay hiệu ứng dính người
+thao#3: xoá tay hiệu ứng dính người
+thao#5: xoá tay hiệu ứng dính người
+namanh: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.84/2)
+namanh#1: xoá tay hiệu ứng dính người
+namanh#5: xoá tay hiệu ứng dính người
+vu: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.85/2)
+vu#3: xoá tay hiệu ứng dính người
+vu#4: xoá tay hiệu ứng dính người
+vu#8: xoá tay hiệu ứng dính người
+duc: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.86/2)
+duyen: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.82/2)
+duyen#4: xoá tay hiệu ứng dính người
+phuong: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.83/2)
+thai: khối điểm ảnh ≈ 4.0 px (khớp lưới 1.85/2)
+thai#3: xoá tay hiệu ứng dính người
+thai#4: xoá tay hiệu ứng dính người
+thai#5: xoá tay hiệu ứng dính người
+nusinh: main_b#1 trùng main_a#1 — bỏ
+nusinh: main_b#2 trùng main_a#2 — bỏ
+nusinh: main_b#3 trùng main_a#3 — bỏ
+namsinh: main_b#6 trùng main_a#6 — bỏ
+namsinh: main_b#7 trùng main_a#7 — bỏ
+namsinh: main_b#8 trùng main_a#8 — bỏ
+tileset_mau: khối điểm ảnh ≈ 3 px; 36 mục + cảnh cổng trường 161×79
