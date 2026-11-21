@@ -108,9 +108,7 @@ async function rideCut(kind, title, right, who) {
       else if (kind === 'bus') drawSpr(SPR[right ? 'bus' : 'busL'], x, 128 + bob);
       else {       // xe máy của bố / mẹ, mình ngồi sau
         const cx0 = x + 16, cy0 = 162 + bob;
-        drawSpr(SHADOW, cx0 - 7, cy0 - 3); drawSpr(SPR[BIKE[who].spr], cx0 - 16, cy0 - 21);
-        drawSpr(charSheet(G.gender)[2][0], cx0 - 17, cy0 - 31);
-        drawSpr(charSheet(who, who === 'mom' ? 'noapron' : null)[2][0], cx0 - 8, cy0 - 32);
+        drawRider(who, who === 'mom' ? 'noapron' : null, BIKE[who].spr, cx0, cy0, false, { look: G.gender, outfit: null }, true);   // bố / mẹ lái, mình ngồi sau
       }
     }],
   };

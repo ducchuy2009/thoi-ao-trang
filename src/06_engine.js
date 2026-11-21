@@ -298,7 +298,7 @@ function drawBubble(b) {
 function drawSpr(spr, x, y) {
   const S = VIEW.S;
   if (spr.hi) {                                                         // nhân vật vẽ từ ảnh (gấp đôi điểm ảnh): giữ chân / giữa người trùng chỗ khung 16×22 cũ
-    const w = spr.width / spr.hi, h = spr.height / spr.hi, X = Math.round((x + 8 - w / 2) * 2) / 2, Y = Math.round((y + 22 - h) * 2) / 2;
+    const w = spr.width / spr.hi, h = spr.height / spr.hi, X = Math.round((x + 8 - w / 2) * spr.hi) / spr.hi, Y = Math.round((spr.foot !== undefined ? y + 21 - spr.foot / spr.hi : y + 22 - h) * spr.hi) / spr.hi;
     ctx.drawImage(spr, VIEW.ox + X * S, VIEW.oy + Y * S, w * S, h * S); return;
   }
   ctx.drawImage(spr, VIEW.ox + Math.round(x) * S, VIEW.oy + Math.round(y) * S, spr.width * S, spr.height * S);
@@ -309,10 +309,19 @@ function drawChar(look, outfit, x, y, dir, walkT, oy) {
   drawSpr(SHADOW, x - 7, y - 3); drawSpr(fr, x - 9, y - 23 + bob + (oy || 0));
 }
 // Người ngồi trên xe (xe đạp, xe đạp điện, xe máy): vẽ xe rồi vẽ người lệch lên trên
-function drawRider(look, outfit, veh, x, y, left, pal) {
+// Người lái xe: đạp xe thì dáng đạp (chân đạp khi xe chạy), xe máy thì dáng ngồi, tay cầm lái; người ngồi sau xe dáng ngồi
+// RIDE_HIP: vị trí hông người lái so với gốc (x, y) của xe — [quay phải, quay trái]; hông trong khung chibi ở (13, 23) (quay trái) / (12, 23) (quay phải)
+const RIDE_HIP = { bike: [[-4, -15], [1, -15]], moto: [[-4, -12], [4, -12]] };
+function drawAt(fr, X, Y) { const S = VIEW.S; ctx.drawImage(fr, VIEW.ox + Math.round(X) * S, VIEW.oy + Math.round(Y) * S, fr.width * S, fr.height * S); }
+function drawRider(look, outfit, veh, x, y, left, pal, moving) {
+  const bike = veh === 'bike', side = left ? 1 : 2, [hx, hy] = (bike ? RIDE_HIP.bike : RIDE_HIP.moto)[left ? 1 : 0], ax = left ? 13 : 12;
   drawSpr(SHADOW, x - 7, y - 3); drawSpr(SPR[veh + (left ? 'L' : '')], x - 15, y - 19);
-  if (pal) drawSpr(charSheet(pal, friendOutfit(pal))[left ? 1 : 2][0], x - 9 + (left ? 9 : -9), y - 30);     // bạn ngồi sau xe
-  drawSpr(charSheet(look, outfit)[left ? 1 : 2][0], x - 9 + (left ? 2 : -2), y - 31);
+  if (pal) {                                                            // người ngồi sau (bạn đi cùng / mình ngồi sau xe bố mẹ)
+    const p = typeof pal === 'string' ? { look: pal, outfit: FRIENDS[pal] ? friendOutfit(pal) : null } : pal;
+    drawAt(charSheet(p.look, p.outfit).rideM[side][0], x + hx + (left ? 8 : -8) - ax, y + hy + (bike ? 1 : 0) - 23);
+  }
+  const sh = charSheet(look, outfit), fr = bike ? sh.rideB[side][moving ? Math.floor(performance.now() / 150) % 2 : 0] : sh.rideM[side][0];
+  drawAt(fr, x + hx - ax, y + hy - 23);
 }
 function render(now) {
   const S = VIEW.S, m = MAPS[G ? G.map : 'town'];
@@ -346,17 +355,15 @@ function render(now) {
   for (const e of list) {
     if (e.o) drawSpr(e.o.dyn ? SPR[e.o.dyn()] : SPR[e.o.s], e.o.x, e.o.y);
     else if (e.n && e.n.fam && FAM[e.n.fam].riding) {   // bố mẹ đang chạy xe
-      const n = e.n, left = n.cdir === 1, b = SPR[BIKE[n.fam].spr + (left ? 'L' : '')];
-      drawSpr(SHADOW, n.cx - 7, n.cy - 3); drawSpr(b, n.cx - 16, n.cy - 21);
-      drawSpr(charSheet(n.look, n.outfit ? n.outfit() : null)[left ? 1 : 2][0], n.cx - 9 + (left ? 2 : -2), n.cy - 32);
+      const n = e.n; drawRider(n.look, n.outfit ? n.outfit() : null, BIKE[n.fam].spr, n.cx, n.cy, n.cdir === 1, null, true);
     }
-    else if (e.n && e.n.cride) drawRider(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cride, e.n.cx, e.n.cy, e.n.cdir === 1);   // đang đạp xe / chạy xe máy
+    else if (e.n && e.n.cride) drawRider(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cride, e.n.cx, e.n.cy, e.n.cdir === 1, null, e.n.walk >= 0);   // đang đạp xe / chạy xe máy
     else if (e.n) drawChar(e.n.dynLook ? e.n.dynLook() : e.n.look, e.n.outfit ? e.n.outfit() : null, e.n.cx, e.n.cy, e.n.cdir, e.n.walk, e.n.coy);
     else if (e.a) { if (!e.a.hidden) drawChar(e.a.look, e.a.outfit, e.a.x, e.a.y, e.a.dir, e.a.walk === undefined ? -1 : e.a.walk, e.a.oy); }
     else if (e.v) drawSpr(SPR[VEHICLES[e.v.id].spr], e.v.x - 15, e.v.y - 19);
     else if (e.f) drawChar(G.comp.fid, friendOutfit(G.comp.fid), e.f.x, e.f.y, e.f.dir, e.f.walk);
     else if (e.w) drawChar(e.w.look, e.w.outfit, e.w.x, e.w.y, e.w.dir, e.w.walk);
-    else if (G.ride && !RT.scene) drawRider(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), VEHICLES[G.ride].spr, G.x, G.y, !!RT.faceL, G.comp ? G.comp.fid : null);
+    else if (G.ride && !RT.scene) drawRider(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), VEHICLES[G.ride].spr, G.x, G.y, !!RT.faceL, G.comp ? G.comp.fid : null, RT.walkT >= 0);
     else drawChar(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), G.x, G.y, G.dir, RT.walkT, RT.scene && RT.scene.meOy);
   }
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
@@ -486,5 +493,4 @@ function boot() {
   resize(); bindInput(); bindUI(); initTitle();
   requestAnimationFrame(frame);
 }
-const go = () => loadAtlas().then(boot);                             // nạp ảnh nhân vật (02c) trước khi dựng sprite
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

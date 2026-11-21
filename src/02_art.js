@@ -233,67 +233,6 @@ function winterize(L, outfit) {
   if (outfit && /^cas/.test(outfit)) return { ...L, long: true, puffer: true, scarf: L.skirt ? '#e2574c' : null };
   return { ...L, long: true };
 }
-/* ---------- nhân vật vẽ từ ảnh thiết kế (02c_sprites.js) ----------
- * Khung gấp đôi điểm ảnh (canvas.hi = 2): drawSpr vẽ ra một nửa, đặt chân / giữa người trùng chỗ khung 16×22 cũ nên mọi chỗ gọi cũ vẫn đúng.
- * ART: look → nhân vật có ảnh. 'khoa' là bạn cùng bàn: nhân vật chính là nam thì là Đạt, là nữ thì là Duyên. 'c10' là người còn lại học cùng lớp.
- * 'v:<ảnh>:<số>' là bạn cùng lớp lấp chỗ trống: dùng ảnh một bạn có tên, đổi màu tóc (chủ yếu thấy từ phía sau). */
-const ATLAS = { img: null, ok: false };
-function loadAtlas() {
-  return new Promise(res => {
-    if (typeof ATLAS_SRC === 'undefined') return res();
-    const im = new Image(); im.onload = () => { ATLAS.img = im; ATLAS.ok = true; res(); }; im.onerror = () => res(); im.src = ATLAS_SRC;
-  });
-}
-const ART = { khoa: () => (isGirlMain() ? 'duyen' : 'dat'), c10: () => (isGirlMain() ? 'dat' : 'duyen'), dat: 'thai', sC: 'phong', c1: 'quang', c2: 'thao', c3: 'duc', c4: 'minhanh', c5: 'vu', c6: 'hoa', c7: 'namanh', c8: 'phuong', c9: 'hien' };
-const isGirlMain = () => typeof G !== 'undefined' && !!G && G.gender === 'girl';
-function artOf(key) {
-  if (typeof ATLAS_KEYS === 'undefined' || !ATLAS.ok) return null;
-  if (key.startsWith('v:')) return key;
-  const a = ART[key], k = typeof a === 'function' ? a() : a || key;
-  return ATLAS_KEYS.includes(k) ? k : null;
-}
-const VAR_HAIR = ['#2a2230', '#5a3a26', '#3b2a22', '#6b4429', '#1f2a36', '#4a3328', '#7a4a2a', '#30262e'];
-function hairShift(c, hex) {                                           // đổi màu tóc: màu chiếm nhiều nhất ở phần đầu (khung quay lưng)
-  const x = c.getContext('2d'), d = x.getImageData(0, 0, c.width, c.height), p = d.data, top = Math.floor(c.height * 0.55);
-  const cnt = {}; for (let i = 0; i < c.width * Math.floor(c.height * 0.3) * 4; i += 4) if (p[i + 3]) { const k = (p[i] >> 4) + ',' + (p[i + 1] >> 4) + ',' + (p[i + 2] >> 4); cnt[k] = (cnt[k] || 0) + 1; }
-  const best = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]; if (!best) return c;
-  const [hr, hg, hb] = best[0].split(',').map(v => v * 16 + 8), [nr, ng, nb] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
-  const L0 = (hr + hg + hb) / 3 || 1;
-  for (let i = 0; i < c.width * top * 4; i += 4) {
-    if (!p[i + 3]) continue;
-    const dd = Math.abs(p[i] - hr) + Math.abs(p[i + 1] - hg) + Math.abs(p[i + 2] - hb); if (dd > 70) continue;
-    const k = ((p[i] + p[i + 1] + p[i + 2]) / 3) / L0; p[i] = Math.min(255, nr * k); p[i + 1] = Math.min(255, ng * k); p[i + 2] = Math.min(255, nb * k);
-  }
-  x.putImageData(d, 0, 0); return c;
-}
-function clothShift(c, O) {                                            // đồng phục thể dục / quốc phòng / quần áo thường: đổi màu áo trắng + quần tối ở thân dưới
-  const x = c.getContext('2d'), d = x.getImageData(0, 0, c.width, c.height), p = d.data, W = c.width;
-  let y0 = c.height, y1 = 0; for (let i = 3; i < p.length; i += 4) if (p[i]) { const y = Math.floor((i >> 2) / W); if (y < y0) y0 = y; if (y > y1) y1 = y; }
-  const hgt = y1 - y0, sTop = y0 + hgt * 0.47, pTop = y0 + hgt * 0.74, rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-  const sh = O.shirt ? rgb(O.shirt) : null, pt = O.pants ? rgb(O.pants) : null;
-  for (let i = 0; i < p.length; i += 4) {
-    if (!p[i + 3]) continue;
-    const y = Math.floor((i >> 2) / W); if (y < sTop) continue;
-    const r = p[i], g = p[i + 1], b = p[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b), L = (r + g + b) / 765;
-    if (sh && mn > 165 && mx - mn < 45) { const k = 0.6 + 0.45 * L; p[i] = Math.min(255, sh[0] * k); p[i + 1] = Math.min(255, sh[1] * k); p[i + 2] = Math.min(255, sh[2] * k); }
-    else if (pt && y > pTop && mx < 80 && mx - mn < 30) { const k = 0.75 + 1.2 * L; p[i] = Math.min(255, pt[0] * k); p[i + 1] = Math.min(255, pt[1] * k); p[i + 2] = Math.min(255, pt[2] * k); }
-  }
-  x.putImageData(d, 0, 0); return c;
-}
-function atlasSheet(art, outfit) {
-  let base = art, vi = -1;
-  if (art.startsWith('v:')) { const q = art.split(':'); base = q[1]; vi = +q[2]; }
-  const row = ATLAS_KEYS.indexOf(base); if (row < 0) return null;
-  const O = outfit && OUTFITS[outfit] && OUTFITS[outfit].shirt ? OUTFITS[outfit] : null;
-  const fr = i => {
-    const c = mk(ATLAS_W, ATLAS_H); c.getContext('2d').drawImage(ATLAS.img, i * ATLAS_W, row * ATLAS_H, ATLAS_W, ATLAS_H, 0, 0, ATLAS_W, ATLAS_H);
-    if (vi >= 0) hairShift(c, VAR_HAIR[vi % VAR_HAIR.length]);
-    if (O) clothShift(c, O);
-    c.hi = 2; return c;
-  };
-  const right = [fr(6), fr(7)], left = right.map(f => { const c = flipH(f); c.hi = 2; return c; });
-  return { 0: [fr(0), fr(1), fr(2)], 3: [fr(3), fr(4), fr(5)], 1: left, 2: right };
-}
 // vùng mặt của khung (để làm chân dung, gương soi): [sx, sy, sw, sh] trong khung
 function faceRect(f) {
   if (!f.hi) return [0, 0, 18, 19];
@@ -303,10 +242,11 @@ function faceRect(f) {
   const sz = Math.round((f.height - y0) * 0.56), cxm = Math.round((x0 + x1) / 2);
   return (f._face = [clamp(cxm - Math.round(sz / 2), 0, f.width - sz), y0, sz, sz]);
 }
+// Mọi nhân vật vẽ bằng bộ chibi (02c_chibi.js) theo phong cách bản thảo; drawCharFrame bên dưới là kiểu cũ, chỉ còn để tham khảo
 function charSheet(key, outfit) {
-  const w = isWinter(), art = artOf(key), id = (art ? '@' + art : key) + (outfit ? ':' + outfit : '') + (w && !art ? ':w' : '');
+  const w = isWinter(), id = '@' + artOf(key) + (outfit ? ':' + outfit : '') + (w ? ':w' : '');
   if (SHEETS[id]) return SHEETS[id];
-  if (art) { const A = atlasSheet(art, outfit); if (A) return (SHEETS[id] = A); }
+  return (SHEETS[id] = chibiSheet(key, outfit));
   let L = LOOKS[key] || LOOKS.boy;
   if (outfit && OUTFITS[outfit]) L = { ...L, ...OUTFITS[outfit] };
   if (w) L = winterize(L, outfit);
@@ -319,9 +259,9 @@ function charSheet(key, outfit) {
   return (SHEETS[id] = s);
 }
 function charFrame(sheet, dir, walkT) {
-  if (walkT < 0) return sheet[dir][0];
+  if (walkT < 0) return sheet[dir][dir === 1 || dir === 2 ? (sheet[dir].length >= 4 ? 1 : 0) : 0];
   const k = Math.floor(walkT * 8) % 4;
-  if (dir === 1 || dir === 2) return sheet[dir][k % 2 ? 1 : 0];
+  if (dir === 1 || dir === 2) return sheet[dir].length >= 4 ? sheet[dir][k] : sheet[dir][k % 2 ? 1 : 0];   // nhìn ngang: bước – đứng – bước – đứng
   return sheet[dir][[0, 1, 0, 2][k]];
 }
 const SHADOW = (() => { const c = mk(14, 5), x = cx(c); x.fillStyle = 'rgba(30,20,50,0.28)'; x.fillRect(2, 0, 10, 1); x.fillRect(0, 1, 14, 3); x.fillRect(2, 4, 10, 1); return c; })();
