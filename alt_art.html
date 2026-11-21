@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thời Áo Trắng | ALT ART — bản xem thử độc lập</title>
+<style>
+:root{--ink:#292532;--gold:#ffe3a8;--mint:#8bb5a0;--paper:#fff4dc}
+*{box-sizing:border-box}body{margin:0;color:var(--paper);font:600 15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at 50% 0,#423b53,#1e1d29 72%)}
+main{max-width:1240px;padding:28px 18px 70px;margin:auto}header{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+h1{font-size:clamp(25px,4vw,40px);line-height:1.13;margin:0;color:#fff2ca;text-shadow:3px 4px #171522}
+h2{margin:26px 0 8px;font-size:20px;color:#ffe2a5}.eyebrow{font-size:12px;letter-spacing:.16em;color:#c1e2bd;font-weight:900}
+p{margin:8px 0;color:#e3dce5}.tag{color:#203028;background:#a6d5aa;border-radius:99px;padding:5px 13px;font-size:12px;font-weight:800}
+.toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:18px 0 14px}
+.toolbar label{color:#d4c7cf;font-size:13px}.toolbar select,.toolbar button{border:2px solid #6e6070;border-radius:8px;background:#373043;color:#fff3dc;padding:10px 13px;font:700 14px system-ui;cursor:pointer}
+.toolbar button.active{background:#e8bc78;color:#282335;border-color:#ffd79c}
+.board{background:#151721;border:3px solid #756b70;border-radius:12px;padding:10px;overflow:auto;box-shadow:0 12px 30px #09070d55}
+.board canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block;margin:auto;width:100%;height:auto;max-width:none}
+.note{font-size:13px;color:#c1b4c3}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:13px;margin-top:14px}
+.asset{min-height:193px;background:#322e3c;border:2px solid #554e63;border-radius:12px;padding:12px;display:flex;flex-direction:column}
+.asset strong{color:#ffe0aa;margin-bottom:8px}.sample{flex:1;min-height:130px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,#4b4554,#4b4554 8px,#514b5a 8px,#514b5a 16px);border-radius:7px;overflow:hidden}
+.sample canvas{max-width:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+.asset small{font-size:11px;color:#b9b1bd;margin-top:7px}.tokens{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.token{min-width:100px;background:#342e3b;padding:9px;border-radius:8px;color:#f2e7d7;font-size:12px;display:flex;align-items:center;gap:8px}
+.swatch{width:20px;height:20px;display:inline-block;border:1px solid #d7c0a9}
+footer{margin-top:24px;border-top:1px solid #5b5263;padding-top:17px;color:#c8c1ca;font-size:13px}
+</style></head><body>
+<main><header><div><div class="eyebrow">ART EXPERIMENT · NOT IN MAIN GAME</div><h1>THỜI ÁO TRẮNG — ALT ART</h1><p>Thử nghiệm thiết kế môi trường 2D pixel-art 3/4 theo bản đồ và tên sprite của game gốc.</p></div><span class="tag">BẢN XEM THỬ · KHÔNG ẢNH HƯỞNG GAME</span></header>
+<h2>Bản đồ — dựng theo tọa độ thực tế</h2>
+<p class="note">Các công trình dùng tọa độ tham khảo từ <code>src/03_maps.js</code>. Đây là mockup kiểm tra đồ họa, không phải phiên bản chơi được; tương tác, di chuyển và collision chưa được nối vào trang này.</p>
+<div class="toolbar"><label for="map">Khu vực</label><select id="map"><option value="town">Khu phố & nhà bạn</option><option value="school">Trường THPT Hoa Phượng</option><option value="pho">Phố Hoa Phượng</option></select><button id="alt" class="active">ALT ART</button><button id="old">Đồ họa gốc (tham khảo)</button><button id="download">Lưu ảnh bản đồ PNG</button></div>
+<div class="board"><canvas id="world" width="800" height="416" aria-label="Bản đồ Thời Áo Trắng"></canvas></div>
+<p class="note">Mô phỏng có sử dụng một phần vật thể và đường đi từ bố cục gốc; không đại diện đầy đủ cho tất cả NPC, địa điểm phụ hoặc hệ thống sự kiện. Chế độ gốc đối chiếu những sprite có sẵn trong <code>src/02_art.js</code>.</p>
+<h2>Danh mục công trình, cảnh quan & vật thể thử nghiệm</h2><div id="gallery" class="gallery"></div>
+<h2>Bảng màu định hướng</h2><div class="tokens" id="tokens"></div>
+<footer><b>Cam kết cô lập:</b> <code>alt_art.js</code> và <code>alt_art.html</code> chỉ phục vụ xem thử. Game đang chạy tại <code>index.html</code> không nạp hai file này. Sprite game gốc giữ nguyên.</footer>
+</main>
+<script src="src/02_art.js"></script>
+<script src="alt_art.js"></script>
+<script>
+'use strict';
+buildSprites();
+const alternate=buildAltArt(), original=alternate.original, originalGround=alternate.oldGround, alt=alternate.alternative, altGround=alternate.ground;
+const $=id=>document.getElementById(id), c=$('world'), ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
+let current='town', mode='alt';
+const titles={
+house:'Nhà của bạn',houseB:'Nhà hàng xóm A',houseC:'Nhà hàng xóm B',houseD:'Nhà hàng xóm C',houseE:'Nhà hàng xóm D',
+school:'Trường THPT',gate:'Cổng trường',canteen:'Căng tin',bikeshed:'Nhà để xe',booth:'Bốt bảo vệ',
+shop:'Tạp hóa Cô Ba',center:'Trung tâm học thêm',teashop:'Tiệm trà sữa',mall:'TTTM Hoa Phượng',arcade:'Khu vui chơi',station:'Ga tàu',
+libhouse:'Thư viện',pagoda:'Chùa Hoa Phượng',wcblock:'Nhà vệ sinh',busshelter:'Trạm xe buýt',
+nhahangB:'Nhà hàng',nhamayB:'Nhà máy',congty:'Công ty',karaokeB:'Quán karaoke',
+tree:'Cây xanh',treeRed:'Cây phượng',treePink:'Cây hoa hồng',treeOrange:'Cây mùa thu',
+bench:'Ghế gỗ',lamp:'Đèn đường',hedge:'Hàng cây',wallseg:'Tường rào',fence:'Hàng rào',bush:'Bụi hoa'
+};
+const sprites=['house','houseB','houseC','houseD','houseE','school','gate','canteen','bikeshed','booth','shop','center','mall','teashop','arcade','station','libhouse','pagoda','wcblock','busshelter','congty','nhamayB','nhahangB','karaokeB','tree','treeRed','treePink','treeOrange','hedge','wallseg','fence','bench','lamp','bush'];
+const pos=(s,x,y,more={})=>({s,x,y,...more});
+const maps={
+town:{w:800,h:416,ground:[
+['grass',0,0,50,26],['walk',0,10,50,2],['road',0,12,50,3],['walk',0,15,50,2],['walk',18,8,17,2],
+['dirt',23,17,3,9],['dirt',11,21,23,1],['court',34,18,13,7],
+['flowers',8,18,2,2],['flowers',29,20,2,2],['flowers',18,23,2,2],['flowers',41,5,1,1]],
+objects:[
+pos('house',47,47),pos('houseB',575,47),pos('houseC',687,47),pos('shop',303,51),pos('center',431,51),
+pos('tree',228,14),pos('tree2',533,80),pos('treePink',292,4),pos('tree',404,2),pos('treeOrange',534,6),
+pos('bench',318,316),pos('bench',420,356),pos('tree',24,290),pos('treePink',116,282),
+pos('tree2',250,286),pos('treeOrange',300,356),pos('treePink',436,282),pos('tree',480,352),
+pos('treePink',506,284),pos('tree2',190,362),pos('bush',405,113),pos('busshelter',584,152),
+...Array.from({length:18},(_,i)=>pos('hedge',i*16,2)),
+...Array.from({length:18},(_,i)=>pos('hedge',i*16,270)),
+...Array.from({length:10},(_,i)=>pos('fence',16+i*16,143)),
+...([286,520,742].map(x=>pos('lamp',x,112)))
+],draw(x){
+  x.fillStyle='#6c9ab4';x.beginPath();x.ellipse(110,372,47,23,0,0,Math.PI*2);x.fill();
+  x.fillStyle='#90c8c5';x.beginPath();x.ellipse(103,368,28,11,0,0,Math.PI*2);x.fill();
+  x.fillStyle='#efeadf';for(let i=0;i<6;i++)x.fillRect(354,194+i*8,27,4);
+}},
+school:{w:752,h:528,ground:[
+['yard',0,0,44,27],['grass',44,0,3,27],['grass',0,7,6,19],['court',30,8,13,13],
+['walk',0,27,47,3],['road',0,30,47,3],['flowers',1,9,1,1],['flowers',4,13,1,1],['flowers',2,19,1,1]],
+objects:[
+pos('school',191,3),pos('canteen',40,50),pos('bikeshed',524,62),pos('booth',422,370),
+...([96,430].flatMap(x=>[140,250].map(y=>pos('treeRed',x,y)))),
+...([136,396].flatMap(x=>[172,282].map(y=>pos('benchstone',x,y)))),
+pos('tree',18,150),pos('tree2',34,244),pos('bush',60,206),pos('bush',12,318),
+...Array.from({length:45},(_,i)=>i>=18&&i<=25?null:pos('wallseg',i*16-1,411)).filter(Boolean),
+...Array.from({length:26},(_,i)=>pos('hedge',704,2+i*16)),
+pos('gate',287,388),pos('busshelter',86,434),pos('lamp',16,438)],
+draw(x){
+ x.fillStyle='#fff8e9';for(const [a,b,w,h] of [[484,132,200,1],[484,331,200,1],[484,132,1,200],[683,132,1,200],[484,232,200,1]])x.fillRect(a,b,w,h);
+ x.strokeStyle='#fff8e9';x.beginPath();x.arc(584,232,18,0,Math.PI*2);x.stroke();
+ for(let i=0;i<47;i+=2){x.fillStyle='#f5dfab';x.fillRect(i*16+4,31*16+7,12,2);}
+}},
+pho:{w:1120,h:416,ground:[
+['grass',0,0,70,26],['walk',0,8,70,4],['road',0,12,70,3],['walk',0,15,70,2],['walk',27,0,3,8],
+['flowers',4,4,2,2],['flowers',34,21,2,1],['flowers',55,18,2,2]],
+objects:[
+pos('houseB',12,47),pos('houseC',120,47),pos('houseD',228,47),pos('houseE',336,47),
+pos('teashop',484,51),pos('mall',572,23),pos('arcade',758,51),pos('congty',958,18),
+pos('treePink',862,10),pos('busshelter',176,146),
+...([112,262,416,862,1040].map(x=>pos('lamp',x,112))),
+...([18,156,354,480,740,940].map((x,i)=>pos(i%2?'treeRed':'tree',x,279)))
+],draw(x){
+for(let i=0;i<70;i+=2){x.fillStyle='#f5dfab';x.fillRect(i*16+4,13*16+7,12,2);}
+for(let i=0;i<6;i++){x.fillStyle='#f5e9dc';x.fillRect(442,194+i*8,24,4);}
+}}
+};
+function redraw(){
+const M=maps[current], dict=mode==='alt'?alt:original, ground=mode==='alt'?altGround:originalGround;
+c.width=M.w;c.height=M.h;ctx.imageSmoothingEnabled=false;
+ctx.fillStyle='#8aaa6d';ctx.fillRect(0,0,M.w,M.h);
+for(const [kind,x,y,w,h] of M.ground){const f=ground[kind]||altGround[kind];if(!f)continue;
+ for(let j=0;j<h;j++)for(let i=0;i<w;i++)f(ctx,(x+i)*16,(y+j)*16,x+i,y+j);}
+if(M.draw)M.draw(ctx);
+for(const o of M.objects.slice().sort((a,b)=>a.y-b.y)){const s=dict[o.s]||alt[o.s];if(s)ctx.drawImage(s,o.x,o.y);}
+drawStudents(ctx,M);
+}
+function drawStudents(x,M){
+const coords=current==='school'?[[375,233,'boy'],[320,263,'girl'],[232,300,'girl'],[409,335,'boy'],[600,375,'girl']]:
+current==='town'?[[350,190,'boy'],[460,187,'girl'],[186,210,'boy'],[410,329,'girl']]:
+[[495,177,'boy'],[610,174,'girl'],[729,209,'boy'],[280,218,'girl']];
+for(const [a,b,k] of coords){try{
+ const ch=charSheet(k)[0][0];x.fillStyle='#33303a66';x.fillRect(a+2,b+16,14,3);x.drawImage(ch,a,b);
+}catch(e){}}
+}
+function renderGallery(){
+$('gallery').innerHTML='';
+for(const name of sprites){
+const sprite=(mode==='alt'?alt:original)[name]||alt[name];
+if(!sprite)continue;
+const item=document.createElement('div');item.className='asset';
+const strong=document.createElement('strong');strong.textContent=titles[name]||name;
+const sample=document.createElement('div');sample.className='sample';
+const cv=document.createElement('canvas');const scale=Math.min(3,Math.max(1,Math.floor(168/sprite.width)));
+cv.width=sprite.width*scale+12;cv.height=sprite.height*scale+12;
+const x=cv.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(sprite,6,6,sprite.width*scale,sprite.height*scale);
+sample.append(cv);item.append(strong,sample);
+const small=document.createElement('small');small.textContent=name+' · '+sprite.width+'×'+sprite.height+' px';
+item.append(small);$('gallery').append(item);
+}
+}
+function update(){redraw();renderGallery();$('alt').classList.toggle('active',mode==='alt');$('old').classList.toggle('active',mode==='old');}
+$('map').addEventListener('change',e=>{current=e.target.value;update();});
+$('alt').addEventListener('click',()=>{mode='alt';update();});
+$('old').addEventListener('click',()=>{mode='old';update();});
+$('download').addEventListener('click',()=>{
+ const a=document.createElement('a');a.download='alt_art_'+current+'_'+mode+'.png';a.href=c.toDataURL('image/png');a.click();
+});
+for(const [name,col] of Object.entries(alternate.palette)){
+if(['wall','red','blue','green','path','water','cream','ink'].includes(name)){
+ const item=document.createElement('div');item.className='token';
+ const s=document.createElement('span');s.className='swatch';s.style.background=col;
+ item.append(s,document.createTextNode(name+' '+col));$('tokens').append(item);
+}}
+update();
+</script></body></html>
