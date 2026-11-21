@@ -244,9 +244,10 @@ function faceRect(f) {
 }
 // Mọi nhân vật vẽ bằng bộ chibi (02c_chibi.js) theo phong cách bản thảo; drawCharFrame bên dưới là kiểu cũ, chỉ còn để tham khảo
 function charSheet(key, outfit) {
-  const w = isWinter(), id = '@' + artOf(key) + (outfit ? ':' + outfit : '') + (w ? ':w' : '');
+  const w = isWinter(), chibi = typeof chibiSheet === 'function';         // trang xem thử riêng (alt_art.html) chỉ nạp file này: dùng kiểu vẽ cũ
+  const id = (chibi ? '@' + artOf(key) : key) + (outfit ? ':' + outfit : '') + (w ? ':w' : '');
   if (SHEETS[id]) return SHEETS[id];
-  return (SHEETS[id] = chibiSheet(key, outfit));
+  if (chibi) return (SHEETS[id] = chibiSheet(key, outfit));
   let L = LOOKS[key] || LOOKS.boy;
   if (outfit && OUTFITS[outfit]) L = { ...L, ...OUTFITS[outfit] };
   if (w) L = winterize(L, outfit);

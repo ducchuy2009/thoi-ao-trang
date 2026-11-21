@@ -489,7 +489,7 @@ function initTitle() {
 
 function boot() {
   cv = $('cv'); ctx = cv.getContext('2d');
-  buildSprites(); buildSprites2(); buildMaps();
+  buildSprites(); buildSprites2(); buildWorldArt(); buildMaps(); decorWorld();   // 02d: công trình theo phong cách bản thảo + đạo cụ phố phường
   resize(); bindInput(); bindUI(); initTitle();
   requestAnimationFrame(frame);
 }
