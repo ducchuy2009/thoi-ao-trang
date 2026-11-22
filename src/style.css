@@ -150,7 +150,7 @@ table.tt tr.gap td{font-size:11px;color:var(--dim);padding:3px;border-top:2px da
 .mg canvas{flex:none;width:150px;height:284px;background:#fff;border:3px solid var(--ink);border-radius:10px;touch-action:none;cursor:pointer}
 .mg-side{flex:1;min-width:0}
 .stars{color:#e08a1e;letter-spacing:1px;font-size:1.1em}
-.hearts{color:var(--red);letter-spacing:1px}.hearts i{font-style:normal;color:#d8caa8}
+.hearts{color:var(--red);letter-spacing:1px}.hearts i{font-style:normal;color:#d8caa8}.hearts b{color:#ff5fa8;font-weight:inherit}
 .tabs{display:flex;gap:6px;margin-bottom:10px}
 .tab{font:700 14px/1.2 inherit;font-family:inherit;color:var(--ink);padding:4px 14px;border:3px solid var(--ink);border-radius:999px;background:#efe6d2;cursor:pointer}
 .tab.on{background:var(--green);color:#fff}
@@ -498,3 +498,7 @@ b.bad{color:#d9534f}
 .zone-hot{outline:4px dashed #ffe066;outline-offset:2px}
 .okc{color:#3f8f3a;margin-left:6px}.nokc{color:#d9534f;font-size:12px;margin-left:6px}
 @media (max-width:720px){.shelfpack{grid-template-columns:1fr}.book{width:26px;height:70px;font-size:12px}}
+/* thời tiết trên HUD */
+#h-year .wx{display:inline-flex;align-items:center;gap:2px;margin-left:4px;padding:0 5px 0 2px;border-radius:8px;background:rgba(95,176,232,.14);color:#2f5a94;font-weight:700;white-space:nowrap}
+#h-year .wx.rain{background:rgba(59,111,182,.22);color:#24467a}
+#h-year .wx img{width:14px;height:14px;image-rendering:pixelated}

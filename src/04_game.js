@@ -68,6 +68,8 @@ function migrate() {
   { const seen = {}; G.tests = (G.tests || []).filter(t => { if (t.type !== 'tiet') return true; const k = t.sem + t.subj; if (seen[k]) return !!t.done; seen[k] = 1; return true; }); }   // bản lưu cũ: mỗi môn chỉ còn 1 bài kiểm tra 1 tiết / học kỳ
   for (const t of G.tests || []) if (!t.q && !t.done && isPmDay(t.day)) { let d = t.day - 1; while (d > 0 && !isSchoolDay(d)) d--; t.day = d; }   // bản lưu cũ: bài kiểm tra rơi vào ngày họp thì dời lên hôm trước   // bản lưu cũ (ngày bắt đầu lúc 05:00): 06:00 mới thức dậy
   def('fish', {});                                     // cá câu được: id → số con
+  def('vy', { ch: 0, trust: 50, flags: {}, romance: 'friend', inv: null, sick: -1, lunchWk: {}, help: 0 });   // tuyến truyện Vy (04y_vy.js)
+  if (G.love === undefined) G.love = null; if (G.exLove === undefined) G.exLove = null;   // đang hẹn hò / người yêu cũ (04x_love.js)
   def('svd', { tix: {}, seen: {} });                   // vé sân vận động đã mua / đã xem (theo ngày)
   for (const k in G.bag) if (k.startsWith('vo_')) delete G.bag[k];   // đã bỏ cơ chế soạn vở
   for (const f in FRIENDS) if (G.friends[f] === undefined) G.friends[f] = 0;
@@ -99,8 +101,9 @@ const avgOf = a => a.reduce((s, v) => s + v, 0) / a.length;
 const hocTap = () => avgOf(STUDY_SUBJ.map(lv));                       // chỉ số Học tập chung = TB cấp các môn
 // Năng lực tổng hợp ảnh hưởng tới may rủi khi kiểm tra
 const compOf = subj => (subj === 'td' ? lv('thethao') : hocTap());
-const hearts = id => Math.min(5, Math.floor((G.friends[id] || 0) / 20));
-const addFriend = (id, n, quiet) => { G.friends[id] = clamp((G.friends[id] || 0) + n, 0, 100); if (n && !quiet && typeof UI !== 'undefined') UI.float(`${n > 0 ? '+' : '−'}${Math.abs(n)} ♥ ${FRIENDS[id].name}`, n > 0 ? '#ffb3c7' : '#ff9a9a'); checkBondBadges(); };
+// Tim: mọi nhân vật tối đa 5 tim (100 điểm). Người đang hẹn hò (NPC chính) mở thêm tim 6–8 (04x_love.js). Nuôi chó: điểm thân thiết cộng nhanh hơn.
+const hearts = id => Math.min(heartMax(id), Math.floor((G.friends[id] || 0) / 20));
+const addFriend = (id, n, quiet) => { n = petFriendMul(n); G.friends[id] = clamp((G.friends[id] || 0) + n, 0, friendCap(id)); if (n && !quiet && typeof UI !== 'undefined') UI.float(`${n > 0 ? '+' : '−'}${Math.abs(n)} ♥ ${FRIENDS[id].name}`, n > 0 ? '#ffb3c7' : '#ff9a9a'); checkBondBadges(); };
 const inWin = (t, a, b) => t >= a && t < b;
 // Ở trong nhà hoặc ngoài sân nhà đều tính là đang ở nhà
 const atHome = () => G.map === 'home' || (G.map === 'town' && G.x < 272 && G.y < 160);
@@ -242,7 +245,7 @@ async function activity(label, mins, fn) {
 }
 
 /* ---------- ngày mới / đi ngủ ---------- */
-const rollLuck = () => Math.round((Math.random() + Math.random()) * 50);       // 0–100, hay rơi vào khoảng giữa
+const rollLuck = () => Math.min(100, Math.round((Math.random() + Math.random()) * 50) + (typeof petLuck === 'function' ? petLuck() : 0));       // 0–100, hay rơi vào khoảng giữa · nuôi mèo thì thêm may mắn
 const luckK = () => clamp(((G.daily.luck === undefined ? 50 : G.daily.luck) - 50) / 50, -1, 1);   // −1 (rất xui) … +1 (rất may)
 const luckLv = () => { const v = G.daily.luck === undefined ? 50 : G.daily.luck; let k = 0; LUCK_LV.forEach((l, i) => { if (v >= l[0]) k = i; }); return k; };
 function resetDaily() {
@@ -287,7 +290,7 @@ function beginDay(first) {
   pmNewDay();
   hsgNewDay();                                                          // đội tuyển HSG: nhắc buổi học / ngày thi quốc gia được miễn học
   examWishes();
-  farmNewDay(); petNewDay();                                            // cây lớn / héo · thú cưng được giao tới nhà                                                         // ngày thi: bố mẹ (nhóm Gia đình) và bạn thân nhắn chúc may mắn                                                           // vắng họp phụ huynh kỳ trước: trừ hạnh kiểm ngày học đầu tiên của kỳ này
+  farmNewDay(); petNewDay(); weatherNewDay(); loveNewDay();                                            // cây lớn / héo · thú cưng được giao tới nhà                                                         // ngày thi: bố mẹ (nhóm Gia đình) và bạn thân nhắn chúc may mắn                                                           // vắng họp phụ huynh kỳ trước: trừ hạnh kiểm ngày học đầu tiên của kỳ này
   for (const n of cutPeriods(G.day)) G.daily.done[n] = true;          // tiết bị thay bằng sự kiện: nghỉ, không tính vắng
   if (c.dow === 0 && !first) { const a = parentInfo(G.parent).allowance; addMoney(a, true); if (RT.bill) RT.bill.got.push(['Mẹ cho tiền tiêu vặt đầu tuần', a]); else RT.morning.push(`Mẹ cho tiền tiêu vặt đầu tuần: ${fmtMoney(a)}.`); }
   save();

@@ -557,16 +557,18 @@ ACT.machine = async (kind, mx) => {
 
 /* ---------- nhà bạn ---------- */
 ACT.house = async fid => {
+  if (fid === 'vy' && vyHouseHook()) return;                           // sự kiện ở nhà Vy (học nhóm, hộp kỷ niệm, mang vở khi Vy ốm)
   const F = FRIENDS[fid];
   if (!friendHome(fid)) {
     let where;
     if (G.time >= 1290 || G.time < 390) where = `“Khuya rồi cháu ơi, ${F.name} ngủ rồi.”`;
     else if (meetToday(fid)) where = `“${F.name} ra ${PLACES[G.meet.place].name} rồi, bảo là có hẹn với cháu mà?”`;
+    else if (fid === 'vy') where = `“${{ school: 'Giờ này Vy đang ở trường mà cháu?', library: 'Vy ở lại thư viện trường ôn bài rồi.', park: 'Vy ra công viên bên khu nhà cháu đọc sách rồi.', flower: 'Vy ra cửa hàng hoa ở công viên khu nhà cháu rồi.', tea: 'Vy đi mua trà sữa ở đầu phố rồi.', rehearse: 'Vy ở lại phòng nhạc của trường tập kịch.', class: 'Vy chưa về, chắc còn ở lớp.', gate: 'Vy chưa về, trời mưa thế này chắc đang trú ở cổng trường.', cat: 'Vy chưa về đâu cháu.', bench: 'Vy ra công viên ngồi rồi.', night: 'Vy ra công viên rồi.', commute: 'Vy đang trên đường về.' }[vyPlace()] || 'Vy vừa ra ngoài rồi cháu ạ.'}” — bác Lài nói.`;
     else if (parkTime()) where = `“${F.name} ra công viên bên khu nhà cháu chơi rồi.”`;
     else if (isComp(fid)) where = `“Ơ, ${F.name} đang đi với cháu đấy thôi?”`;
     else if (schoolToday() && G.time < AFTER_SCHOOL) where = `“Giờ này ${F.name} đang ở trường mà cháu?”`;
     else where = `“${F.name} vừa chạy đi đâu đó rồi cháu ạ.”`;
-    return UI.say(`Nhà ${F.name}`, `Bấm chuông… Người nhà ${F.name} ló đầu ra: ${where}<p class="dim">${F.name} có nhà: ngày đi học 20:10–21:30 · ngày nghỉ 06:30–08:00 và 18:10–21:30.</p>`);
+    return UI.say(`Nhà ${F.name}`, `Bấm chuông… Người nhà ${F.name} ló đầu ra: ${where}<p class="dim">${fid === 'vy' ? 'Vy có nhà: sáng trước giờ học, chiều tối sau giờ học (thứ 2–4–6 ở lại thư viện, thứ 3–5 ra công viên đọc sách), cuối tuần ngoài giờ đi chơi.' : `${F.name} có nhà: ngày đi học 20:10–21:30 · ngày nghỉ 06:30–08:00 và 18:10–21:30.`}</p>`);
   }
   if (tetTime()) {                 // ngày Tết: chúc Tết, vào nhà tự do
     const T = tetYear(), opts = [], ids = [];
@@ -758,9 +760,9 @@ function eventLine(e) {
 }
 function newsOf(day) {
   const r = mulberry(day * 131 + 7), pk = a => a[Math.floor(r() * a.length)], c = cal(day), L = [], tag = t => `<i class="tag">${t}</i>`;
+  L.push(tag('THỜI TIẾT') + wxNews(day));
   for (const e of upcomingEvents(day, 10)) L.push(tag(e.kind === 'exam' || e.kind === 'school' || e.kind === 'summer' ? 'GIÁO DỤC' : e.kind === 'svd' ? 'SÂN VẬN ĐỘNG' : 'LỄ HỘI') + eventLine(e));
   const W = WEATHER[c.season] || WEATHER[0], lo = W[2] + Math.floor(r() * 3), hi = W[3] - Math.floor(r() * 3);
-  L.push(tag('THỜI TIẾT') + pk([W[0], W[1]]).replace('{a}', lo).replace('{b}', hi));
   const i1 = Math.floor(r() * NEWS_POOL.length), i2 = (i1 + 1 + Math.floor(r() * (NEWS_POOL.length - 1))) % NEWS_POOL.length;
   L.push(tag('TIN NHANH') + NEWS_POOL[i1]);
   if (L.length < 5) L.push(tag('TIN NHANH') + NEWS_POOL[i2]);
@@ -853,6 +855,7 @@ async function giveHeld(t) {
     const t = G.tasks.active.find(x => x.gr && taskDef(x).item === id);
     return UI.toast(t ? `${GROUP_ITEMS[id]} là đồ ${grLow(t.who)} nhờ lấy — mang tới đưa tận tay ${grLow(t.who)} nhé.` : `${GROUP_ITEMS[id]} không phải của người này.`, 'info');
   }
+  if (id === LOVE.flower && T.kind === 'friend') return confess(T.id);          // hoa oải hương: ngỏ lời hẹn hò
   if (goodsInfo(id)) return giveOrSell(T, id);                                   // món đồ thường: hỏi bán hay tặng
   const key = 'g_' + T.kind + '_' + T.id, isFood = !!FOODS[id], it = holdName(id).toLowerCase();
   let who, name, line, done = () => { };

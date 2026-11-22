@@ -46,7 +46,7 @@ function buildStadium() {
   for (const kx of [300, 448]) addObj(m, { s: 'svdKiosk', x: kx, y: 266, sol: [1, 24, 34, 12], ir: [-4, 0, 42, 44], label: () => 'Quầy vé sân vận động — mua vé', act: () => ACT.svdKiosk() });
   addObj(m, { s: 'svdBoard', x: 236, y: 268, sol: [6, 30, 30, 8], ir: [-4, 0, 48, 42], label: () => 'Bảng điện tử — lịch sự kiện ở sân vận động', act: () => ACT.svdBoard() });
   for (const [s2, a, b] of [['car1', 26, 168], ['car2', 94, 168], ['car2', 26, 236], ['bike', 140, 240], ['moto50', 160, 236], ['car1', 128, 168]]) addObj(m, { s: s2, x: a, y: b, sol: [2, 12, SPR[s2].width - 4, 9] });
-  for (const [a, b] of [[16, 296], [194, 296], [560, 296], [196, 40], [570, 40], [16, 40], [96, 40]]) addObj(m, { s: 'tree', x: a, y: b - 30, sol: [13, 38, 10, 9] });
+  for (const [a, b] of [[16, 296], [194, 296], [196, 40], [570, 40], [16, 40], [96, 40]]) addObj(m, { s: 'tree', x: a, y: b - 30, sol: [13, 38, 10, 9] });
   for (const lx of [200, 560, 760]) addObj(m, { s: 'lamp', x: lx, y: 304, sol: [3, 38, 6, 6] });
   addBusStop(m, 'svd', 620, 330, 600, 380);
   addObj(m, { s: 'signpostL', x: 22, y: 330, sol: [10, 22, 8, 8], label: () => '← Phố Bờ Đông, chợ', act: () => ACT.go('svd', 'dong') });
@@ -64,8 +64,8 @@ function buildStadium() {
   for (let j = 0; j < SVD.h; j++) m.solid[j * SVD.w + W - 1] = (j >= 20 && j <= 28) ? 1 : m.solid[j * SVD.w + W - 1];
   addObj(m, { s: 'mzGate', x: MZ_X - 16, y: 300, sol: [2, 70, 14, 22] }); addObj(m, { s: 'mzGate', x: MZ_X - 16, y: 384 + 6, sol: [2, 70, 14, 22] });
   addObj(m, { s: 'mzBooth', x: 776, y: 298, sol: [1, 22, 24, 12] });
-  addObj(m, { s: 'mzSign', x: 730, y: 280, sol: [6, 28, 34, 6], label: () => 'Biển: KHU VỰC QUÂN SỰ — CẤM VÀO', act: () => ACT.mzGate() });
-  m.labels.push({ x: 753, y: 290.5, text: 'KHU QUÂN SỰ', size: 5.5, col: '#fffaf0', maxw: 40 });
+  addObj(m, { s: 'mzSign', x: 752, y: 252, sol: [6, 28, 34, 6], label: () => 'Biển: KHU VỰC QUÂN SỰ — CẤM VÀO', act: () => ACT.mzGate() });
+  m.labels.push({ x: 775, y: 262.5, text: 'KHU QUÂN SỰ', size: 5.5, col: '#fffaf0', maxw: 40 });
   addObj(m, { s: 'blank', x: MZ_X - 20, y: 360, ir: [-10, 0, 30, 104], label: () => 'Cổng khu quân sự — không phận sự miễn vào', act: () => ACT.mzGate() });
   NPCS.push({ id: 'mz_soldier', name: 'Chiến sĩ gác cổng', look: 'soldier', map: 'svd', x: 808, y: 372, dir: 1, label: () => 'Chiến sĩ gác cổng — khu quân sự', act: () => ACT.mzGate() });
   for (const [s2, a, b] of [['mzBarrack', 870, 60], ['mzTower', 980, 200], ['mzFlag', 880, 140], ['mzTruck', 900, 300], ['mzBarrack', 880, 420], ['mzTower', 860, 6]]) addObj(m, { s: s2, x: a, y: b });

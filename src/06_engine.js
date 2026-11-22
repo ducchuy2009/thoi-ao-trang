@@ -315,6 +315,7 @@ function drawChar(look, outfit, x, y, dir, walkT, oy) {
 // Người ngồi trên xe (xe đạp, xe đạp điện, xe máy): vẽ xe rồi vẽ người lệch lên trên
 // Người ngồi trên xe: vẽ xe rồi vẽ người lệch lên trên; pal: người ngồi sau (mã bạn, hoặc { look, outfit })
 function drawRider(look, outfit, veh, x, y, left, pal) {
+  if (veh === 'jeep') { drawSpr(SHADOW, x - 7, y - 3); drawSpr(SPR[left ? 'jeepL' : 'jeep'], x - 23, y - 24); return; }   // xe hơi: người ngồi trong xe
   drawSpr(SHADOW, x - 7, y - 3); drawSpr(SPR[veh + (left ? 'L' : '')], x - 15, y - 19);
   if (pal) { const p = typeof pal === 'string' ? { look: pal, outfit: FRIENDS[pal] ? friendOutfit(pal) : null } : pal; drawSpr(charSheet(p.look, p.outfit)[left ? 1 : 2][0], x - 9 + (left ? 9 : -9), y - 30); }     // bạn ngồi sau xe
   drawSpr(charSheet(look, outfit)[left ? 1 : 2][0], x - 9 + (left ? 2 : -2), y - 31);
@@ -361,12 +362,13 @@ function render(now) {
     else if (e.f) drawChar(G.comp.fid, friendOutfit(G.comp.fid), e.f.x, e.f.y, e.f.dir, e.f.walk);
     else if (e.w) drawChar(e.w.look, e.w.outfit, e.w.x, e.w.y, e.w.dir, e.w.walk);
     else if (G.ride && !RT.scene) drawRider(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), VEHICLES[G.ride].spr, G.x, G.y, !!RT.faceL, G.comp ? G.comp.fid : null, RT.walkT >= 0);
-    else drawChar(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), G.x, G.y, G.dir, RT.walkT, RT.scene && RT.scene.meOy);
+    else { drawChar(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), G.x, G.y, G.dir, RT.walkT, RT.scene && RT.scene.meOy); if (G.owned.o && raining() && outdoorNow()) drawUmbrella(G.x, G.y + (RT.scene && RT.scene.meOy || 0)); }
   }
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
   if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);
   if (G) { drawFestProps(now); drawBcProps(now); drawTTProps(now); drawHkProps(now); drawTaskMarkers(now); }
+  if (G) drawWeather(now);                        // mưa, mây, nắng (04w_weather.js)
   if (G) drawFurnGhost(now);                      // đang cầm đồ nội thất trong nhà: bóng mờ chỗ đặt
   if (G) drawHeld(now);                           // món đang cầm trên tay
   for (const o of m.objs) if (o.smoke && (!o.vis || o.vis())) smokeProp(now, o.x + o.smoke[0], o.y + o.smoke[1]);   // khói nhang        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân

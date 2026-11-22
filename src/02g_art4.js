@@ -29,7 +29,7 @@ function buildSprites4() {
     R(x, '#f2a93b', 9, 6, 4, 2); R(x, '#f2a93b', 8, 5, 1, 4); R(x, '#e2574c', 15, 9, 3, 2); R(x, '#e2574c', 18, 8, 1, 4);
     R(x, '#fffaf0', 12, 3, 1, 1); R(x, '#fffaf0', 17, 5, 1, 1);
   });
-  buildHouses(); buildMarketArt(); buildStadiumArt();
+  buildHouses(); buildMarketArt(); buildStadiumArt(); buildVyArt();
 }
 
 /* ============================================================
@@ -380,7 +380,52 @@ function buildStadiumArt() {
 }
 // icon vòng 24: lịch sân vận động (micro / quả bóng) + đồ nội thất
 function icon24(id, x) {
+  // thời tiết
+  const sun = (cx0, cy0, r, col) => { ell(x, col, cx0, cy0, r, r); for (let i = 0; i < 8; i++) { const a = i / 8 * 6.283; R(x, col, cx0 + Math.cos(a) * (r + 2), cy0 + Math.sin(a) * (r + 2), 1, 1); } };
+  const cloud = (ox, oy, col) => { ell(x, col, ox + 5, oy + 4, 4, 3); ell(x, col, ox + 9, oy + 3, 4, 3.5); ell(x, col, ox + 12, oy + 5, 3, 2.5); R(x, col, ox + 3, oy + 5, 11, 3); };
+  if (id === 'w_nang') { sun(8, 8, 4, '#ffcf3a'); return true; }
+  if (id === 'w_nanggat') { sun(8, 8, 5, '#ff9a2a'); ell(x, '#ffd23a', 8, 8, 3, 3); return true; }
+  if (id === 'w_may') { sun(5, 5, 3, '#ffcf3a'); cloud(1, 5, '#e8eef2'); return true; }
+  if (id === 'w_phun' || id === 'w_mua' || id === 'w_giong') {
+    cloud(0, 2, id === 'w_giong' ? '#8b8f9c' : '#c9d2dc');
+    for (let i = 0; i < (id === 'w_phun' ? 3 : 5); i++) R(x, '#3b82c4', 3 + i * 2.5, 11 + (i % 2), 1, id === 'w_phun' ? 1 : 3);
+    if (id === 'w_giong') { R(x, '#ffd23a', 8, 9, 2, 2); R(x, '#ffd23a', 7, 11, 2, 2); R(x, '#ffd23a', 8, 13, 1, 2); }
+    return true;
+  }
+  if (id === 'vy_heart') { ell(x, '#ff5fa8', 5.5, 6, 3.5, 3.5); ell(x, '#ff5fa8', 10.5, 6, 3.5, 3.5); for (let j = 0; j < 6; j++) R(x, '#ff5fa8', 2 + j, 7 + j, 12 - j * 2, 1); R(x, '#ffd0e6', 4, 5, 2, 1); return true; }
+  if (id === 'oaihuong') { for (let i = 0; i < 5; i++) { R(x, '#4f8f3a', 4 + i * 2, 8, 1, 7); for (let j = 0; j < 4; j++) R(x, j % 2 ? '#9a72d6' : '#b49ae8', 3 + i * 2 + (j % 2), 1 + j * 2 + (i % 2), 2, 2); } R(x, '#e98fa5', 3, 11, 10, 3); R(x, '#fffaf0', 6, 12, 4, 1); return true; }
+  if (id === 'comvy' || id === 'comvy8') { R(x, '#e98fa5', 1, 5, 14, 9); R(x, '#f4b6c8', 1, 5, 14, 2); R(x, '#fffaf0', 3, 7, 4, 5); R(x, '#2a2136', 3, 9, 4, 1); R(x, '#ffd23a', 8, 7, 5, 3); R(x, '#5fae4a', 8, 10, 5, 2); if (id === 'comvy8') R(x, '#ff5fa8', 12, 2, 3, 3); return true; }
   if (id === 'ci_concert') { R(x, '#5f656f', 7, 8, 2, 7); ell(x, '#2a2136', 8, 5, 4, 4.5); ell(x, '#8b8f9c', 8, 4, 2.5, 2.5); R(x, '#ff5a96', 12, 1, 1, 5); R(x, '#ff5a96', 12, 1, 3, 1); ell(x, '#ff5a96', 11.5, 6, 1.5, 1.2); return true; }
   if (id === 'ci_match') { ell(x, '#fffaf0', 8, 8, 6.5, 6.5); pat(x, ['.###.', '#####', '.###.'], 6, 6, '#2a2136'); R(x, '#2a2136', 3, 4, 2, 2); R(x, '#2a2136', 11, 4, 2, 2); R(x, '#2a2136', 3, 11, 2, 2); R(x, '#2a2136', 11, 11, 2, 2); return true; }
   return furnIcon(id, x);
+}
+
+/* ============================================================
+ *  VÒNG 25: nhà hát, xe jeep quân sự, ảnh gia đình nhà Vy, hộp kỷ niệm, chậu hoa oải hương
+ * ============================================================ */
+function buildVyArt() {
+  def('theaterB', 152, 110, x => {                                      // nhà hát: mái tam giác, 4 cột, biển, áp phích
+    R(x, '#efe2c4', 6, 34, 140, 76); R(x, '#d9c690', 6, 34, 140, 2);
+    for (let j = 0; j < 22; j++) R(x, j === 21 ? '#b8a06a' : '#f4ead2', 76 - j * 3.3, 12 + j, j * 6.6, 1);
+    R(x, '#b8403a', 30, 22, 92, 2); R(x, '#8a2a24', 0, 33, 152, 4); R(x, '#d9c690', 0, 30, 152, 3);
+    R(x, '#8a2a24', 44, 38, 64, 12); R(x, '#b8403a', 45, 39, 62, 10); R(x, '#ffd23a', 45, 39, 62, 1);
+    for (const a of [14, 46, 98, 130]) { R(x, '#fffaf0', a, 52, 8, 52); R(x, '#d9d2c2', a + 6, 52, 2, 52); R(x, '#d9d2c2', a - 1, 50, 10, 3); R(x, '#d9d2c2', a - 1, 101, 10, 3); }
+    R(x, '#2a1d24', 58, 60, 36, 46); ell(x, '#2a1d24', 75.5, 61, 18, 8); R(x, '#6f1f28', 60, 62, 15, 44); R(x, '#6f1f28', 77, 62, 15, 44); R(x, '#ffd23a', 73, 82, 2, 3); R(x, '#ffd23a', 78, 82, 2, 3);
+    for (const a of [24, 108]) { R(x, '#2a2136', a, 60, 18, 26); R(x, '#d94f8a', a + 1, 61, 16, 24); ell(x, '#ffe6ef', a + 9, 70, 4, 4); R(x, '#2a2136', a + 4, 78, 10, 1); R(x, '#2a2136', a + 4, 81, 7, 1); }
+    R(x, '#cfc9bc', 0, 104, 152, 6); R(x, '#e2dccf', 52, 106, 48, 4);
+  });
+  def('jeep', 46, 26, x => {                                            // xe công vụ quân đội
+    R(x, '#2a2136', 5, 19, 10, 7); R(x, '#2a2136', 31, 19, 10, 7); ell(x, '#5f656f', 10, 22, 2, 2); ell(x, '#5f656f', 36, 22, 2, 2);
+    R(x, '#4f6b2f', 0, 9, 46, 12); R(x, '#5f7f3a', 2, 9, 42, 2); R(x, '#4f6b2f', 6, 0, 26, 10); R(x, '#8fc1e3', 9, 2, 9, 7); R(x, '#8fc1e3', 20, 2, 9, 7);
+    R(x, '#ffd23a', 42, 12, 3, 3); R(x, '#d9342b', 36, 11, 4, 3); R(x, '#3f5a24', 0, 19, 46, 2); R(x, '#fffaf0', 14, 13, 7, 3);
+  });
+  def('jeepL', 48, 28, x => { x.save(); x.translate(48, 0); x.scale(-1, 1); x.drawImage(SPR.jeep, 0, 0); x.restore(); }, true);
+  const photo = (name, n) => def(name, 16, 13, x => {                  // ảnh gia đình: 3 người (Vy nhỏ / Vy lớn)
+    R(x, '#8a5a3a', 0, 0, 16, 13); R(x, '#fff6e3', 1, 1, 14, 11); R(x, '#cfe8f7', 1, 1, 14, 5);
+    const P = (a, h, hair, shirt) => { R(x, hair, a, 12 - h - 3, 3, 2); R(x, '#f8d0a8', a, 12 - h - 1, 3, 2); R(x, shirt, a, 12 - h + 1, 3, h - 1); };
+    P(2, 7, '#5a5a5a', '#5a7a3a'); P(11, 7, '#2a1a1a', '#b8304a'); P(6.5, n ? 7 : 4, '#2a2136', n ? '#fffaf0' : '#ff8fb4');
+    if (n) R(x, '#ffd23a', 7, 2, 2, 1);
+  });
+  photo('vyPhotoOld', 0); photo('vyPhotoNew', 1);
+  def('memBox', 22, 16, x => { R(x, '#e8c4a8', 0, 4, 22, 12); R(x, '#f4dcc4', 1, 5, 20, 10); R(x, '#d9a88a', 0, 0, 22, 5); R(x, '#fffaf0', 4, 6, 6, 5); R(x, '#d94f8a', 13, 7, 5, 3); R(x, '#ffd23a', 12, 11, 7, 2); R(x, '#b8403a', 9, 1, 4, 3); });
 }

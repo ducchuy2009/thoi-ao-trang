@@ -15,6 +15,7 @@
  *     Mình đoạt giải: huy hiệu Đẳng cấp quốc gia, ảnh vào lưu bút, thầy cô và bố mẹ quý hơn, tối về bố mẹ dẫn đi nhà hàng ăn mừng.
  * ============================================================ */
 const HSG = {
+  luck: 0.9,                 // điểm may mắn hôm thi cộng / trừ tối đa chừng này điểm (rất may +0.9 · rất xui −0.9)
   min: 9, summer: 90, startDos: 3, dows: [0, 2, 4], natDos: 19,  // môn dự thi ≥ 9,0 · hè bắt đầu ngày 90 trong năm · học từ thứ 2 đầu tiên kể từ 3 Hè · ngày thi quốc gia 19 Thu
   from: 480, natFrom: 810, len: 60,                               // hè học 08:00 · năm học học chiều 13:30 · 2 tiết × 30'
   gain: 9, stam: 10,                                              // mỗi tiết: +9 điểm môn (tiết thường +5), −10 thể lực (tiết thường −6)
@@ -218,7 +219,7 @@ async function hsgExpel(H, n) {
 /* ---------- 3) thi chọn đội tuyển + cô đọc tên 3 bạn ---------- */
 function hsgSelScore(H) {
   const k = HSG.sel, P = hsgPlan(H.year), att = (H.att || 0) / P.train.length, self = Math.min(1, (H.self || 0) / k.selfNeed), foc = H.att ? (H.focus || 0) / P.train.length : 0;
-  return k.base + k.att * att + k.self * self + k.focus * foc + k.lv * lv(H.subj) + k.tut * Math.min(k.tutMax, H.tut || 0) + rnd(-k.rnd, k.rnd);
+  return k.base + k.att * att + k.self * self + k.focus * foc + k.lv * lv(H.subj) + k.tut * Math.min(k.tutMax, H.tut || 0) + rnd(-k.rnd, k.rnd) + HSG.luck * luckK();   // may mắn hôm thi
 }
 async function hsgSelect(H) {
   RT.lock = true;
@@ -257,7 +258,7 @@ async function hsgSelect(H) {
 function hsgNatScore(H) {
   const k = HSG.nat, P = hsgPlan(H.year), n = Math.max(1, P.nat.length), span = Math.max(7, P.natDay - P.exam), weeks = span / 7;
   const att = (H.attNat || 0) / n, self = Math.min(1, (H.selfNat || 0) / (span * k.selfRate)), tutW = (H.tutNat || 0) / weeks, foc = (H.focusNat || 0) / n;
-  return k.base + k.att * att + k.self * self + k.tut * Math.min(k.tutMax, tutW) + k.lv * lv(H.subj) + k.focus * foc + rnd(-k.rnd, k.rnd);
+  return k.base + k.att * att + k.self * self + k.tut * Math.min(k.tutMax, tutW) + k.lv * lv(H.subj) + k.focus * foc + rnd(-k.rnd, k.rnd) + HSG.luck * luckK();   // may mắn hôm thi
 }
 async function hsgNational(H) {
   RT.lock = true;

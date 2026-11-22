@@ -276,6 +276,7 @@ const SHOP = [
   { id: 'banhtrang', name: 'Bánh tráng trộn ×5', price: 25000, desc: 'Hàng để bán lại cho bạn trong giờ ra chơi', inv: 'banhtrang', n: 5 },
   { id: 'vethang', name: 'Vé tháng xe bus', price: BUS_PASS_PRICE, desc: 'Dùng 30 ngày kể từ ngày mua', special: 'vethang' },
   { id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu cá ở bờ sông, ao công viên, bãi biển', own: 'cancau' },
+  { id: 'o', name: 'Ô che mưa', price: 45000, desc: 'Có ô thì trời mưa tự che, không bị ướt, không bị cảm', own: 'o' },
   { id: 'thung', name: 'Thùng chứa nhỏ', price: FARM.chest, desc: 'Đặt ở chỗ bất kỳ ngoài vườn trước nhà, cất được 30 món đồ', inv: 'thung', n: 1 },
   { id: 'xedap', name: 'Xe đạp', price: 400000, desc: 'Mua xong xe dựng trước cửa tiệm, bấm vào xe để đi', own: 'xedap' },
   { id: 'xedapdien', name: 'Xe đạp điện', price: 2500000, desc: 'Chạy nhanh hơn xe đạp', own: 'xedapdien' },
@@ -610,6 +611,8 @@ const SCHOOL_EVENTS = [
 ];
 /* ---------- Lưu bút: kỷ vật, khoảnh khắc, lời lưu bút (viết vào ngày tốt nghiệp) ---------- */
 const MEMO_ITEMS = {
+  hopkyniem: { name: 'Chiếc hộp kỷ niệm', desc: 'Ảnh chụp chung, vé xem kịch, những mẩu giấy ghi chú với Vy.', hint: 'Đạt 8 tim khi hẹn hò với Vy' },
+  thuvy: { name: 'Bức thư của Vy', desc: 'Lá thư Vy giữ kín từ năm lớp 11, trao vào ngày tốt nghiệp.', hint: 'Hẹn hò với Vy tới ngày tốt nghiệp' },
   cup: { name: 'Cúp Vua gói bánh chưng', desc: 'Vô địch hội thi gói bánh chưng của trường.', hint: 'Thắng hội thi gói bánh chưng trước Tết' },
   photo: { name: 'Ảnh cả lớp ăn mừng', desc: 'Cả lớp đứng chen nhau quanh chiếc cúp, cười tít mắt.', hint: 'Thắng hội thi gói bánh chưng trước Tết' },
   lixi: { name: 'Phong bao lì xì đầu năm', desc: 'Bao lì xì đỏ bố mẹ trao sáng mùng 1 Tết.', hint: 'Ăn Tết ở nhà' },
@@ -661,6 +664,18 @@ const MEMO_BADGES = {
   phudong: { name: 'Phù Đổng', icon: 'b_phudong', desc: 'Cùng cả lớp giành cúp tập thể ở Hội khoẻ Phù Đổng.', hint: 'Giành cúp tập thể ở Hội khoẻ Phù Đổng' },
 };
 const MEMO_SCENES = {
+  henho: { name: 'Lời tỏ tình bằng hoa oải hương', icon: 'vy_heart', desc: 'Bó hoa oải hương run run trên tay, và một tiếng "đồng ý" nhỏ xíu.' },
+  vy_c1: { name: 'Hoa khôi bàn bên', icon: 'vy_heart', desc: 'Lớp học vắng tanh, Vy ngồi một mình chờ "tài xế".' },
+  vy_c2: { name: 'Chiều mưa ở thư viện', icon: 'w_mua', desc: 'Vy kể về chiếc ghế đầu luôn trống trong những buổi biểu diễn ở trường.' },
+  vy_c3: { name: 'Sinh nhật chỉ có một người', icon: 'vy_heart', desc: 'Ghế đá công viên, một món quà nhỏ và nước mắt của cô lớp phó.' },
+  vy_c4: { name: 'Bữa cơm nhà đại tướng', icon: 'vy_heart', desc: 'Bữa cơm căng thẳng nhất từ trước tới nay ở nhà Vy.' },
+  vy_c5: { name: 'Picnic trên núi', icon: 'vy_heart', desc: '"Ở bên cậu, hình như có bao nhiêu chuyện tớ cũng muốn kể."' },
+  vy_e6: { name: 'Hộp cơm đầu tiên', icon: 'comvy', desc: 'Cơm cuộn hơi mặn, nhưng là của Vy làm.' },
+  vy_e7: { name: 'Đêm ở ghế đá công viên', icon: 'vy_heart', desc: 'Ngồi cạnh Vy dưới ánh đèn đường, nghe cô kể chuyện gia đình.' },
+  vy_e8: { name: 'Chiếc hộp kỷ niệm', icon: 'vy_heart', desc: 'Cùng Vy viết thư gửi bản thân sau ngày tốt nghiệp.' },
+  vy_play: { name: 'Ánh đèn sân khấu', icon: 'ci_concert', desc: 'Đêm Vy diễn vở kịch cuối năm, bố mẹ cô đều có mặt.' },
+  vy_ve: { name: 'Vé xem kịch của mẹ', icon: 'ci_concert', desc: 'Ngồi cạnh Vy xem mẹ cô diễn ở Nhà hát Hoa Phượng.' },
+  vy_grad: { name: 'Lời hẹn dưới tán phượng', icon: 'vy_heart', desc: 'Ngày cuối cùng ở THPT Hoa Phượng, trong lớp học nơi lần đầu gặp nhau.' },
   svd_concert: { name: 'Đêm nhạc ở sân vận động', icon: 'ci_concert', desc: 'Cả sân vận động vẫy que phát sáng, hát theo ban nhạc tới khản cổ.' },
   svd_match: { name: 'Xem bóng đá ở sân vận động', icon: 'ci_match', desc: 'Ngồi khán đài cổ vũ CLB Hoa Phượng đá trên sân nhà.' },
   nangkhieu: { name: 'Lớp năng khiếu', icon: 'sc_hsg', desc: 'Đăng ký học vẽ, học hát ở trung tâm năng khiếu Hoạ Mi.' },

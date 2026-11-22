@@ -159,7 +159,7 @@ table.tt tr.gap td{font-size:11px;color:var(--dim);padding:3px;border-top:2px da
 .mg canvas{flex:none;width:150px;height:284px;background:#fff;border:3px solid var(--ink);border-radius:10px;touch-action:none;cursor:pointer}
 .mg-side{flex:1;min-width:0}
 .stars{color:#e08a1e;letter-spacing:1px;font-size:1.1em}
-.hearts{color:var(--red);letter-spacing:1px}.hearts i{font-style:normal;color:#d8caa8}
+.hearts{color:var(--red);letter-spacing:1px}.hearts i{font-style:normal;color:#d8caa8}.hearts b{color:#ff5fa8;font-weight:inherit}
 .tabs{display:flex;gap:6px;margin-bottom:10px}
 .tab{font:700 14px/1.2 inherit;font-family:inherit;color:var(--ink);padding:4px 14px;border:3px solid var(--ink);border-radius:999px;background:#efe6d2;cursor:pointer}
 .tab.on{background:var(--green);color:#fff}
@@ -507,6 +507,10 @@ b.bad{color:#d9534f}
 .zone-hot{outline:4px dashed #ffe066;outline-offset:2px}
 .okc{color:#3f8f3a;margin-left:6px}.nokc{color:#d9534f;font-size:12px;margin-left:6px}
 @media (max-width:720px){.shelfpack{grid-template-columns:1fr}.book{width:26px;height:70px;font-size:12px}}
+/* thời tiết trên HUD */
+#h-year .wx{display:inline-flex;align-items:center;gap:2px;margin-left:4px;padding:0 5px 0 2px;border-radius:8px;background:rgba(95,176,232,.14);color:#2f5a94;font-weight:700;white-space:nowrap}
+#h-year .wx.rain{background:rgba(59,111,182,.22);color:#24467a}
+#h-year .wx img{width:14px;height:14px;image-rendering:pixelated}
 
 </style>
 </head>
@@ -833,6 +837,7 @@ const SHOP = [
   { id: 'banhtrang', name: 'Bánh tráng trộn ×5', price: 25000, desc: 'Hàng để bán lại cho bạn trong giờ ra chơi', inv: 'banhtrang', n: 5 },
   { id: 'vethang', name: 'Vé tháng xe bus', price: BUS_PASS_PRICE, desc: 'Dùng 30 ngày kể từ ngày mua', special: 'vethang' },
   { id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu cá ở bờ sông, ao công viên, bãi biển', own: 'cancau' },
+  { id: 'o', name: 'Ô che mưa', price: 45000, desc: 'Có ô thì trời mưa tự che, không bị ướt, không bị cảm', own: 'o' },
   { id: 'thung', name: 'Thùng chứa nhỏ', price: FARM.chest, desc: 'Đặt ở chỗ bất kỳ ngoài vườn trước nhà, cất được 30 món đồ', inv: 'thung', n: 1 },
   { id: 'xedap', name: 'Xe đạp', price: 400000, desc: 'Mua xong xe dựng trước cửa tiệm, bấm vào xe để đi', own: 'xedap' },
   { id: 'xedapdien', name: 'Xe đạp điện', price: 2500000, desc: 'Chạy nhanh hơn xe đạp', own: 'xedapdien' },
@@ -1167,6 +1172,8 @@ const SCHOOL_EVENTS = [
 ];
 /* ---------- Lưu bút: kỷ vật, khoảnh khắc, lời lưu bút (viết vào ngày tốt nghiệp) ---------- */
 const MEMO_ITEMS = {
+  hopkyniem: { name: 'Chiếc hộp kỷ niệm', desc: 'Ảnh chụp chung, vé xem kịch, những mẩu giấy ghi chú với Vy.', hint: 'Đạt 8 tim khi hẹn hò với Vy' },
+  thuvy: { name: 'Bức thư của Vy', desc: 'Lá thư Vy giữ kín từ năm lớp 11, trao vào ngày tốt nghiệp.', hint: 'Hẹn hò với Vy tới ngày tốt nghiệp' },
   cup: { name: 'Cúp Vua gói bánh chưng', desc: 'Vô địch hội thi gói bánh chưng của trường.', hint: 'Thắng hội thi gói bánh chưng trước Tết' },
   photo: { name: 'Ảnh cả lớp ăn mừng', desc: 'Cả lớp đứng chen nhau quanh chiếc cúp, cười tít mắt.', hint: 'Thắng hội thi gói bánh chưng trước Tết' },
   lixi: { name: 'Phong bao lì xì đầu năm', desc: 'Bao lì xì đỏ bố mẹ trao sáng mùng 1 Tết.', hint: 'Ăn Tết ở nhà' },
@@ -1218,6 +1225,18 @@ const MEMO_BADGES = {
   phudong: { name: 'Phù Đổng', icon: 'b_phudong', desc: 'Cùng cả lớp giành cúp tập thể ở Hội khoẻ Phù Đổng.', hint: 'Giành cúp tập thể ở Hội khoẻ Phù Đổng' },
 };
 const MEMO_SCENES = {
+  henho: { name: 'Lời tỏ tình bằng hoa oải hương', icon: 'vy_heart', desc: 'Bó hoa oải hương run run trên tay, và một tiếng "đồng ý" nhỏ xíu.' },
+  vy_c1: { name: 'Hoa khôi bàn bên', icon: 'vy_heart', desc: 'Lớp học vắng tanh, Vy ngồi một mình chờ "tài xế".' },
+  vy_c2: { name: 'Chiều mưa ở thư viện', icon: 'w_mua', desc: 'Vy kể về chiếc ghế đầu luôn trống trong những buổi biểu diễn ở trường.' },
+  vy_c3: { name: 'Sinh nhật chỉ có một người', icon: 'vy_heart', desc: 'Ghế đá công viên, một món quà nhỏ và nước mắt của cô lớp phó.' },
+  vy_c4: { name: 'Bữa cơm nhà đại tướng', icon: 'vy_heart', desc: 'Bữa cơm căng thẳng nhất từ trước tới nay ở nhà Vy.' },
+  vy_c5: { name: 'Picnic trên núi', icon: 'vy_heart', desc: '"Ở bên cậu, hình như có bao nhiêu chuyện tớ cũng muốn kể."' },
+  vy_e6: { name: 'Hộp cơm đầu tiên', icon: 'comvy', desc: 'Cơm cuộn hơi mặn, nhưng là của Vy làm.' },
+  vy_e7: { name: 'Đêm ở ghế đá công viên', icon: 'vy_heart', desc: 'Ngồi cạnh Vy dưới ánh đèn đường, nghe cô kể chuyện gia đình.' },
+  vy_e8: { name: 'Chiếc hộp kỷ niệm', icon: 'vy_heart', desc: 'Cùng Vy viết thư gửi bản thân sau ngày tốt nghiệp.' },
+  vy_play: { name: 'Ánh đèn sân khấu', icon: 'ci_concert', desc: 'Đêm Vy diễn vở kịch cuối năm, bố mẹ cô đều có mặt.' },
+  vy_ve: { name: 'Vé xem kịch của mẹ', icon: 'ci_concert', desc: 'Ngồi cạnh Vy xem mẹ cô diễn ở Nhà hát Hoa Phượng.' },
+  vy_grad: { name: 'Lời hẹn dưới tán phượng', icon: 'vy_heart', desc: 'Ngày cuối cùng ở THPT Hoa Phượng, trong lớp học nơi lần đầu gặp nhau.' },
   svd_concert: { name: 'Đêm nhạc ở sân vận động', icon: 'ci_concert', desc: 'Cả sân vận động vẫy que phát sáng, hát theo ban nhạc tới khản cổ.' },
   svd_match: { name: 'Xem bóng đá ở sân vận động', icon: 'ci_match', desc: 'Ngồi khán đài cổ vũ CLB Hoa Phượng đá trên sân nhà.' },
   nangkhieu: { name: 'Lớp năng khiếu', icon: 'sc_hsg', desc: 'Đăng ký học vẽ, học hát ở trung tâm năng khiếu Hoạ Mi.' },
@@ -3147,7 +3166,7 @@ function buildSprites4() {
     R(x, '#f2a93b', 9, 6, 4, 2); R(x, '#f2a93b', 8, 5, 1, 4); R(x, '#e2574c', 15, 9, 3, 2); R(x, '#e2574c', 18, 8, 1, 4);
     R(x, '#fffaf0', 12, 3, 1, 1); R(x, '#fffaf0', 17, 5, 1, 1);
   });
-  buildHouses(); buildMarketArt(); buildStadiumArt();
+  buildHouses(); buildMarketArt(); buildStadiumArt(); buildVyArt();
 }
 
 /* ============================================================
@@ -3498,9 +3517,54 @@ function buildStadiumArt() {
 }
 // icon vòng 24: lịch sân vận động (micro / quả bóng) + đồ nội thất
 function icon24(id, x) {
+  // thời tiết
+  const sun = (cx0, cy0, r, col) => { ell(x, col, cx0, cy0, r, r); for (let i = 0; i < 8; i++) { const a = i / 8 * 6.283; R(x, col, cx0 + Math.cos(a) * (r + 2), cy0 + Math.sin(a) * (r + 2), 1, 1); } };
+  const cloud = (ox, oy, col) => { ell(x, col, ox + 5, oy + 4, 4, 3); ell(x, col, ox + 9, oy + 3, 4, 3.5); ell(x, col, ox + 12, oy + 5, 3, 2.5); R(x, col, ox + 3, oy + 5, 11, 3); };
+  if (id === 'w_nang') { sun(8, 8, 4, '#ffcf3a'); return true; }
+  if (id === 'w_nanggat') { sun(8, 8, 5, '#ff9a2a'); ell(x, '#ffd23a', 8, 8, 3, 3); return true; }
+  if (id === 'w_may') { sun(5, 5, 3, '#ffcf3a'); cloud(1, 5, '#e8eef2'); return true; }
+  if (id === 'w_phun' || id === 'w_mua' || id === 'w_giong') {
+    cloud(0, 2, id === 'w_giong' ? '#8b8f9c' : '#c9d2dc');
+    for (let i = 0; i < (id === 'w_phun' ? 3 : 5); i++) R(x, '#3b82c4', 3 + i * 2.5, 11 + (i % 2), 1, id === 'w_phun' ? 1 : 3);
+    if (id === 'w_giong') { R(x, '#ffd23a', 8, 9, 2, 2); R(x, '#ffd23a', 7, 11, 2, 2); R(x, '#ffd23a', 8, 13, 1, 2); }
+    return true;
+  }
+  if (id === 'vy_heart') { ell(x, '#ff5fa8', 5.5, 6, 3.5, 3.5); ell(x, '#ff5fa8', 10.5, 6, 3.5, 3.5); for (let j = 0; j < 6; j++) R(x, '#ff5fa8', 2 + j, 7 + j, 12 - j * 2, 1); R(x, '#ffd0e6', 4, 5, 2, 1); return true; }
+  if (id === 'oaihuong') { for (let i = 0; i < 5; i++) { R(x, '#4f8f3a', 4 + i * 2, 8, 1, 7); for (let j = 0; j < 4; j++) R(x, j % 2 ? '#9a72d6' : '#b49ae8', 3 + i * 2 + (j % 2), 1 + j * 2 + (i % 2), 2, 2); } R(x, '#e98fa5', 3, 11, 10, 3); R(x, '#fffaf0', 6, 12, 4, 1); return true; }
+  if (id === 'comvy' || id === 'comvy8') { R(x, '#e98fa5', 1, 5, 14, 9); R(x, '#f4b6c8', 1, 5, 14, 2); R(x, '#fffaf0', 3, 7, 4, 5); R(x, '#2a2136', 3, 9, 4, 1); R(x, '#ffd23a', 8, 7, 5, 3); R(x, '#5fae4a', 8, 10, 5, 2); if (id === 'comvy8') R(x, '#ff5fa8', 12, 2, 3, 3); return true; }
   if (id === 'ci_concert') { R(x, '#5f656f', 7, 8, 2, 7); ell(x, '#2a2136', 8, 5, 4, 4.5); ell(x, '#8b8f9c', 8, 4, 2.5, 2.5); R(x, '#ff5a96', 12, 1, 1, 5); R(x, '#ff5a96', 12, 1, 3, 1); ell(x, '#ff5a96', 11.5, 6, 1.5, 1.2); return true; }
   if (id === 'ci_match') { ell(x, '#fffaf0', 8, 8, 6.5, 6.5); pat(x, ['.###.', '#####', '.###.'], 6, 6, '#2a2136'); R(x, '#2a2136', 3, 4, 2, 2); R(x, '#2a2136', 11, 4, 2, 2); R(x, '#2a2136', 3, 11, 2, 2); R(x, '#2a2136', 11, 11, 2, 2); return true; }
   return furnIcon(id, x);
+}
+
+/* ============================================================
+ *  VÒNG 25: nhà hát, xe jeep quân sự, ảnh gia đình nhà Vy, hộp kỷ niệm, chậu hoa oải hương
+ * ============================================================ */
+function buildVyArt() {
+  def('theaterB', 152, 110, x => {                                      // nhà hát: mái tam giác, 4 cột, biển, áp phích
+    R(x, '#efe2c4', 6, 34, 140, 76); R(x, '#d9c690', 6, 34, 140, 2);
+    for (let j = 0; j < 22; j++) R(x, j === 21 ? '#b8a06a' : '#f4ead2', 76 - j * 3.3, 12 + j, j * 6.6, 1);
+    R(x, '#b8403a', 30, 22, 92, 2); R(x, '#8a2a24', 0, 33, 152, 4); R(x, '#d9c690', 0, 30, 152, 3);
+    R(x, '#8a2a24', 44, 38, 64, 12); R(x, '#b8403a', 45, 39, 62, 10); R(x, '#ffd23a', 45, 39, 62, 1);
+    for (const a of [14, 46, 98, 130]) { R(x, '#fffaf0', a, 52, 8, 52); R(x, '#d9d2c2', a + 6, 52, 2, 52); R(x, '#d9d2c2', a - 1, 50, 10, 3); R(x, '#d9d2c2', a - 1, 101, 10, 3); }
+    R(x, '#2a1d24', 58, 60, 36, 46); ell(x, '#2a1d24', 75.5, 61, 18, 8); R(x, '#6f1f28', 60, 62, 15, 44); R(x, '#6f1f28', 77, 62, 15, 44); R(x, '#ffd23a', 73, 82, 2, 3); R(x, '#ffd23a', 78, 82, 2, 3);
+    for (const a of [24, 108]) { R(x, '#2a2136', a, 60, 18, 26); R(x, '#d94f8a', a + 1, 61, 16, 24); ell(x, '#ffe6ef', a + 9, 70, 4, 4); R(x, '#2a2136', a + 4, 78, 10, 1); R(x, '#2a2136', a + 4, 81, 7, 1); }
+    R(x, '#cfc9bc', 0, 104, 152, 6); R(x, '#e2dccf', 52, 106, 48, 4);
+  });
+  def('jeep', 46, 26, x => {                                            // xe công vụ quân đội
+    R(x, '#2a2136', 5, 19, 10, 7); R(x, '#2a2136', 31, 19, 10, 7); ell(x, '#5f656f', 10, 22, 2, 2); ell(x, '#5f656f', 36, 22, 2, 2);
+    R(x, '#4f6b2f', 0, 9, 46, 12); R(x, '#5f7f3a', 2, 9, 42, 2); R(x, '#4f6b2f', 6, 0, 26, 10); R(x, '#8fc1e3', 9, 2, 9, 7); R(x, '#8fc1e3', 20, 2, 9, 7);
+    R(x, '#ffd23a', 42, 12, 3, 3); R(x, '#d9342b', 36, 11, 4, 3); R(x, '#3f5a24', 0, 19, 46, 2); R(x, '#fffaf0', 14, 13, 7, 3);
+  });
+  def('jeepL', 48, 28, x => { x.save(); x.translate(48, 0); x.scale(-1, 1); x.drawImage(SPR.jeep, 0, 0); x.restore(); }, true);
+  const photo = (name, n) => def(name, 16, 13, x => {                  // ảnh gia đình: 3 người (Vy nhỏ / Vy lớn)
+    R(x, '#8a5a3a', 0, 0, 16, 13); R(x, '#fff6e3', 1, 1, 14, 11); R(x, '#cfe8f7', 1, 1, 14, 5);
+    const P = (a, h, hair, shirt) => { R(x, hair, a, 12 - h - 3, 3, 2); R(x, '#f8d0a8', a, 12 - h - 1, 3, 2); R(x, shirt, a, 12 - h + 1, 3, h - 1); };
+    P(2, 7, '#5a5a5a', '#5a7a3a'); P(11, 7, '#2a1a1a', '#b8304a'); P(6.5, n ? 7 : 4, '#2a2136', n ? '#fffaf0' : '#ff8fb4');
+    if (n) R(x, '#ffd23a', 7, 2, 2, 1);
+  });
+  photo('vyPhotoOld', 0); photo('vyPhotoNew', 1);
+  def('memBox', 22, 16, x => { R(x, '#e8c4a8', 0, 4, 22, 12); R(x, '#f4dcc4', 1, 5, 20, 10); R(x, '#d9a88a', 0, 0, 22, 5); R(x, '#fffaf0', 4, 6, 6, 5); R(x, '#d94f8a', 13, 7, 5, 3); R(x, '#ffd23a', 12, 11, 7, 2); R(x, '#b8403a', 9, 1, 4, 3); });
 }
 
 'use strict';
@@ -3650,7 +3714,7 @@ function buildTown() {
   const parkT = () => parkTime();
   for (const [fid, a, b, d, wd] of [['khoa', 636, 348, 0, 26], ['dat', 694, 368, 1, 26], ['vy', 338, 344, 0, 14], ['ngan', 452, 340, 0, 12]]) {
     const F = FRIENDS[fid];
-    NPCS.push({ id: 'p_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'town', x: a, y: b, dir: d, wander: wd, vis: () => parkT() && !meetToday(fid) && !isComp(fid), label: () => F.name, act: () => ACT.friend(fid, 'park') });
+    NPCS.push({ id: 'p_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'town', x: a, y: b, dir: d, wander: wd, vis: () => parkT() && !raining() && friendSpot(fid) === 'park' && !meetToday(fid) && !isComp(fid) && !sceneHides('p_' + fid), label: () => F.name, act: () => ACT.friend(fid, 'park') });
   }
 }
 const friendOutfit = fid => (schoolToday() || hkUniform() ? null : 'cas_' + fid);
@@ -4013,6 +4077,7 @@ function buildMaps() {
   addMeetNpcs(); buildFamily(); buildFamilyPlaces(); buildHsgPlaces(); buildCenter(); buildEcoPlaces(); buildHobbyPlaces(); buildStadium();
   seasonTrees();                                   // cây đổi màu theo mùa
   buildTrips();                                    // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch (04l)
+  buildVyStory();                                  // tuyến truyện Vy: chỗ đứng theo lịch, bố mẹ Vy, nhà hát (04y)
   widenEdgeZones();                                // đi qua mép trái / phải chỗ nào không bị chặn cũng sang được bản đồ kế tiếp
 }
 // Lối sang bản đồ bên cạnh ở mép trái / phải: nới rộng theo cả đoạn mép đi lại được (tới khi gặp tường, hàng rào, nhà)
@@ -4676,6 +4741,8 @@ function migrate() {
   { const seen = {}; G.tests = (G.tests || []).filter(t => { if (t.type !== 'tiet') return true; const k = t.sem + t.subj; if (seen[k]) return !!t.done; seen[k] = 1; return true; }); }   // bản lưu cũ: mỗi môn chỉ còn 1 bài kiểm tra 1 tiết / học kỳ
   for (const t of G.tests || []) if (!t.q && !t.done && isPmDay(t.day)) { let d = t.day - 1; while (d > 0 && !isSchoolDay(d)) d--; t.day = d; }   // bản lưu cũ: bài kiểm tra rơi vào ngày họp thì dời lên hôm trước   // bản lưu cũ (ngày bắt đầu lúc 05:00): 06:00 mới thức dậy
   def('fish', {});                                     // cá câu được: id → số con
+  def('vy', { ch: 0, trust: 50, flags: {}, romance: 'friend', inv: null, sick: -1, lunchWk: {}, help: 0 });   // tuyến truyện Vy (04y_vy.js)
+  if (G.love === undefined) G.love = null; if (G.exLove === undefined) G.exLove = null;   // đang hẹn hò / người yêu cũ (04x_love.js)
   def('svd', { tix: {}, seen: {} });                   // vé sân vận động đã mua / đã xem (theo ngày)
   for (const k in G.bag) if (k.startsWith('vo_')) delete G.bag[k];   // đã bỏ cơ chế soạn vở
   for (const f in FRIENDS) if (G.friends[f] === undefined) G.friends[f] = 0;
@@ -4707,8 +4774,9 @@ const avgOf = a => a.reduce((s, v) => s + v, 0) / a.length;
 const hocTap = () => avgOf(STUDY_SUBJ.map(lv));                       // chỉ số Học tập chung = TB cấp các môn
 // Năng lực tổng hợp ảnh hưởng tới may rủi khi kiểm tra
 const compOf = subj => (subj === 'td' ? lv('thethao') : hocTap());
-const hearts = id => Math.min(5, Math.floor((G.friends[id] || 0) / 20));
-const addFriend = (id, n, quiet) => { G.friends[id] = clamp((G.friends[id] || 0) + n, 0, 100); if (n && !quiet && typeof UI !== 'undefined') UI.float(`${n > 0 ? '+' : '−'}${Math.abs(n)} ♥ ${FRIENDS[id].name}`, n > 0 ? '#ffb3c7' : '#ff9a9a'); checkBondBadges(); };
+// Tim: mọi nhân vật tối đa 5 tim (100 điểm). Người đang hẹn hò (NPC chính) mở thêm tim 6–8 (04x_love.js). Nuôi chó: điểm thân thiết cộng nhanh hơn.
+const hearts = id => Math.min(heartMax(id), Math.floor((G.friends[id] || 0) / 20));
+const addFriend = (id, n, quiet) => { n = petFriendMul(n); G.friends[id] = clamp((G.friends[id] || 0) + n, 0, friendCap(id)); if (n && !quiet && typeof UI !== 'undefined') UI.float(`${n > 0 ? '+' : '−'}${Math.abs(n)} ♥ ${FRIENDS[id].name}`, n > 0 ? '#ffb3c7' : '#ff9a9a'); checkBondBadges(); };
 const inWin = (t, a, b) => t >= a && t < b;
 // Ở trong nhà hoặc ngoài sân nhà đều tính là đang ở nhà
 const atHome = () => G.map === 'home' || (G.map === 'town' && G.x < 272 && G.y < 160);
@@ -4850,7 +4918,7 @@ async function activity(label, mins, fn) {
 }
 
 /* ---------- ngày mới / đi ngủ ---------- */
-const rollLuck = () => Math.round((Math.random() + Math.random()) * 50);       // 0–100, hay rơi vào khoảng giữa
+const rollLuck = () => Math.min(100, Math.round((Math.random() + Math.random()) * 50) + (typeof petLuck === 'function' ? petLuck() : 0));       // 0–100, hay rơi vào khoảng giữa · nuôi mèo thì thêm may mắn
 const luckK = () => clamp(((G.daily.luck === undefined ? 50 : G.daily.luck) - 50) / 50, -1, 1);   // −1 (rất xui) … +1 (rất may)
 const luckLv = () => { const v = G.daily.luck === undefined ? 50 : G.daily.luck; let k = 0; LUCK_LV.forEach((l, i) => { if (v >= l[0]) k = i; }); return k; };
 function resetDaily() {
@@ -4895,7 +4963,7 @@ function beginDay(first) {
   pmNewDay();
   hsgNewDay();                                                          // đội tuyển HSG: nhắc buổi học / ngày thi quốc gia được miễn học
   examWishes();
-  farmNewDay(); petNewDay();                                            // cây lớn / héo · thú cưng được giao tới nhà                                                         // ngày thi: bố mẹ (nhóm Gia đình) và bạn thân nhắn chúc may mắn                                                           // vắng họp phụ huynh kỳ trước: trừ hạnh kiểm ngày học đầu tiên của kỳ này
+  farmNewDay(); petNewDay(); weatherNewDay(); loveNewDay();                                            // cây lớn / héo · thú cưng được giao tới nhà                                                         // ngày thi: bố mẹ (nhóm Gia đình) và bạn thân nhắn chúc may mắn                                                           // vắng họp phụ huynh kỳ trước: trừ hạnh kiểm ngày học đầu tiên của kỳ này
   for (const n of cutPeriods(G.day)) G.daily.done[n] = true;          // tiết bị thay bằng sự kiện: nghỉ, không tính vắng
   if (c.dow === 0 && !first) { const a = parentInfo(G.parent).allowance; addMoney(a, true); if (RT.bill) RT.bill.got.push(['Mẹ cho tiền tiêu vặt đầu tuần', a]); else RT.morning.push(`Mẹ cho tiền tiêu vặt đầu tuần: ${fmtMoney(a)}.`); }
   save();
@@ -6526,6 +6594,8 @@ function friendHome(fid) {
   if (!G || meetToday(fid) || isComp(fid)) return false;
   const t = G.time;
   if (tetTime()) return inWin(t, 420, 1290);                        // Tết: bạn ở nhà cả ngày
+  if (fid === 'vy') return vyPlace() === 'home';                     // Vy có lịch riêng (04y_vy.js)
+  if (raining() && parkTime()) return true;                          // trời mưa không ra công viên, ở nhà
   return schoolToday() ? inWin(t, 1210, 1290) : (inWin(t, 390, 480) || inWin(t, 1090, 1290));
 }
 function placeOpen(P) {
@@ -6567,8 +6637,12 @@ async function talkMenu(fid, where) {
   if ((where === 'school' || where === 'class') && G.atSchool) for (const id of breakFunFor(fid)) add('brk:' + id, BREAK_FUN[id].name);
   if (cardCount()) add('duel', 'Đấu thẻ cầu thủ');
   if (tetTime() && !tetY2().give[fid]) add('lixi', `Lì xì cho ${F.name}`);
+  if (isPartner(fid)) add('love', loveCool() === 2 && G.love.argued !== G.day ? 'Hỏi chuyện: “Cậu sao vậy?”' : 'Tâm sự riêng');
+  if (fid === 'vy') vyTalkOpts(add, where);
   const c = ids.length === 1 ? 'chat' : (add('x', 'Thôi'), ids[await UI.ask(F.name, '<p>“Sao đó?”</p>', opts)] || 'x');
-  if (c === 'chat') chat('f_' + fid, fid);
+  if (c === 'chat') { if (fid === 'vy' && !G.daily.chat['f_vy']) vyChat(); chat('f_' + fid, fid); if (isPartner(fid) && !G.daily['lc_' + fid]) { G.daily['lc_' + fid] = true; bondAdd(LOVE.chat); } }
+  else if (c === 'love') loveTalk(fid);
+  else if (await vyTalkDo(c)) { }
   else if (c === 'duel') cardDuel('f_' + fid, fid, F.name, F.duel);
   else if (c === 'lixi') giveLixi(fid);
   else if (c.startsWith('brk:')) doBreakFun(fid, c.slice(4));
@@ -6589,6 +6663,7 @@ ACT.mate = async sid => {
 };
 // where: 'school' sân trường · 'class' trong lớp · 'park' công viên · 'house' trước nhà bạn · 'meet' chỗ hẹn · 'comp' đang đi cùng mình
 ACT.friend = async (fid, where) => {
+  if (fid === 'vy' && await vyTalkHook(where)) return;                 // sự kiện tuyến Vy khi gặp
   const F = FRIENDS[fid], hs = hearts(fid), opts = ['Nói chuyện'], ids = ['talk'], add = (id, t) => { ids.push(id); opts.push(t); };
   const atSch = (where === 'school' || where === 'class') && G.atSchool;
   if (where === 'comp') { if (!G.comp.skip) add('bye', 'Tạm biệt, ai về nhà nấy'); }
@@ -6600,12 +6675,13 @@ ACT.friend = async (fid, where) => {
   if (sellables().length) add('sell', 'Bán đồ');
   add('x', 'Rời đi');
   const note = grudge(fid) ? `<p class="warnbox">${F.name} đang giận vì bị bạn tố cáo (đến ${dateLabel(G.grudge[fid])}).</p>` : '';
-  const c = ids[await UI.ask(F.name, `<p>${F.note}. <span class="hearts">${'♥'.repeat(hs)}<i>${'♥'.repeat(5 - hs)}</i></span></p>` + note, opts)] || 'x';
+  const love = isPartner(fid) ? `<p class="dim">Đang hẹn hò${G.love.mend >= G.day ? ' · <b>đang hàn gắn</b>' : loveCool() >= 3 ? ' · <b>đang xa cách</b>' : loveCool() >= 1 ? ' · có vẻ hơi buồn' : ''}</p>` : '';
+  const c = ids[await UI.ask(F.name, `<p>${F.note}. ${heartsHtml(hs, heartMax(fid))}</p>` + love + note, opts)] || 'x';
   if (c === 'talk') talkMenu(fid, where);
   else if (c === 'sell') sellMenu('f_' + fid, fid, F.name);
   else if (c === 'out') askOut(fid);
   else if (c === 'num') askNumber(fid);
-  else if (c === 'join') { if (G.meet) G.meet.n = Math.max(1, G.meet.n); setComp(fid, false); UI.say(F.name, '“Tới rồi hả! Đi thôi, cậu dẫn đường đi.”'); }
+  else if (c === 'join') { if (G.meet) G.meet.n = Math.max(1, G.meet.n); loveMeet(fid, true); setComp(fid, false); UI.say(F.name, '“Tới rồi hả! Đi thôi, cậu dẫn đường đi.”'); }
   else if (c === 'bye') endComp(`${F.name} vẫy tay chào rồi đi về nhà.`, true);
 };
 // ACT.house (bấm chuông, vào nhà bạn chơi): xem 04d_life.js
@@ -7275,6 +7351,7 @@ function socialNewDay() {
     if (!G.meet.n) {
       const f = G.meet.fid; addFriend(f, -5, true);
       if (hasNum(f)) { pushMsg(f, false, 'Hôm qua tớ đợi mãi mà không thấy cậu. Cho tớ leo cây hả? :('); G.phone.unread[f] = (G.phone.unread[f] || 0) + 1; }
+      loveMeet(f, false);
       RT.morning.push(`Hôm qua bạn lỡ hẹn với ${FRIENDS[f].name}. Bạn ấy giận rồi.`);
     }
     G.meet = null;
@@ -7843,16 +7920,18 @@ ACT.machine = async (kind, mx) => {
 
 /* ---------- nhà bạn ---------- */
 ACT.house = async fid => {
+  if (fid === 'vy' && vyHouseHook()) return;                           // sự kiện ở nhà Vy (học nhóm, hộp kỷ niệm, mang vở khi Vy ốm)
   const F = FRIENDS[fid];
   if (!friendHome(fid)) {
     let where;
     if (G.time >= 1290 || G.time < 390) where = `“Khuya rồi cháu ơi, ${F.name} ngủ rồi.”`;
     else if (meetToday(fid)) where = `“${F.name} ra ${PLACES[G.meet.place].name} rồi, bảo là có hẹn với cháu mà?”`;
+    else if (fid === 'vy') where = `“${{ school: 'Giờ này Vy đang ở trường mà cháu?', library: 'Vy ở lại thư viện trường ôn bài rồi.', park: 'Vy ra công viên bên khu nhà cháu đọc sách rồi.', flower: 'Vy ra cửa hàng hoa ở công viên khu nhà cháu rồi.', tea: 'Vy đi mua trà sữa ở đầu phố rồi.', rehearse: 'Vy ở lại phòng nhạc của trường tập kịch.', class: 'Vy chưa về, chắc còn ở lớp.', gate: 'Vy chưa về, trời mưa thế này chắc đang trú ở cổng trường.', cat: 'Vy chưa về đâu cháu.', bench: 'Vy ra công viên ngồi rồi.', night: 'Vy ra công viên rồi.', commute: 'Vy đang trên đường về.' }[vyPlace()] || 'Vy vừa ra ngoài rồi cháu ạ.'}” — bác Lài nói.`;
     else if (parkTime()) where = `“${F.name} ra công viên bên khu nhà cháu chơi rồi.”`;
     else if (isComp(fid)) where = `“Ơ, ${F.name} đang đi với cháu đấy thôi?”`;
     else if (schoolToday() && G.time < AFTER_SCHOOL) where = `“Giờ này ${F.name} đang ở trường mà cháu?”`;
     else where = `“${F.name} vừa chạy đi đâu đó rồi cháu ạ.”`;
-    return UI.say(`Nhà ${F.name}`, `Bấm chuông… Người nhà ${F.name} ló đầu ra: ${where}<p class="dim">${F.name} có nhà: ngày đi học 20:10–21:30 · ngày nghỉ 06:30–08:00 và 18:10–21:30.</p>`);
+    return UI.say(`Nhà ${F.name}`, `Bấm chuông… Người nhà ${F.name} ló đầu ra: ${where}<p class="dim">${fid === 'vy' ? 'Vy có nhà: sáng trước giờ học, chiều tối sau giờ học (thứ 2–4–6 ở lại thư viện, thứ 3–5 ra công viên đọc sách), cuối tuần ngoài giờ đi chơi.' : `${F.name} có nhà: ngày đi học 20:10–21:30 · ngày nghỉ 06:30–08:00 và 18:10–21:30.`}</p>`);
   }
   if (tetTime()) {                 // ngày Tết: chúc Tết, vào nhà tự do
     const T = tetYear(), opts = [], ids = [];
@@ -8044,9 +8123,9 @@ function eventLine(e) {
 }
 function newsOf(day) {
   const r = mulberry(day * 131 + 7), pk = a => a[Math.floor(r() * a.length)], c = cal(day), L = [], tag = t => `<i class="tag">${t}</i>`;
+  L.push(tag('THỜI TIẾT') + wxNews(day));
   for (const e of upcomingEvents(day, 10)) L.push(tag(e.kind === 'exam' || e.kind === 'school' || e.kind === 'summer' ? 'GIÁO DỤC' : e.kind === 'svd' ? 'SÂN VẬN ĐỘNG' : 'LỄ HỘI') + eventLine(e));
   const W = WEATHER[c.season] || WEATHER[0], lo = W[2] + Math.floor(r() * 3), hi = W[3] - Math.floor(r() * 3);
-  L.push(tag('THỜI TIẾT') + pk([W[0], W[1]]).replace('{a}', lo).replace('{b}', hi));
   const i1 = Math.floor(r() * NEWS_POOL.length), i2 = (i1 + 1 + Math.floor(r() * (NEWS_POOL.length - 1))) % NEWS_POOL.length;
   L.push(tag('TIN NHANH') + NEWS_POOL[i1]);
   if (L.length < 5) L.push(tag('TIN NHANH') + NEWS_POOL[i2]);
@@ -8139,6 +8218,7 @@ async function giveHeld(t) {
     const t = G.tasks.active.find(x => x.gr && taskDef(x).item === id);
     return UI.toast(t ? `${GROUP_ITEMS[id]} là đồ ${grLow(t.who)} nhờ lấy — mang tới đưa tận tay ${grLow(t.who)} nhé.` : `${GROUP_ITEMS[id]} không phải của người này.`, 'info');
   }
+  if (id === LOVE.flower && T.kind === 'friend') return confess(T.id);          // hoa oải hương: ngỏ lời hẹn hò
   if (goodsInfo(id)) return giveOrSell(T, id);                                   // món đồ thường: hỏi bán hay tặng
   const key = 'g_' + T.kind + '_' + T.id, isFood = !!FOODS[id], it = holdName(id).toLowerCase();
   let who, name, line, done = () => { };
@@ -8261,6 +8341,7 @@ function memoPeople() {
 }
 async function graduationDay() {
   if (G.memo.notes) return;
+  await vyGraduation();                                              // chương 7 tuyến Vy: kết thúc theo lựa chọn
   G.memo.notes = {};
   const wrote = [];
   for (const p of memoPeople()) if (p.n >= MEMO_NOTE_HEARTS) { G.memo.notes[p.id] = { day: G.day, hearts: p.n }; wrote.push(p.name); }
@@ -8576,6 +8657,8 @@ function drawFestProps(now) {
 
 /* ---------- điều phối sự kiện mỗi khung hình (khi không bận) ---------- */
 function eventTick() {
+  weatherTick();                                                    // ướt mưa, mưa tưới cây (04w_weather.js)
+  if (loveTick()) return true;                                      // hẹn hò, sự kiện của Vy (04x_love.js, 04y_vy.js)
   if (pmTick()) return true;
   if (hsgTick()) return true;
   if (talentTick()) return true;                                    // trung tâm năng khiếu: thứ 7 tới giờ học                                       // đội tuyển học sinh giỏi: báo tin, buổi học, thi chọn, thi quốc gia, ăn mừng                                        // ngày họp phụ huynh: tới trường 08:00–11:00 là vào cảnh họp
@@ -10435,8 +10518,8 @@ async function hkPhoto(cup) {
  *    thầy cô chạy xe vào cổng, dựng xe ở nhà xe rồi lên cầu thang. Học sinh khác lần lượt đi qua cổng vào sân.
  *  - Mỗi chuyến chỉ chạy khi mình đang ở bản đồ đó (giờ bắt đầu nằm trong khoảng cho phép), chạy theo thời gian thực.
  * ============================================================ */
-const TRIP_SPEED = { walk: 40, bike: 64, moto: 92, motoMom: 92 };
-const RIDE_SPR = { bike: 'bike', moto: 'moto', motoMom: 'motoMom' };
+const TRIP_SPEED = { walk: 40, bike: 64, moto: 92, motoMom: 92, jeep: 110 };
+const RIDE_SPR = { bike: 'bike', moto: 'moto', motoMom: 'motoMom', jeep: 'jeep' };
 // bạn thân đi học bằng gì, mấy giờ ra khỏi nhà · thời gian đi từ phố Hoa Phượng tới trường
 const COMMUTE = { khoa: { mode: 'bike', leave: 410 }, vy: { mode: 'bus', leave: 395 }, dat: { mode: 'walk', leave: 380 }, ngan: { mode: 'walk', leave: 400 } };
 const COMMUTE_MIN = { bike: 18, bus: 22, walk: 35 };
@@ -11367,6 +11450,7 @@ async function pmMeeting() {
  *     Mình đoạt giải: huy hiệu Đẳng cấp quốc gia, ảnh vào lưu bút, thầy cô và bố mẹ quý hơn, tối về bố mẹ dẫn đi nhà hàng ăn mừng.
  * ============================================================ */
 const HSG = {
+  luck: 0.9,                 // điểm may mắn hôm thi cộng / trừ tối đa chừng này điểm (rất may +0.9 · rất xui −0.9)
   min: 9, summer: 90, startDos: 3, dows: [0, 2, 4], natDos: 19,  // môn dự thi ≥ 9,0 · hè bắt đầu ngày 90 trong năm · học từ thứ 2 đầu tiên kể từ 3 Hè · ngày thi quốc gia 19 Thu
   from: 480, natFrom: 810, len: 60,                               // hè học 08:00 · năm học học chiều 13:30 · 2 tiết × 30'
   gain: 9, stam: 10,                                              // mỗi tiết: +9 điểm môn (tiết thường +5), −10 thể lực (tiết thường −6)
@@ -11570,7 +11654,7 @@ async function hsgExpel(H, n) {
 /* ---------- 3) thi chọn đội tuyển + cô đọc tên 3 bạn ---------- */
 function hsgSelScore(H) {
   const k = HSG.sel, P = hsgPlan(H.year), att = (H.att || 0) / P.train.length, self = Math.min(1, (H.self || 0) / k.selfNeed), foc = H.att ? (H.focus || 0) / P.train.length : 0;
-  return k.base + k.att * att + k.self * self + k.focus * foc + k.lv * lv(H.subj) + k.tut * Math.min(k.tutMax, H.tut || 0) + rnd(-k.rnd, k.rnd);
+  return k.base + k.att * att + k.self * self + k.focus * foc + k.lv * lv(H.subj) + k.tut * Math.min(k.tutMax, H.tut || 0) + rnd(-k.rnd, k.rnd) + HSG.luck * luckK();   // may mắn hôm thi
 }
 async function hsgSelect(H) {
   RT.lock = true;
@@ -11609,7 +11693,7 @@ async function hsgSelect(H) {
 function hsgNatScore(H) {
   const k = HSG.nat, P = hsgPlan(H.year), n = Math.max(1, P.nat.length), span = Math.max(7, P.natDay - P.exam), weeks = span / 7;
   const att = (H.attNat || 0) / n, self = Math.min(1, (H.selfNat || 0) / (span * k.selfRate)), tutW = (H.tutNat || 0) / weeks, foc = (H.focusNat || 0) / n;
-  return k.base + k.att * att + k.self * self + k.tut * Math.min(k.tutMax, tutW) + k.lv * lv(H.subj) + k.focus * foc + rnd(-k.rnd, k.rnd);
+  return k.base + k.att * att + k.self * self + k.tut * Math.min(k.tutMax, tutW) + k.lv * lv(H.subj) + k.focus * foc + rnd(-k.rnd, k.rnd) + HSG.luck * luckK();   // may mắn hôm thi
 }
 async function hsgNational(H) {
   RT.lock = true;
@@ -11831,7 +11915,7 @@ const MARKET = {
   an: [{ id: 'banhcuon', name: 'Bánh cuốn', price: 15000, desc: 'Bánh cuốn nóng chấm nước mắm', food: true }, { id: 'xoi', name: 'Xôi gấc', price: 12000, desc: 'Gói xôi gấc đỏ au', food: true }, { id: 'nuocdua', name: 'Nước dừa', price: 12000, desc: 'Trái dừa xiêm mát lạnh', food: true }, { id: 'banhmi', name: 'Bánh mì', price: 10000, desc: 'Bánh mì nóng giòn', food: true }],
 };
 Object.assign(FOODS, { banhcuon: { name: 'Bánh cuốn', stam: 18, gift: 3 }, nuocdua: { name: 'Nước dừa', stam: 8, drink: true, gift: 3 } });
-const FLOWER_SHOP = () => [{ id: 'chau', name: 'Chậu trồng cây', price: FARM.pot, desc: 'Đặt ngoài vườn trước nhà rồi gieo hạt. Không có chậu thì không trồng được.' }]
+const FLOWER_SHOP = () => [{ id: 'chau', name: 'Chậu trồng cây', price: FARM.pot, desc: 'Đặt ngoài vườn trước nhà rồi gieo hạt. Không có chậu thì không trồng được.' }, { id: 'oaihuong', name: 'Bó hoa oải hương', price: 150000, desc: 'Hoa của sự chân thành và chờ đợi. Đủ 5 tim, cầm lên tặng người đặc biệt để ngỏ lời hẹn hò' }]
   .concat(Object.keys(CROPS).map(k => ({ id: 'h_' + k, name: `Hạt ${CROPS[k].name.toLowerCase()}`, price: CROPS[k].seed, desc: CROPS[k].kind === 'hoa' ? `Nở sau ${CROPS[k].grow} ngày tưới · thu 1 lần · bông bán ${fmtMoney(CROPS[k].price)}` : `Lứa đầu sau ${CROPS[k].grow} ngày, rồi ${CROPS[k].regrow} ngày một lứa · ${CROPS[k].yield} quả × ${fmtMoney(CROPS[k].price)}` })));
 const TACKLE_SHOP = () => [{ id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu được ở sông, hồ công viên và biển', own: 'cancau' }, { id: 'cancau2', name: 'Cần câu sợi carbon', price: 350000, desc: 'Vùng giữ lực rộng hơn, dễ kéo cá to', own: 'cancau2' }, { id: 'moi', name: 'Hộp mồi câu ×5', price: 15000, desc: 'Mỗi lần thả câu dùng 1 mồi: dễ gặp cá quý hơn', n: 5 }];
 const ART_SHOP = () => [{ id: 'giayve', name: 'Giấy vẽ', price: PAINT.paper, desc: 'Cầm theo người, bấm vào mình để ngồi vẽ ở bất cứ đâu' }, { id: 'khungtranh', name: 'Khung tranh (giá vẽ)', price: PAINT.frame, desc: 'Dựng ở phòng khách nhà mình để ngồi vẽ tranh', own: 'khungtranh' }];
@@ -11855,7 +11939,7 @@ function goodsInfo(id) {
   if (id.startsWith('h_') && CROPS[id.slice(2)]) return { name: `Hạt ${CROPS[id.slice(2)].name.toLowerCase()}`, value: r1000(CROPS[id.slice(2)].seed * 1.15), cat: 'seed' };
   const T = PAINT.tiers.find(t => t[0] === id); if (T) return { name: T[1], value: T[2], cat: 'art' };
   if (ITEMS[id]) return { name: ITEMS[id].name, value: r1000((id.startsWith('sach_') ? 35000 : SCHOOL_PRICE[id] || 20000) * 1.15), cat: 'school' };
-  const special = { gaubong: ['Gấu bông', 70000, 'gift'], voso: ['Vỏ sò', 9000, 'gift'], denongsao: ['Đèn ông sao', 35000, 'gift'], banhtrang: ['Bánh tráng trộn', 6000, 'food'], rau: ['Bó rau muống', 9000, 'veg'], chau: ['Chậu trồng cây', 23000, 'tool'], thung: ['Thùng chứa nhỏ', 69000, 'tool'], giayve: ['Giấy vẽ', 12000, 'tool'], moi: ['Mồi câu', 3000, 'tool'] }[id];
+  const special = { oaihuong: ['Bó hoa oải hương', 170000, 'flower'], gaubong: ['Gấu bông', 70000, 'gift'], voso: ['Vỏ sò', 9000, 'gift'], denongsao: ['Đèn ông sao', 35000, 'gift'], banhtrang: ['Bánh tráng trộn', 6000, 'food'], rau: ['Bó rau muống', 9000, 'veg'], chau: ['Chậu trồng cây', 23000, 'tool'], thung: ['Thùng chứa nhỏ', 69000, 'tool'], giayve: ['Giấy vẽ', 12000, 'tool'], moi: ['Mồi câu', 3000, 'tool'] }[id];
   if (special) return { name: special[0], value: special[1], cat: special[2] };
   if (FOODS[id]) return { name: FOODS[id].name, value: r1000((buyPrice(id) || FOODS[id].stam * 700) * 1.15), cat: FOODS[id].drink ? 'drink' : 'food' };
   const m = TT_MATS.find(t => t.id === id); if (m) return { name: m.name, value: r1000(m.price * 1.15), cat: 'tool' };
@@ -12201,10 +12285,10 @@ const fishHere = (f, where, day, time) => {
   return t >= f.hours[0] && t < f.hours[1];
 };
 const FISH_W = [40, 26, 16, 9, 4];                                                  // tỉ lệ gặp theo độ khó
-function rollFish(where, bait) {
+function rollFish(where, bait, rain) {
   const L = FISH.filter(f => fishHere(f, where, G.day, G.time));
   if (!L.length) return null;
-  const w = f => FISH_W[f.diff - 1] * (bait && f.diff >= 3 ? FISHING.baitRare : 1);
+  const w = f => FISH_W[f.diff - 1] * (bait && f.diff >= 3 ? FISHING.baitRare : 1) * (rain && f.diff >= 3 ? 1.4 : 1);
   let r = Math.random() * L.reduce((a, f) => a + w(f), 0);
   for (const f of L) { r -= w(f); if (r < 0) return f; }
   return L[0];
@@ -12221,7 +12305,7 @@ ACT.fish = async where => {
   if (bait) G.inv.moi--;
   await UI.progress('Thả câu, chờ cá cắn…', UI._fast ? 10 : 1300, '#3b82c4');
   advanceTime(FISHING.mins); useStam(FISHING.stam);
-  const f = Math.random() < FISHING.nothing ? null : rollFish(where, bait);
+  const f = Math.random() < FISHING.nothing * (raining() ? 0.4 : 1) ? null : rollFish(where, bait, raining());   // trời mưa cá cắn câu nhiều, dễ gặp cá quý
   if (!f) { RT.lock = false; UI.hud(); return UI.toast('Ngồi mãi chẳng con nào cắn câu. Thử giờ khác, chỗ khác xem.'); }
   const r = await fishScene(f, where);
   RT.lock = false;
@@ -12947,7 +13031,7 @@ function buildStadium() {
   for (const kx of [300, 448]) addObj(m, { s: 'svdKiosk', x: kx, y: 266, sol: [1, 24, 34, 12], ir: [-4, 0, 42, 44], label: () => 'Quầy vé sân vận động — mua vé', act: () => ACT.svdKiosk() });
   addObj(m, { s: 'svdBoard', x: 236, y: 268, sol: [6, 30, 30, 8], ir: [-4, 0, 48, 42], label: () => 'Bảng điện tử — lịch sự kiện ở sân vận động', act: () => ACT.svdBoard() });
   for (const [s2, a, b] of [['car1', 26, 168], ['car2', 94, 168], ['car2', 26, 236], ['bike', 140, 240], ['moto50', 160, 236], ['car1', 128, 168]]) addObj(m, { s: s2, x: a, y: b, sol: [2, 12, SPR[s2].width - 4, 9] });
-  for (const [a, b] of [[16, 296], [194, 296], [560, 296], [196, 40], [570, 40], [16, 40], [96, 40]]) addObj(m, { s: 'tree', x: a, y: b - 30, sol: [13, 38, 10, 9] });
+  for (const [a, b] of [[16, 296], [194, 296], [196, 40], [570, 40], [16, 40], [96, 40]]) addObj(m, { s: 'tree', x: a, y: b - 30, sol: [13, 38, 10, 9] });
   for (const lx of [200, 560, 760]) addObj(m, { s: 'lamp', x: lx, y: 304, sol: [3, 38, 6, 6] });
   addBusStop(m, 'svd', 620, 330, 600, 380);
   addObj(m, { s: 'signpostL', x: 22, y: 330, sol: [10, 22, 8, 8], label: () => '← Phố Bờ Đông, chợ', act: () => ACT.go('svd', 'dong') });
@@ -12965,8 +13049,8 @@ function buildStadium() {
   for (let j = 0; j < SVD.h; j++) m.solid[j * SVD.w + W - 1] = (j >= 20 && j <= 28) ? 1 : m.solid[j * SVD.w + W - 1];
   addObj(m, { s: 'mzGate', x: MZ_X - 16, y: 300, sol: [2, 70, 14, 22] }); addObj(m, { s: 'mzGate', x: MZ_X - 16, y: 384 + 6, sol: [2, 70, 14, 22] });
   addObj(m, { s: 'mzBooth', x: 776, y: 298, sol: [1, 22, 24, 12] });
-  addObj(m, { s: 'mzSign', x: 730, y: 280, sol: [6, 28, 34, 6], label: () => 'Biển: KHU VỰC QUÂN SỰ — CẤM VÀO', act: () => ACT.mzGate() });
-  m.labels.push({ x: 753, y: 290.5, text: 'KHU QUÂN SỰ', size: 5.5, col: '#fffaf0', maxw: 40 });
+  addObj(m, { s: 'mzSign', x: 752, y: 252, sol: [6, 28, 34, 6], label: () => 'Biển: KHU VỰC QUÂN SỰ — CẤM VÀO', act: () => ACT.mzGate() });
+  m.labels.push({ x: 775, y: 262.5, text: 'KHU QUÂN SỰ', size: 5.5, col: '#fffaf0', maxw: 40 });
   addObj(m, { s: 'blank', x: MZ_X - 20, y: 360, ir: [-10, 0, 30, 104], label: () => 'Cổng khu quân sự — không phận sự miễn vào', act: () => ACT.mzGate() });
   NPCS.push({ id: 'mz_soldier', name: 'Chiến sĩ gác cổng', look: 'soldier', map: 'svd', x: 808, y: 372, dir: 1, label: () => 'Chiến sĩ gác cổng — khu quân sự', act: () => ACT.mzGate() });
   for (const [s2, a, b] of [['mzBarrack', 870, 60], ['mzTower', 980, 200], ['mzFlag', 880, 140], ['mzTruck', 900, 300], ['mzBarrack', 880, 420], ['mzTower', 860, 6]]) addObj(m, { s: s2, x: a, y: b });
@@ -13101,6 +13185,736 @@ async function svdShow(e) {
   addMemo('scene', conc ? 'svd_concert' : 'svd_match');
   RT.lock = false; UI.hud();
   UI.toast(conc ? `Đêm nhạc kết thúc: +4 Văn nghệ${fid ? `, thân với ${F.name} hơn` : ''}.` : `Hết trận ${gH}–${gA}: +2 Thể thao${fid ? `, thân với ${F.name} hơn` : ''}.`, 'good');
+}
+
+'use strict';
+/* ============================================================
+ *  04w. THỜI TIẾT (mưa, nắng) · THÚ CƯNG (chó: thân nhanh hơn · mèo: thêm may mắn)
+ *  - Mỗi ngày một kiểu trời theo mùa (cố định theo ngày, tivi dự báo đúng): nắng, nắng gắt (hè), nhiều mây, mưa phùn, mưa, mưa giông.
+ *    Mưa có khung giờ (mưa chiều, mưa đêm…). Ngoài trời: hạt mưa, mặt đất tối lại, giông có chớp; nắng gắt buổi trưa ửng vàng;
+ *    trời nhiều mây có bóng mây trôi.
+ *  - Đi ngoài trời lúc mưa mà không có ô → ướt, mất thể lực; dầm mưa lâu thì hôm sau bị cảm (thể lực đầu ngày giảm).
+ *    Ô mua ở tạp hoá Cô Ba (có ô thì tự che khi trời mưa).
+ *  - Mưa thì chậu cây ngoài vườn được tưới, cá cắn câu nhiều hơn; bạn bè không ra công viên mà ở nhà.
+ * ============================================================ */
+const WX = {
+  kinds: {
+    nang: { name: 'Nắng', icon: 'w_nang' }, nanggat: { name: 'Nắng gắt', icon: 'w_nanggat' }, may: { name: 'Nhiều mây', icon: 'w_may' },
+    phun: { name: 'Mưa phùn', icon: 'w_phun', rain: 0.35 }, mua: { name: 'Mưa', icon: 'w_mua', rain: 0.7 }, giong: { name: 'Mưa giông', icon: 'w_giong', rain: 1 },
+  },
+  // tỉ lệ theo mùa (Thu, Đông, Xuân, Hè)
+  odds: [{ nang: 40, may: 25, mua: 25, giong: 10 }, { nang: 25, may: 45, phun: 25, mua: 5 }, { nang: 30, may: 30, phun: 30, mua: 10 }, { nanggat: 45, nang: 10, may: 10, mua: 20, giong: 15 }],
+  temp: [[23, 30], [12, 19], [17, 25], [30, 37]],
+  wetSoaked: 30, wetSick: 90, sickStam: 20, wetStam: 1,       // phút dầm mưa: ướt sũng · bị cảm hôm sau · thể lực mất mỗi 10 phút
+  umbrella: 45000,
+};
+function weatherOf(day) {
+  if (!weatherOf._c) weatherOf._c = {};
+  if (weatherOf._c[day]) return weatherOf._c[day];
+  const r = mulberry(day * 977 + 31), c = cal(day), O = WX.odds[c.season];
+  let x = r() * Object.values(O).reduce((a, b) => a + b, 0), kind = 'nang';
+  for (const k in O) { x -= O[k]; if (x < 0) { kind = k; break; } }
+  let win = null;                                              // khung giờ mưa (phút trong ngày)
+  if (kind === 'phun') { const s = 300 + Math.floor(r() * 6) * 60; win = [s, s + 240 + Math.floor(r() * 4) * 60]; }
+  else if (kind === 'mua') { const s = 360 + Math.floor(r() * 13) * 60; win = [s, s + 120 + Math.floor(r() * 5) * 60]; }
+  else if (kind === 'giong') { const s = 780 + Math.floor(r() * 5) * 60; win = [s, s + 90 + Math.floor(r() * 3) * 30]; }
+  const [lo, hi] = WX.temp[c.season], t0 = lo + Math.floor(r() * 3) - (WX.kinds[kind].rain ? 1 : 0), t1 = hi - Math.floor(r() * 3) - (WX.kinds[kind].rain ? 2 : 0);
+  return (weatherOf._c[day] = { day, kind, win, lo: t0, hi: Math.max(t0 + 3, t1) });
+}
+const wxToday = () => weatherOf(G.day);
+// đang mưa không (cường độ 0 … 1)
+function rainAt(day, t) { const W = weatherOf(day); return W.win && t >= W.win[0] && t < W.win[1] ? WX.kinds[W.kind].rain : 0; }
+const raining = () => !!G && rainAt(G.day, G.time) > 0;
+const outdoorNow = () => !!G && MAPS[G.map] && !MAPS[G.map].indoor && !['ride', 'rail'].includes(G.map);
+function wxLabel(W) {
+  const K = WX.kinds[W.kind];
+  return `${K.name}${W.win ? ` ${fmtTime(W.win[0])}–${fmtTime(W.win[1] % 1440)}` : ''} · ${W.lo}–${W.hi}°C`;
+}
+// câu bản tin thời tiết (hôm nay + ngày mai)
+function wxNews(day) {
+  const W = weatherOf(day), T = weatherOf(day + 1), K = WX.kinds[W.kind].name.toLowerCase();
+  const rain = W.win ? (W.kind === 'giong' ? `Chiều nay có <b>mưa giông</b> khoảng ${fmtTime(W.win[0])}–${fmtTime(W.win[1])}, kèm sấm chớp, mọi người hạn chế ra đường.` : `Có ${K} khoảng <b>${fmtTime(W.win[0])}–${fmtTime(W.win[1] % 1440)}</b>, ra đường nhớ mang ô.`)
+    : W.kind === 'nanggat' ? 'Trời <b>nắng gắt</b>, buổi trưa rất nóng, nhớ uống đủ nước và đội mũ.' : W.kind === 'may' ? 'Trời <b>nhiều mây</b>, không mưa.' : 'Trời <b>nắng đẹp</b>, rất hợp để đi chơi.';
+  return `${rain} Nhiệt độ ${W.lo}–${W.hi}°C. Ngày mai: ${WX.kinds[T.kind].name.toLowerCase()}${T.win ? ` (${fmtTime(T.win[0])}–${fmtTime(T.win[1] % 1440)})` : ''}.`;
+}
+
+/* ---------- mỗi khung hình: ướt mưa, tưới cây, cảm ---------- */
+function weatherTick() {
+  if (!G) return;
+  const t = G.time;
+  if (RT.wxT === undefined || RT.wxDay !== G.day) { RT.wxT = t; RT.wxDay = G.day; }
+  let dm = t - RT.wxT; if (dm < 0 || dm > 120) { RT.wxT = t; return; }
+  if (dm < 1) return;
+  RT.wxT = t;
+  const r = rainAt(G.day, t);
+  if (r && G.yard && !RT.wxWatered) { RT.wxWatered = G.day; let n = 0; for (const it of G.yard.items || []) if (it.k === 'pot' && it.crop && !it.dead && it.last !== G.day) { it.last = G.day; n++; } if (n) { yardSync(); if (G.map === 'town') UI.toast('Trời mưa, chậu cây ngoài vườn được tưới rồi.', 'info'); } }   // mưa tưới cây ngoài vườn
+  if (RT.wxWatered && RT.wxWatered !== G.day) RT.wxWatered = 0;
+  if (!r || !outdoorNow() || RT.scene || G.owned.o) return;
+  const d = G.daily; d.wet = (d.wet || 0) + dm * r;
+  const lost = Math.floor(d.wet / 10) - (d.wetLost || 0);
+  if (lost > 0) { d.wetLost = (d.wetLost || 0) + lost; useStam(WX.wetStam * lost, true); }
+  if (d.wet >= WX.wetSoaked && !d.wetMsg) { d.wetMsg = true; UI.toast('Ướt sũng cả người rồi! Mua một cái ô ở tạp hoá Cô Ba đi, dầm mưa lâu là cảm đấy.', 'bad'); }
+  if (d.wet >= WX.wetSick && !d.sickNote) { d.sickNote = true; G.sickDay = G.day + 1; UI.toast('Hắt xì! Dầm mưa lâu quá, chắc mai bị cảm mất…', 'bad'); }
+}
+// sáng ra: hôm qua dầm mưa thì bị cảm, thể lực đầu ngày thấp hơn
+function weatherNewDay() {
+  if (G.sickDay === G.day) { G.stamina = Math.max(10, G.stamina - WX.sickStam); RT.morning && RT.morning.push(`Hôm qua dầm mưa nên hôm nay bị cảm, người mệt rã rời (−${WX.sickStam} thể lực).`); }
+  const W = wxToday(); if (W.win && RT.morning) RT.morning.push(`Thời tiết hôm nay: ${wxLabel(W)}.${G.owned.o ? '' : ' Nhớ mang ô!'}`);
+}
+
+/* ---------- vẽ: mưa, mây, nắng ---------- */
+function drawWeather(now) {
+  if (!G) return;
+  const m = MAPS[G.map]; if (!m) return;
+  const r = rainAt(G.day, G.time), W = wxToday(), out = !m.indoor && !['ride', 'rail'].includes(G.map), Wd = cv.width, Hd = cv.height, d = VIEW.dpr;
+  if (!out) { if (r) { ctx.fillStyle = `rgba(40,50,80,${0.06 * r})`; ctx.fillRect(0, 0, Wd, Hd); } return; }
+  if (r) {
+    ctx.fillStyle = `rgba(30,40,70,${0.1 + 0.16 * r})`; ctx.fillRect(0, 0, Wd, Hd);
+    const n = Math.round((130 + 240 * r) * Wd / 1400), len = (10 + 12 * r) * d, sp = now * (0.9 + r * 0.6);
+    ctx.strokeStyle = `rgba(200,218,250,${0.55 + 0.3 * r})`; ctx.lineWidth = Math.max(1.5, d * (r > 0.5 ? 2 : 1.6)); ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const sx = ((i * 9301 + 49297) % 233280) / 233280, sy = ((i * 4253 + 7713) % 99991) / 99991;
+      const x = (sx * (Wd + 200) + sp * 0.25) % (Wd + 200) - 100, y = (sy * (Hd + 100) + sp * (0.9 + (i % 3) * 0.15)) % (Hd + 100) - 50;
+      ctx.moveTo(x, y); ctx.lineTo(x - len * 0.3, y + len);
+    }
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(220,235,255,0.55)';                              // tóe nước trên mặt đất
+    for (let i = 0; i < n / 4; i++) { const k = (now / 260 + i * 0.37) % 1, x = ((i * 7919) % 1000) / 1000 * Wd, y = ((i * 104729) % 1000) / 1000 * Hd; ctx.globalAlpha = 1 - k; ctx.fillRect(x - k * 4 * d, y, k * 8 * d, d); }
+    ctx.globalAlpha = 1;
+    if (W.kind === 'giong') { const f = (now / 1000) % 7; if (f < 0.12 || (f > 0.22 && f < 0.3)) { ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fillRect(0, 0, Wd, Hd); } }
+    return;
+  }
+  if (W.kind === 'may' || (W.win && !r)) {                                 // bóng mây trôi
+    ctx.fillStyle = 'rgba(40,50,70,0.10)';
+    for (let i = 0; i < 4; i++) { const x = ((now / 60 + i * 520) % (Wd + 600)) - 300, y = (i * 0.27 % 1) * Hd; ctx.beginPath(); ctx.ellipse(x, y, 220 * d, 90 * d, 0, 0, 6.283); ctx.fill(); }
+  }
+  if (W.kind === 'nanggat' && inWin(G.time, 600, 960)) { ctx.fillStyle = 'rgba(255,200,90,0.09)'; ctx.fillRect(0, 0, Wd, Hd); }
+  else if ((W.kind === 'nang' || W.kind === 'nanggat') && inWin(G.time, 420, 1020)) { ctx.fillStyle = 'rgba(255,240,180,0.04)'; ctx.fillRect(0, 0, Wd, Hd); }
+}
+// cái ô che trên đầu nhân vật khi trời mưa (có ô, đang ở ngoài trời, không đi xe)
+function drawUmbrella(x, y, col) {
+  const c = col || '#e2574c', cx0 = x + 3, top = y - 29;
+  wRect('#5f656f', x + 5, top, 1, 17); wRect('#5f656f', x + 4, y - 12, 2, 1);          // cán ô cầm ở tay
+  for (let i = -10; i <= 10; i++) { const h = Math.round(Math.sqrt(Math.max(0, 100 - i * i)) * 0.5); wRect(Math.abs(i) % 4 < 2 ? c : shade(c, 18), cx0 + i, top - h, 1, h + 2); }
+  wRect(shade(c, -30), cx0 - 10, top + 1, 21, 1);
+}
+
+/* ---------- thú cưng ---------- */
+const petKind = () => (G && G.pet && G.pet.home ? G.pet.kind : null);
+const PET_PERK = { dog: 1.25, cat: 6 };   // chó: điểm thân thiết cộng thêm 25% · mèo: may mắn mỗi ngày +6
+const petFriendMul = n => (n > 0 && petKind() === 'dog' ? Math.ceil(n * PET_PERK.dog) : n);
+const petLuck = () => (petKind() === 'cat' ? PET_PERK.cat : 0);
+
+'use strict';
+/* ============================================================
+ *  04x. TÌNH CẢM
+ *  - Mọi nhân vật tối đa 5 tim (100 điểm thân thiết, 20 điểm mỗi tim).
+ *  - NPC chính hẹn hò được (DATABLE: Vy, Thái, Ngân): đủ 5 tim thì tặng BÓ HOA OẢI HƯƠNG (mua ở cửa hàng hoa) để ngỏ lời.
+ *    Nhận lời → đang hẹn hò, mở thêm tim 6–8 (tới 160 điểm). Mỗi lúc chỉ hẹn hò một người. Vy cần đi hết chương 5 mới nhận lời
+ *    (cô ấy muốn hiểu người kia trước), tim 7 và 8 của Vy còn cần sự kiện tương ứng (04y_vy.js).
+ *  - ĐỘ GẮN KẾT (ẩn, 0–100) của người yêu: trò chuyện, giữ hẹn thì tăng; lâu không gặp, lỡ hẹn, bỏ lỡ sự kiện đã hứa thì giảm.
+ *    Bận thi học kỳ / sự kiện bắt buộc của trường thì không bị trừ. Gắn kết thấp → nhánh NGUỘI LẠNH 4 giai đoạn:
+ *    1 tin nhắn thưa dần · 2 lần đầu giận nhau (cảnh tranh luận, có lựa chọn) · 3 khoảng cách (tạm khoá quyền lợi hẹn hò,
+ *    người kia hẹn "một lần nói chuyện thật lòng" — nói chuyện tốt thì sang ĐANG HÀN GẮN) · 4 lời chia tay ở ghế đá công viên.
+ *    Chia tay: đóng quyền lợi hẹn hò, giữ kỷ niệm, quay về tối đa 5 tim; tặng quà không làm người kia đổi ý.
+ * ============================================================ */
+const DATABLE = ['vy', 'dat', 'ngan'];
+const LOVE = { flower: 'oaihuong', bond0: 72, idleDays: 4, idleLoss: 3, chat: 2, meetKept: 8, meetMissed: -8, missEvent: -15, cool: [55, 40, 25, 12], mendDays: 8, breakDays: 4 };
+const isPartner = fid => !!(G && G.love && G.love.fid === fid);
+const heartMax = id => (isPartner(id) ? 8 : 5);
+const friendCap = id => (!isPartner(id) ? 100 : id === 'vy' ? vyLoveCap() : 160);
+const loveCool = () => (G && G.love ? G.love.cool || 0 : 0);
+const lovePerks = () => !!G.love && loveCool() < 2;                       // quyền lợi hẹn hò còn mở (giai đoạn 1 vẫn mở)
+const busyLove = () => schoolEventsOn(G.day).length > 0 || (G.tests || []).some(t => t.type === 'thi' && Math.abs(t.day - G.day) <= 1);   // đang thi / sự kiện trường: không bị trừ
+function bondAdd(n, why) {
+  if (!G.love) return;
+  if (n > 0 && G.love.mend >= G.day) n = Math.ceil(n * 1.5);                // đang hàn gắn: cố gắng được ghi nhận nhiều hơn
+  G.love.bond = clamp(G.love.bond + n, 0, 100);
+  if (n > 0) G.love.last = G.day;
+  if (why && Math.abs(n) >= 8) UI.toast(`${n > 0 ? '♥' : '💔'} ${FRIENDS[G.love.fid].name}: ${why}`, n > 0 ? 'good' : 'bad');
+}
+const LOVE_MSG = {
+  cool1: { vy: 'Dạo này cậu bận lắm à? Hình như lâu rồi chúng mình chưa có buổi đi chơi nào tử tế.', dat: 'Dạo này cậu bận gì mà mất tích vậy? Hẹn đi chơi mãi chẳng thấy đâu.', ngan: 'Bận gì mà chẳng thấy nhắn chị vậy? Tuần này đi chơi bù đi nha.' },
+  cool3: { vy: 'Tớ nghĩ thời gian này chúng mình nên tập trung vào chuyện của mỗi người một chút.', dat: 'Chắc dạo này tụi mình nên để cho nhau chút không gian.', ngan: 'Chị nghĩ tụi mình nên tạm tập trung việc riêng một thời gian.' },
+  mend: { vy: 'Chiều nay sau giờ học cậu ra ghế đá công viên được không? Tớ muốn nói chuyện thật lòng với cậu.', dat: 'Chiều nay ra ghế đá công viên nói chuyện chút nhé.', ngan: 'Chiều nay gặp chị ở ghế đá công viên nhé, mình nói chuyện.' },
+  bye: { vy: 'Mai sau giờ học cậu ra ghế đá công viên nhé. Tớ có chuyện muốn nói.', dat: 'Mai ra ghế đá công viên nhé, có chuyện muốn nói.', ngan: 'Mai ra ghế đá công viên gặp chị nhé.' },
+};
+const loveLine = (k, fid) => LOVE_MSG[k][fid] || LOVE_MSG[k].vy;
+
+/* ---------- hoa oải hương: ngỏ lời hẹn hò ---------- */
+async function confess(fid) {
+  const F = FRIENDS[fid], who = { look: fid, outfit: friendOutfit(fid) }, flower = LOVE.flower;
+  const say = t => UI.ask(F.name, `<p>${t}</p>`, ['…'], { who });
+  if (!DATABLE.includes(fid)) return say(`“Hả? Hoa oải hương cho tớ á? Tụi mình là bạn thân mà, tặng nhầm người rồi đó ngốc!” — ${F.name} cười phá lên.`);
+  if (isPartner(fid)) { gTake(flower); addFriend(fid, 4); bondAdd(6); return say('“Tụi mình đang hẹn hò rồi mà… nhưng mà cảm ơn nha. Thơm quá đi.”'); }
+  if (G.love) return say(`“Cậu đang hẹn hò với ${FRIENDS[G.love.fid].name} mà? Đừng đùa kiểu đó.”`);
+  if (G.exLove && G.exLove.fid === fid && G.day - G.exLove.day < 30) return say('“Chuyện của tụi mình… mới qua chưa lâu. Để thời gian trả lời đã nhé.”');
+  if (hearts(fid) < 5) return say(`“Hoa đẹp quá… nhưng mà, tụi mình mới quen nhau thôi mà.” — ${F.name} đỏ mặt trả lại bó hoa.`);
+  if (fid === 'vy' && !vyCanDate()) return say(G.vy.flags.friend ? '“Tớ cứ nghĩ… tụi mình đã chọn làm bạn tốt rồi. Cho tớ suy nghĩ thêm nhé.” — Vy ôm bó hoa một lúc rồi đưa lại cho cậu.' : '“Hoa oải hương… tớ biết ý nghĩa của nó.” Vy cúi đầu: “Nhưng tớ còn chưa biết phải trả lời cậu thế nào. Cho tớ thêm thời gian nhé.”');
+  RT.lock = true;
+  gTake(flower);
+  if (fid === 'vy') await vyConfessCut(); else await genericConfess(fid);
+  G.love = { fid, since: G.day, bond: LOVE.bond0, last: G.day, cool: 0, coolDay: 0, mend: 0, argued: 0, inv: null };
+  if (fid === 'vy') { G.vy.romance = 'dating'; G.vy.flags.dated = true; }
+  addFriend(fid, 6, true); addMemo('scene', 'henho');
+  RT.lock = false; UI._hb = null; UI.hud();
+  UI.toast(`${F.name} đã nhận lời! Hai người chính thức hẹn hò — mở thêm tim 6–8.`, 'good');
+}
+async function genericConfess(fid) {
+  const F = FRIENDS[fid], who = { look: fid, outfit: friendOutfit(fid) };
+  await UI.ask(F.name, `<p>Bạn chìa bó hoa oải hương ra, tim đập thình thịch: “${F.name} ơi… tớ thích cậu. Mình hẹn hò nhé?”</p>`, ['…'], { who });
+  await UI.ask(F.name, `<p>${F.name} sững người mất mấy giây, rồi bật cười, má đỏ ửng: “Đồ ngốc… sao giờ mới nói. Ừ, đồng ý!”</p>`, ['♥'], { who });
+}
+
+/* ---------- mỗi ngày: gắn kết giảm khi lâu không gặp, các giai đoạn nguội lạnh ---------- */
+function loveNewDay() {
+  if (typeof vyNewDay === 'function') vyNewDay();
+  const L = G.love; if (!L) return;
+  const fid = L.fid, idle = G.day - (L.last || L.since);
+  if (idle > LOVE.idleDays && !busyLove()) L.bond = clamp(L.bond - LOVE.idleLoss, 0, 100);
+  if (L.mend && L.mend < G.day && L.cool === 0) { L.mend = 0; L.mended = true; }
+  const msg = t => { if (hasNum(fid)) inbox(fid, t); };
+  if (L.cool === 0 && L.bond < LOVE.cool[0] && !(L.mend >= G.day)) { L.cool = 1; L.coolDay = G.day; msg(loveLine('cool1', fid)); }
+  else if (L.cool >= 1 && L.bond >= 65) { L.cool = 0; }
+  else if (L.cool === 1 && L.bond < LOVE.cool[1]) { L.cool = 2; L.coolDay = G.day; }                 // lần tới gặp: cảnh tranh luận
+  else if (L.cool === 2 && L.bond < LOVE.cool[2]) { L.cool = 3; L.coolDay = G.day; msg(loveLine('cool3', fid)); }
+  if (L.cool === 3 && !L.inv && G.day - L.coolDay >= 2 && L.bond >= LOVE.cool[3]) { L.inv = { kind: 'mend', day: G.day }; msg(loveLine('mend', fid)); }
+  if (L.cool === 3 && !L.inv && L.bond < LOVE.cool[3] && G.day - L.coolDay >= LOVE.breakDays) { L.inv = { kind: 'bye', day: G.day + 1 }; msg(loveLine('bye', fid)); }
+  if (L.inv && G.day > L.inv.day + (L.inv.kind === 'bye' ? 1 : 0)) {                                   // lỡ cuộc hẹn nói chuyện
+    if (L.inv.kind === 'mend') { L.inv = null; bondAdd(-10); }
+    else { breakUp(true); }
+  }
+}
+// gặp người yêu ở ghế đá công viên theo lời hẹn (nói chuyện thật lòng / chia tay)
+const BENCH = { x: 334, y: 336 };
+function loveTick() {
+  if (typeof vyTick === 'function' && vyTick()) return true;
+  const L = G.love; if (!L || !L.inv || RT.lock || RT.scene || UI.isOpen()) return false;
+  if (G.day !== L.inv.day || G.map !== 'town' || !inWin(G.time, freeTime() ? Math.max(schoolEndT(), 840) : 1440, 1290)) return false;
+  if (Math.hypot(G.x - BENCH.x, G.y - BENCH.y) > 46) return false;
+  const k = L.inv.kind; L.inv = null;
+  if (k === 'mend') mendTalk(); else breakUp(false);
+  return true;
+}
+const benchCut = (fid, steps, title) => playCut({ map: 'town', me: [BENCH.x - 12, BENCH.y + 6, 2], cam: { x: BENCH.x, y: BENCH.y - 10 }, title, actors: [{ look: fid, outfit: friendOutfit(fid), x: BENCH.x + 12, y: BENCH.y + 6, dir: 1 }], hide: ['p_' + fid], steps });
+// cảnh tranh luận (giai đoạn 2): bật lên khi nói chuyện với người yêu
+async function loveArgue() {
+  const L = G.love, fid = L.fid, F = FRIENDS[fid], who = { look: fid, outfit: friendOutfit(fid) };
+  L.argued = G.day; RT.lock = true;
+  const c = await UI.ask(F.name, `<p>${fid === 'vy' ? 'Vy nhìn xuống, giọng nhỏ lại: “Không có gì đâu…” Một lúc sau cô mới nói tiếp: “Thật ra… tớ buồn. Mấy lần mình hẹn rồi cậu quên mất. Tớ cứ tưởng chỉ mình tớ để ý.”' : `${F.name} khoanh tay: “Mấy lần hẹn rồi lại quên. Cậu có còn để ý tới tớ không vậy?”`}</p>`,
+    ['Xin lỗi, là lỗi của tớ. Từ giờ tớ sẽ báo trước nếu không giữ hẹn được', 'Dạo này tớ bận học thật mà… nhưng tớ hiểu cậu buồn', 'Có gì đâu mà giận dữ vậy'], { who });
+  if (c === 0) { bondAdd(15, 'cùng giải quyết mâu thuẫn'); if (fid === 'vy') G.vy.trust += 6; await UI.ask(F.name, '<p>“…Ừ. Cảm ơn vì đã nói thật. Tớ cũng sẽ nói ra khi buồn, không giấu nữa.”</p>', ['♥'], { who }); }
+  else if (c === 1) { bondAdd(6); await UI.ask(F.name, '<p>“Tớ biết cậu bận. Chỉ là… lần sau nhắn tớ một câu thôi cũng được.”</p>', ['Ừ'], { who }); }
+  else { bondAdd(-12, 'trả lời thiếu tôn trọng'); if (fid === 'vy') G.vy.trust -= 8; await UI.ask(F.name, '<p>Không khí lặng đi. “Vậy à… Tớ về trước đây.”</p>', ['…'], { who }); }
+  if (G.love && G.love.bond >= LOVE.cool[1]) G.love.cool = 1;
+  RT.lock = false; UI.hud();
+}
+// "Một lần nói chuyện thật lòng" (giai đoạn 3 → hàn gắn)
+async function mendTalk() {
+  const L = G.love, fid = L.fid, F = FRIENDS[fid], who = { look: fid, outfit: friendOutfit(fid) };
+  RT.lock = true;
+  let good = 0;
+  await benchCut(fid, [{ say: [0, fid === 'vy' ? 'Cậu đến rồi… Tớ cứ sợ cậu lại quên.' : 'Tới rồi hả. Ngồi đi.'] }, { say: ['me', 'Tớ đến rồi đây. Mình nói chuyện nhé.'] }], 'Một lần nói chuyện thật lòng');
+  const q = [
+    [`${F.name}: “Dạo này tụi mình cứ như hai người xa lạ. Cậu nghĩ sao?”`, ['Tớ muốn nghe cậu nói trước', 'Thì cũng bình thường mà'], 0],
+    ['“Mấy lần cậu thất hứa, tớ đã rất buồn.”', ['Tớ thừa nhận, tớ đã không giữ lời. Xin lỗi cậu', 'Tại tớ bận chứ bộ'], 0],
+    ['“Cậu có điều gì khó khăn mà chưa kể với tớ không?”', ['Thật ra dạo này tớ áp lực chuyện học lắm…', 'Không, chẳng có gì'], 0],
+  ];
+  for (const [t, opts, ok] of q) { const c = await UI.ask(F.name, `<p>${t}</p>`, opts, { who }); if (c === ok) good++; }
+  if (good >= 2) {
+    L.cool = 0; L.bond = Math.max(L.bond, 52); L.mend = G.day + LOVE.mendDays; if (fid === 'vy') { G.vy.trust += 10; G.vy.flags.mended = true; }
+    await UI.ask(F.name, `<p>“Vậy… mình thử lại nhé. Gặp nhau khi cả hai rảnh, không giữ được hẹn thì nói trước, và quan tâm tới việc của nhau.” ${F.name} khẽ cười.</p><p class="dim">Trạng thái: <b>Đang hàn gắn</b> — ${LOVE.mendDays} ngày tới cố gắng đều đặn thì mọi chuyện sẽ ổn.</p>`, ['Hứa nhé'], { who });
+  } else {
+    bondAdd(-5);
+    await UI.ask(F.name, '<p>“Tớ nghĩ… cậu vẫn chưa sẵn sàng nói chuyện thật lòng. Tớ về đây.”</p>', ['…'], { who });
+  }
+  RT.lock = false; UI.hud();
+}
+// chia tay (atBench: gặp ở ghế đá; không thì qua tin nhắn)
+async function breakUp(byMsg) {
+  const L = G.love; if (!L) return;
+  const fid = L.fid, F = FRIENDS[fid], line = fid === 'vy' ? 'Tớ vẫn rất trân trọng những ngày chúng mình ở bên nhau. Nhưng gần đây, tớ cảm thấy hai đứa không còn hiểu nhau như trước nữa. Tớ nghĩ chúng mình nên dừng lại.' : 'Tụi mình dừng lại ở đây nhé. Cảm ơn cậu vì quãng thời gian vừa qua.';
+  if (byMsg) { if (hasNum(fid)) inbox(fid, line); RT.morning && RT.morning.push(`${F.name} nhắn tin chia tay. Hai người không còn hẹn hò nữa.`); }
+  else {
+    RT.lock = true;
+    await benchCut(fid, [{ say: [0, fid === 'vy' ? 'Cảm ơn cậu đã đến.' : 'Cậu đến rồi.'] }, { wait: 600 }, { say: [0, line] }, { say: ['me', '…'] }, { say: [0, 'Mình vẫn là bạn nhé. Đừng ghét tớ.'] }], 'Lời chia tay');
+    RT.lock = false;
+  }
+  G.exLove = { fid, day: G.day, mended: !!L.mended };
+  G.love = null; G.friends[fid] = Math.min(G.friends[fid] || 0, 80);
+  if (fid === 'vy') { G.vy.romance = 'ex'; G.vy.flags.brokeUp = true; }
+  UI.hud();
+}
+// giữ hẹn / lỡ hẹn với người yêu (gọi từ hệ thống hẹn đi chơi)
+function loveMeet(fid, kept) {
+  if (!isPartner(fid)) return;
+  if (kept) bondAdd(LOVE.meetKept, 'giữ đúng hẹn đi chơi');
+  else if (!busyLove()) { bondAdd(LOVE.meetMissed, 'huỷ hẹn mà không báo trước'); if (fid === 'vy') G.vy.trust -= 3; }
+}
+// trò chuyện với người yêu: tâm sự (mỗi ngày một lần)
+async function loveTalk(fid) {
+  const F = FRIENDS[fid], who = { look: fid, outfit: friendOutfit(fid) };
+  if (loveCool() === 2 && G.love.argued !== G.day) return loveArgue();
+  if (G.daily['lt_' + fid]) return UI.ask(F.name, '<p>“Hôm nay tâm sự đủ rồi, mai kể tiếp nha.”</p>', ['Ừ'], { who });
+  G.daily['lt_' + fid] = true;
+  bondAdd(loveCool() >= 1 ? 6 : LOVE.chat);
+  const L = fid === 'vy' ? vyLoveLine() : pick([`“Hôm nay ở lớp có chuyện buồn cười lắm, để tớ kể cho nghe…”`, '“Cuối tuần này mình đi đâu chơi nhỉ?”', '“Ở cạnh cậu thấy vui ghê.”']);
+  await UI.ask(F.name, `<p>${L}</p>`, ['♥'], { who });
+}
+
+'use strict';
+/* ============================================================
+ *  04y. TUYẾN TRUYỆN VY — "Phía sau nụ cười hoa khôi" (theo bản đề xuất cốt truyện của người làm game)
+ *  Nguyễn Khánh Vy: hoa khôi, lớp phó học tập, ngồi bàn bên phải. Ngoài lạnh lùng, trong nhạy cảm, sợ bị lãng quên.
+ *  Bố: Đại tướng Nguyễn Minh Quân — chỉ huy ở khu quân sự, nghiêm khắc, đi từ tờ mờ sáng, có tuần đi nhiệm vụ xa.
+ *  Mẹ: nghệ sĩ kịch nói Lê Thanh Hương — hay đi lưu diễn, mỗi tháng chỉ ở nhà một tuần (tối diễn ở Nhà hát Hoa Phượng).
+ *  Nhà rộng (biệt thự ở phố Hoa Phượng), thường chỉ có bác Lài giúp việc.
+ *
+ *  CHƯƠNG (G.vy.ch = chương đã xong) — mốc tim + thời điểm năm học + chương trước:
+ *   1 Hoa khôi bàn bên (≥ ngày 4): tan học Vy ngồi lại lớp, nhìn tin nhắn mẹ báo không về kịp → nói chuyện với Vy
+ *   2 Chiều mưa ở thư viện (1♥, chiều mưa sau giờ học): Vy rủ ngồi cùng, kể về mẹ — lựa chọn tinh tế / trêu chọc
+ *   3 Sinh nhật chỉ có một người (2♥, sinh nhật Vy 8 Đông, tới 3 ngày sau): Vy ngồi một mình ở ghế đá công viên
+ *   4 Bữa cơm nhà đại tướng (3♥, từ mùa Xuân lớp 10): thứ 6 Vy rủ thứ 7 tới nhà học nhóm, bố về sớm, bữa cơm căng thẳng
+ *   5 Có phải tớ thích cậu rồi không? (4♥): thứ 7 Vy rủ chủ nhật picnic trên núi — bày tỏ / xin thêm thời gian / làm bạn
+ *   Ngỏ lời: 5♥ + đã qua chương 5 → tặng bó hoa oải hương → hẹn hò (04x_love.js)
+ *   6♥ Hộp cơm đầu tiên (giờ nghỉ trưa ở trường) · 7♥ Ngày bố mẹ cãi nhau (tối, Vy nhắn ra ghế đá công viên)
+ *   6 Ánh đèn sân khấu (lớp 12, hoặc mùa Xuân lớp 11 nếu đã qua sự kiện 7♥): vở kịch cuối năm ở Nhà hát (Xuân 20, 19:00)
+ *   8♥ Chiếc hộp kỷ niệm (thứ 7 Vy mời lên phòng) · 7 Lời hẹn dưới tán phượng (ngày tốt nghiệp: kết thúc theo lựa chọn)
+ *  SỰ KIỆN PHỤ: chiếc ô dưới mưa · con mèo đi lạc sau trường · cô lớp phó bị ốm · vé xem kịch của mẹ · bức ảnh gia đình
+ *  KHI HẸN HÒ: hộp cơm Vy làm, đề cương trước kiểm tra, nhắc lịch buổi sáng, động viên ngày thi, học nhóm cùng Vy.
+ * ============================================================ */
+const VY = { lib: 50, libRain: 75, tea: [600, 690], flower: [510, 600], park: [540, 660], parkSat: [900, 1080], lunchWeek: 2, lunchStam: [16, 20], lunch8: [21, 25], playDos: 20, playAt: 1140 };
+Object.assign(LOOKS, {
+  vyDad: { hair: '#6b6b6b', style: 'buzz', cap: '#3f5a24', shirt: '#4f6b2f', pants: '#3f5a24', badge: '#ffd23a', skin: '#c98a5a', eye: 'narrow' },
+  vyMom: { hair: '#2a1a1a', style: 'long', shirt: '#b8304a', pants: '#2a2136', earring: '#ffd23a', eye: 'big', skin: '#f6d2b4' },
+  vyMaid: { hair: '#7a7a7a', style: 'bun', shirt: '#8fa86a', pants: '#4a4f5a', apron: '#fffaf0', skin: '#d9a070' },
+});
+FRIEND_PARENTS.vy = ['vyDad', 'vyMom'];
+Object.assign(FOODS, { comvy: { name: 'Hộp cơm Vy làm', stam: 18, gift: 4 }, comvy8: { name: 'Hộp cơm Vy làm (ngon tuyệt)', stam: 24, gift: 5 } });
+const vyWho = () => ({ look: 'vy', outfit: friendOutfit('vy') });
+const vyAsk = (t, opts) => UI.ask('Vy', `<p>${t}</p>`, opts || ['…'], { who: vyWho() });
+const vyF = k => !!(G.vy && G.vy.flags[k]);
+const vySet = k => { G.vy.flags[k] = G.day + 1; };              // lưu ngày (+1 để ngày 0 vẫn là đúng)
+const wk = d => Math.floor(d / 7);
+// lịch bố mẹ Vy
+const vyMomHome = d => { d = d === undefined ? G.day : d; return wk(d) % 4 === 2 || Math.abs(d - vyPlayDay()) <= 1 || !!tetTime(); };
+const vyDadAway = d => { d = d === undefined ? G.day : d; return (wk(d) % 5 === 3 || isDate(FRIENDS.vy.bday, d)) && !tetTime() && Math.abs(d - vyPlayDay()) > 0; };
+function vyDadPlace() {
+  const t = G.time, c = cal(G.day); if (vyDadAway()) return 'away';
+  if (t < 330 || t >= 1380) return 'sleep';
+  if (c.dow === 6 && !tetTime()) return 'home';
+  if (c.dow === 5) return inWin(t, 360, 420) ? 'jog' : 'home';
+  if (tetTime()) return 'home';
+  if (inWin(t, 330, 360)) return 'leave'; if (inWin(t, 360, 1110)) return 'base'; if (inWin(t, 1110, 1140)) return 'back';
+  return 'home';
+}
+function vyMomPlace() {
+  const t = G.time, c = cal(G.day); if (!vyMomHome()) return 'tour';
+  if (t < 420 || t >= 1380) return 'sleep';
+  const show = c.dow >= 4 && !tetTime();                 // thứ 6, 7, CN diễn tối ở nhà hát
+  if (show && inWin(t, 1040, 1080)) return 'leave'; if (show && inWin(t, 1080, 1320)) return 'theater';
+  return 'home';
+}
+const vyMomShow = () => vyMomPlace() === 'theater' && inWin(G.time, 1080, 1170);
+// ngày diễn vở kịch cuối năm (Xuân 20 của năm học này)
+function vyPlayDay() { const y = cal(G ? G.day : 0).year; return y * YEAR_DAYS + 2 * CFG.DAYS_PER_SEASON + VY.playDos - 1; }
+const vyPlayOn = () => G.vy.ch === 5 && (G.grade >= 12 || (G.grade === 11 && vyF('e7'))) && !vyF('play');
+// lịch của Vy: trả về chỗ Vy đang ở
+function vyPlace() {
+  if (!G || !G.vy) return null;
+  const t = G.time, d = G.day, c = cal(d), V = G.vy;
+  if (meetToday('vy') || isComp('vy')) return 'out';
+  if (V.sick === d) return 'sick';
+  if (t < 390 || t >= 1290) return 'sleep';
+  if (tetTime()) return 'home';
+  if (V.inv && V.inv.day === d && V.inv.place && inWin(t, V.inv.from, V.inv.to)) return V.inv.place;     // đang chờ theo lời hẹn
+  if (vyBdayBench() && inWin(t, schoolToday() ? schoolEndT() + 20 : 900, 1150)) return 'bench';
+  if (schoolToday()) {
+    const end = schoolEndT();
+    if (t < end) return 'school';
+    if (vyPlayOn() && d >= vyPlayDay() - 7 && d < vyPlayDay()) return inWin(t, end, end + 90) ? 'rehearse' : 'home';
+    if (V.ch < 1 && d >= 3) return inWin(t, end, end + 60) ? 'class' : 'home';
+    if (vyGateRain()) return inWin(t, end, end + 40) ? 'gate' : 'home';
+    if (vyCatDay()) return inWin(t, end, end + 35) ? 'cat' : 'home';
+    const rain = rainAt(d, end + 20) > 0;
+    if (c.dow % 2 === 0 || rain) return inWin(t, end, end + (rain ? VY.libRain : VY.lib)) ? 'library' : 'home';
+    return inWin(t, end + 45, end + 120) && !raining() ? 'park' : t < end + 45 ? 'commute' : 'home';
+  }
+  if (c.dow === 5) {
+    if (inWin(t, ...VY.flower)) return 'flower'; if (inWin(t, ...VY.tea)) return 'tea';
+    if (inWin(t, ...VY.parkSat)) return raining() ? 'home' : 'park';
+    return 'home';
+  }
+  if (inWin(t, ...VY.park)) return raining() ? 'home' : 'park';
+  return 'home';
+}
+const friendSpot = fid => (fid === 'vy' ? vyPlace() : 'park');
+const vyBdayBench = () => G.vy.ch === 2 && hearts('vy') >= 2 && cal(G.day).season === FRIENDS.vy.bday[0] && cal(G.day).dos >= FRIENDS.vy.bday[1] && cal(G.day).dos <= FRIENDS.vy.bday[1] + 3;
+const vyGateRain = () => hearts('vy') >= 1 && !vyF('umbrella') && G.owned.o && rainAt(G.day, schoolEndT() + 10) > 0;
+const vyCatDay = () => G.vy.ch >= 1 && hearts('vy') >= 1 && !vyF('cat') && cal(G.day).dow === 3;
+// tim của Vy khi hẹn hò: tim 7 cần sự kiện "Hộp cơm đầu tiên", tim 8 cần "Ngày bố mẹ cãi nhau"
+const vyLoveCap = () => (vyF('e7') ? 160 : vyF('e6') ? 140 : 120);
+const vyCanDate = () => G.vy.ch >= 5 && (!vyF('friend') || hearts('vy') >= 5 && G.vy.trust >= 70);
+
+/* ---------- dựng nhân vật, chỗ đứng, nhà hát ---------- */
+function buildVyStory() {
+  const pv = (id, map, x, y, dir, place, label, extra) => NPCS.push(Object.assign({ id, fid: 'vy', name: 'Vy', look: 'vy', outfit: () => friendOutfit('vy'), map, x, y, dir, vis: () => vyPlace() === place && !sceneHides(id), label: () => `Vy — ${label}`, act: () => ACT.friend('vy', place) }, extra || {}));
+  pv('vy_cls', 'class', 191, 134, 3, 'class', 'ngồi một mình trong lớp, nhìn điện thoại');
+  pv('vy_lib', 'thuvien', 205, 126, 1, 'library', 'đang ôn bài ở thư viện');
+  pv('vy_gate', 'school', GATE.x + 26, GATE.yIn - 4, 0, 'gate', 'đứng nép dưới mái hiên cổng trường, không mang ô');
+  pv('vy_cat', 'school', 716, 74, 1, 'cat', 'đang lúi húi sau trường');
+  pv('vy_flower', 'town', 262, 392, 3, 'flower', 'đang ngắm hoa ở cửa hàng hoa');
+  pv('vy_tea', 'pho', 520, 146, 0, 'tea', 'đang mua trà sữa');
+  pv('vy_reh', 'nhac', 120, 110, 0, 'rehearse', 'đang tập thoại cho vở kịch cuối năm');
+  pv('vy_bench', 'town', BENCH.x + 12, BENCH.y + 4, 1, 'bench', 'ngồi một mình ở ghế đá');
+  pv('vy_inv', 'town', BENCH.x + 12, BENCH.y + 4, 1, 'night', 'đang chờ cậu ở ghế đá');
+  NPCS.push({ id: 'vy_catpet', name: 'Mèo hoang', map: 'school', x: 700, y: 80, dir: 0, critter: n => (Math.floor(performance.now() / 400) % 2 ? 'cat0' : 'cat1'), vis: () => vyPlace() === 'cat' });
+  // hôm Vy ốm: không có mặt ở lớp, sân trường, trên đường đi học
+  for (const n of NPCS) if ((n.fid === 'vy' || n.sid === 'vy') && ['school', 'class', 'pho'].includes(n.map) && !String(n.id).startsWith('vy_')) { const v0 = n.vis; n.vis = () => (!v0 || v0()) && !(G && G.vy && G.vy.sick === G.day); }
+  for (const T of TRIPS) if (/^(p|h|s)_vy$/.test(T.id)) { const w0 = T.when; T.when = () => w0() && !(G.vy && G.vy.sick === G.day); }
+  // nhà Vy: bố mẹ (theo lịch), bác giúp việc, ảnh gia đình trong phòng Vy
+  const fp = id => NPCS.find(n => n.id === id);
+  for (const [id, who] of [['fhp_bo', 'dad'], ['fhp_me', 'mom']]) {
+    const n = fp(id); if (!n) continue;
+    const v0 = n.vis, a0 = n.act;
+    n.vis = () => !sceneHides(id) && (v0() || (G.visit === 'vy' && (who === 'dad' ? vyDadPlace() === 'home' : vyMomPlace() === 'home')));
+    n.act = () => (tetTime() ? a0() : vyParentTalk(who));
+    n.label = () => (G.visit === 'vy' ? (who === 'dad' ? 'Đại tướng Nguyễn Minh Quân — bố của Vy' : 'Nghệ sĩ Lê Thanh Hương — mẹ của Vy') : `${who === 'dad' ? 'Bố' : 'Mẹ'} của ${FRIENDS[G.visit].name}`);
+  }
+  NPCS.push({ id: 'vy_maid', name: 'Bác Lài', look: 'vyMaid', map: 'fhome', x: 150, y: 70, dir: 0, wander: 20, vis: () => G.visit === 'vy' && !sceneHides('vy_maid'), label: () => 'Bác Lài — giúp việc nhà Vy', act: () => UI.ask('Bác Lài', `<p>“${pick(['Cháu là bạn của Vy hả? Con bé ít khi dẫn bạn về nhà lắm, bác mừng ghê.', 'Ông bà chủ bận suốt, bữa cơm nhà này thường chỉ có mình con bé.', 'Vy nấu ăn khéo lắm đó, toàn học bác. Có điều hay cho nhiều muối, hì hì.'])}”</p>`, ['Dạ'], { who: { look: 'vyMaid' } }) });
+  addObj(MAPS.fhome, { s: 'vyPhotoOld', dyn: () => (vyF('play') ? 'vyPhotoNew' : 'vyPhotoOld'), x: 286, y: 10, base: 0, vis: () => G.visit === 'vy', ir: [-4, 0, 24, 34], label: () => 'Ảnh gia đình nhà Vy', act: () => UI.say('Ảnh gia đình', vyF('play') ? '<p>Tấm ảnh mới chụp sau đêm diễn: bố mặc quân phục, mẹ ôm bó hoa, Vy cười tươi ở giữa.</p>' : '<p>Một tấm ảnh cũ: bố mẹ trẻ hơn bây giờ nhiều, ở giữa là cô bé Vy chừng sáu tuổi mặc váy hồng, cười rất tươi.</p>') });
+  // bố Vy ở khu quân sự (nhìn thấy sau hàng rào), xe công vụ đón đưa; mẹ Vy ở nhà hát
+  NPCS.push({ id: 'vy_dad_base', name: 'Đại tướng', look: 'vyDad', map: 'svd', x: 905, y: 210, dir: 0, wander: 30, vis: () => vyDadPlace() === 'base', label: () => 'Đại tướng Nguyễn Minh Quân (bố của Vy) — đang làm việc trong khu quân sự', act: () => UI.toast('Bố của Vy đang làm việc bên trong khu quân sự.') });
+  const PW = PHO_W * 16, hx = FRIEND_HOUSE.vy[1] + 49;
+  addTrip({ id: 'vyd_l', map: 'pho', look: 'vyDad', name: 'Đại tướng', at: 330, win: 25, when: () => vyDadPlace() === 'leave', legs: () => [[hx, 130, 'walk'], [hx, 176, 'walk'], [hx, 214, 'jeep'], [PW + 50, 214, 'jeep']] });
+  addTrip({ id: 'vyd_s', map: 'svd', look: 'vyDad', name: 'Đại tướng', at: 342, win: 20, when: () => !vyDadAway() && cal(G.day).dow < 5, legs: () => [[-50, 410, 'jeep'], [790, 410, 'jeep']] });
+  addTrip({ id: 'vyd_r', map: 'svd', look: 'vyDad', name: 'Đại tướng', at: 1110, win: 20, when: () => !vyDadAway() && cal(G.day).dow < 5, legs: () => [[790, 404, 'jeep'], [-50, 404, 'jeep']] });
+  addTrip({ id: 'vyd_h', map: 'pho', look: 'vyDad', name: 'Đại tướng', at: 1125, win: 25, when: () => vyDadPlace() === 'back' || (!vyDadAway() && cal(G.day).dow < 5), legs: () => [[PW + 50, 214, 'jeep'], [hx, 214, 'jeep'], [hx, 176, 'walk'], [hx, 130, 'walk']] });
+  addTrip({ id: 'vyd_j', map: 'pho', look: 'vyDad', outfit: 'td', name: 'Đại tướng', at: 362, win: 50, when: () => vyDadPlace() === 'jog', legs: () => [[hx, 130, 'walk'], [hx, 178, 'walk'], [PW - 40, 178, 'walk'], [hx, 178, 'walk'], [hx, 130, 'walk']] });
+  addTrip({ id: 'vym_l', map: 'pho', look: 'vyMom', name: 'Nghệ sĩ Thanh Hương', at: 1040, win: 30, when: () => vyMomPlace() === 'leave', legs: () => [[hx, 130, 'walk'], [hx, 176, 'walk'], [224, 188, 'walk'], { wait: 1058 }, [208, 204, 'walk']] });
+  addTrip({ id: 'vym_s', map: 'svd', look: 'vyMom', name: 'Nghệ sĩ Thanh Hương', at: 1068, win: 25, when: () => vyMomHome() && cal(G.day).dow >= 4 && !tetTime(), legs: () => [[642, 368, 'walk'], [660, 340, 'walk'], [660, 302, 'walk']] });
+  NPCS.push({ id: 'vy_mom_th', name: 'Nghệ sĩ Thanh Hương', look: 'vyMom', map: 'svd', x: 690, y: 308, dir: 0, wander: 10, vis: () => vyMomPlace() === 'theater' && inWin(G.time, 1085, 1135), label: () => 'Nghệ sĩ Lê Thanh Hương — mẹ của Vy, đang ký tặng khán giả', act: () => vyParentTalk('mom') });
+
+  /* ---------- Nhà hát Hoa Phượng (khu sân vận động) ---------- */
+  const m = MAPS.svd;
+  const th = addObj(m, { door: true, s: 'theaterB', x: 584, y: 298 - SPR.theaterB.height + 2, sol: [4, 60, 146, 52], label: () => 'Nhà hát Hoa Phượng — xem kịch', act: () => ACT.theater() });
+  m.labels.push({ x: th.x + 77, y: th.y + 45.5, text: 'NHÀ HÁT', size: 6, col: '#ffe066', maxw: 56 });
+  const n = roomBase('nhahat', 'Nhà hát Hoa Phượng', '#5a2430', '#3a1820', 'dtile', 24, 16);
+  roomExit(n, { map: 'svd', x: 660, y: 310, dir: 0 });
+  R(n.x, '#3a2418', 40, 30, 304, 64); R(n.x, '#6f472c', 40, 30, 304, 3); R(n.x, '#2a1810', 40, 92, 304, 4);               // sân khấu
+  for (let i = 0; i < 9; i++) { R(n.x, '#9a2a35', 16 + i * 4, 0, 4, 100); R(n.x, '#9a2a35', 348 + i * 4 - 16, 0, 4, 100); }
+  for (let i = 0; i < 9; i++) R(n.x, i % 2 ? '#b83a45' : '#9a2a35', 16 + i * 4, 0, 2, 100);
+  R(n.x, '#7a1f28', 16, 0, 352, 10); for (let i = 16; i < 368; i += 12) R(n.x, '#ffd23a', i + 4, 9, 4, 2);
+  for (let r = 0; r < 5; r++) for (let i = 0; i < 14; i++) { if (i === 6 || i === 7) continue; const a = 34 + i * 23, b = 120 + r * 24; R(n.x, '#6f1f28', a, b, 18, 12); R(n.x, '#9a2a35', a + 1, b + 1, 16, 6); R(n.x, '#4a1218', a, b + 10, 18, 2); }
+}
+// chuyện trò với bố mẹ Vy
+function vyParentTalk(who) {
+  if (who === 'dad') return UI.ask('Đại tướng Nguyễn Minh Quân', `<p>${vyF('play') ? '“Cháu đấy à. Vy dạo này cười nhiều hơn. Bác… cảm ơn cháu.”' : pick(['“Cháu học lớp nào? Học lực thế nào?”', '“Đến nhà người khác thì chào hỏi cho đàng hoàng. Ngồi đi.”', '“Vy nó phải lo học. Mấy chuyện văn nghệ, kịch kiếc để sau.”'])}</p>`, ['Dạ'], { who: { look: 'vyDad' } });
+  return UI.ask('Nghệ sĩ Lê Thanh Hương', `<p>${vyF('play') ? '“Cô xin lỗi Vy nhiều lắm vì những năm vắng nhà. Cảm ơn cháu đã ở bên con bé.”' : pick(['“Cháu là bạn của Vy hả? Cô ít ở nhà quá, chẳng biết con bé chơi với ai…”', '“Tối nay cô diễn ở Nhà hát Hoa Phượng, rảnh thì rủ Vy đến xem nhé.”', '“Vy hồi nhỏ hay đòi theo cô ra nhà hát lắm, giờ lớn rồi lại ít nói.”'])}</p>`, ['Dạ'], { who: { look: 'vyMom' } });
+}
+// Nhà hát: mẹ Vy ở nhà thì tối thứ 6–CN có diễn (mua vé ở cửa); ngày vở kịch cuối năm của trường thì vào xem Vy diễn
+const THEATER = { price: 80000, show: 1170 };
+ACT.theater = async () => {
+  if (RT.lock) return;
+  if (vyPlayOn() && G.day === vyPlayDay() && inWin(G.time, VY.playAt - 60, VY.playAt + 20)) return vyPlayNight();
+  if (G.vy.inv && G.vy.inv.kind === 'ticket' && G.vy.inv.day === G.day && inWin(G.time, 1080, 1185)) { G.vy.inv = null; return vyTicketShow(); }
+  if (!vyMomShow()) return UI.say('Nhà hát Hoa Phượng', `<p>Hôm nay không có suất diễn nào lúc này.</p><p class="dim">${vyMomHome() ? 'Đoàn kịch đang về thành phố: tối thứ 6, 7, chủ nhật diễn lúc 19:30 (mở cửa 18:00).' : 'Đoàn kịch của nghệ sĩ Lê Thanh Hương đang lưu diễn ở tỉnh khác.'}</p>`);
+  const c = await UI.ask('Nhà hát Hoa Phượng', `<p>Vở <b>“Chuyện tình bên sông Hoa”</b> — vai chính: nghệ sĩ Lê Thanh Hương. Vé ${fmtMoney(THEATER.price)}.</p>`, ['Mua vé vào xem', 'Thôi']);
+  if (c !== 0) return;
+  if (G.money < THEATER.price) return UI.toast('Không đủ tiền mua vé.', 'bad');
+  addMoney(-THEATER.price, true); RT.lock = true;
+  await theaterCut([{ say: [0, 'Ta đợi chàng bên bến sông này đã mười năm…'] }, { wait: 800 }, { say: [0, 'Nước sông Hoa vẫn chảy, chỉ lòng người là đổi thay!'] }], null);
+  if (G.time < 1290) advanceTime(1290 - G.time);
+  addStat('vannghe', 2); RT.lock = false; UI.hud();
+  UI.toast('Vở kịch hay quá, cả khán phòng đứng dậy vỗ tay (+2 Văn nghệ).', 'good');
+};
+// cảnh trong nhà hát: mẹ Vy (actor 0) trên sân khấu, mình ngồi hàng ghế giữa (+ Vy ngồi cạnh nếu có)
+function theaterCut(steps, withVy, extra) {
+  const actors = [{ look: 'vyMom', x: 192, y: 78, dir: 0 }, { look: 'rocker', x: 150, y: 80, dir: 2 }];
+  if (withVy) actors.push({ look: 'vy', outfit: 'casual', x: 206, y: 176, dir: 3 });
+  for (let i = 0; i < 8; i++) actors.push({ look: ['c1', 'c3', 'c5', 'c7', 'c9', 'x1', 'c2', 'c4'][i], outfit: 'casual', x: 60 + i * 38 + (i > 3 ? 60 : 0), y: 152 + (i % 2) * 24, dir: 3 });
+  return playCut(Object.assign({ map: 'nhahat', me: [184, 176, 3], cam: { x: 192, y: 112 }, title: 'Nhà hát Hoa Phượng', actors, steps, props: [now => { const S = VIEW.S; ctx.fillStyle = 'rgba(255,240,180,0.13)'; ctx.beginPath(); ctx.moveTo(VIEW.ox + 172 * S, VIEW.oy); ctx.lineTo(VIEW.ox + 212 * S, VIEW.oy); ctx.lineTo(VIEW.ox + 236 * S, VIEW.oy + 96 * S); ctx.lineTo(VIEW.ox + 148 * S, VIEW.oy + 96 * S); ctx.fill(); }] }, extra || {}));
+}
+
+/* ---------- hằng ngày: tin nhắn chủ động, lời hẹn, ốm, quyền lợi khi hẹn hò ---------- */
+function vyNewDay() {
+  const V = G.vy, c = cal(G.day), dating = isPartner('vy'), msg = t => { if (hasNum('vy')) inbox('vy', t); };
+  if (V.inv && V.inv.day < G.day) vyMissed(V.inv);
+  if (V.sick >= 0 && V.sick < G.day) V.sick = -1;
+  if (V.umbrellaBack && V.umbrellaBack <= G.day) { V.umbrellaBack = 0; msg('Tớ trả ô rồi nhé, để ở ngăn bàn cậu đó. Có kèm mẩu giấy… đọc rồi đừng có cười tớ! — “Cảm ơn hôm đó đã che mưa cho tớ.”'); addFriend('vy', 2, true); }
+  // ốm: sau chương 2, thỉnh thoảng một ngày đi học Vy nghỉ ốm
+  if (V.ch >= 2 && !vyF('sick') && schoolToday() && Math.random() < 0.07) { V.sick = G.day; RT.morning && RT.morning.push('Hôm nay Vy nghỉ học vì bị cảm. Tan học có thể mang vở ghi sang nhà Vy (phố Hoa Phượng).'); }
+  // lời hẹn của các chương
+  if (!V.inv) {
+    if (V.ch === 3 && hearts('vy') >= 3 && (G.grade >= 11 || c.season >= 2) && c.dow === 4) { V.inv = { kind: 'dinner', day: G.day + 1, from: 990, to: 1110 }; msg('Mai (thứ 7) khoảng 16:30–18:30 cậu qua nhà tớ học nhóm được không? Nhà tớ ở dãy nhà bạn bè, phố Hoa Phượng.'); }
+    else if (V.ch === 4 && hearts('vy') >= 4 && c.dow === 5) { V.inv = { kind: 'picnic', day: G.day + 1, from: 510, to: 690, map: 'nui', x: 200, y: 290 }; msg('Chủ nhật này lên núi sau trường picnic không? Tớ làm bánh mì kẹp rồi. 8:30–11:30 nhé, ở bãi picnic.'); }
+    else if (V.ch >= 2 && hearts('vy') >= 3 && !vyF('ticket') && vyMomHome() && c.dow === 4) { V.inv = { kind: 'ticket', day: G.day + 1 }; msg('Tớ có hai vé xem kịch của mẹ tối mai (thứ 7, 19:30, Nhà hát Hoa Phượng ở khu sân vận động). Đi… một mình thì chán lắm. Cậu đi cùng không?'); }
+    else if (dating && hearts('vy') >= 7 && vyF('e6') && !vyF('e7') && Math.random() < 0.25 && !busyLove()) { V.inv = { kind: 'night', day: G.day, from: 1170, to: 1320, place: 'night', map: 'town', x: BENCH.x, y: BENCH.y, late: true }; }
+    else if (dating && hearts('vy') >= 8 && vyF('e7') && !vyF('e8') && c.dow === 5) { V.inv = { kind: 'box', day: G.day, from: 840, to: 1020 }; msg('Chiều nay (14:00–17:00) cậu qua nhà tớ được không? Tớ có cái này muốn cho cậu xem… lên thẳng phòng tớ nhé.'); }
+  }
+  if (vyPlayOn() && G.day === vyPlayDay() - 7) msg('Tớ… quyết định đăng ký vở kịch cuối năm của trường rồi. Bố chắc sẽ không vui. Tuần này chiều nào tớ cũng tập ở phòng nhạc. Hôm diễn là ' + dateLabel(vyPlayDay()) + ', 19:00 ở Nhà hát Hoa Phượng. Cậu… sẽ đến chứ?');
+  if (!dating || !lovePerks()) return;
+  // khi hẹn hò: nhắc lịch buổi sáng, đề cương trước kiểm tra, động viên ngày thi
+  const tests = (G.tests || []).filter(t => !t.done && t.day >= G.day && t.day <= G.day + 1);
+  const today = tests.filter(t => t.day === G.day), tmr = tests.find(t => t.day === G.day + 1 && BOOK_SUBJ.includes(t.subj));
+  if (schoolToday() && (today.length || Math.random() < 0.35)) msg(today.length ? `Cậu dậy chưa đó? Hôm nay có ${TEST_NAME[today[0].type].toLowerCase()} ${SUBJ[today[0].subj].name} đấy. Nhớ ăn sáng nữa nha, đừng có vừa chạy vừa ăn như lần trước!` : pick(['Cậu dậy chưa đó? Hôm nay nhớ mang đủ sách nha.', 'Chào buổi sáng! Hôm nay trời ' + WX.kinds[wxToday().kind].name.toLowerCase() + (wxToday().win ? ', nhớ mang ô đó.' : ' đẹp ghê.'), 'Dậy đi học thôi, lớp phó điểm danh nè!']));
+  if (tmr && G.review[tmr.subj] !== tmr.day) { G.review[tmr.subj] = tmr.day; msg(`Mai kiểm tra ${SUBJ[tmr.subj].name} đó. Tớ gửi cậu đề cương tớ tự soạn rồi, xem kỹ phần tớ tô đỏ nha.`); }
+  if (today.some(t => t.type === 'thi')) { G.daily.luck = Math.min(100, (G.daily.luck || 50) + 8); msg('Hôm nay thi rồi. Cậu làm được mà, tớ tin cậu. Thi xong tớ khao trà sữa!'); }
+  // hộp cơm (sau sự kiện 6 tim): tối đa 2 lần/tuần, không khi Vy bận tập kịch / ốm
+  const W = wk(G.day); V.lunchWk = V.lunchWk || {};
+  if (vyF('e6') && schoolToday() && V.sick !== G.day && !(vyPlayOn() && G.day >= vyPlayDay() - 7) && (V.lunchWk[W] || 0) < VY.lunchWeek && Math.random() < 0.45) { V.lunchWk[W] = (V.lunchWk[W] || 0) + 1; V.lunchDay = G.day; }
+}
+function vyMissed(inv) {
+  const V = G.vy; V.inv = null;
+  if (inv.kind === 'dinner' || inv.kind === 'picnic') { addFriend('vy', -4, true); V.trust -= 5; if (hasNum('vy')) inbox('vy', inv.kind === 'dinner' ? 'Hôm qua tớ chờ cậu mãi… Thôi không sao, bữa khác nhé.' : 'Hôm qua tớ ngồi một mình trên núi ăn hết chỗ bánh mì rồi đó. Lần sau đừng quên nữa nha.'); }
+  if (inv.kind === 'ticket') { addFriend('vy', -3, true); vySet('ticket'); }
+  if (inv.kind === 'night') { bondAdd(LOVE.missEvent, 'bỏ lỡ lúc Vy cần cậu nhất'); V.trust -= 8; if (hasNum('vy')) inbox('vy', 'Tối qua tớ ngồi ở công viên tới khuya… Không sao đâu. Chắc cậu bận.'); }
+  if (inv.kind === 'box') { /* hẹn lại tuần sau */ }
+}
+// lời hẹn tối (sự kiện 7 tim): 19:30 Vy mới nhắn
+function vyTick() {
+  const V = G.vy; if (!V || RT.lock || RT.scene || UI.isOpen()) return false;
+  if (V.inv && V.inv.kind === 'night' && V.inv.day === G.day && !V.inv.sent && G.time >= V.inv.from) { V.inv.sent = true; if (hasNum('vy')) inbox('vy', 'Cậu… ra công viên được không? Tớ đang ngồi ở ghế đá. Chỉ cần ai đó nói chuyện với tớ một lát thôi.'); }
+  // picnic trên núi: tới bãi picnic đúng giờ
+  if (V.inv && V.inv.kind === 'picnic' && V.inv.day === G.day && G.map === 'nui' && inWin(G.time, V.inv.from, V.inv.to) && Math.hypot(G.x - 200, G.y - 290) < 70) { V.inv = null; vyCh5(); return true; }
+  // hộp cơm đầu tiên (6 tim): giờ nghỉ trưa ở trường
+  if (isPartner('vy') && hearts('vy') >= 6 && !vyF('e6') && schoolToday() && G.atSchool && inWin(G.time, AM_END, PM_START - 30) && (G.map === 'school' || G.map === 'class')) { vyE6(); return true; }
+  return false;
+}
+// bấm chuông nhà Vy: các sự kiện ở nhà Vy
+function vyHouseHook() {
+  const V = G.vy, t = G.time;
+  if (V.inv && V.inv.day === G.day && V.inv.kind === 'dinner' && inWin(t, V.inv.from, V.inv.to)) { V.inv = null; vyCh4(); return true; }
+  if (V.inv && V.inv.day === G.day && V.inv.kind === 'box' && inWin(t, V.inv.from, V.inv.to)) { V.inv = null; vyE8(); return true; }
+  if (V.sick === G.day && !vyF('sick') && t >= schoolEndT() && t < 1260) { vySick(); return true; }
+  return false;
+}
+// nói chuyện với Vy: các sự kiện kích hoạt khi gặp
+async function vyTalkHook(where) {
+  const V = G.vy;
+  if (where === 'class' && V.ch === 0 && vyPlace() === 'class') { await vyCh1(); return true; }
+  if (where === 'library' && V.ch === 1 && hearts('vy') >= 1 && raining()) { await vyCh2(); return true; }
+  if (where === 'bench' && vyBdayBench()) { await vyCh3(); return true; }
+  if (where === 'gate' && vyGateRain()) { await vyUmbrella(); return true; }
+  if (where === 'cat' && vyCatDay()) { await vyCat(); return true; }
+  if (where === 'night' && V.inv && V.inv.kind === 'night') { V.inv = null; await vyE7(); return true; }
+  if (isPartner('vy') && V.lunchDay === G.day && G.atSchool && !G.daily.vyLunch) { G.daily.vyLunch = true; const top = hearts('vy') >= 8, id = top ? 'comvy8' : 'comvy'; gAdd(id); await vyAsk(`${pick(['Cơm cuộn', 'Sandwich trứng', 'Trứng cuộn', 'Cơm nắm'])} hôm nay tớ làm nè. ${top ? 'Lần này tớ nêm vừa rồi, không mặn nữa đâu!' : 'Ăn đi, chê là tớ giận đó.'}`, ['Cảm ơn Vy!']); UI.toast(`Vy tặng hộp cơm tự làm (+${FOODS[id].stam} thể lực khi ăn).`, 'good'); return true; }
+  return false;
+}
+// lời thoại thường ngày theo mức thân thiết
+const VY_TALK = [
+  ['“Có việc gì không? Tớ đang soạn bài.”', '“Nhớ nộp vở bài tập trước thứ Sáu nhé.”', '“Tuần này tổ mình trực nhật, đừng quên.”'],
+  ['“Bài hôm nay cậu hiểu không? Không hiểu thì hỏi tớ.”', '“Cậu… cũng hay vào thư viện à?”', '“Hôm nay trời đẹp ghê.”'],
+  ['“Tớ mới đọc xong một cuốn tiểu thuyết, đoạn kết làm tớ khóc mất.”', '“Hôm nào mưa tớ hay ngồi bên cửa sổ ngắm mưa. Nghe kỳ ha?”', '“Cậu thích ăn gì? Hỏi vậy thôi, không có gì đâu.”'],
+  ['“Cậu ngủ đủ không đó? Mắt thâm quầng kìa.”', '“Mẹ tớ lại sắp đi lưu diễn… quen rồi.”', '“Ở cạnh cậu tớ nói nhiều hơn hẳn, lạ thật.”'],
+  ['“Chiều nay rảnh không? …Ý tớ là, đi ôn bài chung ấy.”', '“Hôm qua thấy cậu đi với ai vui lắm nhỉ. Hỏi vậy thôi.”', '“Cậu nhớ ăn sáng chưa? Đây, tớ dư một hộp sữa.”'],
+  ['“Lạ thật đấy… bình thường tớ không thích nói nhiều với ai.”', '“Cậu có bao giờ nghĩ sau này sẽ học ở đâu không?”', '“Đừng nhìn tớ như thế… ngại lắm.”'],
+];
+function vyLoveLine() {
+  const h = hearts('vy'), c = loveCool();
+  if (c >= 3) return pick(['“Ừ… dạo này tớ bận ôn bài.”', '“Không có gì đâu.”']);
+  if (c >= 1) return pick(['“Không có gì đâu…” (rõ ràng là đang buồn)', '“Dạo này cậu bận lắm à?”']);
+  if (h >= 8) return pick(['“Hôm nay tớ hơi thất vọng vì bài kiểm tra… nhưng kể cho cậu nghe xong thấy nhẹ hẳn.”', '“Mình cùng trưởng thành nhé. Có chuyện gì cậu cũng phải nói với tớ đó.”', '“Hôm nay cậu thế nào? Đến lượt tớ nghe cậu kể.”']);
+  if (h >= 7) return pick(['“Hôm nay ở lớp có đứa trêu tớ, tức ghê! …Mà thôi, gặp cậu là hết tức rồi.”', '“Hừ, hôm qua cậu không nhắn tớ chúc ngủ ngon. Giận đó. Đùa thôi.”']);
+  return pick(['“Trên lớp phải ra dáng lớp phó… nhưng giờ chỉ có hai đứa thôi mà.”', '“Ê, cậu có tóc dính phấn kìa. Lại đây tớ phủi cho. Hì.”', '“Chủ nhật đi uống trà sữa không? Tớ mời!”']);
+}
+async function vyChat() {
+  const t = Math.min(5, hearts('vy')), L = isPartner('vy') ? vyLoveLine() : pick(VY_TALK[t]);
+  await vyAsk(L, ['…']);
+}
+
+/* ---------- các chương (cắt cảnh) ---------- */
+const vyA = (x, y, dir, extra) => Object.assign({ look: 'vy', outfit: friendOutfit('vy'), x, y, dir }, extra || {});
+const live = fn => ({ live: async () => { await fn(); } });
+async function vyCh1() {
+  RT.lock = true; let c = 0;
+  await playCut({ map: 'class', me: [252, 196, 3], cam: { x: 200, y: 130 }, title: 'Chương 1 · Hoa khôi bàn bên', hide: ['vy_cls'], actors: [vyA(191, 134, 3)],
+    props: [now => { if (RT.scene && RT.scene.phone) { wRect('#2a2136', 196, 116, 8, 11); wRect('#cfe8f7', 197, 117, 6, 8); } }],
+    steps: [{ fn: sc => { sc.phone = true; } }, { wait: 700 }, { say: [0, '“Mẹ: Con ơi, tối nay mẹ không về kịp. Con ăn tối trước nhé.”'] }, { wait: 500 }, { move: ['me', 214, 146, 900] }, { say: ['me', 'Vy chưa về à?'] },
+      { fn: sc => { sc.phone = false; } }, { say: [0, '…Tớ đang chờ tài xế.'] },
+      live(async () => { c = await vyAsk('Vy cất vội điện thoại vào cặp, quay mặt nhìn ra cửa sổ. Lớp học vắng tanh.', ['Ngồi chờ cùng Vy một lát', 'Vậy tớ về trước nhé', 'Hoa khôi mà cũng phải chờ xe à? Sang ghê']); }),
+      { say: [0, 'Cảm ơn… Cậu về cẩn thận.'] }] });
+  if (c === 0) { addFriend('vy', 5); G.vy.trust += 5; } else if (c === 1) addFriend('vy', 2); else { G.vy.trust -= 5; }
+  G.vy.ch = 1; addMemo('scene', 'vy_c1'); RT.lock = false; UI.hud();
+}
+async function vyCh2() {
+  RT.lock = true; let c = 0;
+  const rain = now => { for (let i = 0; i < 18; i++) { const k = (now / 700 + i * 0.13) % 1; wRect('rgba(160,190,230,0.6)', 60 + (i * 37) % 200, 6 + k * 22, 1, 3); } };
+  await playCut({ map: 'thuvien', me: [143, 126, 2], cam: { x: 176, y: 110 }, title: 'Chương 2 · Chiều mưa ở thư viện', hide: ['vy_lib'], actors: [vyA(205, 126, 1)], props: [rain],
+    steps: [{ say: [0, 'Mưa to thế này… cậu ngồi đây đi. Tớ cũng chưa muốn về nhà sớm.'] }, { say: ['me', 'Nhà cậu không có ai à?'] },
+      { say: [0, 'Bác giúp việc thôi. Mẹ tớ là diễn viên kịch, đi lưu diễn suốt.'] }, { say: [0, 'Hồi cấp hai tớ diễn văn nghệ ở trường… lần nào cũng để dành ghế đầu cho mẹ.'] }, { say: [0, 'Lần nào cái ghế cũng trống.'] },
+      { move: [0, 205, 108, 500] }, { fn: () => { RT.scene.actors[0].dir = 3; } }, { say: [0, 'Ơ… tớ đi tìm cuốn sách này đã.'] },
+      live(async () => { c = await vyAsk('Vy quay mặt vào giá sách, vai khẽ run. Hình như cô đang rơm rớm nước mắt.', ['Lặng im ngồi đợi, khẽ đưa Vy gói khăn giấy', 'Nếu cậu muốn kể thì tớ nghe, không thì thôi', 'Hoa khôi mà cũng mít ướt à?']); }),
+      { move: [0, 205, 126, 500] }, { fn: () => { RT.scene.actors[0].dir = 1; } }, { say: [0, c === 2 ? 'Không vui đâu.' : '…Cảm ơn cậu. Tự nhiên thấy nhẹ lòng ghê.'] }] });
+  if (c === 0) { addFriend('vy', 8); G.vy.trust += 10; } else if (c === 1) { addFriend('vy', 6); G.vy.trust += 7; } else { addFriend('vy', -3); G.vy.trust -= 10; }
+  G.vy.ch = 2; vySet('msg'); addMemo('scene', 'vy_c2'); RT.lock = false; UI.hud();
+  if (c !== 2) UI.toast('Từ giờ Vy sẽ chủ động nhắn tin hỏi thăm, rủ ôn bài.', 'good');
+}
+async function vyCh3() {
+  RT.lock = true;
+  const id = RT.hold, love = id && tasteOf('vy', id) === 'love', any = !!id && gCount(id) > 0;
+  await benchCut('vy', [{ say: ['me', 'Sinh nhật mà ngồi một mình ở đây à?'] }, { say: [0, 'Cậu… biết hôm nay sinh nhật tớ hả? Mẹ đi diễn xa, bố đi làm nhiệm vụ. Tớ cũng chẳng thích tiệc tùng.'] },
+    ...(any ? [{ say: ['me', `Tớ có quà cho cậu nè. ${holdName(id)}.`] }] : [{ say: ['me', 'Chúc mừng sinh nhật Vy. Tớ không kịp chuẩn bị quà…'] }]),
+    { wait: 500 }, { say: [0, love ? 'Cậu đúng là đồ ngốc… Tớ đã bảo không cần làm gì mà. Nhưng… cảm ơn cậu nhiều lắm.' : any ? 'Cảm ơn cậu… Vui thật đó.' : 'Không sao. Có người nhớ là tớ vui rồi.'] },
+    { say: [0, 'Bố tớ… lúc nào cũng đặt tiêu chuẩn rất cao. Điểm số, giờ giấc, đến cả cách ngồi ăn.'] }, { say: [0, 'Tớ cứ sợ, nếu không giỏi nữa thì bố có còn thương tớ không.'] }], 'Chương 3 · Sinh nhật chỉ có một người');
+  if (any) { gTake(id); RT.hold = gCount(id) ? id : null; }
+  addFriend('vy', love ? 12 : any ? 8 : 4); G.vy.trust += love ? 10 : 5;
+  G.vy.ch = 3; vySet('night'); addMemo('scene', 'vy_c3'); RT.lock = false; UI._hb = null; UI.hud();
+  if (love) UI.toast('Vy bật khóc vì cảm động. Mở khoá: tâm sự riêng, tin nhắn buổi tối, lời mời đến nhà Vy.', 'good');
+}
+async function vyCh4() {
+  RT.lock = true; let a = 0, b = 0;
+  await UI.fade(true); G.visit = 'vy'; setMap('fhome', 46, 186, 3); await UI.fade(false);
+  const dad = { look: 'vyDad', x: 284, y: 200, dir: 3 };
+  await playCut({ map: 'fhome', me: [16, 168, 2], cam: { x: 120, y: 130 }, title: 'Chương 4 · Bữa cơm nhà đại tướng', inPlace: true, hide: ['fh', 'fhp_bo', 'fhp_me', 'vy_maid'], actors: [vyA(78, 168, 1), dad, { look: 'vyMaid', x: 150, y: 70, dir: 0 }],
+    steps: [{ say: [0, 'Bài này giải theo hướng tổng quát trước, rồi mới thay số…'] }, { wait: 600 }, { say: [2, 'Ông chủ về rồi!'] }, { move: [1, 46, 146, 1400] }, { fn: () => { RT.scene.actors[1].dir = 0; } },
+      { say: [1, 'Bạn của Vy đấy à. Ở lại ăn cơm luôn. Ngồi thẳng lưng lên.'] }, { say: [1, 'Cháu học lực thế nào? Sau này định thi trường gì? Bố mẹ cháu làm nghề gì?'] },
+      live(async () => { a = await UI.ask('Đại tướng Nguyễn Minh Quân', '<p>Ông nhìn thẳng vào mắt bạn, chờ câu trả lời.</p>', ['Dạ, cháu học khá, còn nhiều môn phải cố ạ', 'Dạ cháu học giỏi nhất lớp đó bác!', 'Dạ… cháu chưa nghĩ tới ạ'], { who: { look: 'vyDad' } }); }),
+      { say: [1, a === 0 ? 'Biết mình còn thiếu là tốt.' : a === 1 ? 'Giỏi nhất lớp là Vy. Đừng nói quá.' : 'Phải nghĩ đi. Mười sáu tuổi rồi.'] },
+      { say: [0, 'Bố… cuối năm trường có vở kịch, con muốn đăng ký tham gia.'] }, { say: [1, 'Không được. Năm nay lo học. Kịch kiếc làm gì cho mất thời gian.'] }, { say: [0, 'Lúc nào bố cũng chỉ hỏi điểm số!'] },
+      { move: [0, 200, 120, 900] }, { say: [1, '…'] },
+      live(async () => { b = await UI.ask('Bữa cơm', '<p>Vy bỏ đũa, lặng lẽ đi vào phòng. Đại tướng ngồi im, không ăn nữa.</p>', ['Thưa bác, Vy diễn hay lắm ạ. Cậu ấy rất muốn bác đến xem', 'Cúi đầu ăn tiếp cho xong', 'Xin phép bác, cháu vào xem Vy thế nào'], { who: { look: 'vyDad' } }); }),
+      { say: [1, b === 0 ? '…Cháu nói thẳng đấy. Được, để bác nghĩ.' : b === 2 ? 'Ừ. Vào đi.' : '…'] },
+      { move: ['me', 180, 128, 900] }, { say: [0, 'Tớ mệt lắm… lúc nào cũng phải cố làm bố hài lòng. Nếu tớ không còn là đứa con xuất sắc nữa, bố có còn thương tớ không?'] }] });
+  const c = await vyAsk('Vy ngồi bó gối bên cửa sổ, mắt đỏ hoe.', ['Cậu nên nói chuyện nghiêm túc với bác một lần. Tớ nghĩ bác thương cậu theo cách của bác', 'Kệ đi, đừng nghĩ nữa']);
+  if (c === 0) { G.vy.trust += 8; vySet('talkDad'); }
+  addFriend('vy', 6 + (b === 0 ? 3 : 0)); if (a === 0) G.vy.trust += 3;
+  advanceTime(90); G.vy.ch = 4; addMemo('scene', 'vy_c4'); RT.lock = false; UI.hud();
+}
+async function vyCh5() {
+  RT.lock = true; let c = 0;
+  const hasF = gCount(LOVE.flower) > 0;
+  await playCut({ map: 'nui', me: [186, 300, 2], cam: { x: 200, y: 280 }, title: 'Chương 5 · Có phải tớ thích cậu rồi không?', actors: [vyA(214, 300, 1)],
+    props: [() => { wRect('#e2574c', 188, 304, 30, 14); wRect('#fffaf0', 188, 304, 30, 1); for (let i = 0; i < 3; i++) wRect('#f2c27a', 194 + i * 8, 308, 6, 4); }],
+    steps: [{ say: [0, 'Bánh mì kẹp tớ tự làm đó. Ăn thử đi.'] }, { say: ['me', 'Ngon ghê! Vy nấu khéo thật.'] }, { wait: 600 }, { say: [0, 'Lạ thật đấy… Bình thường tớ không thích nói nhiều với ai.'] }, { say: [0, 'Nhưng ở bên cậu, hình như có bao nhiêu chuyện tớ cũng muốn kể.'] },
+      live(async () => { c = await vyAsk('Vy cúi đầu, má đỏ ửng, tay vân vê mép khăn trải.', (hasF ? ['Tặng Vy bó hoa oải hương: “Tớ thích cậu. Mình hẹn hò nhé?”'] : []).concat(['Tớ cũng thích ở bên cậu', 'Cho tớ thêm thời gian để hiểu lòng mình', 'Mình cứ là bạn tốt của nhau nhé'])); if (!hasF) c++; }),
+      { say: [0, c === 0 ? '…Hoa oải hương. Cậu có biết nó nghĩa là gì không?' : c === 1 ? 'Thật hả? …Nếu cậu nghiêm túc, thì hãy nói lại với tớ bằng một cách thật đặc biệt nhé.' : c === 2 ? 'Ừ. Tớ cũng vậy. Mình cứ từ từ thôi.' : 'Ừ… bạn tốt. Cảm ơn cậu đã thật lòng.'] }] });
+  G.vy.ch = 5; addMemo('scene', 'vy_c5'); addFriend('vy', 6);
+  if (c === 3) vySet('friend'); else if (c >= 1) G.vy.romance = 'crush';
+  advanceTime(60); RT.lock = false; UI.hud();
+  if (c === 0) { confess('vy'); return; }
+  if (c === 1) UI.toast('Gợi ý: đủ 5 tim, mua bó hoa oải hương ở cửa hàng hoa rồi tặng Vy để ngỏ lời.', 'info');
+}
+// ngỏ lời bằng hoa oải hương: Vy kéo cậu ra ghế đá công viên lúc hoàng hôn
+async function vyConfessCut() {
+  await benchCut('vy', [{ say: ['me', 'Vy… tớ thích cậu. Mình hẹn hò nhé?'] }, { say: [0, 'Hoa oải hương… là sự chân thành, và chờ đợi.'] }, { wait: 500 },
+    { say: [0, 'Tớ đã chờ câu này lâu lắm rồi đó, đồ ngốc.'] }, { say: [0, 'Nhưng mà… trên lớp vẫn phải gọi tớ là lớp phó nhé!'] }], 'Hoa oải hương');
+}
+async function vyE6() {
+  RT.lock = true; let c = 0;
+  await playCut({ map: G.map, inPlace: true, bars: true, title: '6 tim · Hộp cơm đầu tiên', actors: [vyA(G.x + 18, G.y, 1)],
+    props: [() => { wRect('#e98fa5', G.x + 2, G.y - 12, 10, 7); wRect('#fffaf0', G.x + 3, G.y - 11, 8, 3); wRect('#3f8f3a', G.x + 4, G.y - 8, 2, 2); wRect('#ffd23a', G.x + 7, G.y - 8, 3, 2); }],
+    steps: [{ say: [0, 'Nè… cơm cuộn. Tớ tự làm. Lần đầu đó, đừng chê nha.'] }, { say: ['me', 'Cho tớ á? Để tớ ăn thử…'] },
+      live(async () => { c = await vyAsk('Vy hồi hộp nhìn bạn cắn miếng đầu tiên. Cơm hơi nát, hơi mặn, nhưng là của Vy làm.', ['Ngon lắm! Hơi mặn chút thôi, nhưng tớ thích', 'Ngon tuyệt, không chê vào đâu được!', 'Mặn quá, cậu nấu dở thật']); }),
+      { say: [0, c === 0 ? 'Thật hả? Vậy lần sau tớ bớt muối! Hì.' : c === 1 ? 'Xạo ghê… nhưng mà vui.' : 'Hừ… lần sau tự đi mà mua cơm căn tin.'] }] });
+  if (c === 0) { bondAdd(8); G.vy.trust += 6; } else if (c === 1) bondAdd(6); else bondAdd(-10, 'chê thẳng hộp cơm đầu tiên');
+  gainStam(c === 2 ? 6 : 16); vySet('e6'); addMemo('scene', 'vy_e6'); RT.lock = false; UI.hud();
+  UI.toast('Từ giờ thỉnh thoảng Vy sẽ mang hộp cơm cho bạn (gặp Vy ở trường vào ngày Vy làm cơm).', 'good');
+}
+async function vyE7() {
+  RT.lock = true; let c = 0;
+  await playCut({ map: 'town', me: [BENCH.x - 12, BENCH.y + 6, 2], cam: { x: BENCH.x, y: BENCH.y - 10 }, title: '7 tim · Ngày bố mẹ cãi nhau', hide: ['p_vy', 'vy_inv', 'vy_bench'], actors: [vyA(BENCH.x + 12, BENCH.y + 6, 1)],
+    props: [() => { ctx.fillStyle = 'rgba(255,230,150,0.10)'; ctx.fillRect(0, 0, cv.width, cv.height); }],
+    steps: [{ say: [0, 'Cậu đến thật này…'] }, { say: [0, 'Bố mẹ tớ vừa cãi nhau. Về chuyện tớ thi trường nào. Bố bảo học kinh tế, mẹ bảo để con tự chọn.'] }, { say: [0, 'Chẳng ai hỏi tớ muốn gì cả.'] },
+      live(async () => { c = await vyAsk('Vy ôm chặt cặp sách, ánh đèn đường hắt xuống khuôn mặt buồn.', ['Ngồi xuống cạnh Vy, im lặng lắng nghe', 'Hay mình cùng chuẩn bị cách nói với bố mẹ cậu điều cậu thật sự muốn?', 'Tớ đang bận, mai nói nhé']); }),
+      { say: [0, c === 0 ? 'Cảm ơn cậu đã ở đây. Thế là đủ rồi.' : c === 1 ? 'Ừ… Tớ sẽ viết ra những gì tớ muốn, rồi nói với bố mẹ. Cậu giúp tớ nhé?' : '…Ừ. Cậu về đi.'] },
+      ...(c < 2 ? [{ say: [0, 'Tớ nhận ra… một mối quan hệ tốt cần cả hai cùng chia sẻ. Từ giờ tớ cũng sẽ kể cho cậu, không giấu nữa.'] }] : [])] });
+  if (c === 0) { bondAdd(6); G.vy.trust += 8; vySet('e7'); } else if (c === 1) { bondAdd(15, 'cùng Vy tìm cách giải quyết'); G.vy.trust += 10; vySet('e7'); } else { bondAdd(-12, 'bỏ mặc Vy lúc cô cần'); G.vy.trust -= 10; }
+  if (vyF('e7')) addMemo('scene', 'vy_e7');
+  RT.lock = false; UI.hud();
+}
+async function vyE8() {
+  RT.lock = true;
+  await UI.fade(true); G.visit = 'vy'; setMap('fhome', 220, 140, 3); await UI.fade(false);
+  await playCut({ map: 'fhome', inPlace: true, me: [214, 140, 2], cam: { x: 236, y: 110 }, title: '8 tim · Chiếc hộp kỷ niệm', hide: ['fh', 'vy_maid', 'fhp_bo', 'fhp_me'], actors: [vyA(238, 140, 1)],
+    props: [() => drawSpr(SPR.memBox, 216, 146)],
+    steps: [{ say: [0, 'Đây là hộp kỷ niệm của tụi mình. Ảnh chụp chung, vé xem kịch, cả mấy mẩu giấy cậu viết vội nữa.'] }, { say: ['me', 'Cậu giữ hết luôn à?'] },
+      { say: [0, 'Ừ. Trước đây tớ cứ phải tỏ ra hoàn hảo. Giờ thì… vui hay buồn tớ đều muốn kể với cậu.'] },
+      { say: [0, 'Mình viết một bức thư gửi bản thân sau khi tốt nghiệp nhé. Ước mơ, và những điều muốn làm.'] }, { wait: 1200 }, { say: [0, 'Xong rồi! Không được đọc trộm của tớ đâu đó. Mình cùng trưởng thành nhé.'] }] });
+  vySet('e8'); addMemo('item', 'hopkyniem'); addMemo('scene', 'vy_e8'); bondAdd(10); advanceTime(60);
+  RT.lock = false; UI.hud();
+}
+// chương 6: đêm diễn vở kịch cuối năm ở nhà hát
+async function vyPlayNight() {
+  RT.lock = true; const help = G.vy.help || 0;
+  await UI.fade(true);
+  const actors = [vyA(192, 76, 0, { outfit: 'casual' }), { look: 'c6', x: 150, y: 80, dir: 2 }, { look: 'vyMom', x: 330, y: 220, dir: 3, hidden: true }, { look: 'vyDad', x: 92, y: 232, dir: 3, hidden: true }];
+  for (let i = 0; i < 6; i++) actors.push({ look: ['c1', 'c3', 'c5', 'c7', 'c9', 'x1'][i], outfit: 'casual', x: 60 + i * 50 + (i > 2 ? 40 : 0), y: 152 + (i % 2) * 24, dir: 3 });
+  await playCut({ map: 'nhahat', me: [184, 176, 3], cam: { x: 192, y: 120 }, title: 'Chương 6 · Ánh đèn sân khấu', actors,
+    steps: [{ say: [0, 'Dù bão tố có kéo tới, tôi vẫn sẽ đứng đây — vì đây là con đường tôi tự chọn!'] }, { fn: sc => { sc.actors[2].hidden = false; } }, { move: [2, 290, 176, 1400] }, { say: [2, '(Mẹ Vy lặng lẽ ngồi xuống hàng ghế cuối, vẫn còn mặc áo khoác lưu diễn.)'] },
+      { fn: sc => { sc.actors[3].hidden = false; } }, { say: [3, '(Một người đàn ông mặc quân phục đứng ở cuối khán phòng, nghiêm nghị khoanh tay.)'] }, { say: [0, help >= 2 ? 'Cảm ơn những người đã ở bên tôi, kể cả khi tôi chưa đủ dũng cảm!' : 'Cảm ơn tất cả mọi người!'] }, { wait: 800 },
+      { move: [0, 200, 150, 900] }, { move: [2, 222, 150, 900] }, { say: [2, 'Vy… mẹ xin lỗi. Bao nhiêu năm mẹ vắng mặt. Hôm nay con diễn đẹp lắm.'] }, { move: [3, 178, 150, 1100] },
+      { say: [3, 'Bố vẫn nghĩ học hành là quan trọng nhất.'] }, { wait: 500 }, { say: [3, '…Nhưng hôm nay bố tự hào vì con dám theo đuổi điều mình thích.'] }, { say: [0, 'Bố… mẹ…'] }] });
+  vySet('play'); G.vy.ch = 6; addMemo('scene', 'vy_play'); addFriend('vy', 10); G.vy.trust += 10; if (isPartner('vy')) bondAdd(10);
+  if (G.time < 1290) advanceTime(Math.max(0, 1290 - G.time));
+  RT.lock = false; UI.hud();
+  UI.toast('Vy đã hàn gắn với bố mẹ. Tấm ảnh gia đình trong phòng Vy được thay bằng ảnh mới.', 'good');
+}
+async function vyTicketShow() {
+  RT.lock = true; vySet('ticket');
+  await theaterCut([{ say: [0, 'Ta đợi chàng bên bến sông này đã mười năm…'] }, { say: [2, 'Hồi nhỏ tớ hay trốn sau cánh gà xem mẹ diễn. Mẹ đứng trên sân khấu đẹp lắm.'] }, { say: [2, 'Rồi tớ lớn, mẹ đi xa hơn… tớ chỉ còn giữ mấy cái vé này thôi.'] }, { say: ['me', 'Hôm nay có tớ ngồi cạnh rồi.'] }, { say: [2, 'Ừ. Cảm ơn cậu.'] }], true);
+  addFriend('vy', 8); G.vy.trust += 6; addMemo('scene', 'vy_ve'); if (G.time < 1290) advanceTime(1290 - G.time);
+  RT.lock = false; UI.hud();
+}
+async function vyUmbrella() {
+  RT.lock = true; let c = 0;
+  c = await vyAsk('“Tớ quên mang ô… chờ tạnh rồi về.” Vy co ro dưới mái hiên cổng trường.', ['Cho Vy mượn ô của tớ', 'Đi chung một ô ra bến xe bus nhé']);
+  if (c === 1) await playCut({ map: 'school', inPlace: true, title: 'Chiếc ô dưới mưa', hide: ['vy_gate'], actors: [vyA(G.x + 10, G.y, 0)], props: [() => drawUmbrella(G.x + 5, G.y, '#3b82c4')],
+    steps: [{ par: [{ move: ['me', GATE.x + 40, GATE.yOut + 40, 1800] }, { move: [0, GATE.x + 50, GATE.yOut + 40, 1800] }] }, { say: [0, 'Ô nhỏ thế này… cậu ướt hết vai rồi kìa.'] }, { say: ['me', 'Không sao, cậu không ướt là được.'] }] });
+  vySet('umbrella'); G.vy.umbrellaBack = G.day + 3; addFriend('vy', c === 1 ? 6 : 4);
+  if (c === 0) { G.daily.noUmb = true; } RT.lock = false; UI.hud();
+}
+async function vyCat() {
+  RT.lock = true;
+  await playCut({ map: 'school', inPlace: true, title: 'Con mèo đi lạc', hide: ['vy_cat'], actors: [vyA(716, 74, 1)],
+    steps: [{ say: [0, 'Meo ơi, ăn đi nào… hôm nay có cá nè. Ngoan lắm.'] }, { say: ['me', '(Hoa khôi nghiêm nghị… lại nói chuyện dịu dàng thế này với mèo.)'] }, { fn: sc => { sc.actors[0].dir = 2; } }, { say: [0, 'Ơ! Cậu đứng đó từ bao giờ? Đừng nói với ai nhé!'] }] });
+  vySet('cat'); addFriend('vy', 5); RT.lock = false; UI.hud();
+}
+async function vySick() {
+  RT.lock = true;
+  await UI.ask('Bác Lài', '<p>“Cháu mang vở sang cho Vy hả? Con bé sốt từ sáng. Để bác gọi.”</p>', ['Dạ'], { who: { look: 'vyMaid' } });
+  await vyAsk('Vy ra cửa, mặc đồ ngủ, quàng khăn kín cổ: “Cậu… mang vở ghi sang cho tớ thật à? Tớ có đạt thành tích gì đâu mà cậu phải lo cho tớ vậy…”', ['Bạn ốm thì mang vở sang thôi mà']);
+  await vyAsk('“…Cảm ơn cậu. Tự nhiên thấy khoẻ hơn một chút rồi.”', ['Nghỉ ngơi đi nhé']);
+  vySet('sick'); addFriend('vy', 6); G.vy.trust += 8; RT.lock = false; UI.hud();
+}
+
+/* ---------- chương 7: ngày tốt nghiệp — kết thúc theo lựa chọn ---------- */
+function vyEnding() {
+  const V = G.vy, h = hearts('vy');
+  if (isPartner('vy')) return h >= 8 && vyF('play') && !V.flags.mended ? 'A' : V.flags.mended ? 'B2' : 'A';
+  if (G.exLove && G.exLove.fid === 'vy') return h >= 3 ? 'C2' : 'D2';
+  if (vyF('play') && h >= 4) return 'B';
+  if (V.ch >= 5) return 'C';
+  return null;
+}
+const VY_END = {
+  A: ['Mùa phượng nở', 'Sau này dù có học ở đâu, cậu vẫn phải ăn uống tử tế đấy nhé. Với lại… đừng quên cô lớp phó khó tính từng ngồi cạnh cậu.'],
+  B2: ['Tìm lại nhau', 'Tụi mình từng suýt đánh mất nhau. Cảm ơn cậu đã quay lại nói chuyện thật lòng. Từ giờ, mình cùng nhau đi tiếp nhé.'],
+  B: ['Những người bạn đặc biệt', 'Cảm ơn cậu đã giúp tớ dám nói chuyện với bố mẹ. Cậu là người bạn đặc biệt nhất của tớ. Nhớ giữ liên lạc đó!'],
+  C: ['Điều chưa kịp nói', 'Có những điều tớ chưa kịp nói với cậu… Thôi, để dành cho một ngày nào đó. Chúc cậu thật nhiều may mắn trên con đường sắp tới.'],
+  C2: ['Người từng thương', 'Cảm ơn cậu vì những ngày đã qua. Tớ chân thành mong cậu luôn hạnh phúc, và mình mãi là bạn tốt nhé.'],
+  D2: ['Hai con đường', 'Mỗi người một con đường. Tớ vẫn tôn trọng cậu, và mong cậu sẽ tìm được điều mình muốn.'],
+};
+async function vyGraduation() {
+  const e = vyEnding(); if (!e) return;
+  const [name, note] = VY_END[e], dating = isPartner('vy');
+  G.vy.note = note; G.vy.ending = e;
+  await playCut({ map: 'class', me: [111, 134, 3], cam: { x: 160, y: 120 }, title: `Chương 7 · Lời hẹn dưới tán phượng — ${name}`, actors: [vyA(191, 134, 3)],
+    steps: [{ say: [0, 'Ngày đầu tiên vào lớp, tớ đã nghĩ cậu là đứa phiền phức nhất bàn bên.'] }, { say: [0, 'Ba năm rồi. Tớ đã khác nhiều lắm, đúng không?'] }, { say: [0, 'Tớ sẽ thi vào trường sân khấu. Bố mẹ tớ… đồng ý rồi.'] },
+      ...(dating ? [{ say: [0, 'Đây, hộp cơm tớ tự làm. Còn bức thư này tớ giữ từ năm lớp 11… về nhà hẵng đọc!'] }] : []), { say: [0, note] }] });
+  if (dating) { gAdd('comvy8'); addMemo('item', 'thuvy'); }
+  addMemo('scene', 'vy_grad');
+}
+
+/* ---------- menu nói chuyện với Vy: học nhóm, giúp tập thoại ---------- */
+function vyTalkOpts(add, where) {
+  if (isPartner('vy') || hearts('vy') >= 2) if (['library', 'in', 'park', 'comp'].includes(where) && !G.daily.vyStudy) add('vystudy', 'Học nhóm cùng Vy');
+  if (vyPlace() === 'rehearse' && !G.daily.vyHelp) add('vyhelp', 'Giúp Vy tập thoại');
+}
+async function vyTalkDo(c) {
+  if (c === 'vystudy') { G.daily.vyStudy = true; await studyMenu(SELF_STUDY.mins, Math.round(SELF_STUDY.pts * 1.5), SELF_STUDY.stam, true); addFriend('vy', 3); if (isPartner('vy')) bondAdd(4); return true; }
+  if (c === 'vyhelp') { G.daily.vyHelp = true; G.vy.help = (G.vy.help || 0) + 1; await activity('Cầm kịch bản nhắc thoại cho Vy…', 40, () => { addFriend('vy', 4); addStat('vannghe', 2); }); if (isPartner('vy')) bondAdd(4); return true; }
+  return false;
 }
 
 'use strict';
@@ -13270,7 +14084,8 @@ const UI = {
     if (!G) return;
     const c = today(), mx = maxStam();
     $('h-date').textContent = `${DOW[c.dow]}, ${c.dos} ${c.sName}`;
-    $('h-year').textContent = `Năm ${c.year + 1} · Lớp ${G.grade}`;
+    const W = wxToday(), K = WX.kinds[W.kind], rn = raining();
+    $('h-year').innerHTML = `Năm ${c.year + 1} · Lớp ${G.grade} <span class="wx${rn ? ' rain' : ''}" title="${wxLabel(W)}"><img src="${itemIcon(rn ? K.icon : W.kind === 'nanggat' ? 'w_nanggat' : W.win && G.time < W.win[0] ? 'w_may' : W.kind === 'may' ? 'w_may' : 'w_nang')}" alt="">${rn ? K.name : W.win && G.time < W.win[0] ? `Mưa lúc ${fmtTime(W.win[0])}` : W.kind === 'may' ? 'Nhiều mây' : W.kind === 'nanggat' ? 'Nắng gắt' : 'Nắng'} ${W.hi}°</span>`;
     $('h-time').textContent = fmtTime(G.time);
     const pl = periodLabel(); $('h-phase').textContent = pl || phaseLabel().replace(/^Giai đoạn \d · /, ''); $('h-phase').classList.toggle('per', !!pl);
     $('h-phase').title = phaseLabel();
@@ -13462,7 +14277,7 @@ UI.refresh = function () { if (this._panel && this._panel._keep) { this._panel._
 const MENU_TABS = [['stats', 'Chỉ số'], ['friends', 'Bạn bè'], ['tt', 'Thời khoá biểu'], ['grades', 'Học bạ'], ['cal', 'Lịch'], ['cards', 'Bộ sưu tập'], ['map', 'Bản đồ'], ['memo', 'Lưu bút'], ['set', 'Cài đặt']];
 const MV = {};
 const subTabs = (act, cur, list) => '<div class="tabs">' + list.map(([id, name]) => `<button class="tab ${cur === id ? 'on' : ''}" data-act="${act}" data-id="${id}">${name}</button>`).join('') + '</div>';
-const heartsHtml = n => `<span class="hearts">${'♥'.repeat(n)}<i>${'♥'.repeat(5 - n)}</i></span>`;
+const heartsHtml = (n, mx) => `<span class="hearts${mx > 5 ? ' love' : ''}">${'♥'.repeat(Math.min(n, 5))}${n > 5 ? `<b>${'♥'.repeat(n - 5)}</b>` : ''}<i>${'♥'.repeat(Math.max(0, (mx || 5) - n))}</i></span>`;
 UI.menu = function (tab) {
   if (tab && MV[tab]) { this._tab = tab; if (MV[tab].init) MV[tab].init(); }
   if (!this._tab) { this._tab = 'stats'; }
@@ -13495,9 +14310,9 @@ MV.stats = {
 MV.friends = {
   render() {
     const dl = d => `${d[1]} ${SEASONS[d[0]].name}`;
-    const row = (look, outfit, name, note, n) => `<div class="frow"><img src="${faceOf(look, outfit)}" alt=""><div><b>${name}</b><small>${note}</small></div>${heartsHtml(n)}</div>`;
+    const row = (look, outfit, name, note, n, mx) => `<div class="frow"><img src="${faceOf(look, outfit)}" alt=""><div><b>${name}</b><small>${note}</small></div>${heartsHtml(n, mx)}</div>`;
     let h = '<h4>Bạn bè</h4><div class="fgrid">';
-    for (const f in FRIENDS) { const F = FRIENDS[f]; h += row(f, null, F.name, `${F.note} · sinh nhật ${dl(F.bday)}${grudge(f) ? ' · <b>đang giận bạn</b>' : ''}${isComp(f) ? ' · đang đi cùng bạn' : ''}`, hearts(f)); }
+    for (const f in FRIENDS) { const F = FRIENDS[f]; h += row(f, null, F.name, `${F.note} · sinh nhật ${dl(F.bday)}${grudge(f) ? ' · <b>đang giận bạn</b>' : ''}${isComp(f) ? ' · đang đi cùng bạn' : ''}${isPartner(f) ? ' · <b>đang hẹn hò</b>' : DATABLE.includes(f) && hearts(f) >= 5 && !G.love ? ' · đủ 5 tim: có thể tặng hoa oải hương để ngỏ lời' : ''}`, hearts(f), heartMax(f)); }
     h += '</div><h4>Gia đình</h4><div class="fgrid">';
     const pl = Math.min(5, Math.ceil(parentInfo(G.parent).lv / 2));
     for (const w of ['mom', 'dad']) h += row(w, null, PNAME[w], `sinh nhật ${dl(PARENT_BDAY[w])}`, pl);
@@ -14293,7 +15108,7 @@ MV.memo = {
     h += '<div class="rows">';
     for (const p of memoPeople()) {
       const n = M.notes[p.id];
-      h += n ? `<div class="memo-note"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p>“${MEMO_NOTES[p.id]}”</p></div></div>` : `<div class="memo-note lock"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p class="dim">Không viết lưu bút.</p></div></div>`;
+      h += n ? `<div class="memo-note"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p>“${(p.id === 'vy' && G.vy && G.vy.note) || MEMO_NOTES[p.id]}”</p></div></div>` : `<div class="memo-note lock"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p class="dim">Không viết lưu bút.</p></div></div>`;
     }
     return h + '</div>';
   },
@@ -14788,6 +15603,7 @@ function drawChar(look, outfit, x, y, dir, walkT, oy) {
 // Người ngồi trên xe (xe đạp, xe đạp điện, xe máy): vẽ xe rồi vẽ người lệch lên trên
 // Người ngồi trên xe: vẽ xe rồi vẽ người lệch lên trên; pal: người ngồi sau (mã bạn, hoặc { look, outfit })
 function drawRider(look, outfit, veh, x, y, left, pal) {
+  if (veh === 'jeep') { drawSpr(SHADOW, x - 7, y - 3); drawSpr(SPR[left ? 'jeepL' : 'jeep'], x - 23, y - 24); return; }   // xe hơi: người ngồi trong xe
   drawSpr(SHADOW, x - 7, y - 3); drawSpr(SPR[veh + (left ? 'L' : '')], x - 15, y - 19);
   if (pal) { const p = typeof pal === 'string' ? { look: pal, outfit: FRIENDS[pal] ? friendOutfit(pal) : null } : pal; drawSpr(charSheet(p.look, p.outfit)[left ? 1 : 2][0], x - 9 + (left ? 9 : -9), y - 30); }     // bạn ngồi sau xe
   drawSpr(charSheet(look, outfit)[left ? 1 : 2][0], x - 9 + (left ? 2 : -2), y - 31);
@@ -14834,12 +15650,13 @@ function render(now) {
     else if (e.f) drawChar(G.comp.fid, friendOutfit(G.comp.fid), e.f.x, e.f.y, e.f.dir, e.f.walk);
     else if (e.w) drawChar(e.w.look, e.w.outfit, e.w.x, e.w.y, e.w.dir, e.w.walk);
     else if (G.ride && !RT.scene) drawRider(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), VEHICLES[G.ride].spr, G.x, G.y, !!RT.faceL, G.comp ? G.comp.fid : null, RT.walkT >= 0);
-    else drawChar(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), G.x, G.y, G.dir, RT.walkT, RT.scene && RT.scene.meOy);
+    else { drawChar(G.gender, RT.outfit || (schoolToday() || hkUniform() ? null : 'casual'), G.x, G.y, G.dir, RT.walkT, RT.scene && RT.scene.meOy); if (G.owned.o && raining() && outdoorNow()) drawUmbrella(G.x, G.y + (RT.scene && RT.scene.meOy || 0)); }
   }
   // đạo cụ của đoạn cắt cảnh (yoyo, con quay, bài, gương soi…) vẽ đè lên nhân vật
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
   if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);
   if (G) { drawFestProps(now); drawBcProps(now); drawTTProps(now); drawHkProps(now); drawTaskMarkers(now); }
+  if (G) drawWeather(now);                        // mưa, mây, nắng (04w_weather.js)
   if (G) drawFurnGhost(now);                      // đang cầm đồ nội thất trong nhà: bóng mờ chỗ đặt
   if (G) drawHeld(now);                           // món đang cầm trên tay
   for (const o of m.objs) if (o.smoke && (!o.vis || o.vis())) smokeProp(now, o.x + o.smoke[0], o.y + o.smoke[1]);   // khói nhang        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân

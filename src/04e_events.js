@@ -38,6 +38,7 @@ function memoPeople() {
 }
 async function graduationDay() {
   if (G.memo.notes) return;
+  await vyGraduation();                                              // chương 7 tuyến Vy: kết thúc theo lựa chọn
   G.memo.notes = {};
   const wrote = [];
   for (const p of memoPeople()) if (p.n >= MEMO_NOTE_HEARTS) { G.memo.notes[p.id] = { day: G.day, hearts: p.n }; wrote.push(p.name); }
@@ -353,6 +354,8 @@ function drawFestProps(now) {
 
 /* ---------- điều phối sự kiện mỗi khung hình (khi không bận) ---------- */
 function eventTick() {
+  weatherTick();                                                    // ướt mưa, mưa tưới cây (04w_weather.js)
+  if (loveTick()) return true;                                      // hẹn hò, sự kiện của Vy (04x_love.js, 04y_vy.js)
   if (pmTick()) return true;
   if (hsgTick()) return true;
   if (talentTick()) return true;                                    // trung tâm năng khiếu: thứ 7 tới giờ học                                       // đội tuyển học sinh giỏi: báo tin, buổi học, thi chọn, thi quốc gia, ăn mừng                                        // ngày họp phụ huynh: tới trường 08:00–11:00 là vào cảnh họp

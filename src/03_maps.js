@@ -145,7 +145,7 @@ function buildTown() {
   const parkT = () => parkTime();
   for (const [fid, a, b, d, wd] of [['khoa', 636, 348, 0, 26], ['dat', 694, 368, 1, 26], ['vy', 338, 344, 0, 14], ['ngan', 452, 340, 0, 12]]) {
     const F = FRIENDS[fid];
-    NPCS.push({ id: 'p_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'town', x: a, y: b, dir: d, wander: wd, vis: () => parkT() && !meetToday(fid) && !isComp(fid), label: () => F.name, act: () => ACT.friend(fid, 'park') });
+    NPCS.push({ id: 'p_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'town', x: a, y: b, dir: d, wander: wd, vis: () => parkT() && !raining() && friendSpot(fid) === 'park' && !meetToday(fid) && !isComp(fid) && !sceneHides('p_' + fid), label: () => F.name, act: () => ACT.friend(fid, 'park') });
   }
 }
 const friendOutfit = fid => (schoolToday() || hkUniform() ? null : 'cas_' + fid);
@@ -508,6 +508,7 @@ function buildMaps() {
   addMeetNpcs(); buildFamily(); buildFamilyPlaces(); buildHsgPlaces(); buildCenter(); buildEcoPlaces(); buildHobbyPlaces(); buildStadium();
   seasonTrees();                                   // cây đổi màu theo mùa
   buildTrips();                                    // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch (04l)
+  buildVyStory();                                  // tuyến truyện Vy: chỗ đứng theo lịch, bố mẹ Vy, nhà hát (04y)
   widenEdgeZones();                                // đi qua mép trái / phải chỗ nào không bị chặn cũng sang được bản đồ kế tiếp
 }
 // Lối sang bản đồ bên cạnh ở mép trái / phải: nới rộng theo cả đoạn mép đi lại được (tới khi gặp tường, hàng rào, nhà)

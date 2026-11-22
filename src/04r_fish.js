@@ -17,10 +17,10 @@ const fishHere = (f, where, day, time) => {
   return t >= f.hours[0] && t < f.hours[1];
 };
 const FISH_W = [40, 26, 16, 9, 4];                                                  // tỉ lệ gặp theo độ khó
-function rollFish(where, bait) {
+function rollFish(where, bait, rain) {
   const L = FISH.filter(f => fishHere(f, where, G.day, G.time));
   if (!L.length) return null;
-  const w = f => FISH_W[f.diff - 1] * (bait && f.diff >= 3 ? FISHING.baitRare : 1);
+  const w = f => FISH_W[f.diff - 1] * (bait && f.diff >= 3 ? FISHING.baitRare : 1) * (rain && f.diff >= 3 ? 1.4 : 1);
   let r = Math.random() * L.reduce((a, f) => a + w(f), 0);
   for (const f of L) { r -= w(f); if (r < 0) return f; }
   return L[0];
@@ -37,7 +37,7 @@ ACT.fish = async where => {
   if (bait) G.inv.moi--;
   await UI.progress('Thả câu, chờ cá cắn…', UI._fast ? 10 : 1300, '#3b82c4');
   advanceTime(FISHING.mins); useStam(FISHING.stam);
-  const f = Math.random() < FISHING.nothing ? null : rollFish(where, bait);
+  const f = Math.random() < FISHING.nothing * (raining() ? 0.4 : 1) ? null : rollFish(where, bait, raining());   // trời mưa cá cắn câu nhiều, dễ gặp cá quý
   if (!f) { RT.lock = false; UI.hud(); return UI.toast('Ngồi mãi chẳng con nào cắn câu. Thử giờ khác, chỗ khác xem.'); }
   const r = await fishScene(f, where);
   RT.lock = false;

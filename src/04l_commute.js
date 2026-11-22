@@ -7,8 +7,8 @@
  *    thầy cô chạy xe vào cổng, dựng xe ở nhà xe rồi lên cầu thang. Học sinh khác lần lượt đi qua cổng vào sân.
  *  - Mỗi chuyến chỉ chạy khi mình đang ở bản đồ đó (giờ bắt đầu nằm trong khoảng cho phép), chạy theo thời gian thực.
  * ============================================================ */
-const TRIP_SPEED = { walk: 40, bike: 64, moto: 92, motoMom: 92 };
-const RIDE_SPR = { bike: 'bike', moto: 'moto', motoMom: 'motoMom' };
+const TRIP_SPEED = { walk: 40, bike: 64, moto: 92, motoMom: 92, jeep: 110 };
+const RIDE_SPR = { bike: 'bike', moto: 'moto', motoMom: 'motoMom', jeep: 'jeep' };
 // bạn thân đi học bằng gì, mấy giờ ra khỏi nhà · thời gian đi từ phố Hoa Phượng tới trường
 const COMMUTE = { khoa: { mode: 'bike', leave: 410 }, vy: { mode: 'bus', leave: 395 }, dat: { mode: 'walk', leave: 380 }, ngan: { mode: 'walk', leave: 400 } };
 const COMMUTE_MIN = { bike: 18, bus: 22, walk: 35 };

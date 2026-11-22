@@ -238,6 +238,8 @@ function friendHome(fid) {
   if (!G || meetToday(fid) || isComp(fid)) return false;
   const t = G.time;
   if (tetTime()) return inWin(t, 420, 1290);                        // Tết: bạn ở nhà cả ngày
+  if (fid === 'vy') return vyPlace() === 'home';                     // Vy có lịch riêng (04y_vy.js)
+  if (raining() && parkTime()) return true;                          // trời mưa không ra công viên, ở nhà
   return schoolToday() ? inWin(t, 1210, 1290) : (inWin(t, 390, 480) || inWin(t, 1090, 1290));
 }
 function placeOpen(P) {
@@ -279,8 +281,12 @@ async function talkMenu(fid, where) {
   if ((where === 'school' || where === 'class') && G.atSchool) for (const id of breakFunFor(fid)) add('brk:' + id, BREAK_FUN[id].name);
   if (cardCount()) add('duel', 'Đấu thẻ cầu thủ');
   if (tetTime() && !tetY2().give[fid]) add('lixi', `Lì xì cho ${F.name}`);
+  if (isPartner(fid)) add('love', loveCool() === 2 && G.love.argued !== G.day ? 'Hỏi chuyện: “Cậu sao vậy?”' : 'Tâm sự riêng');
+  if (fid === 'vy') vyTalkOpts(add, where);
   const c = ids.length === 1 ? 'chat' : (add('x', 'Thôi'), ids[await UI.ask(F.name, '<p>“Sao đó?”</p>', opts)] || 'x');
-  if (c === 'chat') chat('f_' + fid, fid);
+  if (c === 'chat') { if (fid === 'vy' && !G.daily.chat['f_vy']) vyChat(); chat('f_' + fid, fid); if (isPartner(fid) && !G.daily['lc_' + fid]) { G.daily['lc_' + fid] = true; bondAdd(LOVE.chat); } }
+  else if (c === 'love') loveTalk(fid);
+  else if (await vyTalkDo(c)) { }
   else if (c === 'duel') cardDuel('f_' + fid, fid, F.name, F.duel);
   else if (c === 'lixi') giveLixi(fid);
   else if (c.startsWith('brk:')) doBreakFun(fid, c.slice(4));
@@ -301,6 +307,7 @@ ACT.mate = async sid => {
 };
 // where: 'school' sân trường · 'class' trong lớp · 'park' công viên · 'house' trước nhà bạn · 'meet' chỗ hẹn · 'comp' đang đi cùng mình
 ACT.friend = async (fid, where) => {
+  if (fid === 'vy' && await vyTalkHook(where)) return;                 // sự kiện tuyến Vy khi gặp
   const F = FRIENDS[fid], hs = hearts(fid), opts = ['Nói chuyện'], ids = ['talk'], add = (id, t) => { ids.push(id); opts.push(t); };
   const atSch = (where === 'school' || where === 'class') && G.atSchool;
   if (where === 'comp') { if (!G.comp.skip) add('bye', 'Tạm biệt, ai về nhà nấy'); }
@@ -312,12 +319,13 @@ ACT.friend = async (fid, where) => {
   if (sellables().length) add('sell', 'Bán đồ');
   add('x', 'Rời đi');
   const note = grudge(fid) ? `<p class="warnbox">${F.name} đang giận vì bị bạn tố cáo (đến ${dateLabel(G.grudge[fid])}).</p>` : '';
-  const c = ids[await UI.ask(F.name, `<p>${F.note}. <span class="hearts">${'♥'.repeat(hs)}<i>${'♥'.repeat(5 - hs)}</i></span></p>` + note, opts)] || 'x';
+  const love = isPartner(fid) ? `<p class="dim">Đang hẹn hò${G.love.mend >= G.day ? ' · <b>đang hàn gắn</b>' : loveCool() >= 3 ? ' · <b>đang xa cách</b>' : loveCool() >= 1 ? ' · có vẻ hơi buồn' : ''}</p>` : '';
+  const c = ids[await UI.ask(F.name, `<p>${F.note}. ${heartsHtml(hs, heartMax(fid))}</p>` + love + note, opts)] || 'x';
   if (c === 'talk') talkMenu(fid, where);
   else if (c === 'sell') sellMenu('f_' + fid, fid, F.name);
   else if (c === 'out') askOut(fid);
   else if (c === 'num') askNumber(fid);
-  else if (c === 'join') { if (G.meet) G.meet.n = Math.max(1, G.meet.n); setComp(fid, false); UI.say(F.name, '“Tới rồi hả! Đi thôi, cậu dẫn đường đi.”'); }
+  else if (c === 'join') { if (G.meet) G.meet.n = Math.max(1, G.meet.n); loveMeet(fid, true); setComp(fid, false); UI.say(F.name, '“Tới rồi hả! Đi thôi, cậu dẫn đường đi.”'); }
   else if (c === 'bye') endComp(`${F.name} vẫy tay chào rồi đi về nhà.`, true);
 };
 // ACT.house (bấm chuông, vào nhà bạn chơi): xem 04d_life.js
@@ -987,6 +995,7 @@ function socialNewDay() {
     if (!G.meet.n) {
       const f = G.meet.fid; addFriend(f, -5, true);
       if (hasNum(f)) { pushMsg(f, false, 'Hôm qua tớ đợi mãi mà không thấy cậu. Cho tớ leo cây hả? :('); G.phone.unread[f] = (G.phone.unread[f] || 0) + 1; }
+      loveMeet(f, false);
       RT.morning.push(`Hôm qua bạn lỡ hẹn với ${FRIENDS[f].name}. Bạn ấy giận rồi.`);
     }
     G.meet = null;

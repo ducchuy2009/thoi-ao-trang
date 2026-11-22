@@ -165,7 +165,8 @@ const UI = {
     if (!G) return;
     const c = today(), mx = maxStam();
     $('h-date').textContent = `${DOW[c.dow]}, ${c.dos} ${c.sName}`;
-    $('h-year').textContent = `Năm ${c.year + 1} · Lớp ${G.grade}`;
+    const W = wxToday(), K = WX.kinds[W.kind], rn = raining();
+    $('h-year').innerHTML = `Năm ${c.year + 1} · Lớp ${G.grade} <span class="wx${rn ? ' rain' : ''}" title="${wxLabel(W)}"><img src="${itemIcon(rn ? K.icon : W.kind === 'nanggat' ? 'w_nanggat' : W.win && G.time < W.win[0] ? 'w_may' : W.kind === 'may' ? 'w_may' : 'w_nang')}" alt="">${rn ? K.name : W.win && G.time < W.win[0] ? `Mưa lúc ${fmtTime(W.win[0])}` : W.kind === 'may' ? 'Nhiều mây' : W.kind === 'nanggat' ? 'Nắng gắt' : 'Nắng'} ${W.hi}°</span>`;
     $('h-time').textContent = fmtTime(G.time);
     const pl = periodLabel(); $('h-phase').textContent = pl || phaseLabel().replace(/^Giai đoạn \d · /, ''); $('h-phase').classList.toggle('per', !!pl);
     $('h-phase').title = phaseLabel();
@@ -357,7 +358,7 @@ UI.refresh = function () { if (this._panel && this._panel._keep) { this._panel._
 const MENU_TABS = [['stats', 'Chỉ số'], ['friends', 'Bạn bè'], ['tt', 'Thời khoá biểu'], ['grades', 'Học bạ'], ['cal', 'Lịch'], ['cards', 'Bộ sưu tập'], ['map', 'Bản đồ'], ['memo', 'Lưu bút'], ['set', 'Cài đặt']];
 const MV = {};
 const subTabs = (act, cur, list) => '<div class="tabs">' + list.map(([id, name]) => `<button class="tab ${cur === id ? 'on' : ''}" data-act="${act}" data-id="${id}">${name}</button>`).join('') + '</div>';
-const heartsHtml = n => `<span class="hearts">${'♥'.repeat(n)}<i>${'♥'.repeat(5 - n)}</i></span>`;
+const heartsHtml = (n, mx) => `<span class="hearts${mx > 5 ? ' love' : ''}">${'♥'.repeat(Math.min(n, 5))}${n > 5 ? `<b>${'♥'.repeat(n - 5)}</b>` : ''}<i>${'♥'.repeat(Math.max(0, (mx || 5) - n))}</i></span>`;
 UI.menu = function (tab) {
   if (tab && MV[tab]) { this._tab = tab; if (MV[tab].init) MV[tab].init(); }
   if (!this._tab) { this._tab = 'stats'; }
@@ -390,9 +391,9 @@ MV.stats = {
 MV.friends = {
   render() {
     const dl = d => `${d[1]} ${SEASONS[d[0]].name}`;
-    const row = (look, outfit, name, note, n) => `<div class="frow"><img src="${faceOf(look, outfit)}" alt=""><div><b>${name}</b><small>${note}</small></div>${heartsHtml(n)}</div>`;
+    const row = (look, outfit, name, note, n, mx) => `<div class="frow"><img src="${faceOf(look, outfit)}" alt=""><div><b>${name}</b><small>${note}</small></div>${heartsHtml(n, mx)}</div>`;
     let h = '<h4>Bạn bè</h4><div class="fgrid">';
-    for (const f in FRIENDS) { const F = FRIENDS[f]; h += row(f, null, F.name, `${F.note} · sinh nhật ${dl(F.bday)}${grudge(f) ? ' · <b>đang giận bạn</b>' : ''}${isComp(f) ? ' · đang đi cùng bạn' : ''}`, hearts(f)); }
+    for (const f in FRIENDS) { const F = FRIENDS[f]; h += row(f, null, F.name, `${F.note} · sinh nhật ${dl(F.bday)}${grudge(f) ? ' · <b>đang giận bạn</b>' : ''}${isComp(f) ? ' · đang đi cùng bạn' : ''}${isPartner(f) ? ' · <b>đang hẹn hò</b>' : DATABLE.includes(f) && hearts(f) >= 5 && !G.love ? ' · đủ 5 tim: có thể tặng hoa oải hương để ngỏ lời' : ''}`, hearts(f), heartMax(f)); }
     h += '</div><h4>Gia đình</h4><div class="fgrid">';
     const pl = Math.min(5, Math.ceil(parentInfo(G.parent).lv / 2));
     for (const w of ['mom', 'dad']) h += row(w, null, PNAME[w], `sinh nhật ${dl(PARENT_BDAY[w])}`, pl);
