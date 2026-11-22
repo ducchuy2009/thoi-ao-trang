@@ -42,19 +42,20 @@ ACT.go = (from, to) => {
   if (L.hours && !inWin(G.time, L.hours[0], L.hours[1]) && !(to === 'nui' && eveOk())) return UI.say('Đường lên núi', `Trời tối rồi, đường núi nguy hiểm lắm.<p class="dim">Chỉ lên núi được từ ${fmtTime(L.hours[0])} đến ${fmtTime(L.hours[1])}.</p>`);
   if (L.foot && G.ride) dismount(true);
   goPlace(L.at[0], L.at[1], L.at[2], L.at[3], G.ride ? 0 : L.hop, L.label).then(() => {
-    if (G.ride && !rideOk(MAPS[G.map], G.x, G.y)) { dismount(true); UI.toast('Chỗ này không có đường cho xe chạy — dựng xe lại đây.', 'info'); }
+    if (G.ride && !rideOk(MAPS[G.map], G.x, G.y)) { dismount(true); UI.toast('Xe không vào chỗ này được — dựng xe lại đây.', 'info'); }
   });
 };
 
 /* ---------- xe đạp / xe đạp điện / xe máy: bấm vào xe để lên, X để xuống ---------- */
 const vehAtHome = id => !!G && !!G.owned[VEHICLES[id].own] && G.ride !== id && !(G.park && G.park.id === id);
 // Xe chỉ chạy trên đường (lòng đường, vỉa hè) và trong sân nhà mình
-const RIDE_TILES = ['road', 'walk'];
+// Ngoài trời xe chạy được mọi lối đi (lòng đường, vỉa hè, đường đất, sân, bãi cát, bãi cỏ…), chỉ không lội nước / đè bồn hoa / leo tường.
+// Trong sân trường thì không: tới cổng là gửi xe ở nhà xe.
+const RIDE_BLOCK = ['water', 'void', 'walltop', 'flowers'];
 function rideOk(m, x, y) {
   if (!m.tile || m.indoor) return !m.indoor;
-  if (m.id === 'town' && x < 272 && y < 160) return true;          // sân nhà mình: dắt xe ra cổng
-  if (m.id === 'school' && x >= GATE.x && x < GATE.x + GATE.w && y >= 416 && y < 448) return true;   // chạy tới cổng trường để gửi xe
-  return RIDE_TILES.includes(m.tile[(y >> 4) * m.w + (x >> 4)]);
+  if (m.id === 'school' && y < GATE.yOut - 8 && !(x >= GATE.x && x < GATE.x + GATE.w && y >= 416)) return false;
+  return !RIDE_BLOCK.includes(m.tile[(y >> 4) * m.w + (x >> 4)]);
 }
 ACT.mount = async id => {
   if (RT.lock) return;
@@ -67,7 +68,7 @@ ACT.mount = async id => {
   }
   if (G.ride) dismount(true);
   G.ride = id; G.park = null;
-  UI.toast(G.comp ? `Chở ${FRIENDS[G.comp.fid].name} trên ${V.name.toLowerCase()}. Chỉ chạy xe trên đường · bấm X để xuống xe.` : `Lên ${V.name.toLowerCase()}. Chỉ chạy xe trên đường · bấm X để xuống xe.`, 'good'); UI.hud();
+  UI.toast(G.comp ? `Chở ${FRIENDS[G.comp.fid].name} trên ${V.name.toLowerCase()}. Bấm X để xuống xe.` : `Lên ${V.name.toLowerCase()}. Bấm X để xuống xe.`, 'good'); UI.hud();
 };
 function dismount(quiet) {
   if (!G.ride) return;
@@ -89,7 +90,7 @@ ACT.shed = async () => {
   G.ride = G.park.id; G.park = null; G.atSchool = false;
   setMap('school', GATE.x + GATE.w / 2, GATE.yOut + 8, 0);
   await UI.fade(false); RT.lock = false;
-  UI.toast(`Dắt ${V.name.toLowerCase()} ra khỏi cổng trường. Chỉ chạy xe trên đường · bấm X để xuống xe.`, 'good'); UI.hud();
+  UI.toast(`Dắt ${V.name.toLowerCase()} ra khỏi cổng trường. Bấm X để xuống xe.`, 'good'); UI.hud();
 };
 
 /* ---------- hoạt cảnh đi xe: xe bus · bố mẹ chở · tàu hoả ---------- */

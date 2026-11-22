@@ -122,8 +122,8 @@ function buildTown() {
   addObj(m, { door: true, s: 'shop', x: 303, y: 51, sol: [1, 24, 96, 53], label: () => 'Tạp hoá Cô Ba — mua đồ, phụ bán hàng', act: () => ACT.shop() });
   addObj(m, { door: true, s: 'center', x: 431, y: 51, sol: [1, 24, 96, 53], label: () => 'Trung tâm Sao Mai — vào trong, đăng ký học thêm ở quầy lễ tân', act: () => ACT.center() });
   // nhà cô chủ nhiệm và thầy Tùng (ngày Tết tới chúc Tết)
-  addObj(m, { door: true, s: 'houseB', x: 575, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà cô Hạnh (cô chủ nhiệm)', act: () => ACT.teacherHouse('hanh') });
-  addObj(m, { door: true, s: 'houseC', x: 687, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà thầy Tùng', act: () => ACT.teacherHouse('tung') });
+  addHouse(m, 'hs_trad', 575, 47, { door: true, label: () => 'Nhà cô Hạnh (cô chủ nhiệm)', act: () => ACT.teacherHouse('hanh') });     // nhà cấp 4 mái ngói, hiên cột
+  addHouse(m, 'hs_garden', 687, 47, { door: true, label: () => 'Nhà thầy Tùng', act: () => ACT.teacherHouse('tung') });                // nhà vườn, giàn hoa giấy
   addObj(m, { s: 'bush', x: 405, y: 113, sol: [2, 4, 18, 9] }); addObj(m, { s: 'tree2', x: 533, y: 80, sol: [13, 38, 10, 9] });
   addObj(m, { s: 'treePink', x: 292, y: 4, sol: [13, 38, 10, 9] }); addObj(m, { s: 'tree', x: 404, y: 2, sol: [13, 38, 10, 9] }); addObj(m, { s: 'treeOrange', x: 534, y: 6, sol: [13, 38, 10, 9] });
   m.labels.push({ x: 352, y: 66.5, text: 'TẠP HOÁ CÔ BA', size: 8.5, col: '#2a2136', maxw: 78 });
@@ -159,7 +159,7 @@ function addBusStop(m, id, sx, sy, bx, by, noSol) {
 
 /* ---------------- PHỐ HOA PHƯỢNG (trung tâm thành phố): nhà bạn bè · trà sữa · TTTM · khu game ----------------
  * Trái: về khu phố nhà mình · Phải: sang trường · Trên: ga tàu · Dưới: bờ sông */
-const FRIEND_HOUSE = { khoa: ['houseB', 12], dat: ['houseC', 120], vy: ['houseD', 228], ngan: ['houseE', 336] };
+const FRIEND_HOUSE = { khoa: ['hs_tube', 12], dat: ['hs_pastel', 120], vy: ['hs_villa', 228], ngan: ['hs_modern', 336] };   // mỗi nhà một kiểu kiến trúc (02g_art4.js)
 function buildPho() {
   const m = mapNew('pho', 'Phố Hoa Phượng', PHO_W, 26, false);
   paint(m, 'grass', 0, 0, PHO_W, 26, 0);
@@ -172,7 +172,7 @@ function buildPho() {
   // dãy nhà bạn bè
   for (const fid in FRIEND_HOUSE) {
     const [spr, hx] = FRIEND_HOUSE[fid], F = FRIENDS[fid];
-    addObj(m, { door: true, s: spr, x: hx, y: 47, sol: [1, 30, 96, 51], label: () => 'Nhà bạn — bấm chuông', act: () => ACT.house(fid) });
+    addHouse(m, spr, hx, 47, { door: true, label: () => 'Nhà bạn — bấm chuông', act: () => ACT.house(fid) });
     NPCS.push({ id: 'h_' + fid, fid, name: F.name, look: fid, outfit: () => friendOutfit(fid), map: 'pho', x: hx + 49, y: 144, dir: 0, wander: 8, portal: () => [hx + 49, 130], vis: () => friendHome(fid), label: () => F.name + ' — đang ở trước nhà', act: () => ACT.friend(fid, 'house') });
   }
   // dãy vui chơi
@@ -359,7 +359,7 @@ function buildRide(id, rail) {
     for (let i = 0; i < 11; i++) { const bx = 10 + i * 96, bh = 22 + (i * 7) % 16, col = ['#c9d6e2', '#d9cfe6', '#e6d8c9'][i % 3]; R(x, col, bx, 64 - bh, 40, bh); for (let k = 0; k < 3; k++) for (let j = 0; j < Math.floor(bh / 8); j++) R(x, '#9fb4c7', bx + 5 + k * 12, 66 - bh + j * 8 + 3, 6, 4); }
     paint(m, 'grass', 0, 4, 64, 3); paint(m, 'walk', 0, 7, 64, 1); paint(m, 'road', 0, 8, 64, 3); paint(m, 'grass', 0, 11, 64, 1);
     for (let i = 0; i < 64; i += 2) R(x, '#f3e6a8', i * 16 + 4, 9 * 16 + 7, 12, 2);
-    for (const [s2, a, b] of [['houseB', 60, 30], ['shop', 250, 34], ['houseC', 470, 30], ['center', 660, 34], ['houseD', 850, 30]]) addObj(m, { s: s2, x: a, y: b });
+    for (const [s2, a, b] of [['hs_shop', 60, 30], ['shop', 250, 34], ['hs_bungalow', 470, 30], ['center', 660, 34], ['hs_tube2', 850, 30]]) { if (s2.startsWith('hs_')) addHouse(m, s2, a, b, { sol: undefined }); else addObj(m, { s: s2, x: a, y: b }); }
     for (const [s2, a] of [['tree', 10], ['treePink', 180], ['tree2', 380], ['treeOrange', 590], ['tree', 780], ['treeRed', 970]]) addObj(m, { s: s2, x: a, y: 66 });
     for (const a of [160, 440, 640, 830]) addObj(m, { s: 'lamp', x: a, y: 74 });
   }
@@ -505,7 +505,7 @@ function buildMaps() {
   buildWC('wc', 'Nhà vệ sinh nữ', '#fbe4ea', '#eab2c2', '#e98fa5', 'wtile'); buildWC('wcm', 'Nhà vệ sinh nam', '#e4eef7', '#a9c6dc', '#5a8fd6', 'ltile');
   buildRide('ride', false); buildRide('rail', true);
   buildRooms();
-  addMeetNpcs(); buildFamily(); buildFamilyPlaces(); buildHsgPlaces(); buildCenter(); buildEcoPlaces(); buildHobbyPlaces();
+  addMeetNpcs(); buildFamily(); buildFamilyPlaces(); buildHsgPlaces(); buildCenter(); buildEcoPlaces(); buildHobbyPlaces(); buildStadium();
   seasonTrees();                                   // cây đổi màu theo mùa
   buildTrips();                                    // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch (04l)
   widenEdgeZones();                                // đi qua mép trái / phải chỗ nào không bị chặn cũng sang được bản đồ kế tiếp

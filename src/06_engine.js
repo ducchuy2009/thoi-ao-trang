@@ -180,7 +180,11 @@ function doInteract(t) {
 }
 // Bấm chuột: đang cầm đồ thì bấm vào chính mình / chỗ trống là ăn, bấm vào người khác là tặng
 const onPlayer = () => { const wx = (MOUSE.x * VIEW.dpr - VIEW.ox) / VIEW.S, wy = (MOUSE.y * VIEW.dpr - VIEW.oy) / VIEW.S; return wx >= G.x - 8 && wx <= G.x + 8 && wy >= G.y - 24 && wy <= G.y + 1; };
-function interactPointer() { scanTargets(); if (RT.hold && (onPlayer() || !RT.hover)) return doInteract(null); doInteract(RT.hover || RT.near); }
+function interactPointer() {
+  scanTargets();
+  if (RT.hold && isFurn(RT.hold) && G.map === FURN_MAP && !(RT.hover && (RT.hover.npc || RT.hover.fol)) && !RT.lock && !UI.isOpen()) return furnPlace(true);   // đồ nội thất: đặt đúng chỗ bấm
+  if (RT.hold && (onPlayer() || !RT.hover)) return doInteract(null); doInteract(RT.hover || RT.near);
+}
 
 /* ---------- cập nhật ---------- */
 function movePlayer(dt) {
@@ -194,9 +198,9 @@ function movePlayer(dt) {
   G.dir = Math.abs(vx) > Math.abs(vy) ? (vx < 0 ? 1 : 2) : (vy < 0 ? 3 : 0);
   if (G.dir === 1) RT.faceL = true; else if (G.dir === 2) RT.faceL = false;
   const m = MAPS[G.map];
-  // đang đi xe: không cho chạy từ đường vào chỗ không phải đường (sân, cỏ, công viên…)
+  // đang đi xe: không cho chạy xuống nước, lên bồn hoa, vào sân trường
   const offRoad = (x, y) => G.ride && rideOk(m, G.x, G.y) && !rideOk(m, x, y);
-  const warn = () => { const t = performance.now(); if (t - (RT.rideWarn || 0) > 2500) { RT.rideWarn = t; UI.toast('Chỉ chạy xe trên đường. Bấm X để xuống xe rồi đi bộ vào.', 'info'); } };
+  const warn = () => { const t = performance.now(); if (t - (RT.rideWarn || 0) > 2500) { RT.rideWarn = t; UI.toast('Xe không chạy vào chỗ này được. Bấm X để xuống xe rồi đi bộ vào.', 'info'); } };
   if (vx) { if (offRoad(G.x + vx, G.y)) warn(); else if (!blocked(m, G.x + vx, G.y)) G.x += vx; }
   if (vy) { if (offRoad(G.x, G.y + vy)) warn(); else if (!blocked(m, G.x, G.y + vy)) G.y += vy; }
   RT.walkT = (RT.walkT < 0 ? 0 : RT.walkT) + dt;
@@ -363,6 +367,7 @@ function render(now) {
   if (G && RT.scene && RT.scene.props && G.map === RT.scene.map) for (const p of RT.scene.props) p(now);
   if (G && (!RT.scene || RT.scene.yard)) drawYardProps(now);
   if (G) { drawFestProps(now); drawBcProps(now); drawTTProps(now); drawHkProps(now); drawTaskMarkers(now); }
+  if (G) drawFurnGhost(now);                      // đang cầm đồ nội thất trong nhà: bóng mờ chỗ đặt
   if (G) drawHeld(now);                           // món đang cầm trên tay
   for (const o of m.objs) if (o.smoke && (!o.vis || o.vis())) smokeProp(now, o.x + o.smoke[0], o.y + o.smoke[1]);   // khói nhang        // bài, con quay, bóng, cầu… của các tụ chơi ngoài sân
   // biển hiệu (chữ nét)
@@ -482,7 +487,7 @@ function initTitle() {
 
 function boot() {
   cv = $('cv'); ctx = cv.getContext('2d');
-  buildSprites(); buildSprites2(); buildSprites3(); buildMaps();
+  buildSprites(); buildSprites2(); buildSprites3(); buildSprites4(); buildMaps();
   resize(); bindInput(); bindUI(); initTitle();
   requestAnimationFrame(frame);
 }

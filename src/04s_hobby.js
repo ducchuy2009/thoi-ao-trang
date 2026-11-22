@@ -3,7 +3,7 @@
  *  04s. HỘI HOẠ (vẽ tranh ở giá vẽ / giấy vẽ) · TRUNG TÂM NĂNG KHIẾU (vẽ, thanh nhạc — gói tháng, học thứ 7)
  *       PHỤ CÔ BA BÁN HÀNG (hoạt cảnh) · TẾT: đóng cửa mùng 1, chúc Tết bố mẹ bạn / hàng xóm nhận lì xì, lì xì cho bạn bè
  * ============================================================ */
-const EASEL = { x: 305, y: 118, stand: [316, 160] };             // giá vẽ ở góc phải phòng khách
+const EASEL = { x: 305, y: 118, stand: [316, 160, 3] };          // giá vẽ: lấy theo chỗ đã đặt khung tranh trong nhà (04t_furn.js)
 Object.assign(LOOKS, {
   artT: { hair: '#6b3f2a', style: 'bob', shirt: '#e98fa5', pants: '#3a3340', apron: '#d9c690', eye: 'smile', hb: '#5fb0e8' },   // cô dạy vẽ
   musicT: { hair: '#2c2733', style: 'side', shirt: '#2f4a7a', pants: '#2a2136', tie: '#d9534f', eye: 'round' },                  // thầy dạy thanh nhạc
@@ -12,11 +12,12 @@ const FRIEND_PARENTS = { khoa: ['ph2', 'ph1'], vy: ['ph6', 'ph5'], dat: ['ph4', 
 
 /* ---------- Vẽ tranh ---------- */
 const paintTier = () => clamp(1 + Math.floor((lv('kheotay') + rnd(0, 3)) / 2.4), 1, 5);
-ACT.paint = async kind => {
+ACT.paint = async (kind, go, it) => {
   if (RT.lock) return;
   if (kind === 'paper' && !(G.inv.giayve > 0)) return;
   if (G.stamina < PAINT.stam) return UI.toast('Mệt quá, không vẽ nổi.', 'bad');
-  const c = await meSay(`<p>${kind === 'paper' ? 'Ngồi xuống trải giấy ra vẽ một bức tranh?' : 'Ngồi vào giá vẽ vẽ một bức tranh?'}</p><p class="dim">${PAINT.mins} phút · −${PAINT.stam} thể lực · +${PAINT.pts} Hội hoạ. Cấp Hội hoạ càng cao tranh càng đẹp, bán càng được giá (chợ Bờ Đông, hoặc bán / tặng người khác).</p>`, ['Ngồi vẽ', 'Thôi']);
+  if (kind === 'easel') { it = it || furnPlaced('khungtranh')[0]; if (!it) return; const [x, y] = furnRect('khungtranh', it.x, it.y); Object.assign(EASEL, { x, y, stand: furnStand(it) }); }
+  const c = go ? 0 : await meSay(`<p>${kind === 'paper' ? 'Ngồi xuống trải giấy ra vẽ một bức tranh?' : 'Ngồi vào giá vẽ vẽ một bức tranh?'}</p><p class="dim">${PAINT.mins} phút · −${PAINT.stam} thể lực · +${PAINT.pts} Hội hoạ. Cấp Hội hoạ càng cao tranh càng đẹp, bán càng được giá (chợ Bờ Đông, hoặc bán / tặng người khác).</p>`, ['Ngồi vẽ', 'Thôi']);
   if (c !== 0) return;
   RT.lock = true;
   if (kind === 'paper') G.inv.giayve--;
@@ -30,7 +31,7 @@ ACT.paint = async kind => {
 // hoạt cảnh vẽ: nét cọ hiện dần lên khung tranh (giá vẽ) hoặc tờ giấy trải dưới đất
 async function paintCut(kind, tier) {
   const easel = kind === 'easel', pal = ['#5fae4a', '#9cc8e6', '#ffd23a', '#e2574c', '#7a5fc9', '#f2a93b', '#3b6fb6'].slice(0, 3 + tier), t0 = performance.now(), dur = UI._fast ? 30 : 2600;
-  if (easel) { G.x = EASEL.stand[0]; G.y = EASEL.stand[1]; G.dir = 3; }
+  if (easel) { G.x = EASEL.stand[0]; G.y = EASEL.stand[1]; G.dir = EASEL.stand[2]; }
   UI.progress(easel ? 'Đang vẽ tranh ở giá vẽ…' : 'Đang ngồi vẽ trên giấy…', dur, '#9a72d6');
   await playCut({ inPlace: true, bars: false, steps: [{ fn: sc => { if (!easel) sc.meOy = 3; } }, { wait: dur }, { fn: sc => { sc.meOy = 0; } }], props: [now => {
     const k = clamp((now - t0) / dur, 0, 1), ax = easel ? EASEL.x + 3 : G.x - 8, ay = easel ? EASEL.y + 5 : G.y + 2, w = 16, h = easel ? 13 : 10;
@@ -47,7 +48,6 @@ const TL_ROOM = 'nangkhieu', TL_KEYS = ['ve', 'hat'];
 const talentOn = k => !!(G.talent && G.talent[k] >= G.day);
 const TL_SEAT = { ve: [76, 150], hat: [270, 104] };
 function buildHobbyPlaces() {
-  addObj(MAPS.home, { s: 'easel', x: EASEL.x, y: EASEL.y, sol: [2, 22, 18, 8], ir: [-6, 0, 34, 40], vis: () => !!G.owned.khungtranh, label: () => 'Giá vẽ — ngồi vẽ tranh', act: () => ACT.paint('easel') });
   addObj(MAPS.pho, { door: true, s: 'talentB', x: 900, y: 300, sol: [1, 24, 96, 53], label: () => 'Trung tâm năng khiếu Hoạ Mi — lớp vẽ, lớp thanh nhạc', act: () => ACT.talent() });
   const m = roomBase(TL_ROOM, 'Trung tâm năng khiếu Hoạ Mi', '#f3e7f6', '#c9b0e0', 'wood', 22, 14);
   roomExit(m, { map: 'pho', x: 948, y: 390, dir: 0 });

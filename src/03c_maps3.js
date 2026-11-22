@@ -8,7 +8,7 @@
 const atWork = who => !!FAM[who] && FAM[who].hidden && FAM[who].hiddenAt === 'work';
 const inRoom = who => !!FAM[who] && FAM[who].hidden && FAM[who].hiddenAt === 'room';
 const DONG = { w: 60, h: 26, factory: 600, rest: 344, kara: 470, bus: [300, 146, 280, 188] };
-const DONG_HOUSES = [['houseB', 20, 'bac_tu'], ['houseD', 124, 'co_lanh'], ['houseE', 228, 'anh_long']];
+const DONG_HOUSES = [['hs_bungalow', 20, 'bac_tu'], ['hs_shop', 124, 'co_lanh'], ['hs_tube2', 228, 'anh_long']];   // nhà gỗ hiên quanh · nhà ống có quầy bánh cuốn · nhà ống 3 tầng
 const NEIGHBOR_TALK = {
   bac_tu: ['Bác về hưu rồi, sáng nào cũng ra bờ sông đánh cờ với mấy ông bạn.', 'Học hành cho giỏi vào cháu, bác ngày xưa đi học phải lội bộ qua sông đấy.', 'Nhà máy bánh kẹo đầu phố thơm mùi đường cả ngày, cháu ngửi thấy không?'],
   co_lanh: ['Cô bán bánh cuốn ở chợ, sáng mai qua cô làm cho đĩa nóng hổi nhé.', 'Con nhà ai mà ngoan thế, đi đâu đấy cháu?', 'Tối nay quán karaoke kia lại hát to cho xem, cả phố nghe.'],
@@ -60,7 +60,7 @@ function buildFamilyPlaces() {
   for (let i = 0; i < DONG.w; i++) m.solid[22 * DONG.w + i] = m.solid[23 * DONG.w + i] = m.solid[24 * DONG.w + i] = m.solid[25 * DONG.w + i] = 1;
   for (const [hs, hx, soc] of DONG_HOUSES) {
     const S = SOCIETY[soc];
-    addObj(m, { s: hs, x: hx, y: 47, sol: [1, 30, 96, 51], label: () => `Nhà ${S.name.toLowerCase()} — hàng xóm phố Bờ Đông`, act: () => neighborTalk(soc) });
+    addHouse(m, hs, hx, 47, { label: () => `Nhà ${S.name.toLowerCase()} — hàng xóm phố Bờ Đông`, act: () => neighborTalk(soc) });
     NPCS.push({ id: 'nb_' + soc, soc, name: S.name, look: S.look, outfit: S.outfit ? () => S.outfit : undefined, map: 'dong', x: hx + 49, y: 146, dir: 0, wander: 10, vis: () => inWin(G.time, 360, 1260), label: () => S.name + ' — trò chuyện', act: () => neighborTalk(soc) });
   }
   addObj(m, { door: true, s: 'nhahangB', x: DONG.rest, y: 46, sol: [1, 32, 108, 50], label: () => 'Nhà hàng Sen Hồng — vào ăn', act: () => ACT.enterDong('nhahang') });

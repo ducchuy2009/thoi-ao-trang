@@ -276,18 +276,7 @@ function buildRooms() {
   [['bo', 'Bố', 0, 40, 150], ['me', 'Mẹ', 1, 60, 152]].forEach(([k, nm, li, a, b]) => NPCS.push({ id: 'fhp_' + k, name: nm, look: 'ph1', dynLook: () => FRIEND_PARENTS[G.visit || 'khoa'][li], map: 'fhome', x: a, y: b, dir: 0, vis: () => tetTime(), label: () => `${nm} của ${FRIENDS[G.visit].name} — chúc Tết`, act: () => tetElder(`fp_${G.visit}_${k}`, `${nm} ${FRIENDS[G.visit].name}`, { look: FRIEND_PARENTS[G.visit][li] }, 20000) }));
 
   buildFest(); buildBcFest(); buildTrungThu(); buildTaskSpots();
-  /* ---------- đồ trang trí phòng ngủ ở nhà (mua ở gian Nội thất, Nhạc cụ) ---------- */
-  const h = MAPS.home, own = k => () => !!G && !!G.owned[k];
-  addObj(h, { s: 'poster', x: 24, y: 8, base: 0, vis: own('d_poster') });
-  addObj(h, { s: 'floorlamp', x: 128, y: 150, sol: [3, 22, 6, 6], vis: own('d_den') });
-  addObj(h, { s: 'plant', x: 104, y: 194, sol: [2, 14, 12, 9], vis: own('d_cay') });
-  addObj(h, { s: 'rug', x: 66, y: 166, flat: true, vis: own('d_tham') });
-  addObj(h, { s: 'guitar', x: 112, y: 50, sol: [2, 18, 6, 8], vis: own('guitar') });
-  // dụng cụ thể thao: để quanh thảm tập, bấm vào để tập (có hoạt ảnh)
-  addObj(h, { s: 'eq_daynhay', x: 60, y: 148, ir: [-4, -4, 24, 18], vis: own('daynhay'), label: () => 'Dây nhảy — nhảy dây', act: () => ACT.exercise('daynhay') });
-  addObj(h, { s: 'eq_tatay', x: 60, y: 166, ir: [-4, -4, 26, 17], vis: own('tatay'), label: () => 'Tạ tay — tập tạ', act: () => ACT.exercise('tatay') });
-  addObj(h, { s: 'eq_xadon', x: 96, y: 110, sol: [0, 38, 28, 6], ir: [0, 20, 28, 26], vis: own('xadon'), label: () => 'Xà đơn — hít xà', act: () => ACT.exercise('xadon') });
-  addObj(h, { s: 'mic', x: 132, y: 96, sol: [2, 16, 6, 6], ir: [-8, 0, 24, 30], vis: own('micro'), label: () => 'Micro — tập hát ở nhà', act: () => ACT.music('home') });
+  // đồ trang trí, nhạc cụ, dụng cụ tập ở nhà: mua vào túi rồi tự bày (04t_furn.js)
 }
 
 /* ============================================================

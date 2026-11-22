@@ -49,6 +49,21 @@ ACT.fish = async where => {
   UI._hb = null; UI.hud();
 };
 // khung cận cảnh câu cá
+// Bóng cá dưới nước: thân thoi (đầu tròn, thon dần về đuôi), đuôi chẻ đôi quẫy theo nhịp, vây lưng, vây bụng. dir 1 = bơi sang phải.
+function fishSil(c, x, y, dir, size, now, col) {
+  const L = 9 + size, H = 2.6 + size * 0.45, wag = Math.round(Math.sin(now / 90) * 1.2);
+  x = Math.round(x); y = Math.round(y);
+  for (let i = -L; i <= L; i++) {          // i > 0 là phía đầu
+    const k = i / L, h = Math.max(1, Math.round(H * Math.sqrt(Math.max(0, 1 - k * k)) * (k > 0 ? 1 : 0.55 + 0.45 * (1 + k))));
+    gR(c, col, x + i * dir, y - h, 1, h * 2);
+  }
+  for (let t = 1; t <= 4 + (size >> 1); t++) {   // đuôi chẻ hình chữ V, đầu đuôi lệch theo nhịp quẫy
+    const sx = x - (L + t) * dir, o = Math.round(t * 0.9);
+    gR(c, col, sx, y - 1 - o + (t > 2 ? wag : 0), 1, 2); gR(c, col, sx, y - 1 + o + (t > 2 ? wag : 0), 1, 2);
+  }
+  for (let t = 0; t < 4; t++) gR(c, col, x + (t - 3) * dir, y - Math.round(H) - (t < 3 ? 1 : 0) - (t === 1 ? 1 : 0), 1, 1);   // vây lưng
+  gR(c, col, x - 2 * dir, y + Math.round(H), 2, 1);   // vây bụng
+}
 async function fishScene(f, where) {
   const d = f.diff, rod = G.owned.cancau2 ? 0.05 : 0, zw = clamp(0.21 - 0.024 * d + rod + 0.004 * lv('nongsan'), 0.08, 0.3);   // cá càng quý vùng xanh càng hẹp; cần carbon, cấp Nông sản nới rộng
   const st = { T: 0.3, P: 0.3, zc: 0.5, zv: 0, pull: 0, pt: 0, held: false, t: 0, fin: 0, res: 0, msg: 'Giữ chuột / SPACE để kéo dây · thả ra để nhả', splash: 0, fx: 0 };
@@ -62,7 +77,7 @@ async function fishScene(f, where) {
     // cá vùng vẫy dưới nước (lệch theo lực kéo của cá)
     const fx = 120 + Math.sin(now / 260) * 26 + st.pull * 30, fy = 96 + Math.cos(now / 340) * 6;
     st.fx = fx;
-    gR(c, shade(water, -25), fx - 14, fy - 4, 28, 8); gR(c, shade(water, -25), fx + 12, fy - 6, 6, 12);
+    fishSil(c, fx, fy, Math.cos(now / 260) + st.pull * 0.6 >= 0 ? 1 : -1, d, now, shade(water, -26));
     // phao và dây câu: từ đầu cần (góc trên trái) tới phao; cần cong theo lực
     const bx = fx - 20, by = 62 + st.T * 6, bend = st.T * 22, tipX = 50 + bend * 0.6, tipY = 14 + bend;
     for (let i = 0; i < 20; i++) { const k = i / 20; gR(c, '#8a5a3a', 6 + (tipX - 6) * k, 70 - (70 - tipY) * k + Math.sin(k * 3.1) * bend * 0.3, 2, 2); }

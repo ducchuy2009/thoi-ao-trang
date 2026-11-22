@@ -761,6 +761,7 @@ function itemIcon(id) {
     else if (k === 'keoco') { R(x, '#8a5a3a', 4, 10, 9, 1); R(x, '#a9703f', 4, 11, 9, 1); R(x, '#d9534f', 8, 8, 1, 5); R(x, '#2a2136', 4, 8, 1, 2); R(x, '#2a2136', 12, 8, 1, 2); }
   }
   else if (typeof extraIcon === 'function' && extraIcon(id, x)) { }   // icon các món vòng 23 (02f_art3.js)
+  else if (typeof icon24 === 'function' && icon24(id, x)) { }         // đồ nội thất, lịch sân vận động (02g_art4.js)
   else { R(x, '#c9b58a', 3, 3, 10, 10); }
   const oc = outline(c); _iconCv[id] = oc;
   return (_icons[id] = oc.toDataURL());

@@ -366,17 +366,17 @@ ACT.readBook = async s => {
 };
 ACT.library = () => UI.toast('Thư viện là khu nhà riêng ở góc trái sân trường. Cửa giữa dãy nhà chính là cầu thang lên tầng 2 (các lớp anh chị khoá trên).');
 // Phòng nhạc: sân khấu tập nhảy (bấm mũi tên theo nhịp) · phòng thu tập hát (bấm nốt rơi) · ở nhà: micro
-ACT.music = async kind => {
+ACT.music = async (kind, go) => {
   if (RT.lock) return;
   const home = kind === 'home', sing = kind !== 'dance';
   if (!home && schoolToday() && G.atSchool && G.time < schoolEndT() && !inWin(G.time, AM_END, PM_START - 10) && G.time >= PERIODS[0].start) return UI.say('Phòng nhạc', 'Đang giờ học, phòng nhạc khoá cửa phòng thu.<p class="dim">Tập được trước giờ học, giờ nghỉ trưa và sau giờ tan học.</p>');
   if ((G.daily.music || 0) >= MUSIC.perDay) return UI.toast('Hôm nay tập văn nghệ đủ rồi, khản cả giọng.');
   if (G.stamina < MUSIC.stam) return UI.toast('Mệt quá, không tập nổi.', 'bad');
-  const c = await UI.ask(sing ? (home ? 'Micro ở nhà' : 'Phòng thu') : 'Sân khấu', sing ? '<p>Bật nhạc nền lên rồi luyện thanh: bấm đúng nốt khi nốt chạm vạch.</p>' : '<p>Bật nhạc lên rồi nhảy: bấm mũi tên theo đúng chuỗi động tác.</p>', ['Bắt đầu', 'Thôi']);
+  const c = go ? 0 : await UI.ask(sing ? (home ? 'Micro ở nhà' : 'Phòng thu') : 'Sân khấu', sing ? '<p>Bật nhạc nền lên rồi luyện thanh: bấm đúng nốt khi nốt chạm vạch.</p>' : '<p>Bật nhạc lên rồi nhảy: bấm mũi tên theo đúng chuỗi động tác.</p>', ['Bắt đầu', 'Thôi']);
   if (c !== 0) return;
   RT.lock = true;
   const d = 1 + Math.min(3, Math.floor(lv('vannghe') / 3));
-  const r = sing ? await playGame('notes', d, home ? 'Hát ở nhà' : 'Thu âm') : await playGame('arrows', d + 1, 'Tập nhảy', 'Nhảy');
+  const r = sing ? await sceneSing(d, home ? 'home' : 'studio', home ? 'Hát ở nhà' : 'Thu âm') : await sceneDance(d + 1, 'stage', 'Tập nhảy');
   const pts = Math.round((home ? MUSIC.homeBase : MUSIC.base) + (home ? MUSIC.homeBonus : MUSIC.bonus) * r.score);
   G.daily.music = (G.daily.music || 0) + 1; useStam(MUSIC.stam, !sing); addStat('vannghe', pts); if (!sing) addStat('thethao', 1);
   advanceTime(MUSIC.mins); RT.lock = false; UI.hud();
@@ -453,9 +453,13 @@ ACT.stallShop = id => {
     if (it.act === 'box') { UI.close(); addMoney(-it.price); UI.hud(); return showPack(openPacks(M.box.n, 1), 'Mở hộp thẻ đặc biệt'); }
     if (it.inv && FOODS[it.inv]) return buyFood(it.inv, it.price, it.name);
     addMoney(-it.price, true);
+    if (isFurn(it.id)) {           // đồ nội thất: cho vào túi, về nhà cầm lên rồi tự bày
+      gAdd(it.id); if (it.own) G.owned[it.own] = true;
+      UI._hb = null; UI.hud(); return UI.toast(`Đã mua ${it.name} (−${fmtMoney(it.price)}) — cho vào túi. Về nhà cầm lên rồi bấm chỗ muốn đặt.`, 'good');
+    }
     if (it.inv) G.inv[it.inv] = (G.inv[it.inv] || 0) + (it.n || 1);
     if (it.own) G.owned[it.own] = true;
-    UI.toast(`Đã mua ${it.name} (−${fmtMoney(it.price)})${it.own && it.id.startsWith('d_') ? ' — đã bày trong phòng ngủ ở nhà' : ''}`, 'good'); UI.hud();
+    UI.toast(`Đã mua ${it.name} (−${fmtMoney(it.price)})`, 'good'); UI.hud();
   });
 };
 // Khu game: đổi xèng ở quầy, mỗi máy tốn vài xèng
@@ -739,10 +743,12 @@ function upcomingEvents(day, span) {
   const bd = contestDay(cal(day).year); if (bd >= day && bd <= day + span) add('Hội thi gói bánh chưng chào xuân', bd - day, 'fes', 'Các lớp đang tập gói bánh thật nhanh, thật đẹp.');
   const thi = G.tests.filter(t => t.type === 'thi' && !t.done && t.day >= day && t.day <= day + span).sort((a, b) => a.day - b.day)[0];
   if (thi) add('kỳ thi học kỳ', thi.day - day, 'exam');
+  for (const e of svdNext(day, 2)) if (e.day - day <= span) add(e.name, e.day - day, 'svd', e);     // sự kiện ở sân vận động
   return out.sort((a, b) => a.d - b.d);
 }
 function eventLine(e) {
   if (e.kind === 'exam') return e.d === 0 ? 'Hôm nay các trường THPT bước vào <b>kỳ thi học kỳ</b>. Chúc các sĩ tử bình tĩnh, tự tin!' : `Còn <b>${e.d} ngày</b> nữa các trường THPT bước vào <b>kỳ thi học kỳ</b>. Học sinh nhớ ôn tập thật kỹ!`;
+  if (e.kind === 'svd') { const v = e.desc, when = e.d === 0 ? 'Tối nay' : e.d === 1 ? 'Ngày mai' : `Còn <b>${e.d} ngày</b> nữa`; return v.kind === 'concert' ? `${when}${e.d > 1 ? ' là' : ''} <b>${v.name}</b> lúc ${fmtTime(v.from)} tại Sân vận động Hoa Phượng, với ${v.band}. ${v.desc}` : `${when}${e.d > 1 ? ' là' : ''} <b>${v.name}</b> lúc ${fmtTime(v.from)} trên sân vận động Hoa Phượng. ${v.desc}`; }
   if (e.kind === 'summer') return `Còn <b>${e.d} ngày</b> nữa là tới <b>kỳ nghỉ hè</b>. Học sinh cả thành phố đang đếm ngược từng ngày!`;
   if (e.kind === 'school') return `Còn <b>${e.d} ngày</b> nữa là <b>khai giảng năm học mới</b>. Các nhà sách đông nghịt phụ huynh mua sách vở.`;
   const desc = e.desc ? ' ' + e.desc : '';
@@ -752,7 +758,7 @@ function eventLine(e) {
 }
 function newsOf(day) {
   const r = mulberry(day * 131 + 7), pk = a => a[Math.floor(r() * a.length)], c = cal(day), L = [], tag = t => `<i class="tag">${t}</i>`;
-  for (const e of upcomingEvents(day, 10)) L.push(tag(e.kind === 'exam' || e.kind === 'school' || e.kind === 'summer' ? 'GIÁO DỤC' : 'LỄ HỘI') + eventLine(e));
+  for (const e of upcomingEvents(day, 10)) L.push(tag(e.kind === 'exam' || e.kind === 'school' || e.kind === 'summer' ? 'GIÁO DỤC' : e.kind === 'svd' ? 'SÂN VẬN ĐỘNG' : 'LỄ HỘI') + eventLine(e));
   const W = WEATHER[c.season] || WEATHER[0], lo = W[2] + Math.floor(r() * 3), hi = W[3] - Math.floor(r() * 3);
   L.push(tag('THỜI TIẾT') + pk([W[0], W[1]]).replace('{a}', lo).replace('{b}', hi));
   const i1 = Math.floor(r() * NEWS_POOL.length), i2 = (i1 + 1 + Math.floor(r() * (NEWS_POOL.length - 1))) % NEWS_POOL.length;
@@ -822,7 +828,7 @@ const holdable = id => !!(FOODS[id] || PARENT_ITEMS[id] || GROUP_ITEMS[id] || go
 function toggleHold(id) {
   if (!holdable(id) || !gCount(id)) return;
   RT.hold = RT.hold === id ? null : id;
-  const self = FOODS[id] ? ', bấm vào mình để ăn' : id === 'giayve' ? ', bấm vào mình để ngồi vẽ' : id === 'chau' || id === 'thung' ? ', quay mặt về chỗ trống ngoài vườn rồi bấm vào mình để đặt xuống' : '';
+  const self = FOODS[id] ? ', bấm vào mình để ăn' : id === 'giayve' ? ', bấm vào mình để ngồi vẽ' : id === 'chau' || id === 'thung' ? ', quay mặt về chỗ trống ngoài vườn rồi bấm vào mình để đặt xuống' : isFurn(id) ? '. Trong nhà: bấm vào chỗ muốn đặt (bóng mờ viền xanh là đặt được)' : '';
   UI.toast(RT.hold ? `Đang cầm ${holdName(id)}. Bấm vào người khác để bán hoặc tặng${self}. Bấm lại món đó để cất đi.` : `Cất ${holdName(id)} vào túi.`, 'info');
   UI._hb = null; UI.hotbar();
 }
@@ -883,6 +889,7 @@ async function giveHeld(t) {
 async function heldSelf() {
   const id = RT.hold; if (!id || !gCount(id)) return;
   if (id === 'chau' || id === 'thung') return placeHeld(id);
+  if (isFurn(id)) return furnPlace(false);
   if (id === 'giayve') return ACT.paint('paper');
   if (!FOODS[id]) return;
   const c = await meSay(`<p>Ăn ${FOODS[id].drink ? 'uống ' : ''}<b>${FOODS[id].name.toLowerCase()}</b> luôn bây giờ?</p><p class="dim">Hồi ${FOODS[id].stam} thể lực${FOODS[id].pack ? ' · mở gói ra có 1 thẻ cầu thủ' : ''}${G.comp ? ' · ăn chung với ' + FRIENDS[G.comp.fid].name : ''}.</p>`, [FOODS[id].drink ? 'Uống' : 'Ăn', 'Không ăn']);
@@ -895,8 +902,12 @@ function drawHeld(now) {
 }
 
 /* ---------- hoạt ảnh tập thể dục ở nhà ---------- */
-function exerciseCut(id) {
-  const spot = { tay: [39, 166], daynhay: [39, 166], tatay: [39, 166], xadon: [110, 152] }[id], t0 = { v: performance.now() };
+function exerciseCut(id, it) {
+  // chỗ đứng: thảm tập cố định; dây nhảy / tạ tay: cạnh chỗ để dụng cụ; xà đơn: đứng giữa khung, tay bám thanh trên
+  let spot = [39, 166], barY = 118;
+  if (it && id === 'xadon') { const [x, y] = furnRect('xadon', it.x, it.y); spot = [x + 15, y + 42]; barY = y + 8; }
+  else if (it) spot = furnStand(it);
+  const t0 = { v: performance.now() };
   const steps = [{ move: ['me', spot[0], spot[1], 450] }, { fn: sc => { G.dir = 0; t0.v = performance.now(); sc.drive = () => drive(sc); } }, { wait: 2300 }, { fn: sc => { sc.drive = null; sc.meOy = 0; } }];
   const T = () => (performance.now() - t0.v) / 1000;
   const drive = sc => {
@@ -919,7 +930,7 @@ function exerciseCut(id) {
   });
   if (id === 'xadon') props.push(() => {          // tay bám xà
     const oy = RT.scene ? RT.scene.meOy || 0 : 0;
-    wRect('#f8d0a8', G.x - 6, 114 + 4, 3, Math.max(2, G.y - 18 + oy - 118)); wRect('#f8d0a8', G.x + 3, 114 + 4, 3, Math.max(2, G.y - 18 + oy - 118));
+    wRect('#f8d0a8', G.x - 6, barY, 3, Math.max(2, G.y - 18 + oy - barY)); wRect('#f8d0a8', G.x + 3, barY, 3, Math.max(2, G.y - 18 + oy - barY));
   });
   return { inPlace: true, bars: false, steps, props };
 }

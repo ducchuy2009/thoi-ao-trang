@@ -68,11 +68,14 @@ function migrate() {
   { const seen = {}; G.tests = (G.tests || []).filter(t => { if (t.type !== 'tiet') return true; const k = t.sem + t.subj; if (seen[k]) return !!t.done; seen[k] = 1; return true; }); }   // bản lưu cũ: mỗi môn chỉ còn 1 bài kiểm tra 1 tiết / học kỳ
   for (const t of G.tests || []) if (!t.q && !t.done && isPmDay(t.day)) { let d = t.day - 1; while (d > 0 && !isSchoolDay(d)) d--; t.day = d; }   // bản lưu cũ: bài kiểm tra rơi vào ngày họp thì dời lên hôm trước   // bản lưu cũ (ngày bắt đầu lúc 05:00): 06:00 mới thức dậy
   def('fish', {});                                     // cá câu được: id → số con
+  def('svd', { tix: {}, seen: {} });                   // vé sân vận động đã mua / đã xem (theo ngày)
   for (const k in G.bag) if (k.startsWith('vo_')) delete G.bag[k];   // đã bỏ cơ chế soạn vở
   for (const f in FRIENDS) if (G.friends[f] === undefined) G.friends[f] = 0;
   for (const k of ['bimbim', 'gaubong', 'voso']) if (G.inv[k] === undefined) G.inv[k] = 0;
   if (G.daily) { const d = G.daily; resetDaily(); G.daily = Object.assign(G.daily, d); }
   if (typeof yardSync === 'function') yardSync();                      // dựng lại chậu cây, thùng chứa ngoài vườn
+  furnMigrate(); furnSync();                                            // đồ nội thất đã bày trong nhà
+  if (RT.furnNote) { const n = RT.furnNote; RT.furnNote = null; setTimeout(() => UI.toast(`Đồ trong nhà (${n}) đã được cất vào túi — cầm lên rồi bấm chỗ muốn đặt để tự bày lại.`, 'info'), 1800); }
 }
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); return true; } catch (e) { return false; } }
 function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } }
@@ -349,7 +352,7 @@ async function goSleep(forced, note) {
   const bill = moneyBill(); RT.bill = bill;                            // tiền công + tiền bố mẹ cho đầu tuần → bảng tính tiền
   const reports = endDay();
   G.stamina = forced ? Math.round(mx * 0.5) : Math.min(mx, Math.round(G.stamina + mx * Math.min(1, hours / 7)));
-  if (!forced) G.stamina = Math.min(mx, G.stamina + DECOR_SLEEP * ['d_poster', 'd_den', 'd_cay', 'd_tham'].filter(k => G.owned[k]).length);   // phòng ngủ có đồ trang trí: ngủ ngon hơn
+  if (!forced) G.stamina = Math.min(mx, G.stamina + DECOR_SLEEP * Math.min(DECOR_MAX, decorInBedroom()));   // phòng ngủ có đồ trang trí (bày trong phòng): ngủ ngon hơn
   if (forced) RT.morning.push('Bạn thức quá 3 giờ sáng và ngủ gục. Sáng nay chỉ hồi được một nửa thể lực.');
   for (const r of reports) await showReport(r);
   if (G.graduated && !G.memo.notes) await graduationDay();          // ngày tốt nghiệp: mọi người viết lưu bút
@@ -860,17 +863,17 @@ ACT.chore = async (id, ax) => {
   else await activity(label, c.mins, done);
 };
 // Tập ở nhà: thảm tập (chạy tại chỗ, hít đất) · dây nhảy · tạ tay · xà đơn — mỗi bài một hoạt ảnh
-ACT.exercise = async id => {
+ACT.exercise = async (id, go, it) => {
   if (RT.lock) return;
   if (G.daily.exercise >= EXERCISE_MAX_PER_DAY) return UI.toast('Hôm nay tập đủ rồi, mai tập tiếp.');
   if (G.stamina < EXERCISE_STAM) return UI.toast('Không đủ thể lực để tập.', 'bad');
   const E = EXERCISES.find(e => e.id === (id || 'tay'));
   if (!E || (E.need && !G.owned[E.need])) return;
-  const c = await meSay(`<p>${E.name}? <span class="dim">(+${E.pts} Thể thao · −${EXERCISE_STAM} thể lực · ${EXERCISE_MIN} phút)</span></p>`, ['Tập thôi!', 'Thôi']);
+  const c = go ? 0 : await meSay(`<p>${E.name}? <span class="dim">(+${E.pts} Thể thao · −${EXERCISE_STAM} thể lực · ${EXERCISE_MIN} phút)</span></p>`, ['Tập thôi!', 'Thôi']);
   if (c !== 0) return;
   RT.lock = true;
   UI.progress(`Đang tập: ${E.name.toLowerCase()}…`, 2600, '#d9742b');
-  await playCut(exerciseCut(E.id));
+  await playCut(exerciseCut(E.id, it || (E.id !== 'tay' && furnPlaced(E.id)[0])));
   advanceTime(EXERCISE_MIN);
   G.daily.exercise++; useStam(EXERCISE_STAM, true); addStat('thethao', E.pts);
   RT.lock = false; UI.hud();
@@ -932,6 +935,7 @@ function chat(sid, fid) {
 
 /* ---------- cửa hàng, học thêm, căn tin ---------- */
 ACT.shop = () => { if (tetShut('Tạp hoá Cô Ba')) return; if (!inWin(G.time, 360, 1260)) return UI.say('Tạp hoá Cô Ba', 'Tiệm đóng cửa rồi.<p class="dim">Mở cửa 06:00–21:00</p>'); meetSoc('coba'); UI.shop(); };
+const SHOP_PARK = { x: 396, y: 144 };     // chỗ dựng xe vừa mua, trước cửa tạp hoá Cô Ba
 function buy(it) {
   if (it.own && G.owned[it.own]) return UI.toast('Bạn đã có món này rồi.');
   if (it.special === 'vethang' && G.busPassUntil >= G.day) return UI.toast('Vé tháng vẫn còn hạn đến ' + dateLabel(G.busPassUntil) + '.');
@@ -940,6 +944,11 @@ function buy(it) {
   if (it.inv) G.inv[it.inv] = (G.inv[it.inv] || 0) + it.n;
   if (it.own) G.owned[it.own] = true;
   if (it.special === 'vethang') { G.busPassUntil = G.day + BUS_PASS_DAYS - 1; G.bag.vethang = true; }
+  const vid = it.own && Object.keys(VEHICLES).find(k => VEHICLES[k].own === it.own);
+  if (vid) {               // xe mới dựng ngay trước cửa tiệm, bấm vào là lên xe chạy về
+    G.park = { id: vid, map: 'town', x: SHOP_PARK.x, y: SHOP_PARK.y };
+    UI.toast(`Đã mua ${it.name} (−${fmtMoney(it.price)}). Cô Ba dựng xe trước cửa tiệm cho bạn — bấm vào xe để lên.`, 'good'); UI.hud(); return;
+  }
   UI.toast(`Đã mua ${it.name} (−${fmtMoney(it.price)})`, 'good'); UI.hud();
 }
 async function partTime() {
@@ -1000,5 +1009,7 @@ function todoList() {
     if (m) t.push([m.n > 0, `Hẹn ${FRIENDS[m.fid].name} ở ${PLACES[m.place].name} (${meetTimeText(m)})`]);
     if (G.time >= 1080) t.push([false, 'Đi ngủ trước 03:00']);
   }
+  const sv = svdEventOn(G.day);
+  if (sv && G.time < sv.to && (G.svd.tix[sv.day] || G.time < sv.from + SVD.late)) t.push([!!G.svd.seen[sv.day], `${sv.name} ở sân vận động ${fmtTime(sv.from)}${G.svd.tix[sv.day] ? ' (đã có vé)' : ` — vé ${fmtMoney(sv.price)} ở quầy vé`}`]);
   return t;
 }

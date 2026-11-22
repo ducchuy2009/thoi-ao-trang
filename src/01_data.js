@@ -277,7 +277,7 @@ const SHOP = [
   { id: 'vethang', name: 'Vé tháng xe bus', price: BUS_PASS_PRICE, desc: 'Dùng 30 ngày kể từ ngày mua', special: 'vethang' },
   { id: 'cancau', name: 'Cần câu', price: 80000, desc: 'Câu cá ở bờ sông, ao công viên, bãi biển', own: 'cancau' },
   { id: 'thung', name: 'Thùng chứa nhỏ', price: FARM.chest, desc: 'Đặt ở chỗ bất kỳ ngoài vườn trước nhà, cất được 30 món đồ', inv: 'thung', n: 1 },
-  { id: 'xedap', name: 'Xe đạp', price: 400000, desc: 'Để ở sân nhà, bấm vào xe để đi', own: 'xedap' },
+  { id: 'xedap', name: 'Xe đạp', price: 400000, desc: 'Mua xong xe dựng trước cửa tiệm, bấm vào xe để đi', own: 'xedap' },
   { id: 'xedapdien', name: 'Xe đạp điện', price: 2500000, desc: 'Chạy nhanh hơn xe đạp', own: 'xedapdien' },
   { id: 'xemay', name: 'Xe máy 50cc', price: 6000000, desc: 'Chạy nhanh nhất', own: 'xemay' },
 ];
@@ -295,11 +295,11 @@ const MALL_GOODS = {
   sach: [{ id: 'sachtk', name: 'Sách tham khảo', price: 60000, desc: 'Chọn một môn để đọc thêm (mỗi ngày một cuốn)', act: 'book' }],
   sieuthi: [{ id: 'bimbim', name: 'Bim bim Sao Vàng', price: 5000, desc: 'Mở gói ra là có 1 thẻ cầu thủ', inv: 'bimbim' }, { id: 'hopthe', name: 'Hộp thẻ đặc biệt', price: 30000, desc: '5 thẻ, chắc chắn có thẻ Hiếm trở lên', act: 'box' }, { id: 'banhmi', name: 'Bánh mì', price: 10000, desc: 'Mang theo ăn dần', inv: 'banhmi' }, { id: 'sua', name: 'Sữa hộp', price: 6000, desc: 'Mang theo uống dần', inv: 'sua' }],
   anuong: [{ id: 'garan', name: 'Gà rán', price: 35000, desc: 'Hộp gà rán giòn, cất vào túi', inv: 'garan' }, { id: 'trasua', name: 'Trà sữa', price: 25000, desc: 'Ly trà sữa trân châu, cất vào túi', inv: 'trasua' }],
-  noithat: [{ id: 'd_poster', name: 'Tấm áp phích', price: 40000, desc: 'Dán tường phòng ngủ', own: 'd_poster' }, { id: 'd_den', name: 'Đèn cây', price: 90000, desc: 'Đặt ở góc phòng ngủ', own: 'd_den' }, { id: 'd_cay', name: 'Chậu cây cảnh', price: 60000, desc: 'Đặt trong phòng ngủ', own: 'd_cay' }, { id: 'd_tham', name: 'Thảm trải sàn', price: 120000, desc: 'Trải giữa phòng ngủ', own: 'd_tham' }],
-  nhaccu: [{ id: 'micro', name: 'Micro karaoke', price: 150000, desc: 'Để trong phòng ngủ, tập hát ở nhà', own: 'micro' }, { id: 'guitar', name: 'Đàn guitar', price: 400000, desc: 'Dựng trong phòng ngủ; có đàn tập hát vào hơn', own: 'guitar' }],
-  thethao: [{ id: 'daynhay', name: 'Dây nhảy', price: 60000, desc: 'Dụng cụ tập thể dục ở nhà', own: 'daynhay' }, { id: 'tatay', name: 'Tạ tay', price: 150000, desc: 'Dụng cụ tập thể dục ở nhà, nặng hơn dây nhảy', own: 'tatay' }, { id: 'xadon', name: 'Xà đơn gắn cửa', price: 350000, desc: 'Dụng cụ tập thể dục ở nhà, khó nhất', own: 'xadon' }],
+  noithat: [{ id: 'd_poster', name: 'Tấm áp phích', price: 40000, desc: 'Treo lên tường (vào túi, về nhà tự bày)' }, { id: 'd_dongho', name: 'Đồng hồ treo tường', price: 70000, desc: 'Treo lên tường' }, { id: 'd_den', name: 'Đèn cây', price: 90000, desc: 'Đặt ở góc phòng' }, { id: 'd_cay', name: 'Chậu cây cảnh', price: 60000, desc: 'Đặt ở chỗ nào cũng xinh' }, { id: 'd_tham', name: 'Thảm trải sàn', price: 120000, desc: 'Trải dưới sàn, kê đồ lên được' }, { id: 'd_ghelui', name: 'Ghế lười', price: 180000, desc: 'Ghế hạt xốp êm ái' }, { id: 'd_ke', name: 'Kệ trang trí', price: 220000, desc: 'Kệ gỗ 3 tầng bày sách, cúp, ảnh' }, { id: 'd_beca', name: 'Bể cá cảnh', price: 350000, desc: 'Bể kính trên tủ gỗ, có 2 chú cá vàng' }],
+  nhaccu: [{ id: 'micro', name: 'Micro karaoke', price: 150000, desc: 'Vào túi, về nhà đặt ở đâu cũng được; bấm vào để tập hát', own: 'micro' }, { id: 'guitar', name: 'Đàn guitar', price: 400000, desc: 'Dựng ở góc phòng cho đẹp', own: 'guitar' }],
+  thethao: [{ id: 'daynhay', name: 'Dây nhảy', price: 60000, desc: 'Về nhà đặt xuống rồi bấm vào để tập', own: 'daynhay' }, { id: 'tatay', name: 'Tạ tay', price: 150000, desc: 'Về nhà đặt xuống rồi bấm vào để tập, nặng hơn dây nhảy', own: 'tatay' }, { id: 'xadon', name: 'Xà đơn', price: 350000, desc: 'Khung xà đứng, đặt trong nhà rồi bấm vào để hít xà — khó nhất', own: 'xadon' }],
 };
-MALL_GOODS.hoacu = [{ id: 'giayve', name: 'Giấy vẽ', price: 10000, desc: 'Cầm theo người, bấm vào mình để ngồi vẽ ở bất cứ đâu', inv: 'giayve', n: 1 }, { id: 'khungtranh', name: 'Khung tranh (giá vẽ)', price: 150000, desc: 'Dựng ở góc phòng khách nhà mình để ngồi vẽ tranh', own: 'khungtranh' }];
+MALL_GOODS.hoacu = [{ id: 'giayve', name: 'Giấy vẽ', price: 10000, desc: 'Cầm theo người, bấm vào mình để ngồi vẽ ở bất cứ đâu', inv: 'giayve', n: 1 }, { id: 'khungtranh', name: 'Khung tranh (giá vẽ)', price: 150000, desc: 'Vào túi, về nhà đặt ở đâu cũng được rồi bấm vào để vẽ tranh', own: 'khungtranh' }];
 MALL_GOODS.sach = MALL_GOODS.sach.concat(BOOK_SUBJ.map(s => ({ id: 'sach_' + s, name: 'Sách ' + SUBJ[s].name, price: 35000, desc: 'Mua lại sách giáo khoa (đã bán / tặng mất)', school: true })), [{ id: 'hopbut', name: 'Hộp bút', price: 25000, desc: 'Mua lại hộp bút (đã bán / tặng mất)', school: true }]);
 MALL_GOODS.thethao = MALL_GOODS.thethao.concat([{ id: 'dp_td', name: 'Đồng phục thể dục', price: 90000, desc: 'Mua lại đồng phục thể dục', school: true }, { id: 'dp_qp', name: 'Đồ quốc phòng', price: 110000, desc: 'Mua lại quân phục học sinh', school: true }]);
 const DECOR_SLEEP = 2;        // mỗi món trang trí phòng: ngủ dậy hồi thêm chừng này thể lực
@@ -661,6 +661,8 @@ const MEMO_BADGES = {
   phudong: { name: 'Phù Đổng', icon: 'b_phudong', desc: 'Cùng cả lớp giành cúp tập thể ở Hội khoẻ Phù Đổng.', hint: 'Giành cúp tập thể ở Hội khoẻ Phù Đổng' },
 };
 const MEMO_SCENES = {
+  svd_concert: { name: 'Đêm nhạc ở sân vận động', icon: 'ci_concert', desc: 'Cả sân vận động vẫy que phát sáng, hát theo ban nhạc tới khản cổ.' },
+  svd_match: { name: 'Xem bóng đá ở sân vận động', icon: 'ci_match', desc: 'Ngồi khán đài cổ vũ CLB Hoa Phượng đá trên sân nhà.' },
   nangkhieu: { name: 'Lớp năng khiếu', icon: 'sc_hsg', desc: 'Đăng ký học vẽ, học hát ở trung tâm năng khiếu Hoạ Mi.' },
   hsgchon: { name: 'Chọn môn thi học sinh giỏi', icon: 'sc_hsg', desc: 'Bố mẹ đi họp về báo tin được vào đội tuyển, cả nhà cùng chọn môn thi.' },
   hsgthi: { name: 'Thi học sinh giỏi quốc gia', icon: 'sc_hsg', desc: 'Ngồi trong phòng thi số 07 trường THPT chuyên Hoa Đào, đề khó mà tay vẫn viết đều.' },

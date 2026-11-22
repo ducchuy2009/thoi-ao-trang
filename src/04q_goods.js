@@ -44,6 +44,7 @@ function goodsInfo(id) {
   if (special) return { name: special[0], value: special[1], cat: special[2] };
   if (FOODS[id]) return { name: FOODS[id].name, value: r1000((buyPrice(id) || FOODS[id].stam * 700) * 1.15), cat: FOODS[id].drink ? 'drink' : 'food' };
   const m = TT_MATS.find(t => t.id === id); if (m) return { name: m.name, value: r1000(m.price * 1.15), cat: 'tool' };
+  if (isFurn(id)) return { name: FURN[id].name, value: r1000((buyPrice(id) || 50000) * 1.15), cat: 'furn' };
   return null;
 }
 // cất / lấy đồ: cá ở G.fish, đồ dùng học tập ở G.bag (bán đi thì phải mua lại: G.noOwn), còn lại ở G.inv
@@ -54,6 +55,7 @@ function gTake(id, n) {
   if (isFish(id)) G.fish[id] = Math.max(0, (G.fish[id] || 0) - n);
   else if (ITEMS[id]) { delete G.bag[id]; G.noOwn[id] = true; if (id === 'vethang') G.busPassUntil = -1; }
   else G.inv[id] = Math.max(0, (G.inv[id] || 0) - n);
+  if (isFurn(id) && !FURN[id].decor && !gCount(id) && !furnPlaced(id).length) delete G.owned[id];
   if (!gCount(id) && RT.hold === id) RT.hold = null;
 }
 // tất cả đồ đang mang theo (bán / tặng / cất thùng được)
@@ -338,16 +340,29 @@ function buildEcoPlaces() {
   addObj(b, { s: 'fishspot', x: 196, y: 282, sol: [2, 8, 9, 9], ir: [-14, 0, 30, 22], label: () => fishLabel('bien'), act: () => ACT.fish('bien') });
   // chợ phố Bờ Đông
   const d = MAPS.dong;
-  addObj(d, { door: true, s: 'marketB', x: 820, y: 46, sol: [1, 30, 126, 50], label: () => 'Chợ Bờ Đông — mua rau, cá, đồ ăn · bán hoa, quả, cá, tranh', act: () => (tetShut('Chợ Bờ Đông') ? null : goPlace('cho', MAPS.cho.entry[0], MAPS.cho.entry[1], 3, 0)) });
-  const m = roomBase('cho', 'Chợ Bờ Đông', '#f2e6c8', '#c9a467', 'wood', 22, 13);
+  const mdh = SPR.marketB2.height - 82;                               // nhà chợ cao hơn: giữ chân nhà và cửa ở chỗ cũ
+  addObj(d, { door: true, s: 'marketB2', x: 814, y: 46 - mdh, sol: [1, 30 + mdh, 136, 50], label: () => 'Chợ Bờ Đông — mua rau, cá, đồ ăn · bán hoa, quả, cá, tranh', act: () => (tetShut('Chợ Bờ Đông') ? null : goPlace('cho', MAPS.cho.entry[0], MAPS.cho.entry[1], 3, 0)) });
+  d.labels.push({ x: 883, y: 46 - mdh + 44.5, text: 'CHỢ BỜ ĐÔNG', size: 7, col: '#ffe066', maxw: 70 });
+  const m = roomBase('cho', 'Chợ Bờ Đông', '#efe2c4', '#b5503a', 'mtile', 22, 13);
   roomExit(m, { map: 'dong', x: 884, y: 140, dir: 0 });
-  m.labels.push({ x: 176, y: 16, text: 'CHỢ BỜ ĐÔNG', size: 6, col: '#b2503a', maxw: 90 });
-  const ST = [['rau', 'mstallG', 24, 46, 'vendor'], ['ca', 'mstallB', 104, 46, 'clerk'], ['an', 'mstallO', 184, 46, 'c2'], ['mua', 'mstallR', 264, 46, 'c4']];
-  for (const [k, spr, a, y, look] of ST) {
-    addObj(m, { s: spr, x: a, y, sol: [0, 18, 52, 12], label: () => (k === 'mua' ? 'Quầy thu mua — bán hoa, quả, cá, tranh' : `${MARKET_NAME[k]} — xem hàng`), act: () => (k === 'mua' ? ACT.marketBuyer() : ACT.marketStall(k)) });
-    NPCS.push({ id: 'mk_' + k, name: k === 'mua' ? 'Cô thu mua' : 'Người bán hàng', look, outfit: look === 'c2' || look === 'c4' ? () => 'cas_ngan' : undefined, map: 'cho', x: a + 26, y: y + 6, dir: 0, label: () => (k === 'mua' ? 'Cô thu mua — bán hoa, quả, cá, tranh' : `${MARKET_NAME[k]} — mua hàng`), act: () => (k === 'mua' ? ACT.marketBuyer() : ACT.marketStall(k)) });
+  // mỗi sạp một kiểu theo mặt hàng, biển treo trên tường ghi rõ bán gì
+  const ST = [['rau', 'mk_rau', 20, 38, 'vendor', 'RAU CỦ', '#3f8f3a'], ['ca', 'mk_ca', 102, 38, 'clerk', 'CÁ TƯƠI', '#3b82c4'], ['an', 'mk_an', 184, 38, 'c2', 'ĂN UỐNG', '#e98f4a'], ['mua', 'mk_mua', 266, 38, 'c4', 'THU MUA', '#d9342b']];
+  for (const [k, spr, a, y, look, sign, col] of ST) {
+    R(m.x, '#5a3a24', a + 14, 6, 38, 14); R(m.x, col, a + 15, 7, 36, 12); R(m.x, shade(col, 30), a + 15, 7, 36, 1); R(m.x, '#3a3040', a + 20, 2, 1, 4); R(m.x, '#3a3040', a + 45, 2, 1, 4);
+    m.labels.push({ x: a + 33, y: 13.5, text: sign, size: 6, col: '#fffaf0', maxw: 34 });
+    addObj(m, { s: 'mk_bulb', x: a + 4, y: 22, base: 0 }); addObj(m, { s: 'mk_bulb', x: a + 56, y: 22, base: 0 });
+    addObj(m, { s: spr, x: a, y, sol: [0, 22, 66, 18], label: () => (k === 'mua' ? 'Quầy thu mua — bán hoa, quả, cá, tranh' : `${MARKET_NAME[k]} — xem hàng`), act: () => (k === 'mua' ? ACT.marketBuyer() : ACT.marketStall(k)) });
+    NPCS.push({ id: 'mk_' + k, name: k === 'mua' ? 'Cô thu mua' : 'Người bán hàng', look, outfit: look === 'c2' || look === 'c4' ? () => 'cas_ngan' : undefined, map: 'cho', x: a + 33, y: y + 16, dir: 0, label: () => (k === 'mua' ? 'Cô thu mua — bán hoa, quả, cá, tranh' : `${MARKET_NAME[k]} — mua hàng`), act: () => (k === 'mua' ? ACT.marketBuyer() : ACT.marketStall(k)) });
   }
+  // hàng giữa: sạp hoa, sạp đồ khô (bày cho có không khí chợ, người bán chào mời)
+  for (const [spr, a, b2, look, nm, line] of [['mk_hoa', 120, 128, 'ph5', 'Cô bán hoa', 'Hoa mới về sáng nay, cắm bàn thờ hay tặng người thương đều đẹp cháu ạ!'], ['mk_kho', 200, 128, 'ph2', 'Chú bán đồ khô', 'Gạo tám thơm, đậu xanh, lạc, nấm hương… nhà cháu cần gì mai bảo mẹ ra chú để cho.']]) {
+    addObj(m, { s: spr, x: a, y: b2, sol: [0, 20, 50, 10] });
+    NPCS.push({ id: 'mk_' + spr, name: nm, look, map: 'cho', x: a + 24, y: b2 + 12, dir: 0, vis: () => inWin(G.time, 300, 1080), label: () => `${nm} — chào hỏi`, act: () => UI.ask(nm, `<p>“${line}”</p><p class="dim">Muốn mua thì sang sạp rau củ, cá tươi, hàng ăn ở dãy trên; bán hàng thì ra quầy thu mua.</p>`, ['Dạ, cháu cảm ơn'], { who: { look } }) });
+  }
+  // sọt nhựa, thúng hàng xếp dọc tường, rãnh thoát nước giữa lối đi
+  for (const [s2, a, b2] of [['mk_crate', 20, 176], ['mk_crate', 20, 164], ['mk_crate', 36, 176], ['mk_basket', 90, 178], ['mk_basket', 106, 180], ['mk_crate', 300, 120], ['mk_basket', 312, 140]]) addObj(m, { s: s2, x: a, y: b2, sol: [1, 4, 13, 7] });
+  for (let i = 1; i < 21; i++) R(m.x, '#9e957f', i * 16, 104, 16, 2);
   for (const id in PARENT_TASKS) { const P = PARENT_TASKS[id], s = P.pick; if (s.map !== 'cho') continue;     // việc bố mẹ nhờ mua ở chợ (bản đồ chợ dựng sau buildTaskSpots)
     addObj(m, { s: 'blank', x: s.x, y: s.y, ir: [-14, -20, 28, 30], vis: () => !!taskAt(id, 0), label: () => `Việc ${PNAME[P.who].toLowerCase()} nhờ: ${s.do.toLowerCase()}`, act: () => doTaskStep(id, 0) }); }
-  for (const [look, a, b2] of [['x2', 90, 120], ['ph3', 200, 140], ['ph4', 290, 118]]) NPCS.push({ id: 'mk_k' + a, name: 'Người đi chợ', look, outfit: look === 'x2' ? () => 'cas_vy' : undefined, map: 'cho', x: a, y: b2, dir: 3, wander: 30, vis: () => inWin(G.time, 300, 1080) });
+  for (const [look, a, b2] of [['x2', 90, 100], ['ph3', 180, 178], ['ph4', 290, 118]]) NPCS.push({ id: 'mk_k' + a, name: 'Người đi chợ', look, outfit: look === 'x2' ? () => 'cas_vy' : undefined, map: 'cho', x: a, y: b2, dir: 3, wander: 30, vis: () => inWin(G.time, 300, 1080) });
 }

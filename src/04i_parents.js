@@ -102,7 +102,7 @@ ACT.karaoke = async () => {
   if (G.money < price) return UI.toast('Không đủ tiền.', 'bad');
   if (G.stamina < 8) return UI.toast('Mệt quá, không hát nổi.', 'bad');
   addMoney(-price, true); RT.lock = true;
-  const r = await playGame('notes', 1 + Math.min(3, Math.floor(lv('vannghe') / 3)), 'Hát karaoke');
+  const r = await sceneSing(1 + Math.min(3, Math.floor(lv('vannghe') / 3)), 'karaoke', 'Hát karaoke');
   advanceTime(KARAOKE.mins); useStam(8, true);
   addStat('vannghe', 3 + Math.round(3 * r.score)); 
   if (fid) addFriend(fid, 5);
