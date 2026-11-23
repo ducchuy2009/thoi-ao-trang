@@ -42,7 +42,7 @@ MV.memo = {
     h += '<div class="rows">';
     for (const p of memoPeople()) {
       const n = M.notes[p.id];
-      h += n ? `<div class="memo-note"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p>“${(p.id === 'vy' && G.vy && G.vy.note) || MEMO_NOTES[p.id]}”</p></div></div>` : `<div class="memo-note lock"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p class="dim">Không viết lưu bút.</p></div></div>`;
+      h += n ? `<div class="memo-note"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p>“${(p.id === 'vy' && G.vy && G.vy.note) || (p.id === 'quang' && G.qg && G.qg.note) || MEMO_NOTES[p.id]}”</p></div></div>` : `<div class="memo-note lock"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p class="dim">Không viết lưu bút.</p></div></div>`;
     }
     return h + '</div>';
   },

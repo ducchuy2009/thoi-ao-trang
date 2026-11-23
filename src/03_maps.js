@@ -423,8 +423,8 @@ function buildSchool() {
   const spots = [[250, 250], [300, 300], [180, 220], [220, 320], [380, 240], [330, 200], [200, 280], [360, 310], [270, 230]];
   const mates = [['khoa', 'Đạt', 'khoa'], ['vy', 'Vy', 'vy'], ['dat', 'Thái', 'dat'], ['m1', 'Quang · lớp trưởng', 'c1'], ['ngan', 'Ngân · 11A1', 'ngan'], ['m3', 'Đức', 'c3'], ['m4', 'Minh Anh', 'c4'], ['m2', 'Hiền', 'c9'], ['m5', 'Vũ', 'c5']];
   mates.forEach(([id, name, look], i) => {
-    const fr = !!FRIENDS[id];
-    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(id) && !!yardPos(id) && !sceneHides(id), label: () => (fr ? FRIENDS[id].name : name), act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
+    const fid = id === 'm1' ? 'quang' : id, fr = !!FRIENDS[fid];         // Quang (m1) là bạn chính
+    NPCS.push({ id: 'y_' + id, fid: fr ? fid : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(fid) && !!yardPos(id) && !sceneHides(id), label: () => (fr ? FRIENDS[fid].name + (fid === 'quang' ? ' (lớp trưởng)' : '') : name), act: () => (fr ? ACT.friend(fid, 'school') : ACT.mate(id)) });
   });
 }
 
@@ -460,14 +460,14 @@ function buildClass() {
     for (let sd = 0; sd < 2; sd++) {
       const sx = X[c] + 7 + sd * 14, sy = Y[r] + 30;
       if (mine && sd === 0) continue;
-      const sp = special[c + ',' + r + ',' + sd], fr = sp && FRIENDS[sp];
+      const sp = special[c + ',' + r + ',' + sd], spF = sp === 'm1' ? 'quang' : sp, fr = sp && FRIENDS[spF];   // Quang ngồi bàn đầu (mã m1)
       if (!seatTaken(c, r, sd, sp)) continue;
       CLASS_SEATED.add(c + ',' + r + ',' + sd);
       // bạn thân ngồi gần: giờ giải lao 10' giữa 2 tiết có thể quay sang rủ rê, trò chuyện, đấu thẻ
       NPCS.push({
-        id: 's_' + c + r + sd, sid: sp || null, fid: fr ? sp : null, name: fr ? fr.name : 'Bạn học', look: sp ? spLook[sp] : looks(k++), map: 'class', x: sx, y: sy, dir: 3, solid: true,
-        vis: sp ? () => classSeated() && !yardTime() && !sceneHides(sp) && !isComp(sp) : () => classSeated(),
-        label: fr ? () => `${FRIENDS[sp].name} (${fr.seat})` : null, act: fr ? () => ACT.friend(sp, 'class') : null,
+        id: 's_' + c + r + sd, sid: sp || null, fid: fr ? spF : null, name: fr ? fr.name : 'Bạn học', look: sp ? spLook[sp] : looks(k++), map: 'class', x: sx, y: sy, dir: 3, solid: true,
+        vis: sp ? () => classSeated() && !yardTime() && !sceneHides(sp) && !isComp(spF) : () => classSeated(),
+        label: fr ? () => `${FRIENDS[spF].name} (${spF === 'quang' ? 'lớp trưởng, ' : ''}${fr.seat})` : null, act: fr ? () => ACT.friend(spF, 'class') : null,
       });
     }
   }
@@ -508,7 +508,8 @@ function buildMaps() {
   addMeetNpcs(); buildFamily(); buildFamilyPlaces(); buildHsgPlaces(); buildCenter(); buildEcoPlaces(); buildHobbyPlaces(); buildStadium();
   seasonTrees();                                   // cây đổi màu theo mùa
   buildTrips();                                    // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch (04l)
-  buildVyStory();                                  // tuyến truyện Vy: chỗ đứng theo lịch, bố mẹ Vy, nhà hát (04y)
+  buildVyStory();
+  buildQuangStory();                               // tuyến truyện Quang: nhà Quang ở phố Bờ Đông, cô Lan ở chợ, chú Thành ở nhà máy (04z)                                  // tuyến truyện Vy: chỗ đứng theo lịch, bố mẹ Vy, nhà hát (04y)
   widenEdgeZones();                                // đi qua mép trái / phải chỗ nào không bị chặn cũng sang được bản đồ kế tiếp
 }
 // Lối sang bản đồ bên cạnh ở mép trái / phải: nới rộng theo cả đoạn mép đi lại được (tới khi gặp tường, hàng rào, nhà)

@@ -300,8 +300,9 @@ const HSG_EXAM_DESKS = (() => { const a = []; for (let r = 0; r < 3; r++) for (l
 
 /* ---------- 6) chào cờ: lễ trao giải học sinh giỏi quốc gia ---------- */
 function hsgWinners(H) {   // các bạn khác của trường đoạt giải (cố định theo năm), cộng mình nếu có giải
-  const r = mulberry((H.year * 613 + 29) >>> 0), pool = [['c1', 'Quang', 'toan'], ['sB', 'Chị Mai', 'van'], ['sD', 'Chị Trang', 'hoa'], ['c6', 'Hoa', 'sinh'], ['sG', 'Gia Huy', 'ly'], ['vy', 'Vy', 'anh']].filter(w => w[2] !== H.subj);
-  const n = 1 + Math.floor(r() * 2), out = [];
+  // Quang (lớp trưởng, 04z_quang.js) năm nào cũng đoạt giải Nhất Toán; mình vẫn có thể đoạt giải riêng của mình, kể cả môn Toán
+  const r = mulberry((H.year * 613 + 29) >>> 0), pool = [['sB', 'Chị Mai', 'van'], ['sD', 'Chị Trang', 'hoa'], ['c6', 'Hoa', 'sinh'], ['sG', 'Gia Huy', 'ly'], ['vy', 'Vy', 'anh']].filter(w => w[2] !== H.subj);
+  const n = Math.floor(r() * 2), out = [{ look: 'quang', name: 'Quang', subj: 'toan', prize: 1 }];
   for (let i = 0; i < n; i++) { const w = pool.splice(Math.floor(r() * pool.length), 1)[0]; out.push({ look: w[0], name: w[1], subj: w[2], prize: 1 + Math.floor(r() * 3) }); }
   if (H.prize) out.push({ me: true, name: G.name, subj: H.subj, prize: H.prize });
   return out.sort((a, b) => a.prize - b.prize);

@@ -15,7 +15,7 @@ const DATABLE = ['vy', 'dat', 'ngan'];
 const LOVE = { flower: 'oaihuong', bond0: 72, idleDays: 4, idleLoss: 3, chat: 2, meetKept: 8, meetMissed: -8, missEvent: -15, cool: [55, 40, 25, 12], mendDays: 8, breakDays: 4 };
 const isPartner = fid => !!(G && G.love && G.love.fid === fid);
 const heartMax = id => (isPartner(id) ? 8 : 5);
-const friendCap = id => (!isPartner(id) ? 100 : id === 'vy' ? vyLoveCap() : 160);
+const friendCap = id => (!isPartner(id) ? 100 : id === 'vy' ? vyLoveCap() : id === 'quang' ? qgLoveCap() : 160);
 const loveCool = () => (G && G.love ? G.love.cool || 0 : 0);
 const lovePerks = () => !!G.love && loveCool() < 2;                       // quyền lợi hẹn hò còn mở (giai đoạn 1 vẫn mở)
 const busyLove = () => schoolEventsOn(G.day).length > 0 || (G.tests || []).some(t => t.type === 'thi' && Math.abs(t.day - G.day) <= 1);   // đang thi / sự kiện trường: không bị trừ
@@ -32,6 +32,11 @@ const LOVE_MSG = {
   mend: { vy: 'Chiều nay sau giờ học cậu ra ghế đá công viên được không? Tớ muốn nói chuyện thật lòng với cậu.', dat: 'Chiều nay ra ghế đá công viên nói chuyện chút nhé.', ngan: 'Chiều nay gặp chị ở ghế đá công viên nhé, mình nói chuyện.' },
   bye: { vy: 'Mai sau giờ học cậu ra ghế đá công viên nhé. Tớ có chuyện muốn nói.', dat: 'Mai ra ghế đá công viên nhé, có chuyện muốn nói.', ngan: 'Mai ra ghế đá công viên gặp chị nhé.' },
 };
+// Quang giấu cảm xúc bằng sự vui vẻ và bận rộn (04z_quang.js)
+Object.assign(LOVE_MSG.cool1, { quang: 'Dạo này tớ bận ôn đội tuyển với phụ mẹ quá, hì. Cuối tuần mình đi đâu đó nhé, lần này tớ không trễ hẹn đâu!' });
+Object.assign(LOVE_MSG.cool3, { quang: 'Chắc thời gian này tớ phải tập trung cho đội tuyển với cửa hàng của mẹ. Cậu cũng lo việc của cậu nhé.' });
+Object.assign(LOVE_MSG.mend, { quang: 'Chiều nay ra ghế đá công viên được không? Lần này tớ không đùa nữa, tớ muốn nói chuyện nghiêm túc.' });
+Object.assign(LOVE_MSG.bye, { quang: 'Mai sau giờ học ra ghế đá công viên nhé. Tớ nghĩ… hai đứa mình cần nói chuyện.' });
 const loveLine = (k, fid) => LOVE_MSG[k][fid] || LOVE_MSG[k].vy;
 
 /* ---------- hoa oải hương: ngỏ lời hẹn hò ---------- */
@@ -43,12 +48,15 @@ async function confess(fid) {
   if (G.love) return say(`“Cậu đang hẹn hò với ${FRIENDS[G.love.fid].name} mà? Đừng đùa kiểu đó.”`);
   if (G.exLove && G.exLove.fid === fid && G.day - G.exLove.day < 30) return say('“Chuyện của tụi mình… mới qua chưa lâu. Để thời gian trả lời đã nhé.”');
   if (hearts(fid) < 5) return say(`“Hoa đẹp quá… nhưng mà, tụi mình mới quen nhau thôi mà.” — ${F.name} đỏ mặt trả lại bó hoa.`);
+  if (fid === 'vy' && G.qg && G.qg.vyCouple) return say('“Cảm ơn cậu… nhưng tớ đang hẹn hò với Quang rồi mà. Mình vẫn là bạn tốt nhé.” — Vy khẽ cười, đưa lại bó hoa.');
+  if (fid === 'quang' && !qgCanDate()) return say(qgNoDateLine());
   if (fid === 'vy' && !vyCanDate()) return say(G.vy.flags.friend ? '“Tớ cứ nghĩ… tụi mình đã chọn làm bạn tốt rồi. Cho tớ suy nghĩ thêm nhé.” — Vy ôm bó hoa một lúc rồi đưa lại cho cậu.' : '“Hoa oải hương… tớ biết ý nghĩa của nó.” Vy cúi đầu: “Nhưng tớ còn chưa biết phải trả lời cậu thế nào. Cho tớ thêm thời gian nhé.”');
   RT.lock = true;
   gTake(flower);
-  if (fid === 'vy') await vyConfessCut(); else await genericConfess(fid);
+  if (fid === 'vy') await vyConfessCut(); else if (fid === 'quang') await qgConfessCut(); else await genericConfess(fid);
   G.love = { fid, since: G.day, bond: LOVE.bond0, last: G.day, cool: 0, coolDay: 0, mend: 0, argued: 0, inv: null };
   if (fid === 'vy') { G.vy.romance = 'dating'; G.vy.flags.dated = true; }
+  if (fid === 'quang') { qgSet('qconf'); addMemo('scene', 'qg_date'); }
   addFriend(fid, 6, true); addMemo('scene', 'henho');
   RT.lock = false; UI._hb = null; UI.hud();
   UI.toast(`${F.name} đã nhận lời! Hai người chính thức hẹn hò — mở thêm tim 6–8.`, 'good');
@@ -62,6 +70,7 @@ async function genericConfess(fid) {
 /* ---------- mỗi ngày: gắn kết giảm khi lâu không gặp, các giai đoạn nguội lạnh ---------- */
 function loveNewDay() {
   if (typeof vyNewDay === 'function') vyNewDay();
+  if (typeof qgNewDay === 'function') qgNewDay();
   const L = G.love; if (!L) return;
   const fid = L.fid, idle = G.day - (L.last || L.since);
   if (idle > LOVE.idleDays && !busyLove()) L.bond = clamp(L.bond - LOVE.idleLoss, 0, 100);
@@ -82,6 +91,7 @@ function loveNewDay() {
 const BENCH = { x: 334, y: 336 };
 function loveTick() {
   if (typeof vyTick === 'function' && vyTick()) return true;
+  if (typeof qgTick === 'function' && qgTick()) return true;
   const L = G.love; if (!L || !L.inv || RT.lock || RT.scene || UI.isOpen()) return false;
   if (G.day !== L.inv.day || G.map !== 'town' || !inWin(G.time, freeTime() ? Math.max(schoolEndT(), 840) : 1440, 1290)) return false;
   if (Math.hypot(G.x - BENCH.x, G.y - BENCH.y) > 46) return false;
@@ -94,7 +104,7 @@ const benchCut = (fid, steps, title) => playCut({ map: 'town', me: [BENCH.x - 12
 async function loveArgue() {
   const L = G.love, fid = L.fid, F = FRIENDS[fid], who = { look: fid, outfit: friendOutfit(fid) };
   L.argued = G.day; RT.lock = true;
-  const c = await UI.ask(F.name, `<p>${fid === 'vy' ? 'Vy nhìn xuống, giọng nhỏ lại: “Không có gì đâu…” Một lúc sau cô mới nói tiếp: “Thật ra… tớ buồn. Mấy lần mình hẹn rồi cậu quên mất. Tớ cứ tưởng chỉ mình tớ để ý.”' : `${F.name} khoanh tay: “Mấy lần hẹn rồi lại quên. Cậu có còn để ý tới tớ không vậy?”`}</p>`,
+  const c = await UI.ask(F.name, `<p>${fid === 'quang' ? 'Quang gãi đầu, cười gượng một lúc rồi mới nói: “Tớ biết ai cũng có việc riêng. Nhưng nếu hôm nào bận, cậu cứ nói trước với tớ nhé. Tớ cũng phải sắp xếp thời gian ở chợ với lịch đội tuyển nữa.”' : fid === 'vy' ? 'Vy nhìn xuống, giọng nhỏ lại: “Không có gì đâu…” Một lúc sau cô mới nói tiếp: “Thật ra… tớ buồn. Mấy lần mình hẹn rồi cậu quên mất. Tớ cứ tưởng chỉ mình tớ để ý.”' : `${F.name} khoanh tay: “Mấy lần hẹn rồi lại quên. Cậu có còn để ý tới tớ không vậy?”`}</p>`,
     ['Xin lỗi, là lỗi của tớ. Từ giờ tớ sẽ báo trước nếu không giữ hẹn được', 'Dạo này tớ bận học thật mà… nhưng tớ hiểu cậu buồn', 'Có gì đâu mà giận dữ vậy'], { who });
   if (c === 0) { bondAdd(15, 'cùng giải quyết mâu thuẫn'); if (fid === 'vy') G.vy.trust += 6; await UI.ask(F.name, '<p>“…Ừ. Cảm ơn vì đã nói thật. Tớ cũng sẽ nói ra khi buồn, không giấu nữa.”</p>', ['♥'], { who }); }
   else if (c === 1) { bondAdd(6); await UI.ask(F.name, '<p>“Tớ biết cậu bận. Chỉ là… lần sau nhắn tớ một câu thôi cũng được.”</p>', ['Ừ'], { who }); }
@@ -107,7 +117,7 @@ async function mendTalk() {
   const L = G.love, fid = L.fid, F = FRIENDS[fid], who = { look: fid, outfit: friendOutfit(fid) };
   RT.lock = true;
   let good = 0;
-  await benchCut(fid, [{ say: [0, fid === 'vy' ? 'Cậu đến rồi… Tớ cứ sợ cậu lại quên.' : 'Tới rồi hả. Ngồi đi.'] }, { say: ['me', 'Tớ đến rồi đây. Mình nói chuyện nhé.'] }], 'Một lần nói chuyện thật lòng');
+  await benchCut(fid, [{ say: [0, fid === 'vy' ? 'Cậu đến rồi… Tớ cứ sợ cậu lại quên.' : fid === 'quang' ? 'Cậu đến rồi. Hôm nay tớ không pha trò đâu, hứa đấy.' : 'Tới rồi hả. Ngồi đi.'] }, { say: ['me', 'Tớ đến rồi đây. Mình nói chuyện nhé.'] }], 'Một lần nói chuyện thật lòng');
   const q = [
     [`${F.name}: “Dạo này tụi mình cứ như hai người xa lạ. Cậu nghĩ sao?”`, ['Tớ muốn nghe cậu nói trước', 'Thì cũng bình thường mà'], 0],
     ['“Mấy lần cậu thất hứa, tớ đã rất buồn.”', ['Tớ thừa nhận, tớ đã không giữ lời. Xin lỗi cậu', 'Tại tớ bận chứ bộ'], 0],
@@ -126,11 +136,11 @@ async function mendTalk() {
 // chia tay (atBench: gặp ở ghế đá; không thì qua tin nhắn)
 async function breakUp(byMsg) {
   const L = G.love; if (!L) return;
-  const fid = L.fid, F = FRIENDS[fid], line = fid === 'vy' ? 'Tớ vẫn rất trân trọng những ngày chúng mình ở bên nhau. Nhưng gần đây, tớ cảm thấy hai đứa không còn hiểu nhau như trước nữa. Tớ nghĩ chúng mình nên dừng lại.' : 'Tụi mình dừng lại ở đây nhé. Cảm ơn cậu vì quãng thời gian vừa qua.';
+  const fid = L.fid, F = FRIENDS[fid], line = fid === 'quang' ? 'Tớ nghĩ hai đứa đều đã cố gắng. Nhưng có lẽ bây giờ chúng mình muốn những điều khác nhau. Tớ vẫn quý cậu, chỉ là tớ không muốn cả hai cứ tiếp tục mà không thật sự vui.' : fid === 'vy' ? 'Tớ vẫn rất trân trọng những ngày chúng mình ở bên nhau. Nhưng gần đây, tớ cảm thấy hai đứa không còn hiểu nhau như trước nữa. Tớ nghĩ chúng mình nên dừng lại.' : 'Tụi mình dừng lại ở đây nhé. Cảm ơn cậu vì quãng thời gian vừa qua.';
   if (byMsg) { if (hasNum(fid)) inbox(fid, line); RT.morning && RT.morning.push(`${F.name} nhắn tin chia tay. Hai người không còn hẹn hò nữa.`); }
   else {
     RT.lock = true;
-    await benchCut(fid, [{ say: [0, fid === 'vy' ? 'Cảm ơn cậu đã đến.' : 'Cậu đến rồi.'] }, { wait: 600 }, { say: [0, line] }, { say: ['me', '…'] }, { say: [0, 'Mình vẫn là bạn nhé. Đừng ghét tớ.'] }], 'Lời chia tay');
+    await benchCut(fid, [{ say: [0, fid === 'vy' ? 'Cảm ơn cậu đã đến.' : 'Cậu đến rồi.'] }, { wait: 600 }, { say: [0, line] }, { say: ['me', '…'] }, { say: [0, fid === 'quang' ? 'Mai vẫn đấu thẻ với tớ chứ? Đối thủ số một thì không được bỏ cuộc đâu đấy.' : 'Mình vẫn là bạn nhé. Đừng ghét tớ.'] }], 'Lời chia tay');
     RT.lock = false;
   }
   G.exLove = { fid, day: G.day, mended: !!L.mended };
@@ -151,6 +161,6 @@ async function loveTalk(fid) {
   if (G.daily['lt_' + fid]) return UI.ask(F.name, '<p>“Hôm nay tâm sự đủ rồi, mai kể tiếp nha.”</p>', ['Ừ'], { who });
   G.daily['lt_' + fid] = true;
   bondAdd(loveCool() >= 1 ? 6 : LOVE.chat);
-  const L = fid === 'vy' ? vyLoveLine() : pick([`“Hôm nay ở lớp có chuyện buồn cười lắm, để tớ kể cho nghe…”`, '“Cuối tuần này mình đi đâu chơi nhỉ?”', '“Ở cạnh cậu thấy vui ghê.”']);
+  const L = fid === 'vy' ? vyLoveLine() : fid === 'quang' ? qgLoveLine() : pick([`“Hôm nay ở lớp có chuyện buồn cười lắm, để tớ kể cho nghe…”`, '“Cuối tuần này mình đi đâu chơi nhỉ?”', '“Ở cạnh cậu thấy vui ghê.”']);
   await UI.ask(F.name, `<p>${L}</p>`, ['♥'], { who });
 }

@@ -69,6 +69,7 @@ function migrate() {
   for (const t of G.tests || []) if (!t.q && !t.done && isPmDay(t.day)) { let d = t.day - 1; while (d > 0 && !isSchoolDay(d)) d--; t.day = d; }   // bản lưu cũ: bài kiểm tra rơi vào ngày họp thì dời lên hôm trước   // bản lưu cũ (ngày bắt đầu lúc 05:00): 06:00 mới thức dậy
   def('fish', {});                                     // cá câu được: id → số con
   def('vy', { ch: 0, trust: 50, flags: {}, romance: 'friend', inv: null, sick: -1, lunchWk: {}, help: 0 });   // tuyến truyện Vy (04y_vy.js)
+  def('qg', { ch: 0, flags: {}, vy: '', vyCouple: false, inv: null, tutWk: {}, swapWk: -1, mathWk: -1, natPrize: -1, congrats: -1, note: '' });   // tuyến truyện Quang (04z_quang.js)
   if (G.love === undefined) G.love = null; if (G.exLove === undefined) G.exLove = null;   // đang hẹn hò / người yêu cũ (04x_love.js)
   def('svd', { tix: {}, seen: {} });                   // vé sân vận động đã mua / đã xem (theo ngày)
   for (const k in G.bag) if (k.startsWith('vo_')) delete G.bag[k];   // đã bỏ cơ chế soạn vở

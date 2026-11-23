@@ -38,7 +38,8 @@ function memoPeople() {
 }
 async function graduationDay() {
   if (G.memo.notes) return;
-  await vyGraduation();                                              // chương 7 tuyến Vy: kết thúc theo lựa chọn
+  await vyGraduation();
+  await qgGraduation();                                              // chương 7 tuyến Quang (04z_quang.js)                                              // chương 7 tuyến Vy: kết thúc theo lựa chọn
   G.memo.notes = {};
   const wrote = [];
   for (const p of memoPeople()) if (p.n >= MEMO_NOTE_HEARTS) { G.memo.notes[p.id] = { day: G.day, hearts: p.n }; wrote.push(p.name); }

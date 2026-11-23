@@ -221,6 +221,7 @@ const GIFT_TASTE = {
   khoa: { love: ['garan', 'xien', 'bimbim', 'haisan'], dislike: ['flower', 'veg'], hate: ['school'] },
   vy: { love: ['c_hong', 'c_lan', 'trasua', 'gaubong', 'tranh4', 'tranh5'], dislike: ['fish'], hate: ['c_ot', 'bimbim'] },
   dat: { love: ['trasua', 'kem', 'tradao', 'art'], dislike: ['school', 'veg'], hate: ['fish'] },
+  quang: { love: ['banhmi', 'garan', 'nuocmia', 'school', 'sua'], dislike: ['flower', 'art'], hate: ['bimbim'] },
   ngan: { love: ['garan', 'sua', 'c_chanh', 'c_dau', 'haisan'], dislike: ['kem', 'flower'], hate: ['bimbim'] },
   mom: { love: ['flower', 'fruit', 'fish', 'veg'], dislike: ['trasua'], hate: ['bimbim'] },
   dad: { love: ['fish', 'art', 'c_chanh'], dislike: ['flower'], hate: ['kem'] },
@@ -432,7 +433,7 @@ const MISCHIEF = {
 // leave: không có mặt trong lớp (trốn tiết nếu trùng giờ học) · inside: vẫn ở trong khuôn viên trường · day: chỉ đi được khi trời còn sáng
 // Sau giờ học / ngày nghỉ, các trò "leave" (trừ inside) chỉ là đi chơi bình thường: không ai bắt, không bị phạt (xem OUTING_FRIEND_RATE).
 const OUTING_FRIEND_RATE = 0.75;   // đi chơi đàng hoàng thì ít "kỷ niệm liều lĩnh" hơn: điểm thân thiết × 0,75
-const FRIEND_LIKES = { khoa: ['dabong', 'arcade', 'trasua', 'nui', 'cantin'], vy: ['trasua', 'thinghiem', 'tttm'], dat: ['hutthuoc', 'arcade', 'dabong', 'thinghiem', 'cantin'], ngan: ['trasua', 'tttm', 'arcade'] };
+const FRIEND_LIKES = { quang: ['dabong', 'cantin', 'thinghiem'], khoa: ['dabong', 'arcade', 'trasua', 'nui', 'cantin'], vy: ['trasua', 'thinghiem', 'tttm'], dat: ['hutthuoc', 'arcade', 'dabong', 'thinghiem', 'cantin'], ngan: ['trasua', 'tttm', 'arcade'] };
 const INVITE_CHANCE = 0.2, INVITE_MAX_PER_DAY = 2;
 const INVITE_TEXT = {
   trasua: '“Ê, trốn ra quán trà sữa đi, tớ khao… à mà thôi, chia đôi.”',
@@ -480,6 +481,8 @@ const FRIENDS = {
   vy: { name: 'Vy', note: 'Hoa khôi của trường, lớp phó học tập', g: 'girl', seat: 'bàn bên phải', duel: 'gà', bday: [1, 8] },
   dat: { name: 'Thái', note: 'Cây văn nghệ của lớp, fan cứng ca sĩ thần tượng', g: 'boy', seat: 'bàn dưới', duel: 'caothu', bday: [2, 20] },
   ngan: { name: 'Ngân', note: 'Chị khoá trên lớp 11A1, mê thể thao', g: 'girl', seat: 'lớp 11A1', senior: true, duel: 'gà', bday: [0, 25] },
+  // Quang (mã ngoại hình c1 — nhân vật “học bá” tóc rẽ hai mái, đeo kính): lớp trưởng 10A1, học bá Toán, mẹ bán hàng ở chợ Bờ Đông (04z_quang.js)
+  quang: { name: 'Quang', note: 'Lớp trưởng 10A1, học bá Toán, mê thẻ cầu thủ', g: 'boy', seat: 'bàn đầu', duel: 'caothu', bday: [3, 5] },
 };
 // Sinh nhật: [chỉ số mùa (0 Thu, 1 Đông, 2 Xuân, 3 Hè), ngày]. Hiện trên Lịch; hôm đó chúc mừng / tặng quà được cộng nhiều hơn.
 const PARENT_BDAY = { mom: [1, 20], dad: [2, 12] };
@@ -702,6 +705,7 @@ const MEMO_SCENES = {
 };
 const MEMO_NOTE_HEARTS = 3;          // thân từ 3 tim trở lên thì người đó viết lưu bút cho mình vào ngày tốt nghiệp
 const MEMO_NOTES = {
+  quang: 'Ba năm làm lớp trưởng, người tớ muốn thắng nhất luôn là cậu. Lên đại học cũng đừng lười nhé, hẹn một ngày tái đấu — cả giải Toán lẫn thẻ cầu thủ!',
   khoa: 'Ê bạn cùng bàn! Ba năm chia nhau cái bàn, chia nhau cả bịch bánh tráng. Lên đại học nhớ nhắn tin cho tớ nha, đừng có quên đó!',
   vy: 'Cảm ơn cậu vì những buổi ôn bài trong thư viện. Mong cậu luôn tự tin và đạt được ước mơ của mình. Hẹn gặp lại ở giảng đường nhé!',
   dat: 'Nhớ mấy trận đá bóng với những lần trốn tiết không? Đỉnh nhất cấp ba luôn! Sau này thành đạt rồi thì bao tớ ly trà sữa nha.',
@@ -734,7 +738,7 @@ const PLACES = {
   nui: { name: 'Núi sau trường', short: 'núi sau trường (picnic)', map: 'nui', x: 200, y: 298, open: [360, 1110] },
   bien: { name: 'Bãi biển', short: 'biển (đi tàu)', map: 'bien', x: 300, y: 160, open: [420, 1200] },
 };
-const PLACE_LIKES = { khoa: ['arcade', 'park', 'nui'], vy: ['tea', 'mall', 'nui'], dat: ['arcade', 'park', 'bien'], ngan: ['mall', 'tea', 'bien'] };
+const PLACE_LIKES = { quang: ['park', 'arcade', 'tea'], khoa: ['arcade', 'park', 'nui'], vy: ['tea', 'mall', 'nui'], dat: ['arcade', 'park', 'bien'], ngan: ['mall', 'tea', 'bien'] };
 const MEET_END = 1290;            // bạn đợi tới 21:30
 const HILL_HOURS = [360, 1110];   // 06:00–18:30: trời tối thì không lên núi
 const MALL = { movie: { price: 45000, mins: 100, stam: 20, friend: 12 }, book: { price: 60000, pts: 10 }, box: { price: 30000, n: 5 }, chicken: { price: 35000, mins: 30, stam: 35, friend: 6 } };

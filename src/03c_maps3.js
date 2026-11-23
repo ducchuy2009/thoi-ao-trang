@@ -7,7 +7,7 @@
  * ============================================================ */
 const atWork = who => !!FAM[who] && FAM[who].hidden && FAM[who].hiddenAt === 'work';
 const inRoom = who => !!FAM[who] && FAM[who].hidden && FAM[who].hiddenAt === 'room';
-const DONG = { w: 60, h: 26, factory: 600, rest: 344, kara: 470, bus: [300, 146, 280, 188] };
+const DONG = { w: 67, h: 26, factory: 600, rest: 344, kara: 470, bus: [300, 146, 280, 188] };
 const DONG_HOUSES = [['hs_bungalow', 20, 'bac_tu'], ['hs_shop', 124, 'co_lanh'], ['hs_tube2', 228, 'anh_long']];   // nhà gỗ hiên quanh · nhà ống có quầy bánh cuốn · nhà ống 3 tầng
 const NEIGHBOR_TALK = {
   bac_tu: ['Bác về hưu rồi, sáng nào cũng ra bờ sông đánh cờ với mấy ông bạn.', 'Học hành cho giỏi vào cháu, bác ngày xưa đi học phải lội bộ qua sông đấy.', 'Nhà máy bánh kẹo đầu phố thơm mùi đường cả ngày, cháu ngửi thấy không?'],

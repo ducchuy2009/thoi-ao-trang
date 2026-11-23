@@ -239,6 +239,7 @@ function friendHome(fid) {
   const t = G.time;
   if (tetTime()) return inWin(t, 420, 1290);                        // Tết: bạn ở nhà cả ngày
   if (fid === 'vy') return vyPlace() === 'home';                     // Vy có lịch riêng (04y_vy.js)
+  if (fid === 'quang') return qgPlace() === 'home';                  // Quang có lịch riêng (04z_quang.js)
   if (raining() && parkTime()) return true;                          // trời mưa không ra công viên, ở nhà
   return schoolToday() ? inWin(t, 1210, 1290) : (inWin(t, 390, 480) || inWin(t, 1090, 1290));
 }
@@ -283,10 +284,12 @@ async function talkMenu(fid, where) {
   if (tetTime() && !tetY2().give[fid]) add('lixi', `Lì xì cho ${F.name}`);
   if (isPartner(fid)) add('love', loveCool() === 2 && G.love.argued !== G.day ? 'Hỏi chuyện: “Cậu sao vậy?”' : 'Tâm sự riêng');
   if (fid === 'vy') vyTalkOpts(add, where);
+  if (fid === 'quang') qgTalkOpts(add, where);
   const c = ids.length === 1 ? 'chat' : (add('x', 'Thôi'), ids[await UI.ask(F.name, '<p>“Sao đó?”</p>', opts)] || 'x');
-  if (c === 'chat') { if (fid === 'vy' && !G.daily.chat['f_vy']) vyChat(); chat('f_' + fid, fid); if (isPartner(fid) && !G.daily['lc_' + fid]) { G.daily['lc_' + fid] = true; bondAdd(LOVE.chat); } }
+  if (c === 'chat') { if (fid === 'vy' && !G.daily.chat['f_vy']) vyChat(); if (fid === 'quang' && !G.daily.chat['f_quang']) qgChat(); chat('f_' + fid, fid); if (isPartner(fid) && !G.daily['lc_' + fid]) { G.daily['lc_' + fid] = true; bondAdd(LOVE.chat); } }
   else if (c === 'love') loveTalk(fid);
   else if (await vyTalkDo(c)) { }
+  else if (await qgTalkDo(c)) { }
   else if (c === 'duel') cardDuel('f_' + fid, fid, F.name, F.duel);
   else if (c === 'lixi') giveLixi(fid);
   else if (c.startsWith('brk:')) doBreakFun(fid, c.slice(4));
@@ -308,6 +311,7 @@ ACT.mate = async sid => {
 // where: 'school' sân trường · 'class' trong lớp · 'park' công viên · 'house' trước nhà bạn · 'meet' chỗ hẹn · 'comp' đang đi cùng mình
 ACT.friend = async (fid, where) => {
   if (fid === 'vy' && await vyTalkHook(where)) return;                 // sự kiện tuyến Vy khi gặp
+  if (fid === 'quang' && await qgTalkHook(where)) return;             // sự kiện tuyến Quang khi gặp (04z_quang.js)
   const F = FRIENDS[fid], hs = hearts(fid), opts = ['Nói chuyện'], ids = ['talk'], add = (id, t) => { ids.push(id); opts.push(t); };
   const atSch = (where === 'school' || where === 'class') && G.atSchool;
   if (where === 'comp') { if (!G.comp.skip) add('bye', 'Tạm biệt, ai về nhà nấy'); }
@@ -843,6 +847,7 @@ const MSG_TAM = {
   khoa: ['Đang cày game nè, tí nữa mới học.', 'Mai đá bóng không? Tớ mới mua đôi giày mới.', 'Bài Toán hôm nay khó ghê, tớ chép của Vy rồi.', 'Tớ vừa bóc được thẻ hiếm, mai mang lên lớp khoe.'],
   vy: ['Tớ đang soạn đề cương. Cậu ôn bài chưa đó?', 'Mai nhớ mang đủ sách vở nha, cô hay kiểm tra vở lắm.', 'Học xong tớ ra ban công ngắm sao, trời đẹp ghê.', 'Cuối tuần lên núi sau trường picnic đi, tớ làm cơm cuộn.'],
   dat: ['Đang tập bài hát mới cho văn nghệ, nghe thử không?', 'Chán học quá, mai kiếm trò gì vui đi.', 'Tớ mới săn được thẻ siêu hiếm, mai đấu không?', 'Khu game mới về máy nhảy đó, đi thử không?'],
+  quang: ['Đang ngồi tính sổ cho mẹ, toàn số lẻ, đau đầu ghê.', 'Mai kiểm tra Toán đó, ôn chưa? Có bài nào khó hỏi tớ nha.', 'Tớ vừa bóc được thẻ hiếm nè, mai mang lên lớp khoe.', 'Cuối tuần ra chợ Bờ Đông chơi không? Mẹ tớ làm chè ngon lắm.'],
   ngan: ['Tớ đang đắp mặt nạ, hihi.', 'Cuối tuần đi trung tâm thương mại không? Đang giảm giá.', 'Cậu thấy màu son cam đất hợp với tớ không?', 'Tiệm trà sữa Mây có vị mới, phải thử mới được.'],
 };
 const MSG_NO = ['Hôm đó tớ kẹt rồi, để bữa khác nha.', 'Mẹ tớ không cho đi rồi…', 'Tớ còn một đống bài chưa làm. Lần sau nhé!'];
@@ -851,7 +856,7 @@ function inbox(id, t) { if (!hasNum(id)) return; pushMsg(id, false, t); const k 
 // Ngày có bài kiểm tra 1 tiết / thi học kỳ / thi HSG: sáng sớm bố mẹ nhắn chúc trong nhóm Gia đình, bạn thân (từ 3♥, có số) cũng nhắn
 const WISH_MOM = ['Hôm nay con thi {s} đúng không? Bình tĩnh làm bài nhé, mẹ tin con!', 'Ăn sáng đầy đủ rồi hẵng đi thi nhé con. Làm bài cẩn thận, đọc kỹ đề!', 'Chúc con thi {s} thật tốt! Tối về mẹ nấu món con thích.'];
 const WISH_DAD = ['Cố lên con trai của bố! Thi {s} tốt nhé.', 'Bình tĩnh, tự tin, làm câu dễ trước. Bố chờ tin vui!', 'Thi tốt nhé con. Có gì khó cứ hít thở sâu rồi làm tiếp.'];
-const WISH_FR = { khoa: ['Thi {s} tốt nha! Có gì tớ cầu nguyện hộ 🙏', 'Hôm nay thi rồi, cố lên nhé đồng chí!'], vy: ['Chúc cậu thi {s} thật tốt nha! Nhớ đọc kỹ đề 💪', 'Ôn kỹ rồi thì tự tin lên, cậu làm được mà!'], dat: ['Thi tốt nha bạn hiền! Xong đi ăn mừng 🎉', 'Hôm nay thi {s} hả? Quẩy lên! Chúc may mắn!'], ngan: ['Chị chúc em thi {s} thật tốt nhé! Bình tĩnh là thắng 😉', 'Thi tốt nha em, xong chị khao trà sữa!'] };
+const WISH_FR = { quang: ['Thi {s} tốt nha! Bình tĩnh, đọc kỹ đề, câu dễ làm trước, câu khó để sau.', 'Cố lên! Thi xong ra chợ tớ khao chè.'], khoa: ['Thi {s} tốt nha! Có gì tớ cầu nguyện hộ 🙏', 'Hôm nay thi rồi, cố lên nhé đồng chí!'], vy: ['Chúc cậu thi {s} thật tốt nha! Nhớ đọc kỹ đề 💪', 'Ôn kỹ rồi thì tự tin lên, cậu làm được mà!'], dat: ['Thi tốt nha bạn hiền! Xong đi ăn mừng 🎉', 'Hôm nay thi {s} hả? Quẩy lên! Chúc may mắn!'], ngan: ['Chị chúc em thi {s} thật tốt nhé! Bình tĩnh là thắng 😉', 'Thi tốt nha em, xong chị khao trà sữa!'] };
 function examWishes() {
   const tests = (G.tests || []).filter(t => t.day === G.day && !t.done), H = typeof hsgCur === 'function' && hsgCur(), hk = H && hsgToday(H);
   const subj = [...new Set(tests.map(t => SUBJ[t.subj].name))];

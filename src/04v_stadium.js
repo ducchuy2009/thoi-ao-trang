@@ -27,7 +27,7 @@ function svdNext(day, n) { const out = []; for (let d = day; d < day + 70 && out
 const svdLine = e => `${e.name} · ${dateLabel(e.day)} ${fmtTime(e.from)}`;
 BUS_STOPS.svd = { name: 'Sân vận động', map: 'svd', x: 642, y: 368, pos: 3, off: 1 };
 LINKS['dong>svd'] = { at: ['svd', 16, 356, 2], hop: WALK_HOP, label: 'Đi sang khu sân vận động…' };
-LINKS['svd>dong'] = { at: ['dong', 944, 172, 1], hop: WALK_HOP, label: 'Về phố Bờ Đông…' };
+LINKS['svd>dong'] = { at: ['dong', DONG.w * 16 - 16, 172, 1], hop: WALK_HOP, label: 'Về phố Bờ Đông…' };
 const MZ_X = 832;                                                         // tường khu quân sự (x)
 
 /* ---------- bản đồ ---------- */
@@ -72,7 +72,7 @@ function buildStadium() {
 
   /* ---------- lối sang từ phố Bờ Đông ---------- */
   const d = MAPS.dong;
-  addObj(d, { s: 'signpost', x: 926, y: 148, sol: [10, 22, 8, 8], label: () => 'Sân vận động →', act: () => ACT.go('dong', 'svd') });
+  addObj(d, { s: 'signpost', x: d.pw - 34, y: 150, sol: [10, 22, 8, 8], label: () => 'Sân vận động →', act: () => ACT.go('dong', 'svd') });
   d.zones.push({ x: d.pw - 8, y: 160, w: 8, h: 112, fn: () => ACT.go('dong', 'svd'), bx: -6 });
 
   /* ---------- bên trong sân: khán đài, mặt cỏ (sân khấu / khung thành tuỳ sự kiện) ---------- */

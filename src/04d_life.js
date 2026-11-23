@@ -558,12 +558,14 @@ ACT.machine = async (kind, mx) => {
 /* ---------- nhà bạn ---------- */
 ACT.house = async fid => {
   if (fid === 'vy' && vyHouseHook()) return;                           // sự kiện ở nhà Vy (học nhóm, hộp kỷ niệm, mang vở khi Vy ốm)
+  if (fid === 'quang' && qgHouseHook()) return;                        // bữa cơm nhà Quang (04z_quang.js)
   const F = FRIENDS[fid];
   if (!friendHome(fid)) {
     let where;
     if (G.time >= 1290 || G.time < 390) where = `“Khuya rồi cháu ơi, ${F.name} ngủ rồi.”`;
     else if (meetToday(fid)) where = `“${F.name} ra ${PLACES[G.meet.place].name} rồi, bảo là có hẹn với cháu mà?”`;
     else if (fid === 'vy') where = `“${{ school: 'Giờ này Vy đang ở trường mà cháu?', library: 'Vy ở lại thư viện trường ôn bài rồi.', park: 'Vy ra công viên bên khu nhà cháu đọc sách rồi.', flower: 'Vy ra cửa hàng hoa ở công viên khu nhà cháu rồi.', tea: 'Vy đi mua trà sữa ở đầu phố rồi.', rehearse: 'Vy ở lại phòng nhạc của trường tập kịch.', class: 'Vy chưa về, chắc còn ở lớp.', gate: 'Vy chưa về, trời mưa thế này chắc đang trú ở cổng trường.', cat: 'Vy chưa về đâu cháu.', bench: 'Vy ra công viên ngồi rồi.', night: 'Vy ra công viên rồi.', commute: 'Vy đang trên đường về.' }[vyPlace()] || 'Vy vừa ra ngoài rồi cháu ạ.'}” — bác Lài nói.`;
+    else if (fid === 'quang') where = `“${qgNotHome()}”`;
     else if (parkTime()) where = `“${F.name} ra công viên bên khu nhà cháu chơi rồi.”`;
     else if (isComp(fid)) where = `“Ơ, ${F.name} đang đi với cháu đấy thôi?”`;
     else if (schoolToday() && G.time < AFTER_SCHOOL) where = `“Giờ này ${F.name} đang ở trường mà cháu?”`;
@@ -588,7 +590,7 @@ ACT.house = async fid => {
   G.visit = fid;
   await goPlace('fhome', 289, 204, 3, 0);
 };
-ACT.leaveFh = () => { const hx = (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1]; goPlace('pho', hx + 49, 152, 0, 0); };
+ACT.leaveFh = () => { if (G.visit === 'quang') return goPlace('dong', QG.house + 49, 152, 0, 0); const hx = (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1]; goPlace('pho', hx + 49, 152, 0, 0); };
 ACT.fh = async kind => {
   const fid = G.visit, F = FRIENDS[fid], X = FH[kind], key = kind + '_' + fid;
   if (RT.lock) return;

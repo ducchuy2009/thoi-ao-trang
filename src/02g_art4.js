@@ -29,7 +29,7 @@ function buildSprites4() {
     R(x, '#f2a93b', 9, 6, 4, 2); R(x, '#f2a93b', 8, 5, 1, 4); R(x, '#e2574c', 15, 9, 3, 2); R(x, '#e2574c', 18, 8, 1, 4);
     R(x, '#fffaf0', 12, 3, 1, 1); R(x, '#fffaf0', 17, 5, 1, 1);
   });
-  buildHouses(); buildMarketArt(); buildStadiumArt(); buildVyArt();
+  buildHouses(); buildMarketArt(); buildStadiumArt(); buildVyArt(); buildQuangArt();
 }
 
 /* ============================================================
@@ -397,6 +397,14 @@ function icon24(id, x) {
   if (id === 'comvy' || id === 'comvy8') { R(x, '#e98fa5', 1, 5, 14, 9); R(x, '#f4b6c8', 1, 5, 14, 2); R(x, '#fffaf0', 3, 7, 4, 5); R(x, '#2a2136', 3, 9, 4, 1); R(x, '#ffd23a', 8, 7, 5, 3); R(x, '#5fae4a', 8, 10, 5, 2); if (id === 'comvy8') R(x, '#ff5fa8', 12, 2, 3, 3); return true; }
   if (id === 'ci_concert') { R(x, '#5f656f', 7, 8, 2, 7); ell(x, '#2a2136', 8, 5, 4, 4.5); ell(x, '#8b8f9c', 8, 4, 2.5, 2.5); R(x, '#ff5a96', 12, 1, 1, 5); R(x, '#ff5a96', 12, 1, 3, 1); ell(x, '#ff5a96', 11.5, 6, 1.5, 1.2); return true; }
   if (id === 'ci_match') { ell(x, '#fffaf0', 8, 8, 6.5, 6.5); pat(x, ['.###.', '#####', '.###.'], 6, 6, '#2a2136'); R(x, '#2a2136', 3, 4, 2, 2); R(x, '#2a2136', 11, 4, 2, 2); R(x, '#2a2136', 3, 11, 2, 2); R(x, '#2a2136', 11, 11, 2, 2); return true; }
+  // vòng 26: tuyến Quang — hàng ở sạp cô Lan, cúp Đội trưởng, máy tính bỏ túi, ảnh cũ, thẻ cầu thủ
+  if (id === 'lacrang') { R(x, '#e8dcc0', 3, 3, 10, 11); R(x, '#d4c49a', 3, 3, 10, 2); R(x, '#c2453b', 5, 6, 6, 1); for (const [a, b] of [[5, 9], [8, 8], [10, 10], [6, 11], [9, 12]]) { ell(x, '#b7793f', a, b, 1.4, 1); R(x, '#e7b77a', a - 1, b - 1, 1, 1); } return true; }
+  if (id === 'banhquy') { R(x, '#3b6fb6', 2, 4, 12, 9); R(x, '#5a8fd6', 2, 4, 12, 2); ell(x, '#e0a85a', 6, 9, 2.6, 2.4); ell(x, '#e0a85a', 10.5, 9, 2.6, 2.4); R(x, '#8a5a3a', 5, 8, 1, 1); R(x, '#8a5a3a', 11, 9, 1, 1); R(x, '#ffd23a', 4, 5, 3, 1); return true; }
+  if (id === 'migoi') { R(x, '#e2574c', 2, 3, 12, 11); R(x, '#c2453b', 2, 3, 12, 1); R(x, '#c2453b', 2, 13, 12, 1); for (let i = 0; i < 4; i++) R(x, '#ffe066', 4, 6 + i * 2, 8, 1); R(x, '#fffaf0', 9, 4, 3, 2); return true; }
+  if (id === 'cupdoitruong' || id === 'qg_cup') { R(x, '#ffd23a', 4, 2, 8, 6); R(x, '#d9a441', 2, 3, 2, 3); R(x, '#d9a441', 12, 3, 2, 3); R(x, '#ffd23a', 7, 8, 2, 3); R(x, '#8a5a3a', 4, 11, 8, 3); R(x, '#fff6c8', 5, 3, 2, 2); R(x, '#3b6fb6', 6, 12, 4, 1); return true; }
+  if (id === 'qg_calc') { R(x, '#3a3f4a', 3, 1, 10, 14); R(x, '#a9d8a0', 4, 2, 8, 3); R(x, '#2a4f2a', 8, 3, 3, 1); for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) R(x, j === 2 && i === 2 ? '#e2574c' : '#d6dbe3', 4 + i * 3, 6 + j * 3, 2, 2); return true; }
+  if (id === 'qg_photo') { R(x, '#fff6e3', 2, 3, 12, 10); R(x, '#9ad0e6', 3, 4, 10, 6); R(x, '#5fae4a', 3, 8, 10, 2); R(x, '#2a2136', 5, 5, 2, 2); R(x, '#3b6fb6', 5, 7, 2, 2); R(x, '#4a2a35', 9, 5, 2, 2); R(x, '#ff8fb4', 9, 7, 2, 2); return true; }
+  if (id === 'qg_card') { R(x, '#fffaf0', 3, 1, 10, 14); R(x, '#3b6fb6', 4, 2, 8, 9); R(x, '#f8d0a8', 6, 4, 4, 4); R(x, '#2c2733', 6, 3, 4, 2); R(x, '#ffd23a', 4, 12, 8, 2); return true; }
   return furnIcon(id, x);
 }
 
@@ -428,4 +436,23 @@ function buildVyArt() {
   });
   photo('vyPhotoOld', 0); photo('vyPhotoNew', 1);
   def('memBox', 22, 16, x => { R(x, '#e8c4a8', 0, 4, 22, 12); R(x, '#f4dcc4', 1, 5, 20, 10); R(x, '#d9a88a', 0, 0, 22, 5); R(x, '#fffaf0', 4, 6, 6, 5); R(x, '#d94f8a', 13, 7, 5, 3); R(x, '#ffd23a', 12, 11, 7, 2); R(x, '#b8403a', 9, 1, 4, 3); });
+}
+
+/* ============================================================
+ *  VÒNG 26: nhà Quang (nhà cấp 4 mái tôn, cửa sắt xếp, thùng hàng của mẹ, xe đạp), cúp Đội trưởng
+ * ============================================================ */
+function buildQuangArt() {
+  def('hs_quang', 96, 82, x => {
+    const wall = '#e8e0cc', roof = '#3b82c4';
+    for (let j = 0; j < 20; j++) { const a = Math.round(6 - j * 0.3); R(x, j % 3 === 2 ? '#2f6aa8' : roof, a, 10 + j, 96 - a * 2, 1); }
+    for (let i = 2; i < 94; i += 4) R(x, '#5a9ad6', i, 10, 1, 20); R(x, '#2a4f80', 0, 30, 96, 2);
+    R(x, wall, 6, 32, 84, 50); R(x, '#d4cab2', 6, 32, 84, 2);
+    R(x, '#5f656f', 34, 44, 28, 38); for (let i = 35; i < 62; i += 3) R(x, '#8b8f9c', i, 45, 1, 37); R(x, '#3a3f4a', 34, 44, 28, 2); R(x, '#2a2136', 44, 50, 8, 32); R(x, '#6f472c', 45, 51, 6, 31);
+    hGlass(x, 12, 46, 16, 12); R(x, '#8a5a3a', 11, 58, 18, 2); hGlass(x, 68, 46, 16, 12); R(x, '#8a5a3a', 67, 58, 18, 2);
+    R(x, '#c9a467', 66, 64, 12, 10); R(x, '#a9853f', 66, 64, 12, 2); R(x, '#c9a467', 78, 68, 10, 8); R(x, '#a9853f', 78, 68, 10, 2); R(x, '#e2574c', 69, 67, 6, 2);
+    R(x, '#2f8f5a', 14, 66, 12, 9); for (let i = 15; i < 26; i += 3) R(x, '#1f6f44', i, 67, 1, 7);
+    R(x, '#d9342b', 28, 35, 40, 8); R(x, '#a8231d', 28, 42, 40, 1); R(x, '#ffd23a', 29, 36, 38, 1);
+    R(x, '#cfc8b8', 32, 80, 32, 2);
+  });
+  def('qgCup', 12, 14, x => { R(x, '#ffd23a', 2, 1, 8, 6); R(x, '#d9a441', 0, 2, 2, 3); R(x, '#d9a441', 10, 2, 2, 3); R(x, '#ffd23a', 5, 7, 2, 3); R(x, '#8a5a3a', 3, 10, 6, 3); R(x, '#fff6c8', 3, 2, 2, 2); });
 }

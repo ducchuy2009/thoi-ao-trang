@@ -782,6 +782,7 @@ const GIFT_TASTE = {
   khoa: { love: ['garan', 'xien', 'bimbim', 'haisan'], dislike: ['flower', 'veg'], hate: ['school'] },
   vy: { love: ['c_hong', 'c_lan', 'trasua', 'gaubong', 'tranh4', 'tranh5'], dislike: ['fish'], hate: ['c_ot', 'bimbim'] },
   dat: { love: ['trasua', 'kem', 'tradao', 'art'], dislike: ['school', 'veg'], hate: ['fish'] },
+  quang: { love: ['banhmi', 'garan', 'nuocmia', 'school', 'sua'], dislike: ['flower', 'art'], hate: ['bimbim'] },
   ngan: { love: ['garan', 'sua', 'c_chanh', 'c_dau', 'haisan'], dislike: ['kem', 'flower'], hate: ['bimbim'] },
   mom: { love: ['flower', 'fruit', 'fish', 'veg'], dislike: ['trasua'], hate: ['bimbim'] },
   dad: { love: ['fish', 'art', 'c_chanh'], dislike: ['flower'], hate: ['kem'] },
@@ -993,7 +994,7 @@ const MISCHIEF = {
 // leave: không có mặt trong lớp (trốn tiết nếu trùng giờ học) · inside: vẫn ở trong khuôn viên trường · day: chỉ đi được khi trời còn sáng
 // Sau giờ học / ngày nghỉ, các trò "leave" (trừ inside) chỉ là đi chơi bình thường: không ai bắt, không bị phạt (xem OUTING_FRIEND_RATE).
 const OUTING_FRIEND_RATE = 0.75;   // đi chơi đàng hoàng thì ít "kỷ niệm liều lĩnh" hơn: điểm thân thiết × 0,75
-const FRIEND_LIKES = { khoa: ['dabong', 'arcade', 'trasua', 'nui', 'cantin'], vy: ['trasua', 'thinghiem', 'tttm'], dat: ['hutthuoc', 'arcade', 'dabong', 'thinghiem', 'cantin'], ngan: ['trasua', 'tttm', 'arcade'] };
+const FRIEND_LIKES = { quang: ['dabong', 'cantin', 'thinghiem'], khoa: ['dabong', 'arcade', 'trasua', 'nui', 'cantin'], vy: ['trasua', 'thinghiem', 'tttm'], dat: ['hutthuoc', 'arcade', 'dabong', 'thinghiem', 'cantin'], ngan: ['trasua', 'tttm', 'arcade'] };
 const INVITE_CHANCE = 0.2, INVITE_MAX_PER_DAY = 2;
 const INVITE_TEXT = {
   trasua: '“Ê, trốn ra quán trà sữa đi, tớ khao… à mà thôi, chia đôi.”',
@@ -1041,6 +1042,8 @@ const FRIENDS = {
   vy: { name: 'Vy', note: 'Hoa khôi của trường, lớp phó học tập', g: 'girl', seat: 'bàn bên phải', duel: 'gà', bday: [1, 8] },
   dat: { name: 'Thái', note: 'Cây văn nghệ của lớp, fan cứng ca sĩ thần tượng', g: 'boy', seat: 'bàn dưới', duel: 'caothu', bday: [2, 20] },
   ngan: { name: 'Ngân', note: 'Chị khoá trên lớp 11A1, mê thể thao', g: 'girl', seat: 'lớp 11A1', senior: true, duel: 'gà', bday: [0, 25] },
+  // Quang (mã ngoại hình c1 — nhân vật “học bá” tóc rẽ hai mái, đeo kính): lớp trưởng 10A1, học bá Toán, mẹ bán hàng ở chợ Bờ Đông (04z_quang.js)
+  quang: { name: 'Quang', note: 'Lớp trưởng 10A1, học bá Toán, mê thẻ cầu thủ', g: 'boy', seat: 'bàn đầu', duel: 'caothu', bday: [3, 5] },
 };
 // Sinh nhật: [chỉ số mùa (0 Thu, 1 Đông, 2 Xuân, 3 Hè), ngày]. Hiện trên Lịch; hôm đó chúc mừng / tặng quà được cộng nhiều hơn.
 const PARENT_BDAY = { mom: [1, 20], dad: [2, 12] };
@@ -1263,6 +1266,7 @@ const MEMO_SCENES = {
 };
 const MEMO_NOTE_HEARTS = 3;          // thân từ 3 tim trở lên thì người đó viết lưu bút cho mình vào ngày tốt nghiệp
 const MEMO_NOTES = {
+  quang: 'Ba năm làm lớp trưởng, người tớ muốn thắng nhất luôn là cậu. Lên đại học cũng đừng lười nhé, hẹn một ngày tái đấu — cả giải Toán lẫn thẻ cầu thủ!',
   khoa: 'Ê bạn cùng bàn! Ba năm chia nhau cái bàn, chia nhau cả bịch bánh tráng. Lên đại học nhớ nhắn tin cho tớ nha, đừng có quên đó!',
   vy: 'Cảm ơn cậu vì những buổi ôn bài trong thư viện. Mong cậu luôn tự tin và đạt được ước mơ của mình. Hẹn gặp lại ở giảng đường nhé!',
   dat: 'Nhớ mấy trận đá bóng với những lần trốn tiết không? Đỉnh nhất cấp ba luôn! Sau này thành đạt rồi thì bao tớ ly trà sữa nha.',
@@ -1295,7 +1299,7 @@ const PLACES = {
   nui: { name: 'Núi sau trường', short: 'núi sau trường (picnic)', map: 'nui', x: 200, y: 298, open: [360, 1110] },
   bien: { name: 'Bãi biển', short: 'biển (đi tàu)', map: 'bien', x: 300, y: 160, open: [420, 1200] },
 };
-const PLACE_LIKES = { khoa: ['arcade', 'park', 'nui'], vy: ['tea', 'mall', 'nui'], dat: ['arcade', 'park', 'bien'], ngan: ['mall', 'tea', 'bien'] };
+const PLACE_LIKES = { quang: ['park', 'arcade', 'tea'], khoa: ['arcade', 'park', 'nui'], vy: ['tea', 'mall', 'nui'], dat: ['arcade', 'park', 'bien'], ngan: ['mall', 'tea', 'bien'] };
 const MEET_END = 1290;            // bạn đợi tới 21:30
 const HILL_HOURS = [360, 1110];   // 06:00–18:30: trời tối thì không lên núi
 const MALL = { movie: { price: 45000, mins: 100, stam: 20, friend: 12 }, book: { price: 60000, pts: 10 }, box: { price: 30000, n: 5 }, chicken: { price: 35000, mins: 30, stam: 35, friend: 6 } };
@@ -3166,7 +3170,7 @@ function buildSprites4() {
     R(x, '#f2a93b', 9, 6, 4, 2); R(x, '#f2a93b', 8, 5, 1, 4); R(x, '#e2574c', 15, 9, 3, 2); R(x, '#e2574c', 18, 8, 1, 4);
     R(x, '#fffaf0', 12, 3, 1, 1); R(x, '#fffaf0', 17, 5, 1, 1);
   });
-  buildHouses(); buildMarketArt(); buildStadiumArt(); buildVyArt();
+  buildHouses(); buildMarketArt(); buildStadiumArt(); buildVyArt(); buildQuangArt();
 }
 
 /* ============================================================
@@ -3534,6 +3538,14 @@ function icon24(id, x) {
   if (id === 'comvy' || id === 'comvy8') { R(x, '#e98fa5', 1, 5, 14, 9); R(x, '#f4b6c8', 1, 5, 14, 2); R(x, '#fffaf0', 3, 7, 4, 5); R(x, '#2a2136', 3, 9, 4, 1); R(x, '#ffd23a', 8, 7, 5, 3); R(x, '#5fae4a', 8, 10, 5, 2); if (id === 'comvy8') R(x, '#ff5fa8', 12, 2, 3, 3); return true; }
   if (id === 'ci_concert') { R(x, '#5f656f', 7, 8, 2, 7); ell(x, '#2a2136', 8, 5, 4, 4.5); ell(x, '#8b8f9c', 8, 4, 2.5, 2.5); R(x, '#ff5a96', 12, 1, 1, 5); R(x, '#ff5a96', 12, 1, 3, 1); ell(x, '#ff5a96', 11.5, 6, 1.5, 1.2); return true; }
   if (id === 'ci_match') { ell(x, '#fffaf0', 8, 8, 6.5, 6.5); pat(x, ['.###.', '#####', '.###.'], 6, 6, '#2a2136'); R(x, '#2a2136', 3, 4, 2, 2); R(x, '#2a2136', 11, 4, 2, 2); R(x, '#2a2136', 3, 11, 2, 2); R(x, '#2a2136', 11, 11, 2, 2); return true; }
+  // vòng 26: tuyến Quang — hàng ở sạp cô Lan, cúp Đội trưởng, máy tính bỏ túi, ảnh cũ, thẻ cầu thủ
+  if (id === 'lacrang') { R(x, '#e8dcc0', 3, 3, 10, 11); R(x, '#d4c49a', 3, 3, 10, 2); R(x, '#c2453b', 5, 6, 6, 1); for (const [a, b] of [[5, 9], [8, 8], [10, 10], [6, 11], [9, 12]]) { ell(x, '#b7793f', a, b, 1.4, 1); R(x, '#e7b77a', a - 1, b - 1, 1, 1); } return true; }
+  if (id === 'banhquy') { R(x, '#3b6fb6', 2, 4, 12, 9); R(x, '#5a8fd6', 2, 4, 12, 2); ell(x, '#e0a85a', 6, 9, 2.6, 2.4); ell(x, '#e0a85a', 10.5, 9, 2.6, 2.4); R(x, '#8a5a3a', 5, 8, 1, 1); R(x, '#8a5a3a', 11, 9, 1, 1); R(x, '#ffd23a', 4, 5, 3, 1); return true; }
+  if (id === 'migoi') { R(x, '#e2574c', 2, 3, 12, 11); R(x, '#c2453b', 2, 3, 12, 1); R(x, '#c2453b', 2, 13, 12, 1); for (let i = 0; i < 4; i++) R(x, '#ffe066', 4, 6 + i * 2, 8, 1); R(x, '#fffaf0', 9, 4, 3, 2); return true; }
+  if (id === 'cupdoitruong' || id === 'qg_cup') { R(x, '#ffd23a', 4, 2, 8, 6); R(x, '#d9a441', 2, 3, 2, 3); R(x, '#d9a441', 12, 3, 2, 3); R(x, '#ffd23a', 7, 8, 2, 3); R(x, '#8a5a3a', 4, 11, 8, 3); R(x, '#fff6c8', 5, 3, 2, 2); R(x, '#3b6fb6', 6, 12, 4, 1); return true; }
+  if (id === 'qg_calc') { R(x, '#3a3f4a', 3, 1, 10, 14); R(x, '#a9d8a0', 4, 2, 8, 3); R(x, '#2a4f2a', 8, 3, 3, 1); for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) R(x, j === 2 && i === 2 ? '#e2574c' : '#d6dbe3', 4 + i * 3, 6 + j * 3, 2, 2); return true; }
+  if (id === 'qg_photo') { R(x, '#fff6e3', 2, 3, 12, 10); R(x, '#9ad0e6', 3, 4, 10, 6); R(x, '#5fae4a', 3, 8, 10, 2); R(x, '#2a2136', 5, 5, 2, 2); R(x, '#3b6fb6', 5, 7, 2, 2); R(x, '#4a2a35', 9, 5, 2, 2); R(x, '#ff8fb4', 9, 7, 2, 2); return true; }
+  if (id === 'qg_card') { R(x, '#fffaf0', 3, 1, 10, 14); R(x, '#3b6fb6', 4, 2, 8, 9); R(x, '#f8d0a8', 6, 4, 4, 4); R(x, '#2c2733', 6, 3, 4, 2); R(x, '#ffd23a', 4, 12, 8, 2); return true; }
   return furnIcon(id, x);
 }
 
@@ -3565,6 +3577,25 @@ function buildVyArt() {
   });
   photo('vyPhotoOld', 0); photo('vyPhotoNew', 1);
   def('memBox', 22, 16, x => { R(x, '#e8c4a8', 0, 4, 22, 12); R(x, '#f4dcc4', 1, 5, 20, 10); R(x, '#d9a88a', 0, 0, 22, 5); R(x, '#fffaf0', 4, 6, 6, 5); R(x, '#d94f8a', 13, 7, 5, 3); R(x, '#ffd23a', 12, 11, 7, 2); R(x, '#b8403a', 9, 1, 4, 3); });
+}
+
+/* ============================================================
+ *  VÒNG 26: nhà Quang (nhà cấp 4 mái tôn, cửa sắt xếp, thùng hàng của mẹ, xe đạp), cúp Đội trưởng
+ * ============================================================ */
+function buildQuangArt() {
+  def('hs_quang', 96, 82, x => {
+    const wall = '#e8e0cc', roof = '#3b82c4';
+    for (let j = 0; j < 20; j++) { const a = Math.round(6 - j * 0.3); R(x, j % 3 === 2 ? '#2f6aa8' : roof, a, 10 + j, 96 - a * 2, 1); }
+    for (let i = 2; i < 94; i += 4) R(x, '#5a9ad6', i, 10, 1, 20); R(x, '#2a4f80', 0, 30, 96, 2);
+    R(x, wall, 6, 32, 84, 50); R(x, '#d4cab2', 6, 32, 84, 2);
+    R(x, '#5f656f', 34, 44, 28, 38); for (let i = 35; i < 62; i += 3) R(x, '#8b8f9c', i, 45, 1, 37); R(x, '#3a3f4a', 34, 44, 28, 2); R(x, '#2a2136', 44, 50, 8, 32); R(x, '#6f472c', 45, 51, 6, 31);
+    hGlass(x, 12, 46, 16, 12); R(x, '#8a5a3a', 11, 58, 18, 2); hGlass(x, 68, 46, 16, 12); R(x, '#8a5a3a', 67, 58, 18, 2);
+    R(x, '#c9a467', 66, 64, 12, 10); R(x, '#a9853f', 66, 64, 12, 2); R(x, '#c9a467', 78, 68, 10, 8); R(x, '#a9853f', 78, 68, 10, 2); R(x, '#e2574c', 69, 67, 6, 2);
+    R(x, '#2f8f5a', 14, 66, 12, 9); for (let i = 15; i < 26; i += 3) R(x, '#1f6f44', i, 67, 1, 7);
+    R(x, '#d9342b', 28, 35, 40, 8); R(x, '#a8231d', 28, 42, 40, 1); R(x, '#ffd23a', 29, 36, 38, 1);
+    R(x, '#cfc8b8', 32, 80, 32, 2);
+  });
+  def('qgCup', 12, 14, x => { R(x, '#ffd23a', 2, 1, 8, 6); R(x, '#d9a441', 0, 2, 2, 3); R(x, '#d9a441', 10, 2, 2, 3); R(x, '#ffd23a', 5, 7, 2, 3); R(x, '#8a5a3a', 3, 10, 6, 3); R(x, '#fff6c8', 3, 2, 2, 2); });
 }
 
 'use strict';
@@ -3992,8 +4023,8 @@ function buildSchool() {
   const spots = [[250, 250], [300, 300], [180, 220], [220, 320], [380, 240], [330, 200], [200, 280], [360, 310], [270, 230]];
   const mates = [['khoa', 'Đạt', 'khoa'], ['vy', 'Vy', 'vy'], ['dat', 'Thái', 'dat'], ['m1', 'Quang · lớp trưởng', 'c1'], ['ngan', 'Ngân · 11A1', 'ngan'], ['m3', 'Đức', 'c3'], ['m4', 'Minh Anh', 'c4'], ['m2', 'Hiền', 'c9'], ['m5', 'Vũ', 'c5']];
   mates.forEach(([id, name, look], i) => {
-    const fr = !!FRIENDS[id];
-    NPCS.push({ id: 'y_' + id, fid: fr ? id : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(id) && !!yardPos(id) && !sceneHides(id), label: () => (fr ? FRIENDS[id].name : name), act: () => (fr ? ACT.friend(id, 'school') : ACT.mate(id)) });
+    const fid = id === 'm1' ? 'quang' : id, fr = !!FRIENDS[fid];         // Quang (m1) là bạn chính
+    NPCS.push({ id: 'y_' + id, fid: fr ? fid : null, sid: id, name, look, map: 'school', x: spots[i][0], y: spots[i][1], dir: i % 4, wander: 34, vis: () => yard() && !isComp(fid) && !!yardPos(id) && !sceneHides(id), label: () => (fr ? FRIENDS[fid].name + (fid === 'quang' ? ' (lớp trưởng)' : '') : name), act: () => (fr ? ACT.friend(fid, 'school') : ACT.mate(id)) });
   });
 }
 
@@ -4029,14 +4060,14 @@ function buildClass() {
     for (let sd = 0; sd < 2; sd++) {
       const sx = X[c] + 7 + sd * 14, sy = Y[r] + 30;
       if (mine && sd === 0) continue;
-      const sp = special[c + ',' + r + ',' + sd], fr = sp && FRIENDS[sp];
+      const sp = special[c + ',' + r + ',' + sd], spF = sp === 'm1' ? 'quang' : sp, fr = sp && FRIENDS[spF];   // Quang ngồi bàn đầu (mã m1)
       if (!seatTaken(c, r, sd, sp)) continue;
       CLASS_SEATED.add(c + ',' + r + ',' + sd);
       // bạn thân ngồi gần: giờ giải lao 10' giữa 2 tiết có thể quay sang rủ rê, trò chuyện, đấu thẻ
       NPCS.push({
-        id: 's_' + c + r + sd, sid: sp || null, fid: fr ? sp : null, name: fr ? fr.name : 'Bạn học', look: sp ? spLook[sp] : looks(k++), map: 'class', x: sx, y: sy, dir: 3, solid: true,
-        vis: sp ? () => classSeated() && !yardTime() && !sceneHides(sp) && !isComp(sp) : () => classSeated(),
-        label: fr ? () => `${FRIENDS[sp].name} (${fr.seat})` : null, act: fr ? () => ACT.friend(sp, 'class') : null,
+        id: 's_' + c + r + sd, sid: sp || null, fid: fr ? spF : null, name: fr ? fr.name : 'Bạn học', look: sp ? spLook[sp] : looks(k++), map: 'class', x: sx, y: sy, dir: 3, solid: true,
+        vis: sp ? () => classSeated() && !yardTime() && !sceneHides(sp) && !isComp(spF) : () => classSeated(),
+        label: fr ? () => `${FRIENDS[spF].name} (${spF === 'quang' ? 'lớp trưởng, ' : ''}${fr.seat})` : null, act: fr ? () => ACT.friend(spF, 'class') : null,
       });
     }
   }
@@ -4077,7 +4108,8 @@ function buildMaps() {
   addMeetNpcs(); buildFamily(); buildFamilyPlaces(); buildHsgPlaces(); buildCenter(); buildEcoPlaces(); buildHobbyPlaces(); buildStadium();
   seasonTrees();                                   // cây đổi màu theo mùa
   buildTrips();                                    // bạn bè, thầy cô, bố mẹ đi học / đi làm theo lịch (04l)
-  buildVyStory();                                  // tuyến truyện Vy: chỗ đứng theo lịch, bố mẹ Vy, nhà hát (04y)
+  buildVyStory();
+  buildQuangStory();                               // tuyến truyện Quang: nhà Quang ở phố Bờ Đông, cô Lan ở chợ, chú Thành ở nhà máy (04z)                                  // tuyến truyện Vy: chỗ đứng theo lịch, bố mẹ Vy, nhà hát (04y)
   widenEdgeZones();                                // đi qua mép trái / phải chỗ nào không bị chặn cũng sang được bản đồ kế tiếp
 }
 // Lối sang bản đồ bên cạnh ở mép trái / phải: nới rộng theo cả đoạn mép đi lại được (tới khi gặp tường, hàng rào, nhà)
@@ -4567,7 +4599,7 @@ function drawBcProps(now) {
  * ============================================================ */
 const atWork = who => !!FAM[who] && FAM[who].hidden && FAM[who].hiddenAt === 'work';
 const inRoom = who => !!FAM[who] && FAM[who].hidden && FAM[who].hiddenAt === 'room';
-const DONG = { w: 60, h: 26, factory: 600, rest: 344, kara: 470, bus: [300, 146, 280, 188] };
+const DONG = { w: 67, h: 26, factory: 600, rest: 344, kara: 470, bus: [300, 146, 280, 188] };
 const DONG_HOUSES = [['hs_bungalow', 20, 'bac_tu'], ['hs_shop', 124, 'co_lanh'], ['hs_tube2', 228, 'anh_long']];   // nhà gỗ hiên quanh · nhà ống có quầy bánh cuốn · nhà ống 3 tầng
 const NEIGHBOR_TALK = {
   bac_tu: ['Bác về hưu rồi, sáng nào cũng ra bờ sông đánh cờ với mấy ông bạn.', 'Học hành cho giỏi vào cháu, bác ngày xưa đi học phải lội bộ qua sông đấy.', 'Nhà máy bánh kẹo đầu phố thơm mùi đường cả ngày, cháu ngửi thấy không?'],
@@ -4742,6 +4774,7 @@ function migrate() {
   for (const t of G.tests || []) if (!t.q && !t.done && isPmDay(t.day)) { let d = t.day - 1; while (d > 0 && !isSchoolDay(d)) d--; t.day = d; }   // bản lưu cũ: bài kiểm tra rơi vào ngày họp thì dời lên hôm trước   // bản lưu cũ (ngày bắt đầu lúc 05:00): 06:00 mới thức dậy
   def('fish', {});                                     // cá câu được: id → số con
   def('vy', { ch: 0, trust: 50, flags: {}, romance: 'friend', inv: null, sick: -1, lunchWk: {}, help: 0 });   // tuyến truyện Vy (04y_vy.js)
+  def('qg', { ch: 0, flags: {}, vy: '', vyCouple: false, inv: null, tutWk: {}, swapWk: -1, mathWk: -1, natPrize: -1, congrats: -1, note: '' });   // tuyến truyện Quang (04z_quang.js)
   if (G.love === undefined) G.love = null; if (G.exLove === undefined) G.exLove = null;   // đang hẹn hò / người yêu cũ (04x_love.js)
   def('svd', { tix: {}, seen: {} });                   // vé sân vận động đã mua / đã xem (theo ngày)
   for (const k in G.bag) if (k.startsWith('vo_')) delete G.bag[k];   // đã bỏ cơ chế soạn vở
@@ -6022,6 +6055,7 @@ const FUN_SPOT = {
   ngan: { f: [78, 134, 2], me: [109, 134, 1], p: [93, 121], t: [[92, 62], [92, 112, 0]] },
   dat: { f: [111, 168, 3], me: [111, 134, 0], p: [108, 142], t: [[158, 62], [158, 152], [138, 152, 1]] },
   vy: { f: [161, 134, 1], me: [113, 134, 2], p: [144, 121], t: [[176, 62], [176, 112, 0]], mate: ['khoa', 128, 134, 2] },
+  quang: { f: [97, 134, 2], me: [111, 134, 1], p: [104, 121], t: [[92, 62], [92, 112, 0]] },
   back: { f: [172, 164, 1], me: [146, 164, 2], p: [154, 162], t: [[158, 62], [158, 144, 0]] },
 };
 // {co} = cô / thầy. lead: câu mở đầu khi chỉ diễn cảnh bị bắt (sau một trò khác)
@@ -6110,8 +6144,8 @@ function classFunCut(kind, fid, caught, only) {
   return { map: 'class', me: S.me, cam: { x: 160, y: 96 }, title: `Trong giờ học · ${K.title}`, actors, hide, props: funProps(K, S.p), steps };
 }
 // Bạn bị gọi lên bảng trả bài, mình ngồi dưới nhắc bài · caught: bị thầy cô phát hiện
-const SEAT_OF = { khoa: [125, 134], vy: [191, 134], dat: [111, 168] };   // chị Ngân học lớp 11 nên không có chỗ trong lớp
-const SEAT_AISLE = { khoa: 150, vy: 170, ngan: 86, dat: 150 };
+const SEAT_OF = { khoa: [125, 134], vy: [191, 134], dat: [111, 168], quang: [47, 100] };   // chị Ngân học lớp 11 nên không có chỗ trong lớp
+const SEAT_AISLE = { khoa: 150, vy: 170, ngan: 86, dat: 150, quang: 86 };
 const PROMPT_HINT = { toan: ['bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông…', 'Dạ… bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông ạ!'], van: ['bài thơ viết năm 1948… tình đồng chí…', 'Dạ… bài thơ ra đời năm 1948, nói về tình đồng chí ạ!'], anh: ['have/has cộng quá khứ phân từ…', 'Dạ… thì hiện tại hoàn thành là have hoặc has cộng quá khứ phân từ ạ!'], ly: ['F bằng m nhân a…', 'Dạ… lực bằng khối lượng nhân gia tốc ạ!'], hoa: ['hai H một O…', 'Dạ… công thức của nước là H2O ạ!'], sinh: ['ti thể… nhà máy năng lượng…', 'Dạ… ti thể là nơi tạo năng lượng cho tế bào ạ!'], su: ['năm 1945… mùng 2 tháng 9…', 'Dạ… ngày 2 tháng 9 năm 1945 ạ!'], dia: ['sông Hồng… phù sa…', 'Dạ… đồng bằng sông Hồng do phù sa bồi đắp ạ!'] };
 function promptCut(fid, subj, caught) {
   const F = FRIENDS[fid], S = SUBJ[subj], { look, co } = classTeacher(), Co = co[0].toUpperCase() + co.slice(1);
@@ -6595,6 +6629,7 @@ function friendHome(fid) {
   const t = G.time;
   if (tetTime()) return inWin(t, 420, 1290);                        // Tết: bạn ở nhà cả ngày
   if (fid === 'vy') return vyPlace() === 'home';                     // Vy có lịch riêng (04y_vy.js)
+  if (fid === 'quang') return qgPlace() === 'home';                  // Quang có lịch riêng (04z_quang.js)
   if (raining() && parkTime()) return true;                          // trời mưa không ra công viên, ở nhà
   return schoolToday() ? inWin(t, 1210, 1290) : (inWin(t, 390, 480) || inWin(t, 1090, 1290));
 }
@@ -6639,10 +6674,12 @@ async function talkMenu(fid, where) {
   if (tetTime() && !tetY2().give[fid]) add('lixi', `Lì xì cho ${F.name}`);
   if (isPartner(fid)) add('love', loveCool() === 2 && G.love.argued !== G.day ? 'Hỏi chuyện: “Cậu sao vậy?”' : 'Tâm sự riêng');
   if (fid === 'vy') vyTalkOpts(add, where);
+  if (fid === 'quang') qgTalkOpts(add, where);
   const c = ids.length === 1 ? 'chat' : (add('x', 'Thôi'), ids[await UI.ask(F.name, '<p>“Sao đó?”</p>', opts)] || 'x');
-  if (c === 'chat') { if (fid === 'vy' && !G.daily.chat['f_vy']) vyChat(); chat('f_' + fid, fid); if (isPartner(fid) && !G.daily['lc_' + fid]) { G.daily['lc_' + fid] = true; bondAdd(LOVE.chat); } }
+  if (c === 'chat') { if (fid === 'vy' && !G.daily.chat['f_vy']) vyChat(); if (fid === 'quang' && !G.daily.chat['f_quang']) qgChat(); chat('f_' + fid, fid); if (isPartner(fid) && !G.daily['lc_' + fid]) { G.daily['lc_' + fid] = true; bondAdd(LOVE.chat); } }
   else if (c === 'love') loveTalk(fid);
   else if (await vyTalkDo(c)) { }
+  else if (await qgTalkDo(c)) { }
   else if (c === 'duel') cardDuel('f_' + fid, fid, F.name, F.duel);
   else if (c === 'lixi') giveLixi(fid);
   else if (c.startsWith('brk:')) doBreakFun(fid, c.slice(4));
@@ -6664,6 +6701,7 @@ ACT.mate = async sid => {
 // where: 'school' sân trường · 'class' trong lớp · 'park' công viên · 'house' trước nhà bạn · 'meet' chỗ hẹn · 'comp' đang đi cùng mình
 ACT.friend = async (fid, where) => {
   if (fid === 'vy' && await vyTalkHook(where)) return;                 // sự kiện tuyến Vy khi gặp
+  if (fid === 'quang' && await qgTalkHook(where)) return;             // sự kiện tuyến Quang khi gặp (04z_quang.js)
   const F = FRIENDS[fid], hs = hearts(fid), opts = ['Nói chuyện'], ids = ['talk'], add = (id, t) => { ids.push(id); opts.push(t); };
   const atSch = (where === 'school' || where === 'class') && G.atSchool;
   if (where === 'comp') { if (!G.comp.skip) add('bye', 'Tạm biệt, ai về nhà nấy'); }
@@ -7199,6 +7237,7 @@ const MSG_TAM = {
   khoa: ['Đang cày game nè, tí nữa mới học.', 'Mai đá bóng không? Tớ mới mua đôi giày mới.', 'Bài Toán hôm nay khó ghê, tớ chép của Vy rồi.', 'Tớ vừa bóc được thẻ hiếm, mai mang lên lớp khoe.'],
   vy: ['Tớ đang soạn đề cương. Cậu ôn bài chưa đó?', 'Mai nhớ mang đủ sách vở nha, cô hay kiểm tra vở lắm.', 'Học xong tớ ra ban công ngắm sao, trời đẹp ghê.', 'Cuối tuần lên núi sau trường picnic đi, tớ làm cơm cuộn.'],
   dat: ['Đang tập bài hát mới cho văn nghệ, nghe thử không?', 'Chán học quá, mai kiếm trò gì vui đi.', 'Tớ mới săn được thẻ siêu hiếm, mai đấu không?', 'Khu game mới về máy nhảy đó, đi thử không?'],
+  quang: ['Đang ngồi tính sổ cho mẹ, toàn số lẻ, đau đầu ghê.', 'Mai kiểm tra Toán đó, ôn chưa? Có bài nào khó hỏi tớ nha.', 'Tớ vừa bóc được thẻ hiếm nè, mai mang lên lớp khoe.', 'Cuối tuần ra chợ Bờ Đông chơi không? Mẹ tớ làm chè ngon lắm.'],
   ngan: ['Tớ đang đắp mặt nạ, hihi.', 'Cuối tuần đi trung tâm thương mại không? Đang giảm giá.', 'Cậu thấy màu son cam đất hợp với tớ không?', 'Tiệm trà sữa Mây có vị mới, phải thử mới được.'],
 };
 const MSG_NO = ['Hôm đó tớ kẹt rồi, để bữa khác nha.', 'Mẹ tớ không cho đi rồi…', 'Tớ còn một đống bài chưa làm. Lần sau nhé!'];
@@ -7207,7 +7246,7 @@ function inbox(id, t) { if (!hasNum(id)) return; pushMsg(id, false, t); const k 
 // Ngày có bài kiểm tra 1 tiết / thi học kỳ / thi HSG: sáng sớm bố mẹ nhắn chúc trong nhóm Gia đình, bạn thân (từ 3♥, có số) cũng nhắn
 const WISH_MOM = ['Hôm nay con thi {s} đúng không? Bình tĩnh làm bài nhé, mẹ tin con!', 'Ăn sáng đầy đủ rồi hẵng đi thi nhé con. Làm bài cẩn thận, đọc kỹ đề!', 'Chúc con thi {s} thật tốt! Tối về mẹ nấu món con thích.'];
 const WISH_DAD = ['Cố lên con trai của bố! Thi {s} tốt nhé.', 'Bình tĩnh, tự tin, làm câu dễ trước. Bố chờ tin vui!', 'Thi tốt nhé con. Có gì khó cứ hít thở sâu rồi làm tiếp.'];
-const WISH_FR = { khoa: ['Thi {s} tốt nha! Có gì tớ cầu nguyện hộ 🙏', 'Hôm nay thi rồi, cố lên nhé đồng chí!'], vy: ['Chúc cậu thi {s} thật tốt nha! Nhớ đọc kỹ đề 💪', 'Ôn kỹ rồi thì tự tin lên, cậu làm được mà!'], dat: ['Thi tốt nha bạn hiền! Xong đi ăn mừng 🎉', 'Hôm nay thi {s} hả? Quẩy lên! Chúc may mắn!'], ngan: ['Chị chúc em thi {s} thật tốt nhé! Bình tĩnh là thắng 😉', 'Thi tốt nha em, xong chị khao trà sữa!'] };
+const WISH_FR = { quang: ['Thi {s} tốt nha! Bình tĩnh, đọc kỹ đề, câu dễ làm trước, câu khó để sau.', 'Cố lên! Thi xong ra chợ tớ khao chè.'], khoa: ['Thi {s} tốt nha! Có gì tớ cầu nguyện hộ 🙏', 'Hôm nay thi rồi, cố lên nhé đồng chí!'], vy: ['Chúc cậu thi {s} thật tốt nha! Nhớ đọc kỹ đề 💪', 'Ôn kỹ rồi thì tự tin lên, cậu làm được mà!'], dat: ['Thi tốt nha bạn hiền! Xong đi ăn mừng 🎉', 'Hôm nay thi {s} hả? Quẩy lên! Chúc may mắn!'], ngan: ['Chị chúc em thi {s} thật tốt nhé! Bình tĩnh là thắng 😉', 'Thi tốt nha em, xong chị khao trà sữa!'] };
 function examWishes() {
   const tests = (G.tests || []).filter(t => t.day === G.day && !t.done), H = typeof hsgCur === 'function' && hsgCur(), hk = H && hsgToday(H);
   const subj = [...new Set(tests.map(t => SUBJ[t.subj].name))];
@@ -7921,12 +7960,14 @@ ACT.machine = async (kind, mx) => {
 /* ---------- nhà bạn ---------- */
 ACT.house = async fid => {
   if (fid === 'vy' && vyHouseHook()) return;                           // sự kiện ở nhà Vy (học nhóm, hộp kỷ niệm, mang vở khi Vy ốm)
+  if (fid === 'quang' && qgHouseHook()) return;                        // bữa cơm nhà Quang (04z_quang.js)
   const F = FRIENDS[fid];
   if (!friendHome(fid)) {
     let where;
     if (G.time >= 1290 || G.time < 390) where = `“Khuya rồi cháu ơi, ${F.name} ngủ rồi.”`;
     else if (meetToday(fid)) where = `“${F.name} ra ${PLACES[G.meet.place].name} rồi, bảo là có hẹn với cháu mà?”`;
     else if (fid === 'vy') where = `“${{ school: 'Giờ này Vy đang ở trường mà cháu?', library: 'Vy ở lại thư viện trường ôn bài rồi.', park: 'Vy ra công viên bên khu nhà cháu đọc sách rồi.', flower: 'Vy ra cửa hàng hoa ở công viên khu nhà cháu rồi.', tea: 'Vy đi mua trà sữa ở đầu phố rồi.', rehearse: 'Vy ở lại phòng nhạc của trường tập kịch.', class: 'Vy chưa về, chắc còn ở lớp.', gate: 'Vy chưa về, trời mưa thế này chắc đang trú ở cổng trường.', cat: 'Vy chưa về đâu cháu.', bench: 'Vy ra công viên ngồi rồi.', night: 'Vy ra công viên rồi.', commute: 'Vy đang trên đường về.' }[vyPlace()] || 'Vy vừa ra ngoài rồi cháu ạ.'}” — bác Lài nói.`;
+    else if (fid === 'quang') where = `“${qgNotHome()}”`;
     else if (parkTime()) where = `“${F.name} ra công viên bên khu nhà cháu chơi rồi.”`;
     else if (isComp(fid)) where = `“Ơ, ${F.name} đang đi với cháu đấy thôi?”`;
     else if (schoolToday() && G.time < AFTER_SCHOOL) where = `“Giờ này ${F.name} đang ở trường mà cháu?”`;
@@ -7951,7 +7992,7 @@ ACT.house = async fid => {
   G.visit = fid;
   await goPlace('fhome', 289, 204, 3, 0);
 };
-ACT.leaveFh = () => { const hx = (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1]; goPlace('pho', hx + 49, 152, 0, 0); };
+ACT.leaveFh = () => { if (G.visit === 'quang') return goPlace('dong', QG.house + 49, 152, 0, 0); const hx = (FRIEND_HOUSE[G.visit] || FRIEND_HOUSE.khoa)[1]; goPlace('pho', hx + 49, 152, 0, 0); };
 ACT.fh = async kind => {
   const fid = G.visit, F = FRIENDS[fid], X = FH[kind], key = kind + '_' + fid;
   if (RT.lock) return;
@@ -8341,7 +8382,8 @@ function memoPeople() {
 }
 async function graduationDay() {
   if (G.memo.notes) return;
-  await vyGraduation();                                              // chương 7 tuyến Vy: kết thúc theo lựa chọn
+  await vyGraduation();
+  await qgGraduation();                                              // chương 7 tuyến Quang (04z_quang.js)                                              // chương 7 tuyến Vy: kết thúc theo lựa chọn
   G.memo.notes = {};
   const wrote = [];
   for (const p of memoPeople()) if (p.n >= MEMO_NOTE_HEARTS) { G.memo.notes[p.id] = { day: G.day, hearts: p.n }; wrote.push(p.name); }
@@ -11735,8 +11777,9 @@ const HSG_EXAM_DESKS = (() => { const a = []; for (let r = 0; r < 3; r++) for (l
 
 /* ---------- 6) chào cờ: lễ trao giải học sinh giỏi quốc gia ---------- */
 function hsgWinners(H) {   // các bạn khác của trường đoạt giải (cố định theo năm), cộng mình nếu có giải
-  const r = mulberry((H.year * 613 + 29) >>> 0), pool = [['c1', 'Quang', 'toan'], ['sB', 'Chị Mai', 'van'], ['sD', 'Chị Trang', 'hoa'], ['c6', 'Hoa', 'sinh'], ['sG', 'Gia Huy', 'ly'], ['vy', 'Vy', 'anh']].filter(w => w[2] !== H.subj);
-  const n = 1 + Math.floor(r() * 2), out = [];
+  // Quang (lớp trưởng, 04z_quang.js) năm nào cũng đoạt giải Nhất Toán; mình vẫn có thể đoạt giải riêng của mình, kể cả môn Toán
+  const r = mulberry((H.year * 613 + 29) >>> 0), pool = [['sB', 'Chị Mai', 'van'], ['sD', 'Chị Trang', 'hoa'], ['c6', 'Hoa', 'sinh'], ['sG', 'Gia Huy', 'ly'], ['vy', 'Vy', 'anh']].filter(w => w[2] !== H.subj);
+  const n = Math.floor(r() * 2), out = [{ look: 'quang', name: 'Quang', subj: 'toan', prize: 1 }];
   for (let i = 0; i < n; i++) { const w = pool.splice(Math.floor(r() * pool.length), 1)[0]; out.push({ look: w[0], name: w[1], subj: w[2], prize: 1 + Math.floor(r() * 3) }); }
   if (H.prize) out.push({ me: true, name: G.name, subj: H.subj, prize: H.prize });
   return out.sort((a, b) => a.prize - b.prize);
@@ -13012,7 +13055,7 @@ function svdNext(day, n) { const out = []; for (let d = day; d < day + 70 && out
 const svdLine = e => `${e.name} · ${dateLabel(e.day)} ${fmtTime(e.from)}`;
 BUS_STOPS.svd = { name: 'Sân vận động', map: 'svd', x: 642, y: 368, pos: 3, off: 1 };
 LINKS['dong>svd'] = { at: ['svd', 16, 356, 2], hop: WALK_HOP, label: 'Đi sang khu sân vận động…' };
-LINKS['svd>dong'] = { at: ['dong', 944, 172, 1], hop: WALK_HOP, label: 'Về phố Bờ Đông…' };
+LINKS['svd>dong'] = { at: ['dong', DONG.w * 16 - 16, 172, 1], hop: WALK_HOP, label: 'Về phố Bờ Đông…' };
 const MZ_X = 832;                                                         // tường khu quân sự (x)
 
 /* ---------- bản đồ ---------- */
@@ -13057,7 +13100,7 @@ function buildStadium() {
 
   /* ---------- lối sang từ phố Bờ Đông ---------- */
   const d = MAPS.dong;
-  addObj(d, { s: 'signpost', x: 926, y: 148, sol: [10, 22, 8, 8], label: () => 'Sân vận động →', act: () => ACT.go('dong', 'svd') });
+  addObj(d, { s: 'signpost', x: d.pw - 34, y: 150, sol: [10, 22, 8, 8], label: () => 'Sân vận động →', act: () => ACT.go('dong', 'svd') });
   d.zones.push({ x: d.pw - 8, y: 160, w: 8, h: 112, fn: () => ACT.go('dong', 'svd'), bx: -6 });
 
   /* ---------- bên trong sân: khán đài, mặt cỏ (sân khấu / khung thành tuỳ sự kiện) ---------- */
@@ -13322,7 +13365,7 @@ const DATABLE = ['vy', 'dat', 'ngan'];
 const LOVE = { flower: 'oaihuong', bond0: 72, idleDays: 4, idleLoss: 3, chat: 2, meetKept: 8, meetMissed: -8, missEvent: -15, cool: [55, 40, 25, 12], mendDays: 8, breakDays: 4 };
 const isPartner = fid => !!(G && G.love && G.love.fid === fid);
 const heartMax = id => (isPartner(id) ? 8 : 5);
-const friendCap = id => (!isPartner(id) ? 100 : id === 'vy' ? vyLoveCap() : 160);
+const friendCap = id => (!isPartner(id) ? 100 : id === 'vy' ? vyLoveCap() : id === 'quang' ? qgLoveCap() : 160);
 const loveCool = () => (G && G.love ? G.love.cool || 0 : 0);
 const lovePerks = () => !!G.love && loveCool() < 2;                       // quyền lợi hẹn hò còn mở (giai đoạn 1 vẫn mở)
 const busyLove = () => schoolEventsOn(G.day).length > 0 || (G.tests || []).some(t => t.type === 'thi' && Math.abs(t.day - G.day) <= 1);   // đang thi / sự kiện trường: không bị trừ
@@ -13339,6 +13382,11 @@ const LOVE_MSG = {
   mend: { vy: 'Chiều nay sau giờ học cậu ra ghế đá công viên được không? Tớ muốn nói chuyện thật lòng với cậu.', dat: 'Chiều nay ra ghế đá công viên nói chuyện chút nhé.', ngan: 'Chiều nay gặp chị ở ghế đá công viên nhé, mình nói chuyện.' },
   bye: { vy: 'Mai sau giờ học cậu ra ghế đá công viên nhé. Tớ có chuyện muốn nói.', dat: 'Mai ra ghế đá công viên nhé, có chuyện muốn nói.', ngan: 'Mai ra ghế đá công viên gặp chị nhé.' },
 };
+// Quang giấu cảm xúc bằng sự vui vẻ và bận rộn (04z_quang.js)
+Object.assign(LOVE_MSG.cool1, { quang: 'Dạo này tớ bận ôn đội tuyển với phụ mẹ quá, hì. Cuối tuần mình đi đâu đó nhé, lần này tớ không trễ hẹn đâu!' });
+Object.assign(LOVE_MSG.cool3, { quang: 'Chắc thời gian này tớ phải tập trung cho đội tuyển với cửa hàng của mẹ. Cậu cũng lo việc của cậu nhé.' });
+Object.assign(LOVE_MSG.mend, { quang: 'Chiều nay ra ghế đá công viên được không? Lần này tớ không đùa nữa, tớ muốn nói chuyện nghiêm túc.' });
+Object.assign(LOVE_MSG.bye, { quang: 'Mai sau giờ học ra ghế đá công viên nhé. Tớ nghĩ… hai đứa mình cần nói chuyện.' });
 const loveLine = (k, fid) => LOVE_MSG[k][fid] || LOVE_MSG[k].vy;
 
 /* ---------- hoa oải hương: ngỏ lời hẹn hò ---------- */
@@ -13350,12 +13398,15 @@ async function confess(fid) {
   if (G.love) return say(`“Cậu đang hẹn hò với ${FRIENDS[G.love.fid].name} mà? Đừng đùa kiểu đó.”`);
   if (G.exLove && G.exLove.fid === fid && G.day - G.exLove.day < 30) return say('“Chuyện của tụi mình… mới qua chưa lâu. Để thời gian trả lời đã nhé.”');
   if (hearts(fid) < 5) return say(`“Hoa đẹp quá… nhưng mà, tụi mình mới quen nhau thôi mà.” — ${F.name} đỏ mặt trả lại bó hoa.`);
+  if (fid === 'vy' && G.qg && G.qg.vyCouple) return say('“Cảm ơn cậu… nhưng tớ đang hẹn hò với Quang rồi mà. Mình vẫn là bạn tốt nhé.” — Vy khẽ cười, đưa lại bó hoa.');
+  if (fid === 'quang' && !qgCanDate()) return say(qgNoDateLine());
   if (fid === 'vy' && !vyCanDate()) return say(G.vy.flags.friend ? '“Tớ cứ nghĩ… tụi mình đã chọn làm bạn tốt rồi. Cho tớ suy nghĩ thêm nhé.” — Vy ôm bó hoa một lúc rồi đưa lại cho cậu.' : '“Hoa oải hương… tớ biết ý nghĩa của nó.” Vy cúi đầu: “Nhưng tớ còn chưa biết phải trả lời cậu thế nào. Cho tớ thêm thời gian nhé.”');
   RT.lock = true;
   gTake(flower);
-  if (fid === 'vy') await vyConfessCut(); else await genericConfess(fid);
+  if (fid === 'vy') await vyConfessCut(); else if (fid === 'quang') await qgConfessCut(); else await genericConfess(fid);
   G.love = { fid, since: G.day, bond: LOVE.bond0, last: G.day, cool: 0, coolDay: 0, mend: 0, argued: 0, inv: null };
   if (fid === 'vy') { G.vy.romance = 'dating'; G.vy.flags.dated = true; }
+  if (fid === 'quang') { qgSet('qconf'); addMemo('scene', 'qg_date'); }
   addFriend(fid, 6, true); addMemo('scene', 'henho');
   RT.lock = false; UI._hb = null; UI.hud();
   UI.toast(`${F.name} đã nhận lời! Hai người chính thức hẹn hò — mở thêm tim 6–8.`, 'good');
@@ -13369,6 +13420,7 @@ async function genericConfess(fid) {
 /* ---------- mỗi ngày: gắn kết giảm khi lâu không gặp, các giai đoạn nguội lạnh ---------- */
 function loveNewDay() {
   if (typeof vyNewDay === 'function') vyNewDay();
+  if (typeof qgNewDay === 'function') qgNewDay();
   const L = G.love; if (!L) return;
   const fid = L.fid, idle = G.day - (L.last || L.since);
   if (idle > LOVE.idleDays && !busyLove()) L.bond = clamp(L.bond - LOVE.idleLoss, 0, 100);
@@ -13389,6 +13441,7 @@ function loveNewDay() {
 const BENCH = { x: 334, y: 336 };
 function loveTick() {
   if (typeof vyTick === 'function' && vyTick()) return true;
+  if (typeof qgTick === 'function' && qgTick()) return true;
   const L = G.love; if (!L || !L.inv || RT.lock || RT.scene || UI.isOpen()) return false;
   if (G.day !== L.inv.day || G.map !== 'town' || !inWin(G.time, freeTime() ? Math.max(schoolEndT(), 840) : 1440, 1290)) return false;
   if (Math.hypot(G.x - BENCH.x, G.y - BENCH.y) > 46) return false;
@@ -13401,7 +13454,7 @@ const benchCut = (fid, steps, title) => playCut({ map: 'town', me: [BENCH.x - 12
 async function loveArgue() {
   const L = G.love, fid = L.fid, F = FRIENDS[fid], who = { look: fid, outfit: friendOutfit(fid) };
   L.argued = G.day; RT.lock = true;
-  const c = await UI.ask(F.name, `<p>${fid === 'vy' ? 'Vy nhìn xuống, giọng nhỏ lại: “Không có gì đâu…” Một lúc sau cô mới nói tiếp: “Thật ra… tớ buồn. Mấy lần mình hẹn rồi cậu quên mất. Tớ cứ tưởng chỉ mình tớ để ý.”' : `${F.name} khoanh tay: “Mấy lần hẹn rồi lại quên. Cậu có còn để ý tới tớ không vậy?”`}</p>`,
+  const c = await UI.ask(F.name, `<p>${fid === 'quang' ? 'Quang gãi đầu, cười gượng một lúc rồi mới nói: “Tớ biết ai cũng có việc riêng. Nhưng nếu hôm nào bận, cậu cứ nói trước với tớ nhé. Tớ cũng phải sắp xếp thời gian ở chợ với lịch đội tuyển nữa.”' : fid === 'vy' ? 'Vy nhìn xuống, giọng nhỏ lại: “Không có gì đâu…” Một lúc sau cô mới nói tiếp: “Thật ra… tớ buồn. Mấy lần mình hẹn rồi cậu quên mất. Tớ cứ tưởng chỉ mình tớ để ý.”' : `${F.name} khoanh tay: “Mấy lần hẹn rồi lại quên. Cậu có còn để ý tới tớ không vậy?”`}</p>`,
     ['Xin lỗi, là lỗi của tớ. Từ giờ tớ sẽ báo trước nếu không giữ hẹn được', 'Dạo này tớ bận học thật mà… nhưng tớ hiểu cậu buồn', 'Có gì đâu mà giận dữ vậy'], { who });
   if (c === 0) { bondAdd(15, 'cùng giải quyết mâu thuẫn'); if (fid === 'vy') G.vy.trust += 6; await UI.ask(F.name, '<p>“…Ừ. Cảm ơn vì đã nói thật. Tớ cũng sẽ nói ra khi buồn, không giấu nữa.”</p>', ['♥'], { who }); }
   else if (c === 1) { bondAdd(6); await UI.ask(F.name, '<p>“Tớ biết cậu bận. Chỉ là… lần sau nhắn tớ một câu thôi cũng được.”</p>', ['Ừ'], { who }); }
@@ -13414,7 +13467,7 @@ async function mendTalk() {
   const L = G.love, fid = L.fid, F = FRIENDS[fid], who = { look: fid, outfit: friendOutfit(fid) };
   RT.lock = true;
   let good = 0;
-  await benchCut(fid, [{ say: [0, fid === 'vy' ? 'Cậu đến rồi… Tớ cứ sợ cậu lại quên.' : 'Tới rồi hả. Ngồi đi.'] }, { say: ['me', 'Tớ đến rồi đây. Mình nói chuyện nhé.'] }], 'Một lần nói chuyện thật lòng');
+  await benchCut(fid, [{ say: [0, fid === 'vy' ? 'Cậu đến rồi… Tớ cứ sợ cậu lại quên.' : fid === 'quang' ? 'Cậu đến rồi. Hôm nay tớ không pha trò đâu, hứa đấy.' : 'Tới rồi hả. Ngồi đi.'] }, { say: ['me', 'Tớ đến rồi đây. Mình nói chuyện nhé.'] }], 'Một lần nói chuyện thật lòng');
   const q = [
     [`${F.name}: “Dạo này tụi mình cứ như hai người xa lạ. Cậu nghĩ sao?”`, ['Tớ muốn nghe cậu nói trước', 'Thì cũng bình thường mà'], 0],
     ['“Mấy lần cậu thất hứa, tớ đã rất buồn.”', ['Tớ thừa nhận, tớ đã không giữ lời. Xin lỗi cậu', 'Tại tớ bận chứ bộ'], 0],
@@ -13433,11 +13486,11 @@ async function mendTalk() {
 // chia tay (atBench: gặp ở ghế đá; không thì qua tin nhắn)
 async function breakUp(byMsg) {
   const L = G.love; if (!L) return;
-  const fid = L.fid, F = FRIENDS[fid], line = fid === 'vy' ? 'Tớ vẫn rất trân trọng những ngày chúng mình ở bên nhau. Nhưng gần đây, tớ cảm thấy hai đứa không còn hiểu nhau như trước nữa. Tớ nghĩ chúng mình nên dừng lại.' : 'Tụi mình dừng lại ở đây nhé. Cảm ơn cậu vì quãng thời gian vừa qua.';
+  const fid = L.fid, F = FRIENDS[fid], line = fid === 'quang' ? 'Tớ nghĩ hai đứa đều đã cố gắng. Nhưng có lẽ bây giờ chúng mình muốn những điều khác nhau. Tớ vẫn quý cậu, chỉ là tớ không muốn cả hai cứ tiếp tục mà không thật sự vui.' : fid === 'vy' ? 'Tớ vẫn rất trân trọng những ngày chúng mình ở bên nhau. Nhưng gần đây, tớ cảm thấy hai đứa không còn hiểu nhau như trước nữa. Tớ nghĩ chúng mình nên dừng lại.' : 'Tụi mình dừng lại ở đây nhé. Cảm ơn cậu vì quãng thời gian vừa qua.';
   if (byMsg) { if (hasNum(fid)) inbox(fid, line); RT.morning && RT.morning.push(`${F.name} nhắn tin chia tay. Hai người không còn hẹn hò nữa.`); }
   else {
     RT.lock = true;
-    await benchCut(fid, [{ say: [0, fid === 'vy' ? 'Cảm ơn cậu đã đến.' : 'Cậu đến rồi.'] }, { wait: 600 }, { say: [0, line] }, { say: ['me', '…'] }, { say: [0, 'Mình vẫn là bạn nhé. Đừng ghét tớ.'] }], 'Lời chia tay');
+    await benchCut(fid, [{ say: [0, fid === 'vy' ? 'Cảm ơn cậu đã đến.' : 'Cậu đến rồi.'] }, { wait: 600 }, { say: [0, line] }, { say: ['me', '…'] }, { say: [0, fid === 'quang' ? 'Mai vẫn đấu thẻ với tớ chứ? Đối thủ số một thì không được bỏ cuộc đâu đấy.' : 'Mình vẫn là bạn nhé. Đừng ghét tớ.'] }], 'Lời chia tay');
     RT.lock = false;
   }
   G.exLove = { fid, day: G.day, mended: !!L.mended };
@@ -13458,7 +13511,7 @@ async function loveTalk(fid) {
   if (G.daily['lt_' + fid]) return UI.ask(F.name, '<p>“Hôm nay tâm sự đủ rồi, mai kể tiếp nha.”</p>', ['Ừ'], { who });
   G.daily['lt_' + fid] = true;
   bondAdd(loveCool() >= 1 ? 6 : LOVE.chat);
-  const L = fid === 'vy' ? vyLoveLine() : pick([`“Hôm nay ở lớp có chuyện buồn cười lắm, để tớ kể cho nghe…”`, '“Cuối tuần này mình đi đâu chơi nhỉ?”', '“Ở cạnh cậu thấy vui ghê.”']);
+  const L = fid === 'vy' ? vyLoveLine() : fid === 'quang' ? qgLoveLine() : pick([`“Hôm nay ở lớp có chuyện buồn cười lắm, để tớ kể cho nghe…”`, '“Cuối tuần này mình đi đâu chơi nhỉ?”', '“Ở cạnh cậu thấy vui ghê.”']);
   await UI.ask(F.name, `<p>${L}</p>`, ['♥'], { who });
 }
 
@@ -13915,6 +13968,466 @@ async function vyTalkDo(c) {
   if (c === 'vystudy') { G.daily.vyStudy = true; await studyMenu(SELF_STUDY.mins, Math.round(SELF_STUDY.pts * 1.5), SELF_STUDY.stam, true); addFriend('vy', 3); if (isPartner('vy')) bondAdd(4); return true; }
   if (c === 'vyhelp') { G.daily.vyHelp = true; G.vy.help = (G.vy.help || 0) + 1; await activity('Cầm kịch bản nhắc thoại cho Vy…', 40, () => { addFriend('vy', 4); addStat('vannghe', 2); }); if (isPartner('vy')) bondAdd(4); return true; }
   return false;
+}
+
+'use strict';
+/* ============================================================
+ *  04z. TUYẾN TRUYỆN QUANG — "Chàng lớp trưởng luôn đứng đầu" (theo bản thiết kế cốt truyện của người làm game)
+ *  Nguyễn Minh Quang: lớp trưởng 10A1, học bá Toán, mê thẻ cầu thủ, hoạt bát, giấu cảm xúc của mình. Ngoại hình: mã c1
+ *  (nhân vật “học bá” tóc rẽ hai mái, đeo kính trong bộ ảnh). Thích thầm Vy từ hồi tiểu học.
+ *  Mẹ — cô Lan: bán đồ khô ở chợ Bờ Đông (sạp có bán hàng). Bố — chú Thành: công nhân kỹ thuật ở nhà máy bánh kẹo, làm theo ca
+ *  (tuần chẵn ca sáng 06:00–14:00, tuần lẻ ca chiều 14:00–22:00). Nhà Quang: nhà cấp 4 mái tôn cuối phố Bờ Đông, cạnh chợ.
+ *
+ *  LỊCH CỦA QUANG (qgPlace): ngày đi học thì ở trường; tan học thứ 2–4–6 ra chợ phụ mẹ, thứ 3–5 đá bóng ở sân công viên;
+ *  thứ 7: sáng phụ chợ, chiều đá bóng · chủ nhật: sáng + chiều phụ chợ · còn lại ở nhà.
+ *  CHƯƠNG (G.qg.ch): 1 Lớp trưởng cái gì cũng biết (rủ đấu thẻ, cho mượn thẻ) · 2 Thiên tài tính nhẩm ở chợ (mini-game bán hàng)
+ *   3 Đối thủ số một (khi giỏi Toán: thi giải Toán ở thư viện) · 4 Bí mật của lớp trưởng (ảnh cũ với Vy, từ lớp 11 hoặc mùa Xuân lớp 10)
+ *   5 Tớ nên nói với Vy thế nào? — đang hẹn hò với Vy: Quang chúc phúc ở sân bóng (nhánh A) · không: nhờ làm “quân sư”, Quang tỏ tình
+ *     với Vy ở quán trà sữa Mây (nhánh B: Vy từ chối, hoặc nhận lời nếu Vy không có cảm tình với mình)
+ *   6 Không phải bài toán nào cũng có đáp án — “Buổi chiều cuối cùng ở chợ” (chủ nhật, độc thân, 5♥, Quang đã khép lại tình cảm với Vy);
+ *     vài hôm sau Quang tự tỏ tình (hoặc tặng hoa oải hương) → hẹn hò. Khó hơn các tuyến khác: quà không thay được các sự kiện.
+ *   6♥ khi hẹn hò: bữa cơm nhà Quang (mở tim 7–8) · 8♥: Cúp Đội trưởng + thẻ kỷ niệm “Quang Đội Trưởng” · 7 tốt nghiệp: 4 kết thúc.
+ *  KHI YÊU QUANG: hẹn Quang tối qua nhà kèm học, hoặc sang nhà Quang học chung — hiệu quả như một buổi học thêm (tối đa 2 buổi/tuần);
+ *  đá bóng cùng, đổi thẻ trùng, phụ bán ở sạp nhà Quang (tiền công + Buôn bán), giảm giá ở sạp nhà Quang (từ 7♥), nhắc lịch thi.
+ * ============================================================ */
+LOOK_OF.quang = () => 'c1';
+Object.assign(OUTFITS, { cas_quang: { shirt: '#3b6fb6', pants: '#2a2f3a', badge: null } });
+Object.assign(LOOKS, {
+  quangMom: { hair: '#3a2a2a', style: 'bun', shirt: '#e98f4a', pants: '#4a3f5b', apron: '#5fae4a', skin: '#e3ae80', eye: 'smile' },
+  quangDad: { hair: '#2c2733', style: 'short', cap: '#3b6fb6', shirt: '#4a6fa5', pants: '#3a4a6b', skin: '#c98a5a' },
+});
+FRIEND_PARENTS.quang = ['quangDad', 'quangMom'];
+Object.assign(FOODS, { lacrang: { name: 'Lạc rang', stam: 6, gift: 2 }, banhquy: { name: 'Bánh quy bơ', stam: 8, gift: 3 }, migoi: { name: 'Mì gói', stam: 14, gift: 2 } });
+DATABLE.push('quang');
+Object.assign(MEMO_SCENES, {
+  qg_c1: { name: 'Lớp trưởng cái gì cũng biết', icon: 'qg_card', desc: 'Ngày đầu đi học, lớp trưởng Quang rủ đấu thẻ cầu thủ ngay giờ ra chơi.' },
+  qg_c2: { name: 'Thiên tài tính nhẩm ở chợ Bờ Đông', icon: 'qg_calc', desc: 'Đứng sạp đồ khô của cô Lan, tính tiền thối tiền cùng Quang.' },
+  qg_c3: { name: 'Đối thủ số một', icon: 'sc_hsg', desc: 'Trận thi tính nhẩm ở thư viện — từ hôm đó hai đứa thành đối thủ.' },
+  qg_c4: { name: 'Bí mật của lớp trưởng', icon: 'qg_photo', desc: 'Tấm ảnh cũ rơi ra từ xấp thẻ: Quang và Vy hồi tiểu học.' },
+  qg_c5: { name: 'Tớ nên nói với Vy thế nào?', icon: 'vy_heart', desc: 'Quang cuối cùng cũng nói ra điều giấu kín từ hồi tiểu học.' },
+  qg_c6: { name: 'Buổi chiều cuối cùng ở chợ', icon: 'banhmi', desc: 'Dọn sạp, ăn bánh mì, nói chuyện về sau này: “Cậu chờ tớ được không?”' },
+  qg_date: { name: 'Câu trả lời là cậu', icon: 'vy_heart', desc: '“Không phải bài toán nào cũng có đáp án… nhưng câu trả lời của tớ là cậu.”' },
+  qg_dinner: { name: 'Bữa cơm nhà Quang', icon: 'comhop', desc: 'Canh cua, cà pháo và những câu chuyện bố Quang kể mãi không hết.' },
+  qg_cup: { name: 'Cúp Đội trưởng', icon: 'qg_cup', desc: 'Giải đấu thẻ do Quang tổ chức, chung kết chỉ có hai đứa.' },
+  qg_grad: { name: 'Người giỏi nhất không nhất thiết phải đứng nhất', icon: 'b_hocba', desc: 'Ngày tốt nghiệp, lớp trưởng nói lời cảm ơn dưới sân trường.' },
+});
+Object.assign(MEMO_ITEMS, { cupdoitruong: { name: 'Cúp Đội trưởng', desc: 'Chiếc cúp sơn vàng cùng lá thẻ “Quang Đội Trưởng” có chữ ký của lớp trưởng.', hint: 'Đạt 8 tim khi hẹn hò với Quang' } });
+const QG = { house: 962, stall: [224, 142], me: [258, 146], field: [700, 330], tutWeek: 2, help: { pay: 30000, pts: 3, mins: 60 }, lesson: 90, toanBonus: 4 };
+const QG_STALL = [{ id: 'lacrang', name: 'Lạc rang', price: 8000, desc: 'Túi lạc rang muối cô Lan tự rang' }, { id: 'banhquy', name: 'Bánh quy bơ', price: 12000, desc: 'Hộp bánh quy giòn tan' }, { id: 'migoi', name: 'Mì gói', price: 6000, desc: 'Gói mì ăn liền, đói bụng là có ngay' }];
+const qgWho = () => ({ look: 'quang', outfit: friendOutfit('quang') });
+const qgAsk = (t, opts) => UI.ask('Quang', `<p>${t}</p>`, opts || ['…'], { who: qgWho() });
+const qgF = k => !!(G.qg && G.qg.flags[k]);
+const qgSet = k => { G.qg.flags[k] = G.day + 1; };
+const qgA = (x, y, dir, extra) => Object.assign({ look: 'quang', outfit: friendOutfit('quang'), x, y, dir }, extra || {});
+const qgMathGood = () => lv('toan') >= 3 || Object.values(G.grades || {}).some(g => (g.toan || []).some(x => x.s >= 8));
+
+/* ---------- lịch Quang và bố mẹ ---------- */
+function qgPlace() {
+  if (!G || !G.qg) return null;
+  const t = G.time, c = cal(G.day), Q = G.qg;
+  if (meetToday('quang') || isComp('quang')) return 'out';
+  if (Q.inv && Q.inv.day === G.day && Q.inv.place && inWin(t, Q.inv.from, Q.inv.to)) return Q.inv.place;
+  if (t < 360 || t >= 1290) return 'sleep';
+  if (tetTime()) return 'home';
+  if (schoolToday()) {
+    const end = schoolEndT();
+    if (t < end) return 'school';
+    if (c.dow % 2 === 0) return inWin(t, end + 30, 1080) ? 'market' : t < end + 30 ? 'commute' : 'home';
+    return inWin(t, end + 20, end + 100) && !raining() ? 'field' : t < end + 20 ? 'commute' : 'home';
+  }
+  if (inWin(t, 390, 660)) return 'market';
+  if (c.dow === 5 && inWin(t, 870, 1020)) return raining() ? 'home' : 'field';
+  if (c.dow === 6 && inWin(t, 840, 1050)) return 'market';
+  return 'home';
+}
+const qgMomPlace = () => { const t = G.time; if (tetTime()) return 'home'; if (inWin(t, 330, 1080)) return 'market'; return t >= 1290 || t < 330 ? 'sleep' : 'home'; };
+const qgShift = d => (wk(d) % 2 === 0 ? [360, 840] : [840, 1320]);              // tuần chẵn ca sáng, tuần lẻ ca chiều
+function qgDadPlace() {
+  const c = cal(G.day), t = G.time;
+  if (tetTime() || c.dow === 6) return t >= 1320 || t < 360 ? 'sleep' : 'home';
+  const [a, b] = qgShift(G.day);
+  if (inWin(t, a - 20, a)) return 'go'; if (inWin(t, a, b)) return 'factory'; if (inWin(t, b, b + 20)) return 'back';
+  return t >= 1350 || t < 330 ? 'sleep' : 'home';
+}
+
+/* ---------- dựng nhân vật, nhà Quang ---------- */
+function buildQuangStory() {
+  const d = MAPS.dong, hx = QG.house + 49;
+  const H0 = addHouse(d, 'hs_quang', QG.house, 47, { door: true, label: () => 'Nhà Quang — bấm chuông', act: () => ACT.house('quang') });
+  d.labels.push({ x: H0.x + 49, y: H0.y + 40, text: 'TẠP HOÁ LAN', size: 5, col: '#ffe066', maxw: 36 });
+  const pq = (id, map, x, y, dir, place, label, extra) => NPCS.push(Object.assign({ id, fid: 'quang', name: 'Quang', look: 'quang', outfit: () => friendOutfit('quang'), map, x, y, dir, vis: () => qgPlace() === place && !sceneHides(id), label: () => `Quang — ${label}`, act: () => ACT.friend('quang', place) }, extra || {}));
+  pq('qg_mk', 'cho', QG.me[0], QG.me[1], 0, 'market', 'đang phụ mẹ bán hàng ở sạp đồ khô');
+  pq('qg_field', 'town', QG.field[0], QG.field[1], 1, 'field', 'đang đá bóng ở sân công viên', { wander: 24 });
+  pq('qg_front', 'dong', hx + 22, 146, 0, 'home', 'đang xếp thùng hàng trước nhà', { wander: 8, vis: () => qgPlace() === 'home' && inWin(G.time, 1080, 1110) && !raining() && !tripRun('qg_home') && !sceneHides('qg_front') });
+  pq('qg_myhome', 'home', 92, 62, 1, 'myhome', 'sang kèm bạn học bài (bấm để bắt đầu học)', { act: () => qgLesson('home') });
+  // mẹ Quang ở sạp đồ khô trong chợ (thay người bán cũ), bố Quang ở nhà máy theo ca
+  const mk = NPCS.find(n => n.id === 'mk_mk_kho');
+  if (mk) Object.assign(mk, { name: 'Cô Lan', look: 'quangMom', vis: () => qgMomPlace() === 'market' && !sceneHides('mk_mk_kho'), label: () => 'Cô Lan (mẹ Quang) — sạp đồ khô', act: () => ACT.qgStall() });
+  NPCS.push({ id: 'qg_dad_f', name: 'Chú Thành', look: 'quangDad', map: 'nhamay', x: 200, y: 120, dir: 3, vis: () => qgDadPlace() === 'factory', label: () => 'Chú Thành — bố Quang, công nhân kỹ thuật', act: () => qgParentTalk('dad') });
+  const [a0, b0] = [700, 132];
+  addTrip({ id: 'qgd_go', map: 'dong', look: 'quangDad', name: 'Chú Thành', at: () => qgShift(G.day)[0] - 20, win: 20, when: () => qgDadPlace() === 'go', legs: () => [[hx, 130, 'walk'], [hx, 176, 'walk'], [a0, 176, 'walk'], [a0, b0, 'walk']] });
+  addTrip({ id: 'qgd_bk', map: 'dong', look: 'quangDad', name: 'Chú Thành', at: () => qgShift(G.day)[1], win: 20, when: () => qgDadPlace() === 'back', legs: () => [[a0, b0, 'walk'], [a0, 176, 'walk'], [hx, 176, 'walk'], [hx, 130, 'walk']] });
+  // Quang đi học / ra chợ / về nhà trên phố Bờ Đông (mép trái là đường ra bờ sông, sang trường)
+  const MK = [883, 130], qo = { look: 'quang', outfit: () => friendOutfit('quang'), name: 'Quang', map: 'dong' }, free = () => !!G && !isComp('quang') && !meetToday('quang');
+  const marketDay = () => schoolToday() && cal(G.day).dow % 2 === 0;
+  addTrip(Object.assign({ id: 'qg_sch', at: 372, win: 22, when: () => free() && schoolToday(), legs: () => [[hx, 130, 'walk'], [hx, 176, 'walk'], [-14, 176, 'walk']] }, qo));
+  addTrip(Object.assign({ id: 'qg_tomk', at: () => schoolEndT() + 16, win: 14, when: () => free() && marketDay(), legs: () => [[-14, 176, 'walk'], [MK[0], 176, 'walk'], [MK[0], MK[1], 'walk']] }, qo));
+  const ballEnd = () => schoolEndT() + (rainAt(G.day, schoolEndT() + 20) > 0 ? 22 : 102);       // thứ 3–5: đá bóng xong mới về (mưa thì về luôn)
+  addTrip(Object.assign({ id: 'qg_home', at: () => (marketDay() ? 1080 : ballEnd()), win: 16, when: () => free() && schoolToday(), legs: () => (marketDay() ? [[MK[0], MK[1], 'walk'], [MK[0], 176, 'walk'], [hx, 176, 'walk'], [hx, 130, 'walk']] : [[-14, 176, 'walk'], [hx, 176, 'walk'], [hx, 130, 'walk']]) }, qo));
+  addTrip(Object.assign({ id: 'qg_wk', at: 376, win: 14, when: () => free() && !schoolToday() && !tetTime(), legs: () => [[hx, 130, 'walk'], [hx, 176, 'walk'], [MK[0], 176, 'walk'], [MK[0], MK[1], 'walk']] }, qo));
+  // bố mẹ Quang trong nhà khi sang nhà Quang
+  for (const [id, who] of [['fhp_bo', 'dad'], ['fhp_me', 'mom']]) {
+    const n = NPCS.find(q => q.id === id); if (!n) continue;
+    const v1 = n.vis, a1 = n.act, l1 = n.label;
+    n.vis = () => (G.visit === 'quang' ? !sceneHides(id) && (tetTime() || (who === 'dad' ? qgDadPlace() === 'home' : qgMomPlace() === 'home')) : v1());
+    n.act = () => (G.visit === 'quang' && !tetTime() ? qgParentTalk(who) : a1());
+    n.label = () => (G.visit === 'quang' ? (who === 'dad' ? 'Chú Thành — bố Quang' : 'Cô Lan — mẹ Quang') : l1());
+  }
+}
+function qgParentTalk(who) {
+  if (who === 'dad') return UI.ask('Chú Thành', `<p>“${pick(['Thằng Quang nhà chú ham học lắm, chú chỉ lo nó học khuya quá thôi.', 'Hôm nay chú làm ca ' + (qgShift(G.day)[0] === 360 ? 'sáng' : 'chiều') + '. Máy móc ở xưởng chạy đều, không sao cả.', 'Cháu chơi với Quang thì nhắc nó nghỉ ngơi giúp chú nhé.'])}”</p>`, ['Dạ'], { who: { look: 'quangDad' } });
+  return UI.ask('Cô Lan', `<p>“${pick(['Bạn của Quang hả? Ăn gói lạc này đi cháu, cô vừa rang!', 'Thằng Quang nhà cô tính tiền còn nhanh hơn máy tính đấy, hihi.', 'Cuối tuần chợ đông, rảnh thì ra phụ cô với Quang nhé, cô trả công đàng hoàng.'])}”</p>`, ['Dạ'], { who: { look: 'quangMom' } });
+}
+// sạp đồ khô của cô Lan: mua hàng (từ 7♥ khi hẹn hò với Quang: giảm 10%)
+ACT.qgStall = () => {
+  if (!inWin(G.time, 300, 1080)) return UI.say('Sạp đồ khô cô Lan', 'Chợ đã tan.<p class="dim">Chợ họp 05:00–18:00.</p>');
+  const off = isPartner('quang') && hearts('quang') >= 7 ? 0.9 : 1;
+  const items = () => QG_STALL.map(it => Object.assign({}, it, { price: Math.round(it.price * off / 1000) * 1000 || 1000 }));
+  UI.store('Sạp đồ khô cô Lan', `“Mua gì cháu ơi? ${off < 1 ? 'Người nhà cả, cô bớt cho!' : 'Hàng mới về, rẻ lắm!'}”`, items, it => {
+    if (G.money < it.price) return UI.toast('Không đủ tiền.', 'bad');
+    addMoney(-it.price, true); gAdd(it.id); UI._hb = null; UI.hud(); UI.toast(`Đã mua ${it.name.toLowerCase()} (−${fmtMoney(it.price)}).`, 'good');
+  }, () => (off < 1 ? '<p class="dim">Ưu đãi người nhà: giảm 10% ở sạp nhà Quang.</p>' : ''));
+};
+
+/* ---------- mini-game: bán hàng cùng Quang (tính tiền, trả tiền thừa, thương lượng) ---------- */
+async function qgSellGame(title) {
+  let ok = 0, n = 0;
+  const customers = [['c4', 'Cô Hoa'], ['ph3', 'Bác Năm'], ['c9', 'Chị Thảo']];
+  for (const [look, nm] of customers) {
+    const k = 2 + Math.floor(Math.random() * 2), pick3 = QG_STALL.slice().sort(() => Math.random() - 0.5).slice(0, k), qty = pick3.map(() => 1 + Math.floor(Math.random() * 3));
+    const total = pick3.reduce((s, it, i) => s + it.price * qty[i], 0), pay = total <= 20000 ? 20000 : total <= 50000 ? 50000 : 100000;
+    const list = pick3.map((it, i) => `${qty[i]} ${it.name.toLowerCase()} (${fmtMoney(it.price)})`).join(', ');
+    const opts1 = [total, total + 2000, total - 2000].sort(() => Math.random() - 0.5);
+    const c1 = await UI.ask(`${title} · ${nm}`, `<p>${nm}: “Lấy cho cô ${list} nhé.”</p><p class="dim">Tổng bao nhiêu?</p>`, opts1.map(fmtMoney), { who: { look } });
+    n++; if (opts1[c1] === total) ok++;
+    const ch = pay - total, opts2 = [ch, ch + 1000, ch + 5000].sort(() => Math.random() - 0.5);
+    const c2 = await UI.ask(`${title} · ${nm}`, `<p>${nm} đưa tờ ${fmtMoney(pay)}. Trả lại bao nhiêu?</p>`, opts2.map(fmtMoney), { who: { look } });
+    n++; if (opts2[c2] === ch) ok++;
+  }
+  const c3 = await UI.ask(`${title} · thương lượng`, '<p>Một bà cụ xin bớt: “Bớt cho bà ít đi cháu, bà mua nhiều mà.”</p>', ['Bớt cho bà 2 nghìn, tặng thêm cái túi', 'Dạ giá này là rẻ nhất rồi ạ', 'Bớt một nửa luôn bà ơi'], { who: { look: 'ph1' } });
+  n++; if (c3 === 0) ok++;
+  return ok / n;
+}
+async function qgHelpStall() {
+  if (G.daily.qgHelp) return UI.toast('Hôm nay đã phụ sạp nhà Quang rồi.');
+  if (G.stamina < 6) return UI.toast('Mệt quá, không phụ bán nổi.', 'bad');
+  G.daily.qgHelp = true; RT.lock = true;
+  const s = await qgSellGame('Phụ bán cùng Quang');
+  const dating = isPartner('quang'), pts = Math.round(QG.help.pts * (0.6 + s) * (dating ? 1.1 : 1)), pay = Math.round(QG.help.pay * (0.5 + s) / 1000) * 1000;
+  advanceTime(QG.help.mins); useStam(6, true); addStat('buonban', pts); addWage('Phụ bán ở sạp nhà Quang', pay); addFriend('quang', 3); if (dating) bondAdd(4);
+  RT.lock = false; UI.hud();
+  UI.toast(`Phụ bán xong: đúng ${Math.round(s * 100)}% · +${pts} Buôn bán · tiền công ${fmtMoney(pay)} (trả cuối ngày).`, 'good');
+}
+
+/* ---------- các chương ---------- */
+async function qgCh1() {
+  RT.lock = true;
+  await playCut({ inPlace: true, bars: true, title: 'Chương 1 · Lớp trưởng cái gì cũng biết', actors: [qgA(G.x + 18, G.y, 1)], hide: ['m1'],
+    steps: [{ say: [0, `Chào ${G.name}! Tớ là Quang, lớp trưởng. Có gì chưa biết cứ hỏi tớ: lịch học, thầy cô, nhà vệ sinh ở đâu, tớ biết hết!`] },
+      { say: ['me', 'Nghe bảo cậu làm bài Toán nhanh nhất lớp hả?'] }, { say: [0, 'Ờ thì… Toán dễ mà. Nhưng ra chơi thì tớ chỉ quan tâm cái này thôi!'] },
+      { say: [0, 'Thẻ cầu thủ! Đấu với tớ một trận không? Tiền đạo của tớ mạnh nhất lớp đó.'] }] });
+  if (!cardCount()) {
+    const commons = CARDS.filter(c => c.r === 0).sort(() => Math.random() - 0.5).slice(0, 5);
+    for (const c of commons) G.cards[c.id] = (G.cards[c.id] || 0) + 1;
+    await qgAsk('“Chưa có thẻ hả? Cầm tạm mấy lá này của tớ mà chơi thử. Thua cũng không sao, coi như học việc!”', ['Cảm ơn lớp trưởng!']);
+  }
+  G.qg.ch = 1; addFriend('quang', 4); addMemo('scene', 'qg_c1'); RT.lock = false; UI.hud();
+  if (!G.cardTut) return qgAsk('“À mà cậu chưa biết luật chơi hả? Ra sân trường nhờ mấy anh khoá trên chỉ cho, xong đấu với tớ nhé. Tớ chờ đấy!”', ['Ok lớp trưởng']);
+  await cardDuel('f_quang', 'quang', 'Quang', 'kha');
+}
+async function qgCh2() {
+  RT.lock = true;
+  await playCut({ map: 'cho', me: [QG.me[0] + 4, QG.me[1] + 26, 3], cam: { x: 230, y: 120 }, title: 'Chương 2 · Thiên tài tính nhẩm ở chợ Bờ Đông', hide: ['qg_mk', 'mk_mk_kho'], actors: [qgA(QG.me[0], QG.me[1], 0), { look: 'quangMom', x: QG.stall[0], y: QG.stall[1], dir: 0 }, { look: 'c4', x: 290, y: 170, dir: 1 }],
+    steps: [{ say: [2, 'Hai lạc, một bánh quy, ba mì gói. Bao nhiêu cháu?'] }, { say: [0, 'Dạ 16 nghìn lạc, 12 nghìn bánh, 18 nghìn mì — 46 nghìn ạ! Cô đưa 50 thì cháu thối 4 nghìn.'] },
+      { say: ['me', 'Ơ… Quang tính nhanh thế!'] }, { fn: sc => { sc.actors[0].dir = 3; } }, { say: [0, `Ủa, ${G.name}! Cậu đi chợ hả? Tớ tính nhanh là nhờ phụ mẹ từ bé đấy, chứ sách vở dạy đâu có thối tiền.`] },
+      { say: [1, 'Bạn của Quang hả? Hôm nay chợ đông quá, cháu phụ cô với Quang một tay nhé!'] }] });
+  const s = await qgSellGame('Bán hàng cùng Quang');
+  await qgAsk(s >= 0.7 ? '“Đỉnh! Cậu có khiếu buôn bán đấy. Lúc nào rảnh ra phụ tớ, mẹ tớ trả công đàng hoàng.”' : '“Không sao, lần đầu ai cũng vậy. Tính tiền thì cứ cộng từng món, làm nhiều là quen tay.”', ['Ừ!']);
+  addStat('buonban', 3 + Math.round(4 * s)); addFriend('quang', 6); advanceTime(40);
+  G.qg.ch = 2; addMemo('scene', 'qg_c2'); RT.lock = false; UI.hud();
+  UI.toast('Mở khoá: phụ bán ở sạp nhà Quang (thứ 2–4–6 sau giờ học, sáng cuối tuần) — có tiền công và điểm Buôn bán.', 'good');
+}
+async function qgCh3() {
+  RT.lock = true; let win = 0;
+  const qs = [[17, 6], [24, 15], [13, 13]].map(([a, b]) => { const v = a * b; return [`${a} × ${b} = ?`, [v, v + 10, v - 6].sort(() => Math.random() - 0.5), v]; });
+  await playCut({ map: 'thuvien', me: [143, 126, 2], cam: { x: 176, y: 110 }, title: 'Chương 3 · Đối thủ số một', actors: [qgA(205, 126, 1)],
+    steps: [{ say: [0, 'Nghe nói bài Toán vừa rồi cậu được điểm cao lắm hả? Cuối cùng cũng có đối thủ xứng tầm!'] }, { say: [0, 'Thi tính nhẩm với tớ đi. Ba câu, ai nhanh hơn thắng!'] },
+      { live: async () => { for (const [q, opts, v] of qs) { const c = await UI.ask('Thi tính nhẩm với Quang', `<p><b>${q}</b></p><p class="dim">Quang đang nhẩm…</p>`, opts.map(String), { who: qgWho() }); if (opts[c] === v) win++; } } },
+      { say: [0, ''] }] });
+  const won = win >= 2;
+  await qgAsk(won ? '“Cậu đúng ' + win + '/3! Ghê thật… Tớ thua rồi nhưng vui ghê, từ giờ mình là đối thủ nhé!”' : `“Đúng ${win}/3, tớ thắng nha! Nhưng cậu tiến bộ nhanh lắm, lần sau chưa chắc đâu.”`, ['Hẹn tái đấu!']);
+  addStat('toan', won ? 6 : 3); addFriend('quang', won ? 7 : 5); if (freeTime()) advanceTime(20);
+  G.qg.ch = 3; addMemo('scene', 'qg_c3'); RT.lock = false; UI.hud();
+}
+async function qgCh4() {
+  RT.lock = true;
+  await playCut({ inPlace: true, bars: true, title: 'Chương 4 · Bí mật của lớp trưởng', actors: [qgA(G.x + 18, G.y, 1)], hide: ['m1', 'qg_mk', 'qg_field', 'qg_front'],
+    props: [now => { if (RT.scene && RT.scene.photo) { wRect('#2a2136', G.x + 4, G.y + 2, 10, 8); wRect('#fff6e3', G.x + 5, G.y + 3, 8, 6); wRect('#3b6fb6', G.x + 6, G.y + 5, 2, 3); wRect('#ff8fb4', G.x + 10, G.y + 5, 2, 3); } }],
+    steps: [{ say: [0, 'Đấu thêm ván nữa không? Để tớ xào bài…'] }, { fn: sc => { sc.photo = true; } }, { say: ['me', 'Ơ, có tấm ảnh rơi ra này. Hai đứa nhỏ… đây là cậu với Vy hả?'] },
+      { say: [0, 'À… ừ. Hồi tiểu học. Tớ với Vy chơi với nhau từ bé. Tớ hay giảng Toán cho Vy, còn Vy giúp tớ mấy bài cắt dán tỉ mỉ.'] },
+      { say: [0, 'Tớ… thích Vy lâu rồi. Định nói mấy lần mà sợ mọi chuyện khó xử, hai đứa là bạn lâu quá rồi.'] }, { fn: sc => { sc.photo = false; } },
+      { say: [0, 'Cậu giữ bí mật giúp tớ nhé. Lớp trưởng mà cũng có lúc không biết giải bài toán của chính mình.'] }] });
+  G.qg.ch = 4; addFriend('quang', 5); addMemo('scene', 'qg_c4'); RT.lock = false; UI.hud();
+}
+// chương 5 · nhánh A: đang hẹn hò với Vy → Quang chúc phúc ở sân bóng
+async function qgCh5A() {
+  RT.lock = true;
+  await playCut({ map: 'town', me: [QG.field[0] - 20, QG.field[1], 2], cam: { x: QG.field[0], y: QG.field[1] - 10 }, title: 'Chương 5 · Ê, cậu với Vy…', hide: ['qg_field', 'p_khoa', 'p_dat'], actors: [qgA(QG.field[0], QG.field[1], 1)],
+    steps: [{ say: [0, 'Ê, cậu với Vy… đang hẹn hò thật à?'] }, { say: ['me', 'Ừ, sao thế?'] }, { wait: 500 },
+      { say: [0, 'Không có gì. Tớ với Vy chơi từ hồi tiểu học. Tớ biết cậu ấy đôi lúc hơi khó hiểu, nhưng thật ra rất tốt bụng.'] },
+      { say: [0, 'Nhớ quan tâm cậu ấy nhé. Thôi, ra sân đá bóng với tớ đi!'] }] });
+  G.qg.vy = 'blessed'; G.qg.ch = 5; addFriend('quang', 6); addMemo('scene', 'qg_c5'); RT.lock = false; UI.hud();
+}
+// chương 5 · nhánh B: Quang nhờ làm quân sư, hẹn tỏ tình với Vy ở quán trà sữa Mây
+async function qgCh5B() {
+  RT.lock = true;
+  const c = await qgAsk('Quang gãi đầu: “Ờm… cậu có kinh nghiệm tỏ tình không? Tớ muốn nói với Vy. Nhưng nếu cậu ấy từ chối, tớ sợ mất luôn một người bạn.”', ['Cứ thành thật với Vy, nói rõ lòng mình', 'Để tớ giúp cậu chuẩn bị lời nói và chọn lúc thích hợp', 'Nói đi, nhưng phải tôn trọng câu trả lời của Vy']);
+  await qgAsk(c === 1 ? '“Cậu giúp tớ thật hả? Vậy… chiều mai ở quán trà sữa Mây (phố Hoa Phượng), 16:30. Cậu ghé qua cổ vũ tớ nhé!”' : '“Ừ… Tớ sẽ nói. Chiều mai 16:30 ở quán trà sữa Mây. Có gì tớ kể cậu nghe.”', ['Cố lên lớp trưởng!']);
+  G.qg.inv = { kind: 'qconfess', day: G.day + 1, from: 990, to: 1080, map: 'pho', x: 520, y: 150 }; G.qg.advice = c;
+  addFriend('quang', c === 1 ? 6 : 4); RT.lock = false; UI.hud();
+}
+// kết quả lời tỏ tình của Quang với Vy (có mặt thì xem cảnh, vắng thì Quang nhắn kể lại)
+function qgVyAnswer() {
+  const V = G.vy;
+  return !!V && !V.flags.dated && V.romance !== 'crush' && !isPartner('vy') && hearts('vy') <= 3 && V.ch < 5;
+}
+async function qgConfessVy(seen) {
+  const yes = qgVyAnswer(); G.qg.ch = 5; G.qg.vy = yes ? 'couple' : 'declined'; addMemo('scene', 'qg_c5');
+  if (yes) { G.qg.vyCouple = true; if (G.vy) G.vy.romance = 'quang'; }
+  if (!seen) { if (hasNum('quang')) inbox('quang', yes ? 'Vy… đồng ý rồi! Tớ không tin nổi. Cảm ơn cậu vì đã làm quân sư cho tớ!' : 'Vy bảo chỉ coi tớ là bạn thân thôi. Cũng tốt, ít nhất tớ đã nói ra. Mai đá bóng nhé.'); return; }
+  RT.lock = true;
+  await playCut({ map: 'pho', me: [470, 152, 2], cam: { x: 510, y: 140 }, title: 'Chương 5 · Tớ nên nói với Vy thế nào?', hide: ['vy_tea'], actors: [qgA(506, 146, 2), { look: 'vy', outfit: friendOutfit('vy'), x: 530, y: 146, dir: 1 }],
+    steps: [{ say: [0, 'Vy… tớ thích cậu từ hồi tiểu học. Không phải kiểu bạn thân đâu.'] }, { wait: 600 },
+      ...(yes ? [{ say: [1, '…Đồ ngốc. Tớ cứ chờ mãi xem bao giờ cậu mới chịu nói.'] }, { say: [0, 'Thật… thật hả?!'] }]
+        : [{ say: [1, 'Quang… cảm ơn cậu đã thật lòng. Nhưng tớ chỉ coi cậu là bạn thân nhất thôi. Mình vẫn là bạn như trước nhé?'] }, { say: [0, 'Ừ… Ừ, tất nhiên rồi. Bạn thân mà!'] }])] });
+  if (!yes) await qgAsk('Vy đi rồi, Quang quay sang cười gượng: “Thôi thì… ít nhất tớ đã nói ra được. Cảm ơn cậu đã ở đây.”', ['Lớp trưởng giỏi lắm']);
+  addFriend('quang', 6); RT.lock = false; UI.hud();
+}
+// chương 6: “Buổi chiều cuối cùng ở chợ” (chủ nhật, mẹ Quang bận, giúp Quang dọn sạp)
+async function qgLastMarket() {
+  RT.lock = true;
+  await playCut({ map: 'cho', me: [QG.me[0] + 4, QG.me[1] + 26, 3], cam: { x: 230, y: 130 }, title: 'Chương 6 · Không phải bài toán nào cũng có đáp án', hide: ['qg_mk', 'mk_mk_kho'], actors: [qgA(QG.me[0], QG.me[1], 0)],
+    props: [() => { wRect('#f2c27a', QG.me[0] + 10, QG.me[1] + 14, 6, 3); wRect('#f2c27a', QG.me[0] + 16, QG.me[1] + 18, 6, 3); }],
+    steps: [{ say: [0, 'Mẹ tớ đi lấy hàng rồi, nay hai đứa dọn sạp nhé. Xong tớ khao bánh mì!'] }, { wait: 900 },
+      { say: [0, 'Ngồi đây ăn bánh mì đi. Sau này… cậu định học gì?'] }, { say: ['me', 'Chưa biết nữa. Còn cậu?'] },
+      { say: [0, 'Tớ thích Toán, nhưng cũng muốn mở rộng cửa hàng cho mẹ. Học kinh tế thì sao nhỉ?'] }, { wait: 500 },
+      { say: [0, 'Lạ thật. Mấy chuyện này tớ chưa từng kể với ai, kể cả Vy. Vậy mà nói với cậu lại thấy dễ.'] },
+      { say: [0, 'Tớ cần thêm chút thời gian để hiểu cảm giác này là gì. Cậu… chờ tớ được không?'] }] });
+  qgSet('lastMarket'); G.qg.ch = 6; addFriend('quang', 6); addMemo('scene', 'qg_c6'); advanceTime(60);
+  RT.lock = false; UI.hud();
+}
+// Quang tự tỏ tình (vài hôm sau chương 6, nếu mình chưa tặng hoa oải hương)
+async function qgConfessSelf() {
+  qgSet('qconf');
+  const c = await qgAsk('Quang đứng trước mặt bạn, hít một hơi thật sâu: “Tớ nghĩ kỹ rồi. Không phải bài toán nào cũng có đáp án… nhưng câu trả lời của tớ là cậu. Mình hẹn hò nhé?”', ['Ừ, tớ đồng ý!', 'Cho tớ thời gian suy nghĩ thêm', 'Mình cứ làm bạn tốt nhé']);
+  if (c === 0) { await qgStartDating(); return; }
+  if (c === 2) { qgSet('friend'); return qgAsk('“…Ừ. Đối thủ truyền kiếp vẫn là đối thủ truyền kiếp nhỉ. Không sao, mình vẫn là bạn thân!”', ['Cảm ơn cậu']); }
+  return qgAsk('“Ừ, tớ chờ. Khi nào sẵn sàng thì nói tớ biết — hoặc tặng tớ một bó hoa oải hương cũng được, hì.”', ['Ừ']);
+}
+async function qgStartDating() {
+  if (G.love) return;
+  G.love = { fid: 'quang', since: G.day, bond: LOVE.bond0, last: G.day, cool: 0, coolDay: 0, mend: 0, argued: 0, inv: null };
+  addFriend('quang', 6, true); addMemo('scene', 'henho'); addMemo('scene', 'qg_date'); UI.hud();
+  UI.toast('Bạn và Quang chính thức hẹn hò — mở thêm tim 6–8. Từ giờ có thể hẹn Quang qua nhà kèm học, hoặc sang nhà Quang học chung.', 'good');
+}
+const qgCanDate = () => G.qg.ch >= 6 && ['declined', 'blessed'].includes(G.qg.vy) && !G.qg.vyCouple && !qgF('friend');
+// tim của Quang khi hẹn hò: tim 7–8 cần bữa cơm nhà Quang
+const qgLoveCap = () => (qgF('dinner') ? 160 : 120);
+// tặng hoa oải hương khi Quang chưa sẵn sàng: quà không thay được các sự kiện của tuyến
+function qgNoDateLine() {
+  const Q = G.qg;
+  if (Q.vyCouple) return '“Cảm ơn cậu… nhưng tớ đang hẹn hò với Vy rồi. Mình vẫn là bạn thân nhất nhé!” — Quang gãi đầu, trả lại bó hoa.';
+  if (qgF('friend')) return '“Mình đã chọn làm đối thủ truyền kiếp rồi mà, nhớ không? …Cho tớ thêm thời gian nhé.”';
+  if (Q.ch < 4) return '“Hoa oải hương? Ha ha, cậu tặng nhầm người rồi! Để dành cho ai đặc biệt hơn đi.” — Quang cười lớn, nhưng tai đỏ bừng.';
+  if (Q.ch < 6) return '“Tớ… chưa sắp xếp xong mọi chuyện trong lòng mình. Còn chuyện của tớ với Vy nữa. Cho tớ thời gian nhé.” — Quang cúi đầu, đưa lại bó hoa.';
+  return '“Tớ vẫn đang nghĩ… Cho tớ thêm chút thời gian.”';
+}
+// bấm chuông lúc Quang không ở nhà
+function qgNotHome() {
+  const p = qgPlace();
+  return { school: 'Giờ này Quang đang ở trường mà cháu?', market: 'Quang ra chợ phụ cô bán hàng rồi, sạp đồ khô trong chợ ấy.', field: 'Quang đi đá bóng ở sân công viên rồi cháu ạ.', commute: 'Quang chưa về tới nhà, chắc đang trên đường.', myhome: 'Quang sang nhà cháu kèm học rồi còn gì!', sleep: 'Khuya rồi cháu ơi, Quang ngủ rồi.' }[p] || 'Quang vừa chạy đi đâu đó rồi cháu ạ.';
+}
+async function qgConfessCut() {
+  await qgAsk('Bạn chìa bó hoa oải hương ra. Quang đỏ bừng mặt, kính trễ xuống mũi: “Hoa… cho tớ á?”', ['Tớ thích cậu. Mình hẹn hò nhé?']);
+  await qgAsk('“Tớ tính được mọi thứ, trừ lúc này. Ừ… tớ đồng ý. Cảm ơn cậu đã chờ tớ.”', ['♥']);
+}
+// 6♥ khi hẹn hò: bữa cơm nhà Quang (mở tim 7–8)
+async function qgDinner() {
+  if (G.ride) dismount(true);
+  G.visit = 'quang'; await goPlace('fhome', 46, 196, 3, 0);
+  RT.lock = true;
+  await playCut({ map: 'fhome', inPlace: true, cam: { x: 110, y: 150 }, title: '6 tim · Bữa cơm nhà Quang', hide: ['fh', 'fhp_bo', 'fhp_me'], actors: [qgA(84, 172, 1), { look: 'quangMom', x: 36, y: 150, dir: 0 }, { look: 'quangDad', x: 60, y: 150, dir: 0 }],
+    steps: [{ move: ['me', 12, 172, 500] }, { fn: () => { G.dir = 2; } }, { say: [1, 'Ăn đi cháu, cô nấu canh cua với cà pháo đấy. Nhà cô đơn giản thôi.'] }, { say: [2, 'Quang nó kể về cháu suốt. Hôm nào cũng “hôm nay bạn ấy giải được bài khó”…'] },
+      { say: [0, 'Bố! Đừng kể nữa mà!'] }, { say: [1, 'Sau này hai đứa mở cửa hàng to, cô ra làm thu ngân cho, hihi.'] }, { say: ['me', 'Dạ, cơm ngon lắm ạ!'] }] });
+  qgSet('dinner'); bondAdd(8); addFriend('quang', 4, true); addMemo('scene', 'qg_dinner'); advanceTime(60);
+  RT.lock = false; UI.hud();
+  UI.toast('Quang đưa bạn vào cuộc sống gia đình mình. Mở tim 7–8.', 'good');
+}
+// 8♥: Cúp Đội trưởng + thẻ kỷ niệm “Quang Đội Trưởng”
+async function qgCup() {
+  RT.lock = true;
+  await playCut({ inPlace: true, bars: true, title: '8 tim · Cúp Đội trưởng', actors: [qgA(G.x + 18, G.y, 1)], hide: ['m1'], props: [() => drawSpr(SPR.qgCup, G.x + 4, G.y - 44)],
+    steps: [{ say: [0, 'Giải đấu thẻ “Cúp Đội trưởng” do tớ tổ chức! Cả lớp đăng ký rồi, chung kết là cậu với tớ.'] }, { wait: 800 },
+      { say: [0, 'Cậu thắng rồi… À không, tớ cố ý nhường đâu! Cậu giỏi thật đấy.'] }, { say: [0, 'Tặng cậu lá thẻ này. Bản duy nhất, có chữ ký của đội trưởng.'] }] });
+  const card = CARDS.find(c => /Quang/.test(c.name)); if (card) G.cards[card.id] = (G.cards[card.id] || 0) + 1;
+  qgSet('cup'); addMemo('item', 'cupdoitruong'); addMemo('scene', 'qg_cup'); bondAdd(10);
+  RT.lock = false; UI.hud();
+}
+
+/* ---------- học cùng Quang: như một buổi học thêm (tối đa 2 buổi/tuần khi hẹn hò) ---------- */
+const qgTutLeft = () => QG.tutWeek - ((G.qg.tutWk || {})[wk(G.day)] || 0);
+async function qgLesson(where) {
+  if (RT.lock) return;
+  if (!isPartner('quang') || !lovePerks()) return qgAsk('“Dạo này tớ bận ôn đội tuyển quá, để hôm khác nhé.”', ['Ừ']);
+  if (qgTutLeft() <= 0) return qgAsk('“Tuần này học đủ hai buổi rồi, nghỉ ngơi đi. Tuần sau tớ kèm tiếp!”', ['Ừ']);
+  if (G.stamina < TUTOR.stam) return qgAsk('“Trông cậu mệt lắm, đi ngủ sớm đi, mai học.”', ['Ừ']);
+  const c = await UI.ask(where === 'home' ? 'Quang sang kèm học' : 'Học chung ở nhà Quang', '<p>“Học môn gì nào? Toán là sở trường của tớ, nhưng môn nào tớ cũng kèm được.”</p><p class="dim">90 phút · hiệu quả như một buổi học thêm (cộng vào bài kiểm tra môn đó trong học kỳ) · Toán được thêm điểm.</p>', BOOK_SUBJ.map(s => SUBJ[s].name).concat('Thôi'), { grid: true, who: qgWho() });
+  if (c < 0 || c >= BOOK_SUBJ.length) return;
+  const s = BOOK_SUBJ[c], S = SUBJ[s]; RT.lock = true;
+  const home = where === 'home', A = home ? qgA(92, 62, 1) : qgA(290, 62, 1);
+  await playCut({ map: home ? 'home' : 'fhome', me: home ? [70, 62, 2] : [268, 62, 2], bars: false, title: `Học ${S.name} cùng Quang`, actors: [A], hide: ['qg_myhome', 'fh'],
+    steps: [{ say: [0, s === 'toan' ? 'Bài này mẹo nè: đặt ẩn phụ là ra liền.' : `${S.name} thì phải nắm ý chính trước đã, để tớ tóm tắt cho.`] },
+      { live: async () => { await UI.progress(`Đang học ${S.name} cùng Quang… (90 phút)`, UI._fast ? 10 : 2000, S.color); } }, { say: [0, 'Xong! Về làm thêm bài tập nhé, mai tớ kiểm tra đó.'] }] });
+  const W = wk(G.day); (G.qg.tutWk = G.qg.tutWk || {})[W] = (G.qg.tutWk[W] || 0) + 1;
+  advanceTime(QG.lesson); useStam(TUTOR.stam); addStat(s, TUTOR.pts + (s === 'toan' ? QG.toanBonus : 0));
+  const k = semKey(G.day) || 'x', T = ((G.tutor = G.tutor || {})[k] = G.tutor[k] || {}); T[s] = (T[s] || 0) + 1;
+  if (typeof hsgNoteStudy === 'function') hsgNoteStudy(s, 'tutor');
+  addFriend('quang', 3); bondAdd(4);
+  if (home && G.qg.inv && G.qg.inv.kind === 'tutor') G.qg.inv = null;
+  RT.lock = false; UI.hud();
+  UI.toast(`Học ${S.name} cùng Quang xong (+${TUTOR.pts + (s === 'toan' ? QG.toanBonus : 0)} điểm môn, như một buổi học thêm). Tuần này còn ${qgTutLeft()} buổi.`, 'good');
+}
+
+/* ---------- hằng ngày ---------- */
+function qgNewDay() {
+  const Q = G.qg, c = cal(G.day), msg = t => { if (hasNum('quang')) inbox('quang', t); };
+  if (Q.inv && Q.inv.day < G.day) { const k = Q.inv.kind; Q.inv = null; if (k === 'qconfess') qgConfessVy(false); if (k === 'dinner') { bondAdd(-8, 'không tới bữa cơm nhà Quang'); msg('Hôm qua mẹ tớ nấu cả mâm chờ cậu… Thôi, bữa khác nhé.'); } if (k === 'tutor') bondAdd(-4); }
+  if (!Q.inv && isPartner('quang') && hearts('quang') >= 6 && !qgF('dinner') && c.dow === 4) { Q.inv = { kind: 'dinner', day: G.day + 1, from: 1050, to: 1170 }; msg('Tối mai (thứ 7) 17:30–19:30 qua nhà tớ ăn cơm nhé! Mẹ tớ bảo muốn gặp cậu. Nhà tớ ở cuối phố Bờ Đông, cạnh chợ.'); }
+  // giải Nhất Toán quốc gia của Quang (mùa Thu từ lớp 11, sau buổi chào cờ trao giải)
+  const y = c.year;
+  if (y >= 1 && Q.natPrize !== y && c.season === 0 && G.day >= hsgPlan(y - 1).cer) {
+    Q.natPrize = y;
+    if (RT.morning) RT.morning.push('Bảng tin trường: lớp trưởng Quang (10A1) đoạt <b>giải Nhất Toán</b> kỳ thi học sinh giỏi quốc gia! Gặp Quang để chúc mừng nhé.');
+  }
+  if (!isPartner('quang') || !lovePerks()) return;
+  const tmr = (G.tests || []).find(t => !t.done && t.day === G.day + 1);
+  if (tmr) msg(`Mai kiểm tra ${SUBJ[tmr.subj].name} đó. Tối nay muốn tớ qua kèm không? Nhắn tớ nhé (gặp tớ rồi hẹn).`);
+  const H = typeof hsgCur === 'function' && hsgCur(), hk = H && hsgToday(H);
+  if (hk) msg('Hôm nay có buổi đội tuyển HSG đó, nhớ mang sách và tới sớm nha!');
+}
+// gặp Quang: sự kiện chương
+async function qgTalkHook(where) {
+  const Q = G.qg, h = hearts('quang'), sch = where === 'school' || where === 'class';
+  if (Q.ch === 0 && sch && G.day >= 1) { await qgCh1(); return true; }
+  if (Q.ch === 1 && h >= 1 && where === 'market') { await qgCh2(); return true; }
+  if (Q.ch === 2 && h >= 2 && sch && qgMathGood() && (freeTime() || yardTime())) { await qgCh3(); return true; }
+  if (Q.ch === 3 && h >= 3 && (G.grade >= 11 || cal(G.day).season >= 2) && where !== 'market') { await qgCh4(); return true; }
+  if (Q.ch === 4 && h >= 4 && !Q.inv) { if (isPartner('vy')) { if (where === 'field') { await qgCh5A(); return true; } } else { await qgCh5B(); return true; } }
+  if (Q.ch === 5 && ['declined', 'blessed'].includes(Q.vy) && !Q.vyCouple && !G.love && h >= 5 && where === 'market' && cal(G.day).dow === 6 && G.time >= 840) { await qgLastMarket(); return true; }
+  if (Q.ch === 6 && qgCanDate() && !G.love && !qgF('qconf') && G.day - (Q.flags.lastMarket - 1) >= 3) { await qgConfessSelf(); return true; }
+  if (isPartner('quang') && h >= 8 && !qgF('cup') && sch) { await qgCup(); return true; }
+  return false;
+}
+// tới quán trà sữa đúng giờ hẹn → xem cảnh Quang tỏ tình với Vy
+function qgTick() {
+  const Q = G.qg; if (!Q || !Q.inv || RT.lock || RT.scene || UI.isOpen()) return false;
+  if (Q.inv.kind === 'tutor' && Q.inv.day === G.day && G.time >= Q.inv.from && !Q.inv.told) { Q.inv.told = true; UI.toast(G.map === 'home' ? 'Quang tới rồi! Cậu ấy đang chờ ở bàn học.' : 'Quang đã tới nhà bạn, đang chờ ở bàn học (19:00–21:30).', 'info'); }
+  if (Q.inv.kind === 'qconfess' && Q.inv.day === G.day && G.map === 'pho' && inWin(G.time, Q.inv.from, Q.inv.to) && Math.hypot(G.x - Q.inv.x, G.y - Q.inv.y) < 60) { Q.inv = null; qgConfessVy(true); return true; }
+  return false;
+}
+// bấm chuông nhà Quang
+function qgHouseHook() {
+  const Q = G.qg;
+  if (Q.inv && Q.inv.kind === 'dinner' && Q.inv.day === G.day && inWin(G.time, Q.inv.from, Q.inv.to)) { Q.inv = null; qgDinner(); return true; }
+  return false;
+}
+// lời thoại thường ngày
+const QG_TALK = [
+  ['“Lịch tuần này: thứ 3 kiểm tra 15 phút Toán, thứ 5 trực nhật tổ 2. Nhớ nha!”', '“Có bài nào khó cứ hỏi tớ, lớp trưởng phục vụ 24/7.”', '“Ra chơi đấu thẻ không?”'],
+  ['“Hôm qua tớ bóc được thẻ hiếm, tiền đạo cánh tốc độ 9! Ghen tị chưa?”', '“Chợ Bờ Đông sáng chủ nhật đông vui lắm, ra chơi đi.”', '“Tối tớ phụ mẹ tính sổ, toàn số lẻ, mỏi tay ghê.”'],
+  ['“Bố tớ làm ca đêm tuần này, sáng về là ngủ tới trưa luôn.”', '“Mẹ tớ mà tính nhẩm thì tớ cũng chịu thua đấy.”', '“Cậu thấy tớ có nên thi chuyên Toán không nhỉ?”'],
+  ['“Cậu là người đầu tiên tớ kể chuyện nhà mình nhiều vậy đó.”', '“Đôi khi tớ mệt vì lúc nào cũng phải đứng nhất…”', '“Hội khoẻ Phù Đổng năm nay lớp mình phải lấy cúp!”'],
+  ['“Có cậu làm đối thủ, học Toán vui hơn hẳn.”', '“Tớ hay nghĩ linh tinh về sau này lắm. Kể cậu nghe nha?”', '“Cảm ơn cậu đã lắng nghe tớ.”'],
+  ['“Lạ thật, ở cạnh cậu tớ chẳng cần tỏ ra giỏi giang gì cả.”', '“Cậu nghĩ… hai người hợp nhau thì có cần giống nhau không?”'],
+];
+function qgLoveLine() {
+  const h = hearts('quang'), c = loveCool();
+  if (c >= 3) return pick(['“Dạo này tớ bận ôn đội tuyển với phụ mẹ, chắc ít đi chơi được.” (cậu ấy cười, nhưng cuộc nói chuyện ngắn hẳn)', '“Ừ, cũng ổn. Thôi tớ ra chợ đây.”']);
+  if (c >= 1) return pick(['“Hôm nay lại bận hả? Không sao không sao, tớ quen rồi, hì.” (cậu ấy cố nói đùa)', '“Tớ đặt lịch rồi đó nha, lần này cậu đừng quên nữa!”']);
+  if (h >= 8) return pick(['“Hai ngôi sao của Hoa Phượng phải cùng nhau tốt nghiệp chứ nhỉ!”', '“Tớ quyết rồi: học thứ gì kết hợp được Toán với kinh doanh. Cậu thấy sao?”']);
+  if (h >= 7) return pick(['“Mẹ tớ hỏi bao giờ cậu ra chợ phụ tiếp, bà quý cậu hơn cả tớ rồi.”', '“Bố tớ bảo cậu đá bóng hay hơn tớ. Không chịu đâu!”']);
+  return pick(['“Hẹn hò mà vẫn thách đấu Toán được không? Được chứ!”', '“Tối nay qua tớ kèm học nhé? Cậu học xong tớ khao chè.”', '“Ê, cậu cười trông ngốc ghê… nhưng tớ thích.”']);
+}
+async function qgChat() {
+  if (isPartner('vy') && loveCool() >= 2) return qgAsk('“Cậu với Vy giận nhau hả? Tớ không đứng về bên nào đâu, nhưng hai cậu nên nói chuyện trực tiếp với nhau. Vy ngoài lạnh trong ấm lắm.”', ['Ừ, cảm ơn cậu']);
+  return qgAsk(isPartner('quang') ? qgLoveLine() : pick(QG_TALK[Math.min(5, hearts('quang'))]), ['…']);
+}
+// menu nói chuyện với Quang
+function qgTalkOpts(add, where) {
+  const Q = G.qg, dating = isPartner('quang') && lovePerks();         // giai đoạn nguội lạnh 3: tạm khoá quyền lợi người yêu
+  if (where === 'market' && Q.ch >= 2 && !G.daily.qgHelp) add('qghelp', 'Phụ bán hàng cùng Quang');
+  if (where === 'market') add('qgstall', 'Mua hàng ở sạp cô Lan');
+  if (where === 'field' && !G.daily.qgBall) add('qgball', 'Đá bóng cùng Quang');
+  if (!dating && hearts('quang') >= 2 && Q.mathWk !== wk(G.day)) add('qgmath', 'Nhờ Quang giảng bài Toán');
+  if (hearts('quang') >= 4 && Q.swapWk !== wk(G.day) && Object.values(G.cards).some(n => n > 1)) add('qgswap', 'Đổi thẻ cầu thủ trùng');
+  if (dating && qgTutLeft() > 0 && G.time < 1140 && !(Q.inv && Q.inv.kind === 'tutor')) add('qgtutor', 'Hẹn Quang tối nay qua nhà kèm học');
+  if (dating && where === 'in' && G.visit === 'quang' && qgTutLeft() > 0) add('qgstudy', 'Học chung với Quang');
+  if (Q.natPrize === cal(G.day).year && Q.congrats !== Q.natPrize) add('qgcongrats', 'Chúc mừng Quang đoạt giải Toán quốc gia');
+}
+async function qgTalkDo(c) {
+  const Q = G.qg;
+  if (c === 'qghelp') { await qgHelpStall(); return true; }
+  if (c === 'qgstall') { ACT.qgStall(); return true; }
+  if (c === 'qgball') { G.daily.qgBall = true; await activity('Đá bóng cùng Quang ở sân công viên…', 45, () => { useStam(8, true); addStat('thethao', 3); addFriend('quang', 3); if (isPartner('quang')) bondAdd(4); }); return true; }
+  if (c === 'qgmath') { Q.mathWk = wk(G.day); await activity('Quang giảng bài Toán cho bạn…', 25, () => { addStat('toan', 4); addFriend('quang', 2); }); return true; }
+  if (c === 'qgswap') {
+    Q.swapWk = wk(G.day);
+    const dup = Object.keys(G.cards).filter(id => G.cards[id] > 1).sort((a, b) => CARD_BY_ID[b].r - CARD_BY_ID[a].r)[0], C = CARD_BY_ID[dup];
+    const pool = CARDS.filter(x => x.r === C.r && !G.cards[x.id]), got = pool.length ? pick(pool) : pick(CARDS.filter(x => x.r === C.r && x.id !== dup));
+    G.cards[dup]--; G.cards[got.id] = (G.cards[got.id] || 0) + 1; addFriend('quang', 2);
+    await qgAsk(`“Đổi ${C.name} lấy ${got.name} nhé! Thẻ trùng để làm gì, đổi cho nhau mới vui.”`, ['Chốt!']); return true;
+  }
+  if (c === 'qgtutor') { Q.inv = { kind: 'tutor', day: G.day, from: 1140, to: 1290, place: 'myhome' }; await qgAsk('“Ok! 19:00 tớ qua nhà cậu, nhớ dọn bàn học đấy. Mang theo sách môn cần học nha.”', ['Tớ chờ']); return true; }
+  if (c === 'qgstudy') { await qgLesson('fhome'); return true; }
+  if (c === 'qgcongrats') { Q.congrats = Q.natPrize; addFriend('quang', 5); await qgAsk('“Cảm ơn cậu! Giải Toán quốc gia đó. Năm sau cậu cũng thi đi, mình cùng lên bục.”', ['Chúc mừng lớp trưởng!']); return true; }
+  return false;
+}
+
+/* ---------- chương 7: tốt nghiệp ---------- */
+function qgEnding() {
+  const h = hearts('quang');
+  if (isPartner('quang') && h >= 7) return 'true';
+  if (G.qg.vyCouple) return 'alt';
+  if (G.exLove && G.exLove.fid === 'quang') return 'break';
+  if (h >= 4) return 'friend';
+  return null;
+}
+const QG_END = {
+  true: ['Hai ngôi sao của Hoa Phượng', 'Tớ chọn ngành kết hợp Toán với kinh doanh rồi. Chặng đường mới, mình vẫn đi cùng nhau nhé — hai ngôi sao của Hoa Phượng!'],
+  friend: ['Đối thủ truyền kiếp', 'Ba năm làm lớp trưởng, người tớ muốn thắng nhất luôn là cậu. Tặng cậu lá thẻ quý nhất của tớ — hẹn một ngày tái đấu!'],
+  alt: ['Người bạn năm ấy', 'Cảm ơn cậu đã làm quân sư cho tớ năm lớp 11. Tớ với Vy sẽ cố gắng cùng nhau. Mãi là bạn thân nhé!'],
+  break: ['Mỗi người một hành trình', 'Mình từng là một đôi, giờ mỗi người một hành trình. Tớ vẫn tôn trọng cậu và chúc cậu thật nhiều thành công.'],
+};
+async function qgGraduation() {
+  const e = qgEnding(); if (!e) return;
+  const [name, note] = QG_END[e]; G.qg.note = note; G.qg.ending = e;
+  const dating = e === 'true';
+  if (dating) await playCut({ map: 'cho', me: [QG.me[0] + 4, QG.me[1] + 26, 3], cam: { x: 230, y: 130 }, title: `Chương 7 · ${name}`, hide: ['qg_mk', 'mk_mk_kho'], actors: [qgA(QG.me[0], QG.me[1], 0), { look: 'quangMom', x: QG.stall[0], y: QG.stall[1], dir: 0 }],
+    steps: [{ say: [1, 'Hai đứa tốt nghiệp rồi! Cô mừng quá, tối nay cô làm cả mâm chè.'] }, { say: [0, 'Ở chợ này tớ học được nhiều hơn cả ở lớp. Và gặp được cậu.'] }] });
+  await playCut({ map: 'school', me: [330, 300, 2], cam: { x: 350, y: 280 }, title: `Chương 7 · Người giỏi nhất không nhất thiết phải đứng nhất — ${name}`, actors: [qgA(354, 300, 1)],
+    steps: [{ say: [0, 'Ba năm rồi. Hồi đầu tớ cứ nghĩ đứng nhất là quan trọng nhất.'] }, { say: [0, 'Giờ tớ hiểu, giá trị của mình còn ở những người đã đi cùng mình.'] }, { say: [0, note] }] });
+  if (e === 'friend') { const rare = CARDS.filter(c => c.r >= 2).sort(() => Math.random() - 0.5)[0]; if (rare) G.cards[rare.id] = (G.cards[rare.id] || 0) + 1; }
+  addMemo('scene', 'qg_grad');
 }
 
 'use strict';
@@ -15108,7 +15621,7 @@ MV.memo = {
     h += '<div class="rows">';
     for (const p of memoPeople()) {
       const n = M.notes[p.id];
-      h += n ? `<div class="memo-note"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p>“${(p.id === 'vy' && G.vy && G.vy.note) || MEMO_NOTES[p.id]}”</p></div></div>` : `<div class="memo-note lock"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p class="dim">Không viết lưu bút.</p></div></div>`;
+      h += n ? `<div class="memo-note"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p>“${(p.id === 'vy' && G.vy && G.vy.note) || (p.id === 'quang' && G.qg && G.qg.note) || MEMO_NOTES[p.id]}”</p></div></div>` : `<div class="memo-note lock"><img src="${faceOf(p.look, null)}" alt=""><div><b>${p.name}</b><p class="dim">Không viết lưu bút.</p></div></div>`;
     }
     return h + '</div>';
   },
